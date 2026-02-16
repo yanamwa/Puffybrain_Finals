@@ -1,0 +1,561 @@
+:root {
+    --color-primary: #EBD3FA;
+    --color-secondary: #E3AADD;
+    --color-third: #C8A8E9;
+    --color-fourth: #A993D8;
+    --color-fifth: #C3C7F3;
+    --font-color: #2F2F2F;
+    --card-color1: #C8BBD0;
+    --card-color2: #E0BBD4;
+     --card-color3: #C3C7F3;
+     --card-color4: #90F897;
+    --card-color5: #CF8686;
+     --card-color6: #EECB99;
+     --color-shadow: #DDDDDD;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: "Poppins", sans-serif;
+    height: 100%;
+    overflow: hidden;     
+}
+
+body {
+    background: #d8c8ff;
+    min-height: 80vh;
+    overflow: hidden;
+}
+
+.wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+}
+
+/* BACKGROUND IMAGE */
+.background {
+    width: 100%;
+    height: 100%;
+    background: url('background.png') no-repeat center/cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+}
+
+
+/* CONTAINER WITH BORDER RADIUS */
+.container {
+    width: 100%;
+    max-width: 1600px;
+    min-height: 97vh;
+    position: relative;
+    border-radius: 25px;
+    overflow: hidden;
+    border: 3px solid #c3a6ff;
+}
+
+/* ===== NAVBAR ===== */
+.navbar {
+    width: 90%;
+    height: 90px;
+
+    background: rgba(54, 48, 138, 0.2);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+
+    display: flex;
+    align-items: center;
+    justify-content: center; 
+
+    gap: 80px; 
+    width: 140vh;
+    margin: 70px auto;
+
+    border-radius: 50px;
+
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 999;
+}
+
+/* ===== LOGO ===== */
+.logo img {
+    height: 100px;
+    width: auto;
+}
+
+/* ===== NAV LINKS ===== */
+.nav-links {
+    justify-content: center; 
+    list-style: none;
+    display: flex;
+    gap: 40px;
+
+    font-family: "Jersey 15", sans-serif;
+    font-size: 25px;
+}
+
+.nav-links a {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 500;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.nav-links a:hover {
+    transform: scale(1.06);
+    opacity: 0.75;
+}
+
+/* Click animation */
+.nav-links a:active {
+    transform: scale(0.92);
+}
+
+/* ===== ACTIONS  ===== */
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+
+    font-family: "Jersey 15", sans-serif;
+    font-size: 25px;
+}
+
+.nav-actions .login {
+    color: #ffffff;
+    text-decoration: none;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.nav-actions .login:hover {
+    transform: scale(1.06);
+    opacity: 0.75;
+}
+
+.nav-actions .login:active {
+    transform: scale(0.92);
+}
+
+/* ===== START BUTTON ===== */
+.start-btn {
+    padding: 10px 26px;
+    background: white;
+    color: var(--color-third);
+    border: none;
+    border-radius: 25px;
+
+    font-family: "Jersey 15", sans-serif;
+    font-size: 20px;
+
+        display: inline-block;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    
+    cursor: pointer;
+
+    box-shadow: 0 4px 0 var(--color-secondary);
+
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.start-btn:hover {
+    transform: scale(1.05);
+}
+
+.start-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 var(--color-secondary);
+}
+
+/* ===== LOGIN CARD ===== */
+.login-container {
+    margin-top: 130px;
+    display: flex;
+    justify-content: center;
+}
+
+.login-card {
+    margin-top: 100px;
+    background: white;
+    width: 380px;
+    padding: 35px;
+    border-radius: 30px;
+
+ box-shadow: 
+        0 14px 0 var(--color-shadow),   
+        14px 0 0 var(--color-shadow);  
+
+    position: relative;
+
+}
+
+.login-card h2 {
+    font-family: "Jersey 15", sans-serif;
+    font-size: 42px;
+    font-weight: normal;
+    color: var(--font-color);
+    text-align: center;
+    margin: 0;
+    padding-bottom: 12px;
+    position: relative;
+    padding-bottom: 20px;
+    border-bottom: none; 
+}
+.login-card h2::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+
+    width: 119%;        
+    height: 5px;          
+    background: var(--color-shadow);
+}
+
+label {
+    font-family: "Jersey 15", sans-serif;
+    display: block;
+    margin-top: 30px;
+    color: var(--font-color);
+    font-size: 30px; /* ← your desired size */
+}
+
+.login-card label,
+.signup-card label,
+label {
+    font-family: "Jersey 15", sans-serif !important;
+    font-size: 18px !important;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin-top: 5px;
+    border: none;
+    background: #efefef;
+    border-radius: 15px;
+    font-family: "Jersey 15", sans-serif !important; 
+        font-size: 16px;
+
+}
+
+.input-box input {
+    font-family: "Jersey 15", sans-serif !important;
+    font-size: 30px !important;
+}
+
+input:focus {
+    background: #e2e2e2;
+    outline: none;            
+    box-shadow: 0 0 0 3px var(--color-secondary); 
+}
+
+.forgot {
+    display: block;
+    margin-top: 15px;
+    font-size: 12px;
+    text-align: right;
+    color: var(--color-fourth);
+    text-decoration: none;
+}
+
+.login-btn {
+    margin-top: 20px;
+    width: 100%;
+    padding: 12px;
+    background: var(--color-primary);
+    border: none;
+    border-radius: 23px;
+    font-weight: normal;
+    cursor: pointer;
+    font-family: "Jersey 15", sans-serif;
+    font-size: 20px;
+    color: var(--font-color);
+    /* 3D button effect */
+    box-shadow: 0 4px 0 #d59be8;
+}
+
+.login-btn:hover {
+    transform: scale(1.05);
+}
+.login-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 var(--color-secondary);
+}
+
+
+/* ===== SIGNUP CARD ===== */
+.signup-container {
+    margin-top: 130px;
+    display: flex;
+    justify-content: center;
+}
+
+.signup-card {
+    margin-top: 100px;
+    background: white;
+    width: 380px;
+    padding: 50px;
+    border-radius: 30px;
+
+ box-shadow: 
+        0 20px 0 var(--color-shadow),   
+        22px 20px 0 var(--color-shadow);  
+
+    position: relative;
+
+}
+
+.signup-card h2 {
+    font-family: "Jersey 15", sans-serif;
+    font-size: 42px;
+    font-weight: normal;
+    color: var(--font-color);
+    text-align: center;
+    margin: 0;
+    padding-bottom: 12px;
+    position: relative;
+    padding-bottom: 20px;
+    border-bottom: none; 
+}
+.signup-card h2::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+
+    width: 127%;        
+    height: 5px;          
+    background: var(--color-shadow);
+}
+
+
+label {
+    display: block;
+    margin-top: 30px;
+    font-size: 14px;
+    color: var(--font-color);
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin-top: 5px;
+    border: none;
+    background: #efefef;
+    border-radius: 15px;
+}
+
+input:focus {
+    background: #e2e2e2;
+    outline: none;            
+    box-shadow: 0 0 0 3px var(--color-secondary); 
+}
+
+.forgot {
+    display: block;
+    margin-top: 15px;
+    font-size: 12px;
+    text-align: right;
+    color: var(--color-fourth);
+    text-decoration: none;
+}
+
+.login-btn {
+    margin-top: 20px;
+    width: 100%;
+    padding: 12px;
+    background: var(--color-primary);
+    border: none;
+    border-radius: 23px;
+    font-weight: normal;
+    cursor: pointer;
+    font-family: "Jersey 15", sans-serif;
+    font-size: 20px;
+    color: var(--font-color);
+    /* 3D button effect */
+    box-shadow: 0 4px 0 #d59be8;
+}
+
+.login-btn:hover {
+    transform: scale(1.05);
+}
+
+.login-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 var(--color-secondary);
+}
+
+
+.signup-text {
+    text-align: center;
+    font-size: 14px;
+    margin-top: 18px;
+    text-decoration: none;
+}
+
+.signup-text a {
+    color: var(--color-fourth);
+    text-decoration: none;
+
+}
+
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding: 12px;
+}
+
+.toggle-eye {
+    position: absolute;
+    left: 370px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--color-fourth);
+    opacity: 0.7;
+}
+
+.toggle-eye:hover {
+    opacity: 1;
+}
+
+.terms-text,
+.signin-text {
+    width: 100%;
+    text-align: center;
+}
+
+.terms-text {
+    margin-top: 20px;
+    font-size: 10px;
+    color: #999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.signin-text{
+    font-size: 12px;
+    margin-top: 18px;
+    text-decoration: none;
+}
+.signin-text a {
+    color: var(--color-fourth);
+    text-decoration: none;
+
+}
+
+/* ===== POP UP ===== */
+
+.my-popup {
+    border-radius: 25px !important;
+    padding: 15px !important;
+    background: white;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.15);
+    border: 3px solid #eac5ff;
+}
+
+.my-title {
+    font-family: "Jersey 15", sans-serif;
+    color: var(--color-third);
+    font-size: 35px;
+    font-weight: normal;
+}
+
+.my-text {
+    font-family: "Poppins", sans-serif;
+    font-size: 14px;
+    font-weight: normal;
+    color: #444;
+}
+
+.my-confirm-btn {
+    background: #c597ff !important;
+    border-radius: 20px !important;
+    padding: 10px 30px !important;
+    font-family: "Jersey 15", sans-serif;
+    font-size: 18px;
+    box-shadow: 0 4px 0 #a86ef4;
+    transition: 0.15s ease;
+}
+
+.my-confirm-btn:hover {
+    transform: scale(1.05);
+}
+
+.my-confirm-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #a86ef4;
+}
+
+.my-img {
+    border-radius: 20px;
+}
+
+/* ===== VERIFY ===== */
+.otp-wrapper {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 25px 0;
+}
+
+.otp-input {
+    width: 65px;
+    height: 65px;
+    font-size: 28px;
+    text-align: center;
+    border-radius: 15px;
+    border: none;
+    background: #efefef;
+    font-family: "Jersey 15", sans-serif;
+}
+
+.otp-input:focus {
+    outline: none;
+    background: #ceccce;
+    box-shadow: 0 0 8px rgba(200, 100, 255, 0.5);
+}
+
+.verify-btn {
+    width: 100%;
+    padding: 12px;
+    background: #e7c1ff;
+    border: none;
+    border-radius: 23px;
+    font-family: "Jersey 15", sans-serif;
+    font-size: 20px;
+    cursor: pointer;
+
+    /* 3D effect */
+    box-shadow: 0 4px 0 #d59be8;
+
+    transition: 0.15s ease;
+}
+
+.verify-btn:hover {
+    transform: scale(1.05);
+}
+
+.verify-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #d59be8;
+}
