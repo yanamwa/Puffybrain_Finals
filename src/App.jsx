@@ -15,10 +15,7 @@ import School from "./pages/introduction/School";
 import Year from "./pages/introduction/Year";
 import Profile from "./pages/introduction/Profile";
 
-
-/* Home 
-import Homepage from "./pages/Home/Homepage";
-*/
+import Homepage from "./pages/useraccount/homepage";
 
 /* Admin */
 import AdminLogin from "./pages/admin/AdminLogin";
@@ -42,11 +39,8 @@ function App() {
       <Route path="/year" element={<Year />} />
       <Route path="/profile" element={<Profile />} />
 
-
-
-      {/* USER HOME*/}
-
-      {/* ADMIN ROUTES */}
+      <Route path="/profile" element={<Homepage />} />
+ {/* ADMIN ROUTES */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
     </Routes>
