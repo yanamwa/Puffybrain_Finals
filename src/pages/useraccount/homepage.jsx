@@ -225,14 +225,16 @@ function Homepage() {
 
 
     <div className="popup-container">
-      
-            <div className="popup-header-bar">
-              <h2 className="popup-header-title">Create New Deck</h2>
-            </div>
+
+
             
 
       <form className="subtitle-form">
 
+            <div className="popup-header-bar">
+              <h2 className="popup-header-title">Create New Deck</h2>
+            </div>
+            
         <div className="form-group">
           <label className="deckinfo">Deck Title</label>
           <input type="text" className="newdecktitle" placeholder="Enter your deck name" />
