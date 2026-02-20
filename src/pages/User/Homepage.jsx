@@ -2,8 +2,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import Swal from "sweetalert2";
 import "./homepage.css";
-import Calendar from "../useraccount/calendar"; 
-import TodoList from "../useraccount/TodoList";
+import Calendar from "../User/calendar"; 
+import TodoList from "../User/TodoList";
 
 function Homepage() {
   const navigate = useNavigate();

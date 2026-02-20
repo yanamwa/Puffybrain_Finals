@@ -80,7 +80,7 @@ function Profile() {
       <div className={styles.footer}>
         <h2 className={styles.footerTitle}>Have fun learning!</h2>
 
-        <Link to="/home" className={styles.submitBtn}>
+        <Link to="/Loading" className={styles.submitBtn}>
           Start
         </Link>
       </div>

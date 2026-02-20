@@ -15,7 +15,9 @@ import School from "./pages/introduction/School";
 import Year from "./pages/introduction/Year";
 import Profile from "./pages/introduction/Profile";
 
-import Homepage from "./pages/useraccount/homepage";
+/* Home */
+import Loading from "./pages/User/loading";
+import Homepage from "./pages/User/Homepage";
 
 /* Admin */
 import AdminLogin from "./pages/admin/AdminLogin";
@@ -39,7 +41,10 @@ function App() {
       <Route path="/year" element={<Year />} />
       <Route path="/profile" element={<Profile />} />
 
-      <Route path="/profile" element={<Homepage />} />
+    {/* HOME */}
+      <Route path="/loading" element={<Loading />} />
+      <Route path="/homepage" element={<Homepage />} />
+
  {/* ADMIN ROUTES */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
