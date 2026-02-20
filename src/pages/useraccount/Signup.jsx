@@ -1,4 +1,4 @@
-import "./login.css";
+import "./login.module.css";
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { useNavigate, Link } from "react-router-dom";
@@ -10,11 +10,9 @@ function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const API_BASE = import.meta.env.VITE_API_BASE;
-
 
   const handleSignup = () => {
-    // ===== VALIDATIONS =====
+    // 
     if (!username.trim()) {
       return Swal.fire({
         imageUrl: "/images/error.png",
@@ -66,8 +64,7 @@ function Signup() {
       });
     }
 
-    // ===== SEND TO BACKEND =====
-    fetch(`${API_BASE}/signup.php`, {
+    fetch("http://localhost/puffybrain/signup.php", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
