@@ -10,6 +10,8 @@ function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const API_BASE = import.meta.env.VITE_API_BASE;
+
 
   const handleSignup = () => {
     // ===== VALIDATIONS =====
@@ -65,7 +67,7 @@ function Signup() {
     }
 
     // ===== SEND TO BACKEND =====
-    fetch("http://localhost/puffybrain/signup.php", {
+    fetch(`${API_BASE}/signup.php`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
