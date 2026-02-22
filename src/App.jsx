@@ -8,7 +8,7 @@ import Otp from "./pages/useraccount/Otp";
 import Forgot from "./pages/useraccount/Forgotpassword";
 import ChangePassword from "./pages/useraccount/Changepassword";
 
-/* Introduction */
+
 import Welcome from "./pages/introduction/Welcome";
 import HowItWorks from "./pages/introduction/HowItWorks";
 import School from "./pages/introduction/School";
@@ -18,6 +18,7 @@ import Profile from "./pages/introduction/Profile";
 /* Home */
 import Loading from "./pages/User/loading";
 import Homepage from "./pages/User/Homepage";
+import PublicDeck from "./pages/useraccount/public_decks/publicDeck";
 
 /*Decks*/
 import DeckPage from "./pages/decks/DeckPage"; 
@@ -25,6 +26,7 @@ import DeckPage from "./pages/decks/DeckPage";
 /* Admin */
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+
 
 function App() {
   return (
@@ -47,6 +49,7 @@ function App() {
     {/* HOME */}
       <Route path="/loading" element={<Loading />} />
       <Route path="/homepage" element={<Homepage />} />
+      <Route path="/public-decks" element={<PublicDeck />} />
 
     {/* DECKS */}
       <Route path="/deckpage" element={<DeckPage/>} />
