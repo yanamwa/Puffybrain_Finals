@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import "./login.module.css";
+import styles from './login.module.css';
 
 export default function Otp() {
   const inputsRef = useRef([]);
@@ -27,7 +27,7 @@ export default function Otp() {
 
     const interval = setInterval(() => {
       setTimeLeft(prev => prev - 1);
-    }, 1000);
+    }, 2000);
 
     return () => clearInterval(interval);
   }, [timeLeft]);
@@ -102,25 +102,24 @@ export default function Otp() {
   };
 
   return (
-    <div className="wrapper">
-      <section className="container">
-        <div className="background"></div>
+    <div className={styles.wrapper}>
+      <section className={styles.container}>
+        <div className={styles.background}></div>
 
-        <div className="signup-container">
-          <div className="signup-card">
+      <div className={styles.signupContainer}>
+          <div className={styles.signupCard}>
             <h2>Email Verification</h2>
-            <p className="verify-subtext">
+            <p className={styles.verifySubtext}>
               Enter the 4-digit code sent to your email
             </p>
 
-
-            <div className="otp-wrapper">
+            <div className={styles.otpWrapper}>
               {[0, 1, 2, 3].map((_, index) => (
                 <input
                   key={index}
                   type="text"
-                  maxLength="1"
-                  className="otp-input"
+                  maxLength={1}
+                  className={styles.otpInput}
                   ref={el => (inputsRef.current[index] = el)}
                   onInput={e => handleInput(e, index)}
                   onKeyDown={e => handleKeyDown(e, index)}
@@ -128,22 +127,23 @@ export default function Otp() {
               ))}
             </div>
 
-            <div className="otp-row">
-              <span className="otp-timer">
+            <div className={styles.otpRow}>
+              <span className={styles.otpTimer}>
                 {timeLeft > 0
                   ? `Code expires in ${formatTime()}`
                   : "Code expired"}
               </span>
 
               <button
-                className="resend-btn"
+                className={styles.resendBtn}
                 disabled={timeLeft > 0 || resending}
                 onClick={handleResend}
               >
                 Resend
               </button>
             </div>
-            <button className="verify-btn" onClick={handleSubmit}>
+
+            <button className={styles.verifyBtn} onClick={handleSubmit}>
               Verify
             </button>
           </div>

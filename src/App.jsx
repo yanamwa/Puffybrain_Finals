@@ -19,6 +19,9 @@ import Profile from "./pages/introduction/Profile";
 import Loading from "./pages/User/loading";
 import Homepage from "./pages/User/Homepage";
 
+/*Decks*/
+import DeckPage from "./pages/decks/DeckPage"; 
+
 /* Admin */
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -44,6 +47,9 @@ function App() {
     {/* HOME */}
       <Route path="/loading" element={<Loading />} />
       <Route path="/homepage" element={<Homepage />} />
+
+    {/* DECKS */}
+      <Route path="/deckpage" element={<DeckPage/>} />
 
  {/* ADMIN ROUTES */}
       <Route path="/admin/login" element={<AdminLogin />} />

@@ -1,4 +1,4 @@
-import "./login.module.css";
+import styles from './login.module.css';
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { useNavigate, Link } from "react-router-dom";
@@ -10,7 +10,8 @@ function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-
+  const isPasswordValid = password.length >= 12;
+  
   const handleSignup = () => {
     // 
     if (!username.trim()) {
@@ -112,33 +113,32 @@ function Signup() {
       });
   };
 
-  return (
-    <div className="wrapper">
-      <section className="container">
-        <div className="background"></div>
+ return (
+    <div className={styles.wrapper}>
+      <section className={styles.container}>
+      <div className={styles.background}
+            ></div>
 
-        {/* NAVBAR */}
-        <div className="navbar">
-          <div className="logo">
-            <img src="/images/logo.png" alt="Logo" />
+        <div className={styles.navbar}>
+          <div className={styles.logo}>
+            <img src="/images/logo1.png" alt="Logo" />
           </div>
 
-          <ul className="nav-links">
+          <ul className={styles.navLinks}>
             <li><Link to="/">Home</Link></li>
             <li><Link to="/about">About</Link></li>
             <li><Link to="/faq">FAQ</Link></li>
           </ul>
 
-          <div className="nav-actions">
-            <Link to="/signup" className="start-btn">
+          <div className={styles.navActions}>
+            <Link to="/signup" className={styles.startBtn}>
               Start Learning
             </Link>
           </div>
         </div>
 
-        {/* SIGNUP CARD */}
-        <div className="signup-container">
-          <div className="signup-card">
+        <div className={styles.signupContainer}>
+          <div className={styles.signupCard}>
             <h2>Create an Account</h2>
 
             <label>Username</label>
@@ -158,7 +158,7 @@ function Signup() {
             />
 
             <label>Password</label>
-            <div className="password-wrapper">
+            <div className={styles.passwordWrapper}>
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
@@ -168,20 +168,29 @@ function Signup() {
               <i
                 className={`fa-solid ${
                   showPassword ? "fa-eye-slash" : "fa-eye"
-                } toggle-eye`}
+                } ${styles.toggleEye}`}
                 onClick={() => setShowPassword(!showPassword)}
               ></i>
             </div>
 
-            <button className="login-btn" onClick={handleSignup}>
+                  {password.length > 0 && (
+                          <div className={`${styles.validationMessage} ${isPasswordValid ? styles.success : styles.error}`}>
+                            {isPasswordValid
+                              ? `✓ Password is strong (${password.length} characters)`
+                              : `Password must be at least 12 characters (current: ${password.length})`}
+                          </div>
+                        )}
+            
+
+            <button className={styles.loginBtn} onClick={handleSignup}>
               Sign Up
             </button>
 
-            <p className="terms-text">
+            <p className={styles.termsText}>
               By signing up, you agree to Terms and Privacy policies
             </p>
 
-            <p className="signin-text">
+            <p className={styles.signinText}>
               Already have an account? <Link to="/login">Signin</Link>
             </p>
           </div>

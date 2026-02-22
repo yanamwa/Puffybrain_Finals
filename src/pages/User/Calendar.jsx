@@ -1,5 +1,5 @@
-// Calendar.jsx
 import { useState } from "react";
+import styles from "./Calendar.module.css";
 
 function Calendar() {
   const today = new Date();
@@ -8,18 +8,15 @@ function Calendar() {
 
   const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  // Get all days to display in the grid
   const generateDays = () => {
     const firstDay = new Date(currentYear, currentMonth, 1).getDay();
     const numDays = new Date(currentYear, currentMonth + 1, 0).getDate();
     const days = [];
 
-    // Empty cells for first week
     for (let i = 0; i < firstDay; i++) {
       days.push(null);
     }
 
-    // Add actual days
     for (let d = 1; d <= numDays; d++) {
       days.push(d);
     }
@@ -29,7 +26,6 @@ function Calendar() {
 
   const days = generateDays();
 
-  // Handlers
   const prevMonth = () => {
     if (currentMonth === 0) {
       setCurrentMonth(11);
@@ -49,22 +45,20 @@ function Calendar() {
   };
 
   return (
-    <div className="calendar-section">
-      <div className="calendar-header">
-        <button className="nav-btn" onClick={prevMonth}>{"<"}</button>
-        <span>{new Date(currentYear, currentMonth).toLocaleString("default", { month: "long" })} {currentYear}</span>
-        <button className="nav-btn" onClick={nextMonth}>{">"}</button>
+    <div className={styles.calendarSection}>
+      <div className={styles.calendarHeader}>
+        <button className={styles.navBtn} onClick={prevMonth}>{"<"}</button>
+        <span className={styles.monthYear}>{new Date(currentYear, currentMonth).toLocaleString("default", { month: "long" })} {currentYear}</span>
+        <button className={styles.navBtn} onClick={nextMonth}>{">"}</button>
       </div>
 
-      {/* Days of week */}
-      <div className="calendar-weekdays">
+      <div className={styles.calendarWeekdays}>
         {daysOfWeek.map((day) => (
-          <div key={day} className="calendar-weekday">{day}</div>
+          <div key={day} className={styles.calendarWeekday}>{day}</div>
         ))}
       </div>
 
-      {/* Dates */}
-      <div className="calendar-grid">
+      <div className={styles.calendarGrid}>
         {days.map((day, index) => {
           const isToday =
             day === today.getDate() &&
@@ -73,7 +67,7 @@ function Calendar() {
           return (
             <div
               key={index}
-              className={`calendar-cell ${isToday ? "today" : ""}`}
+              className={`${styles.calendarCell} ${isToday ? styles.today : ""}`}
             >
               {day || ""}
             </div>

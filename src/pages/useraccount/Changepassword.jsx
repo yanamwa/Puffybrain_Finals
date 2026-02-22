@@ -1,4 +1,4 @@
-import "./login.module.css";
+import styles from './login.module.css';
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
@@ -12,6 +12,9 @@ const [password, setPassword] = useState("");
 const [confirmPassword, setConfirmPassword] = useState("");
 const [showPassword, setShowPassword] = useState(false);
 
+const isPasswordValid = password.length >= 12;
+const doPasswordsMatch = password === confirmPassword && confirmPassword.length > 0;
+  
 const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -25,6 +28,7 @@ const handleSubmit = (e) => {
       });
       return;
     }
+    
 
     fetch("http://localhost/puffybrain/change-password.php", {
       method: "POST",
@@ -46,53 +50,71 @@ const handleSubmit = (e) => {
           imageHeight: 200,
         }).then(() => navigate("/login"));
       })
+
+      
       .catch(() => {
         Swal.fire("Server Error", "Please try again later.", "error");
       });
   };
 
-  return (
-    <div className="wrapper">
-      <section className="container">
-        <div className="background"></div>
+    return (
+    <div className={styles.wrapper}>
+      <section className={styles.container}>
+        <div className={styles.background}></div>
 
-        <div className="login-container">
-          <div className="login-card">
+          <div className={styles.signupContainer}>
+            <div className={styles.signupCard}>
             <h2>Change Password</h2>
 
             <label>New Password</label>
-            <div className="password-wrapper">
-            <input
+            <div className={styles.passwordWrapper}>
+              <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter new password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-            />
-            <i
+              />
+              <i
                 className={`fa-solid ${
-                showPassword ? "fa-eye-slash" : "fa-eye"
-                } toggle-eye`}
+                  showPassword ? "fa-eye-slash" : "fa-eye"
+                } ${styles.toggleEye}`}
                 onClick={() => setShowPassword(!showPassword)}
-            />
+              />
             </div>
 
+            {password.length > 0 && (
+              <div className={`${styles.validationMessage} ${isPasswordValid ? styles.success : styles.error}`}>
+                {isPasswordValid
+                  ? `✓ Password is strong (${password.length} characters)`
+                  : `Password must be at least 12 characters (current: ${password.length})`}
+              </div>
+            )}
+
             <label>Confirm New Password</label>
-            <div className="password-wrapper">
-            <input
+            <div className={styles.passwordWrapper}>
+              <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Re-type new password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-            <i
+              />
+              <i
                 className={`fa-solid ${
-                showPassword ? "fa-eye-slash" : "fa-eye"
-                } toggle-eye`}
+                  showPassword ? "fa-eye-slash" : "fa-eye"
+                } ${styles.toggleEye}`}
                 onClick={() => setShowPassword(!showPassword)}
-            />
+              />
             </div>
 
-            <button className="login-btn" onClick={handleSubmit}>
+            {confirmPassword.length > 0 && (
+              <div className={`${styles.validationMessage} ${doPasswordsMatch ? styles.success : styles.error}`}>
+                {doPasswordsMatch
+                  ? '✓ Passwords match'
+                  : '✗ Passwords do not match'}
+              </div>
+            )}
+
+            <button className={styles.loginBtn} onClick={handleSubmit}>
               Update Password
             </button>
           </div>

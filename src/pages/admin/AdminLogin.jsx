@@ -1,4 +1,4 @@
-import "./loginA.css";
+import styles from "./loginA.module.css";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -10,8 +10,6 @@ function AdminLogin() {
   const navigate = useNavigate();
 
   const handleLogin = async () => {
-
-    // ✅ EMPTY INPUT CHECK (MUST BE FIRST)
     if (!username.trim() || !password.trim()) {
       Swal.fire({
         imageUrl: "/images/error.png",
@@ -20,7 +18,7 @@ function AdminLogin() {
         title: "Missing Information",
         text: "Please enter both username and password.",
       });
-      return; // ⛔ stop execution
+      return; 
     }
 
     try {
@@ -78,12 +76,12 @@ function AdminLogin() {
 
   
   return (
-    <div className="wrapper">
-      <section className="container">
-        <div className="background"></div>
+    <div className={styles.wrapper}>
+      <section className={styles.container}>
+        <div className={styles.background}></div>
 
-        <div className="login-container">
-          <div className="login-card">
+         <div className={styles.signupContainer}>
+           <div className={styles.signupCard}>
             <h2>Admin Login</h2>
 
             <label>Username</label>
@@ -94,23 +92,23 @@ function AdminLogin() {
               onChange={(e) => setUsername(e.target.value)}
             />
 
-            <label>Password</label>
-            <div className="password-wrapper">
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <i
-                className={`fa-solid ${
-                  showPassword ? "fa-eye-slash" : "fa-eye"
-                } toggle-eye`}
-                onClick={() => setShowPassword(!showPassword)}
-              ></i>
-            </div>
+             <label>Password</label>
+                      <div className={styles.passwordWrapper}>
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Enter your password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                        />
+                        <i
+                          className={`fa-solid ${
+                            showPassword ? "fa-eye-slash" : "fa-eye"
+                          } ${styles.toggleEye}`}
+                          onClick={() => setShowPassword(!showPassword)}
+                        ></i>
+                      </div>
 
-            <button className="login-btn" onClick={handleLogin}>
+            <button className={styles.loginBtn} onClick={handleLogin}>
               Login
             </button>
           </div>
