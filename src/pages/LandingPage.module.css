@@ -20,7 +20,6 @@ html, body {
     height: auto;
     overflow-x: hidden;
     overflow-y: auto;
-
 }
 
 body {
@@ -29,7 +28,7 @@ body {
     overflow-x: hidden;
     overflow-y: auto;
     font-family: "Jersey 15", sans-serif;
-    
+
 }
 
 .hero {

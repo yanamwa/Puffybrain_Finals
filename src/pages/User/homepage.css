@@ -689,7 +689,7 @@ body {
 }
 /* ================= Main Content ================= */
 .main-content {
-    margin-left: 230px;  /* width of the expanded sidebar */
+  margin-left: 230px;  /* width of the expanded sidebar */
   padding-top: 70px;  /* header height */
   padding-left: 20px;
   padding-right: 20px;
