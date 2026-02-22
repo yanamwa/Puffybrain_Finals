@@ -211,7 +211,7 @@ body {
 /*----------------- End of Sidebar ------------------ */
 
 /*---HEAD---*/
-.header {
+.publicdeck-header {
   position: fixed;          /* keep it fixed on top */
   top: 0;
   left: 0;
@@ -230,7 +230,7 @@ body {
   transition: margin-left 0.3s ease, width 0.3s ease;
 }
 
-.sidebar-collapsed .header {
+.sidebar-collapsed .publicdeck-header {
   margin-left: 60px;        /* match collapsed sidebar */
   width: calc(100% - 60px);
 }
@@ -248,6 +248,11 @@ body {
   margin-right: 20px;       /* space before notification */
   margin-left: 42px;
 
+}
+.search-bar:focus-within {
+  border-color: var(--color-fourth);
+  box-shadow: 0 0 0 3px rgba(169, 147, 216, 0.3);
+  transition: all 0.3s ease;
 }
 
 .search-bar input {
