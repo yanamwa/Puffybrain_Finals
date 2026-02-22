@@ -26,7 +26,7 @@ import Homepage from "./pages/User/Homepage";
 /* Admin */
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
->>>>>>> 06c059149e4255ba97c1a8a79b550624a2751536
+
 
 function App() {
   return (
