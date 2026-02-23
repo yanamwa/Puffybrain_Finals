@@ -6,7 +6,6 @@ import Login from "./pages/useraccount/Login";
 import Signup from "./pages/useraccount/Signup";
 import Otp from "./pages/useraccount/Otp";
 
-import Homepage from "./pages/useraccount/homepage";
 import PublicDeck from "./pages/useraccount/public_decks/publicDeck";
 
 import Forgot from "./pages/useraccount/Forgotpassword";
