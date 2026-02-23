@@ -1,4 +1,4 @@
-import styles from "./login.module.css";
+import styles from './login.module.css';
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { useNavigate, Link } from "react-router-dom";
@@ -45,33 +45,31 @@ function ForgotPassword() {
       });
   };
 
-  return (
-    <div className="wrapper">
-      <section className="container">
-        <div className="background"></div>
+return (
+    <div className={styles.wrapper}>
+      <section className={styles.container}>
+        <div className={styles.background}></div>
 
-        {/* NAVBAR */}
-        <div className="navbar">
-          <div className="logo">
+        <div className={styles.navbar}>
+          <div className={styles.logo}>
             <img src="/images/logo.png" alt="Logo" />
           </div>
 
-          <ul className="nav-links">
+          <ul className={styles.navLinks}>
             <li><Link to="/">Home</Link></li>
             <li><Link to="/about">About</Link></li>
             <li><Link to="/faq">FAQ</Link></li>
           </ul>
 
-          <div className="nav-actions">
-            <Link to="/signup" className="start-btn">
+          <div className={styles.navActions}>
+            <Link to="/signup" className={styles.startBtn}>
               Start Learning
             </Link>
           </div>
         </div>
 
-        {/* CONTENT */}
-        <div className="login-container">
-          <div className="login-card">
+        <div className={styles.signupContainer}>
+          <div className={styles.signupCard}>
             <h2>Forgot Password</h2>
 
             <label>Email Address</label>
@@ -83,16 +81,13 @@ function ForgotPassword() {
             />
 
             <button
-              className={styles["submit-btn"]}
+              className={styles.submitBtn}
               onClick={handleSubmit}
             >
               Submit
             </button>
 
-            <p
-              className="forgot-text"
-              style={{ textAlign: "center" }}
-            >
+            <p className={styles.forgotText}>
               Already remembered?
               <a
                 href="/login"

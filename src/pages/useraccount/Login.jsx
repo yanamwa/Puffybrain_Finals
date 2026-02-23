@@ -1,4 +1,4 @@
-import "./login.module.css";
+import styles from './login.module.css';
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { useNavigate, Link } from "react-router-dom";
@@ -65,31 +65,31 @@ function Login() {
       });
   };
 
-  return (
-    <div className="wrapper">
-      <section className="container">
-        <div className="background"></div>
-
-        <div className="navbar">
-          <div className="logo">
-            <img src="/images/logo.png" alt="Logo" />
+    return (
+    <div className={styles.wrapper}>
+      <section className={styles.container}>
+      <div className={styles.background}
+            ></div>
+        <div className={styles.navbar}>
+          <div className={styles.logo}>
+            <img src="/images/logo1.png" alt="Logo" />
           </div>
 
-          <ul className="nav-links">
+          <ul className={styles.navLinks}>
             <li><Link to="/">Home</Link></li>
             <li><Link to="/about">About</Link></li>
             <li><Link to="/faq">FAQ</Link></li>
           </ul>
 
-          <div className="nav-actions">
-            <Link to="/signup" className="start-btn">
+          <div className={styles.navActions}>
+            <Link to="/signup" className={styles.startBtn}>
               Start Learning
             </Link>
           </div>
         </div>
 
-        <div className="login-container">
-          <div className="login-card">
+           <div className={styles.signupContainer}>
+             <div className={styles.signupCard}>
             <h2>Login</h2>
 
             <label>Username</label>
@@ -100,15 +100,15 @@ function Login() {
             />
 
             <label>Password</label>
-            <div className="password-wrapper">
+            <div className={styles.passwordWrapper}>
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
 
-              <p className="forgot">
-                <a href="/forgot" style={{ color: "#A993D8" }}>
+              <p className={styles.forgot}>
+                <a href="/forgot">
                   Forgot your password?
                 </a>
               </p>
@@ -116,16 +116,16 @@ function Login() {
               <i
                 className={`fa-solid ${
                   showPassword ? "fa-eye-slash" : "fa-eye"
-                } toggle-eye`}
+                } ${styles.toggleEye}`}
                 onClick={() => setShowPassword(!showPassword)}
               />
             </div>
 
-            <button className="login-btn" onClick={handleLogin}>
+            <button className={styles.loginBtn} onClick={handleLogin}>
               Login
             </button>
 
-            <p className="signup-text">
+            <p className={styles.signupText}>
               Don't have an account? <Link to="/signup">Signup</Link>
             </p>
           </div>

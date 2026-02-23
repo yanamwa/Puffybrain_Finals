@@ -1,52 +1,61 @@
 import styles from "./Profile.module.css";
-import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 
 function Profile() {
   const [user, setUser] = useState(null);
+  const handleStart = async () => {
+  const email = localStorage.getItem("user_email");
 
- useEffect(() => {
-  const email = localStorage.getItem("user_email"); 
+    if (!email) return;
 
-  if (!email) {
-    Swal.fire({
-      imageUrl: "/images/error.png",
-      imageWidth: 180,
-      imageHeight: 180,
-      title: "Not Logged In",
-      text: "Please log in first."
+    await fetch("http://localhost/puffybrain/complete-onboarding.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
     });
-    return;
-  }
 
-  fetch("http://localhost/puffybrain/get-profile.php", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email })
-  })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        setUser(data.user);
-      } else {
-        Swal.fire("Error", data.message, "error");
-      }
-    });
-}, []);
+    window.location.href = "/Loading";
+  };
 
-  if (!user) return null; 
+  useEffect(() => {
+    const email = localStorage.getItem("user_email");
+
+    if (!email) {
+      Swal.fire({
+        imageUrl: "/images/error.png",
+        imageWidth: 180,
+        imageHeight: 180,
+        title: "Not Logged In",
+        text: "Please log in first."
+      });
+      return;
+    }
+
+    fetch("http://localhost/puffybrain/get-profile.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setUser(data.user);
+        } else {
+          Swal.fire("Error", data.message, "error");
+        }
+      });
+  }, []);
+
+  if (!user) return null;
 
   return (
     <div className={styles.wrapper}>
-
-      {/* Intro */}
       <div className={styles.intro}>
         <h1 className={styles.title}>Great!</h1>
         <h2 className={styles.subtitle}>You’re all set!</h2>
       </div>
 
-      {/* ID Card */}
       <div className={styles.cardContainer}>
         <div className={styles.photo}>
           <img src="/images/fri.jpg" alt="Profile" />
@@ -76,13 +85,12 @@ function Profile() {
         </div>
       </div>
 
-      {/* Footer */}
       <div className={styles.footer}>
         <h2 className={styles.footerTitle}>Have fun learning!</h2>
 
-        <Link to="/Loading" className={styles.submitBtn}>
+        <button onClick={handleStart} className={styles.submitBtn}>
           Start
-        </Link>
+        </button>
       </div>
     </div>
   );

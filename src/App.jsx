@@ -5,9 +5,6 @@ import LandingPage from "./pages/LandingPage";
 import Login from "./pages/useraccount/Login";
 import Signup from "./pages/useraccount/Signup";
 import Otp from "./pages/useraccount/Otp";
-
-import PublicDeck from "./pages/useraccount/public_decks/publicDeck";
-
 import Forgot from "./pages/useraccount/Forgotpassword";
 import ChangePassword from "./pages/useraccount/Changepassword";
 
@@ -21,6 +18,10 @@ import Profile from "./pages/introduction/Profile";
 /* Home */
 import Loading from "./pages/User/loading";
 import Homepage from "./pages/User/Homepage";
+import PublicDeck from "./pages/useraccount/public_decks/publicDeck";
+
+/*Decks*/
+import DeckPage from "./pages/decks/DeckPage"; 
 
 /* Admin */
 import AdminLogin from "./pages/admin/AdminLogin";
@@ -49,6 +50,9 @@ function App() {
       <Route path="/loading" element={<Loading />} />
       <Route path="/homepage" element={<Homepage />} />
       <Route path="/public-decks" element={<PublicDeck />} />
+
+    {/* DECKS */}
+      <Route path="/deckpage" element={<DeckPage/>} />
 
  {/* ADMIN ROUTES */}
       <Route path="/admin/login" element={<AdminLogin />} />
