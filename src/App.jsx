@@ -27,6 +27,9 @@ import DeckPage from "./pages/decks/DeckPage";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 
+/* Learning Module */
+import LearningModule from "./pages/Learning_Module/LearningModule";
+
 
 function App() {
   return (
@@ -57,6 +60,9 @@ function App() {
  {/* ADMIN ROUTES */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
+
+       {/* modules*/}
+       <Route path="/learning-module" element={<LearningModule />}/>
     </Routes>
   );
 }

@@ -229,9 +229,9 @@
 .header {
   position: fixed;
   top: 0;
-  left: 220px;
+  left: 200px;
   height: 70px;
-  padding: 0 25px;
+  padding: 0 20px;
   background: #f5f5f5;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   width: calc(100% - 220px - 230px);
@@ -243,7 +243,7 @@
 }
 
 .sidebarCollapsed .header {
-  left: 60px;
+  left: 45px;
   width: calc(100% - 60px - 230px);
 }
 
@@ -255,7 +255,7 @@
   border: 1px solid var(--color-third);
   height: 35px;
   flex: 1;
-  max-width: 1000px;
+  max-width: 950px;
   padding: 0 10px;
   margin-right: 20px;
   margin-left: 42px;
@@ -292,6 +292,7 @@
   background: none;
   border: none;
   cursor: pointer;
+  margin-right: 80px;
 }
 
 .notificationBtn i {
@@ -378,19 +379,18 @@
   flex-direction: column;
   flex: 1;
   margin-left: 220px;
-  margin-right: 230px;
+  margin-right: 0px;
   transition: margin-left 0.3s ease;
   margin-top: 50px;
 }
 
 .sidebarCollapsed .mainArea {
-  margin-left: 60px;
+  margin-left: 90px;
 }
 
 .mainContent {
-    padding: 100px 40px 40px 40px;
+    padding: 100px 0px 40px 40px;
     width: 100%;
-    max-width: 1600px;
     background: #f5f5f5;
     flex: 1;
 }

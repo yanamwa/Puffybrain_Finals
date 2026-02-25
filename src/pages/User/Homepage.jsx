@@ -135,7 +135,7 @@ function Homepage() {
                     </div>
                   </article>    
                 </Link>
-    <Link className={styles.deckLink}>
+         <Link className={styles.deckLink}>
                   <article className={styles.deckCard}>
                     <div className={`${styles.cardTop} ${styles.cardTopColor1}`}></div>
                     <div className={styles.cardBody}>
@@ -144,7 +144,7 @@ function Homepage() {
                     </div>
                   </article>    
                 </Link>
-    <Link className={styles.deckLink}>
+            <Link className={styles.deckLink}>
                   <article className={styles.deckCard}>
                     <div className={`${styles.cardTop} ${styles.cardTopColor1}`}></div>
                     <div className={styles.cardBody}>

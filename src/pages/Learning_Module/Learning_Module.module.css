@@ -11,35 +11,43 @@
   --card-color4: #90F897;
   --card-color5: #CF8686;
   --card-color6: #EECB99;
-  --color-shadow: #DDDDDD;
 }
 
-/* ================= Body ================= */
-body {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Jersey 15', sans-serif;
-  background-color: white;
-  color: #130b0b;
-  overflow-x: hidden;
-}
 .container {
-  display: flex;
-  min-height: 100vh;
-  background: #f5f5f5;
+    display: flex;
+    min-height: 100vh;
+    background: #f5f5f5;
     transition: all 0.3s ease;
 }
 
-/* When sidebar is collapsed */
-.container.sidebar-collapsed .sidebar {
+
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  width: 100%;
+  max-width: 1400px;
+}
+
+.container.sidebarCollapsed .sidebar {
   width: 60px;
 }
-/* ================= Sidebar ================= */
+
+.progress,
+.deckProgress {
+  width: 100%;
+  background-color: #eeeeee;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 .sidebar {
-  position: fixed;      /* make it fixed like the right sidebar */
-  grid-area: sidebar;
-  width: 220px; /* expanded width */
+  position: fixed;
+  width: 220px;
   background-color: var(--color-primary);
   display: flex;
   flex-direction: column;
@@ -47,86 +55,82 @@ body {
   height: 100vh;
   padding-top: 10px;
   transition: width 0.3s ease;
+  z-index: 1000;
 }
 
-/* Collapsed Sidebar */
 .sidebar.collapsed {
   width: 60px;
 }
-
-/* ================= Logo ================= */
 
 .logo {
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
-  margin-bottom: 0px!important; /* reduce gap here */
+  margin-bottom: 0;
 }
 
-/* Full Logo (Expanded) */
-.logo-expanded {
+.logoExpanded {
   display: block;
-  width: 150px; /* change size easily */
+  width: 150px;
   height: auto;
   object-fit: contain;
   transition: all 0.3s ease;
 }
 
-/* Icon Logo (Collapsed) */
-.logo-collapsed {
+.logoCollapsed {
   display: none;
-  width: 90px!important;
-  height: 90px !important;
+  width: 90px;
+  height: 90px;
   object-fit: contain;
   transition: all 0.3s ease;
-  margin: 0!important;
+  margin: 0;
 }
 
-/* Show/Hide logos when collapsed */
-.sidebar.collapsed .logo-expanded {
+.sidebar.collapsed .logoExpanded {
   display: none;
 }
-.sidebar.collapsed .logo-collapsed {
+
+.sidebar.collapsed .logoCollapsed {
   display: block;
 }
 
-/* ================= Sidebar Toggle ================= */
-.sidebar-toggle {
+.sidebarToggle {
   display: flex;
-  justify-content: flex-end; /* expanded */
+  justify-content: flex-end;
   padding: 0 10px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.sidebar.collapsed .sidebar-toggle {
-  justify-content: center; /* collapsed */
+.sidebar.collapsed .sidebarToggle {
+  justify-content: center;
   padding: 0;
 }
 
-.sidebar-toggle i {
+.sidebarToggle i {
   font-size: 24px;
   color: #959494;
 }
 
-/* ================= Menu ================= */
-.menu, .mydecks, .logout {
+.menu,
+.myDecksNav,
+.logout {
   display: flex;
   flex-direction: column;
 }
 
-.sidebar-list {
+.sidebarList {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.sidebar-list-item {
+.sidebarListItem {
   margin-left: 10px;
 }
 
-.sidebar-list i {
+.sidebarList i {
   width: 25px;
   height: 25px;
   font-size: 22px;
@@ -137,8 +141,7 @@ body {
   transition: all 0.3s ease;
 }
 
-/* Links */
-.menu a, .mydecks a, .logout a {
+.menuItem {
   display: flex;
   align-items: center;
   text-decoration: none;
@@ -149,32 +152,51 @@ body {
   transition: all 0.3s ease;
 }
 
-.menu a:hover, .mydecks a:hover, .logout a:hover {
+.menuItem:hover {
   background: white;
   margin-left: 15px;
 }
 
-.menu a.active, .mydecks a.active, .logout a.active {
-  background: rgb(243,243,243);
+.menuItem.active {
+  background: rgb(243, 243, 243);
 }
 
-/* Hide text when collapsed */
-.sidebar.collapsed .menu-text {
+.sidebar.collapsed .menuText {
   display: none;
 }
 
-/* ================= My Decks ================= */
-.my-decks {
+.myDecks,
+.myDecksTitle {
   font-size: 17px;
   margin: 0.3rem 0 0 15px;
 }
 
-/* ================= Logout ================= */
 .logout {
   margin-bottom: 20px;
 }
 
-/* Center icons in collapsed sidebar */
+.logoutLink {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  color: #000;
+  padding: 8px;
+  margin: 5px 0;
+  border-radius: 20px 0 0 20px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  width: 100%;
+  text-align: left;
+  transition: all 0.3s ease;
+}
+
+.logoutLink:hover {
+  background: white;
+  margin-left: 15px;
+}
+
 .sidebar.collapsed i {
   margin-left: 0;
   justify-content: center;
@@ -183,35 +205,29 @@ body {
   font-size: 1.5rem;
 }
 
-.sidebar.collapsed .logout a {
+.sidebar.collapsed .logout .logoutLink {
   justify-content: center;
   padding: 10px 0;
   margin-left: 0;
 }
-.sidebar.collapsed .sidebar-list span {
+
+.sidebar.collapsed .sidebarList span {
   display: none;
 }
 
-/* ================= Divider ================= */
 .divider {
   height: 1px;
   background-color: white;
-  margin: 0px 10px;
+  margin: 0 10px;
 }
 
-/* Smooth transitions */
-.sidebar, .sidebar .logo img, .sidebar a, .sidebar i {
-  transition: all 0.3s ease;
-}
-.sidebar.collapsed .menu-text,
-.sidebar.collapsed .my-decks,
-.sidebar.collapsed .menu-title {
+.sidebar.collapsed .myDecks,
+.sidebar.collapsed .myDecksTitle {
   display: none;
 }
-/*----------------- End of Sidebar ------------------ */
 
 /*---HEAD---*/
-.publicdeck-header {
+.moduleHeader {
   position: fixed;          /* keep it fixed on top */
   top: 0;
   left: 0;
@@ -228,12 +244,12 @@ body {
   gap: 20px; 
 }
 
-.sidebar-collapsed .publicdeck-header {
-  margin-left: 60px;        /* match collapsed sidebar */
+.container.sidebarCollapsed .moduleHeader {
+  margin-left: 60px;
   width: calc(100% - 60px);
 }
 
-.search-bar {
+.searchBar {
   display: flex;
   align-items: center;
   background-color: #ffffff;
@@ -247,13 +263,13 @@ body {
   margin-left: 42px;
 
 }
-.search-bar:focus-within {
+.searchBar:focus-within {
   border-color: var(--color-fourth);
   box-shadow: 0 0 0 3px rgba(169, 147, 216, 0.3);
   transition: all 0.3s ease;
 }
 
-.search-bar input {
+.searchBar input {
   flex: 1;
   border: none;
   background: transparent;
@@ -265,15 +281,15 @@ body {
   line-height: 30px;          /* match the search bar height */
   box-sizing: border-box;
 }
-.search-bar input:focus {
+.searchBar input:focus {
   outline: none;
   box-shadow: none;
 }
-.search-bar i {
+.searchBar i {
   font-size: 16px;
   color: black;
 }
-.search-bar input::placeholder {
+.searchBar input::placeholder {
   color: #959496;
   font-size: 14px;
   opacity: 1;
@@ -282,18 +298,18 @@ body {
   font-family: sans-serif; 
 }
 /* Notification Button */
-.notification-btn {
+.notificationBtn {
   background: none;
   border: none;
   cursor: pointer;
   margin-right: 10px;
 }
 
-.notification-btn i {
+.notificationBtn i {
   font-size: 24px;
   color: #555;
 }
-.dp-container {
+.dpContainer {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -303,18 +319,18 @@ body {
   justify-content: center;
 }
 
-.profile-pic {
+.profilePic {
   width: 100%;
   height: 100%;
   object-fit: cover;     /* prevents stretching */
 }
-.header-right {
+.headerRight {
   display: flex;
   align-items: center;
   gap: 15px;
 }
 
-.profile-wrapper {
+.profileWrapper {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -323,7 +339,7 @@ body {
   margin-right: 50px;
 }
 
-.dropdown-content {
+.dropdownContent {
   position: absolute;
   top: 55px;
   right: 0;
@@ -340,8 +356,8 @@ body {
 }
 
 /* Remove underline and style links */
-.dropdown-content a,
-.dropdown-content button {
+.dropdownContent a,
+.dropdownContent button {
   text-decoration: none;    /* remove underline */
   color: #000;              /* change text color if needed */
   display: flex;            /* align icon + text horizontally */
@@ -356,13 +372,13 @@ body {
 }
 
 /* Hover effect */
-.dropdown-content a:hover,
-.dropdown-content button:hover {
+.dropdowContent a:hover,
+.dropdownContent button:hover {
   background-color: #f0f0f0;
 }
 
 /* Remove default button styling */
-.dropdown-btn {
+.dropdownBtn {
   background: none;   /* remove background */
   border: none;       /* remove border */
   padding: 0;         /* remove padding */
@@ -384,8 +400,8 @@ body {
 }
 
 /*---MAIN CONTENT---*/
-.main-content {
-  margin-left: 230px;  /* width of expanded sidebar */
+.mainContent {
+  margin-left: 220px;  /* width of expanded sidebar */
   padding-top: 20px;   /* header height */
   padding-left: 50px;
   padding-right: 60px;
@@ -394,12 +410,12 @@ body {
   flex: 1;
   margin-top: 70px;
 }
-.sidebar-collapsed .main-content {
-  margin-left: 80px;
+.container.sidebarCollapsed .mainContent {
+  margin-left: 60px;
 }
 
 .courses {
-  max-width: 1400px;
+  min-width: 500px;
   min-height: 150px;
   background-color: #eeeeee;
   border-radius: 15px;
@@ -415,235 +431,37 @@ body {
   margin-bottom: 50px;
 }
 
-.course-head {
+.courseHead {
   position: absolute;  /* position it at the top of .courses */
   top: 0;
   left: 0;
   width: 100%;
-  height: 50px;
+  height: 40px;
   background-color: #C8A8E9;
   border-top-left-radius: 15px;   /* match the parent .courses corners */
   border-top-right-radius: 15px;
 
 }
+.innercourse{
+    padding: 20px;
+}
 .innerhead {
-  display: flex;
   justify-content: space-between; /* pushes h1 left, controls right */
   align-items: center;
   width: 100%;
-  padding-top: 60px;
-  padding-left: 20px;
+  padding-top: 20px;
   border-bottom: 2px solid #ddd;
   padding-bottom: 10px;
 }
 .innerhead h1{
-  font-size: 40px;
+  font-size: 35px;
   font-weight: lighter;
   margin: 0; /* THIS removes the hidden extra space */
-  margin-left: 20px;
+  margin-left: 10px;
 }
-.filter-controls {
-  display: flex;
-  gap: 10px;
-  margin-right: 50px;
-}
-.sort-btn,
-.level-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 10px;
-  border-radius: 10px;
-  border: none;
-  background: rgb(230, 228, 228);
-  cursor: pointer;
-  transition: 0.2s ease;
-  font-size: 10px;
-}
-
-.sort-btn i,
-.level-btn i {
+.cardCount {
   font-size: 15px;
-}
-
-.sort-btn:hover,
-.level-btn:hover {
-  background: var(--color-secondary);
-}
-.arrow {
-  transition: transform 0.3s ease;
-  font-size: 18px;
-}
-
-.rotate {
-  transform: rotate(180deg);
-}
-.lessons {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 per row */
-  gap: 30px;
-  padding: 50px;
-}
-
-/* Each lesson wrapper */
-.lesson-box {
-  position: relative;
-}
-
-/* Preview box (bottom layer) */
-.lesson-preview {
-  background: #E2CADF;
-  border-top-left-radius: 30px;
-  border-top-right-radius: 30px;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-  padding: 20px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-  height: 60px; /* adjust preview height */
-}
-
-.lesson-content {
-  background: #EBD3FA;
-  border-top-left-radius: 30px;
-  border-top-right-radius: 30px;
-  border-bottom-left-radius: 30px;
-  border-bottom-right-radius: 30px;
-  padding: 20px;
-  position: relative;
-  margin-top: -30px; /* overlapping preview */
-  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between; /* pushes button to bottom */
-  min-height: 100px; /* ensures space for content + button */
-  transition: 0.2s ease;
-}
-
-.lesson-content:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-}
-
-.lesson-header {
-  display: flex;
-  justify-content: space-between; /* title left, button right */
-  align-items: center;
-  margin-bottom: 0px;
-}
-
-.lesson-title {
-  font-size: 18px;
-  font-weight: lighter;
-  margin: 0;
-}
-
-/* Lesson description */
-.lesson-description {
-  font-size: 14px;
-  color: #555;
-  flex: 1; /* take up remaining space */
-}
-.lesson-add {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;          /* makes it a circle */
-  border: none;
-  background: white;
-  color: #A993D8;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: 0.2s ease;
-}
-
-.lesson-add:hover {
-  background: #f0f0f0;
-  transform: scale(1.1);
-}
-/* Button */
-.lesson-btn {
-  padding: 8px 0;
-  border: none;
-  border-radius: 20px;
-  background-color: #FFFFFF;
-  color: rgb(0, 0, 0);
-  cursor: pointer;
-  transition: 0.2s ease;
-  width: 150px;
-  font-family: 'Jersey 15';
-  font-size: 15px;
-  box-shadow: 0 4px 0 rgb(100, 89, 104);
-  margin: 0 auto; 
-  display: block;
-}
-
-.lesson-btn:hover {
-  background-color: #a7a0ae;
-}
-
-
-.decks {
-  padding: 20px;
-}
-
-.deck-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr); /* 4 per row */
-  grid-auto-rows: 110px;                 /* height of each box */
-  gap: 20px;
-
-}
-
-.deck-box {
-  background-color: #EBD3FA;
-  border-radius: 15px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  position: relative;
-  overflow: hidden;   /* clip header nicely */
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-
-}
-
-.deck-head {
-  height: 30px;
-  background-color: #C8A8E9;
-  width: 100%;
-  border-top-left-radius: 15px;
-  border-top-right-radius: 15px;
-}
-
-.deck-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;   /* stack title and count vertically */
-  background-color: #fbfbfb;
-  border-radius: 0 0 15px 15px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  padding: 10px;
-}
-
-.deck-content:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-}
-
-.deck-title {
-  font-size: 1.2rem;
-  font-weight: lighter;
-  margin: 0;
-  margin-top: 10px;
-  margin-left: 5px;
-}
-
-.deck-count {
-  font-size: 0.9rem;
-  color: #555;
+  color: gray;
   margin-top: 5px;
-    margin-left: 5px;
+  margin-left: 10px;
 }

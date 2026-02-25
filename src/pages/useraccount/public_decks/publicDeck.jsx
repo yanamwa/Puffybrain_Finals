@@ -120,76 +120,76 @@ const [levelOpen, setLevelOpen] = useState(false);
       {/* ================= Main Area ================= */}
       <div className="main-area">
         {/* Header */}
-<header className="publicdeck-header">
+            <header className="publicdeck-header">
 
-  <form className="search-bar">
-    <input type="text" placeholder="Search your deck title" />
-    <i className="bx bx-search"></i>
-  </form>
+              <form className="search-bar">
+                <input type="text" placeholder="Search your deck title" />
+                <i className="bx bx-search"></i>
+              </form>
 
-  <div className="header-right">
+              <div className="header-right">
 
-    <button className="notification-btn">
-      <i className="bx bx-bell"></i>
-    </button>
+                <button className="notification-btn">
+                  <i className="bx bx-bell"></i>
+                </button>
 
-    <div className="profile-wrapper">
+                <div className="profile-wrapper">
 
-      <div className="dp-container">
-        <img 
-          src="/images/temporary profile.jpg" 
-          alt="Profile Picture" 
-          className="profile-pic" 
-        />
-      </div>
+                  <div className="dp-container">
+                    <img 
+                      src="/images/temporary profile.jpg" 
+                      alt="Profile Picture" 
+                      className="profile-pic" 
+                    />
+                  </div>
 
-      <div className="user-info">
-        <p style={{ fontSize: "20px", fontWeight: "normal" }}>
-          @meiko
-        </p>
-      </div>
+                  <div className="user-info">
+                    <p style={{ fontSize: "20px", fontWeight: "normal" }}>
+                      @meiko
+                    </p>
+                  </div>
 
-      <div className="dropdown">
-        <button 
-          type="button" 
-          className="dropdown-btn" 
-          onClick={toggleDropdown}
-        >
-          <i className="bx bx-chevron-down"></i>
-        </button>
+                  <div className="dropdown">
+                    <button 
+                      type="button" 
+                      className="dropdown-btn" 
+                      onClick={toggleDropdown}
+                    >
+                      <i className="bx bx-chevron-down"></i>
+                    </button>
 
-        {isDropdownOpen && (
-          <div className="dropdown-content">
+                    {isDropdownOpen && (
+                      <div className="dropdown-content">
 
-              <Link to="/profile">
-                <i className="bx bx-user"></i>
-                <span>Profile</span>
-              </Link>
+                          <Link to="/profile">
+                            <i className="bx bx-user"></i>
+                            <span>Profile</span>
+                          </Link>
 
 
-            <Link to="/settings">
-              <i className="bx bx-cog"></i>
-              <span>Settings</span>
-            </Link>
+                        <Link to="/settings">
+                          <i className="bx bx-cog"></i>
+                          <span>Settings</span>
+                        </Link>
 
-            <Link to="/faq">
-              <i className="bx bx-help-circle"></i>
-              <span>FAQs</span>
-            </Link>
+                        <Link to="/faq">
+                          <i className="bx bx-help-circle"></i>
+                          <span>FAQs</span>
+                        </Link>
 
-            <button onClick={handleLogout} className="logout-btn">
-              <i className="bx bx-log-out"></i>
-              <span>Logout</span>
-            </button>
-          </div>
-        )}
-      </div>
+                        <button onClick={handleLogout} className="logout-btn">
+                          <i className="bx bx-log-out"></i>
+                          <span>Logout</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
 
-    </div>
+                </div>
 
-  </div>
+              </div>
 
-</header>
+            </header>
 
         {/* Main Content */}
         <main className="main-content">
