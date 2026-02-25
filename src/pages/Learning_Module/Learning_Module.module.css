@@ -413,9 +413,13 @@
 .container.sidebarCollapsed .mainContent {
   margin-left: 60px;
 }
+.cardsContainer {
+  display: flex;
+  gap: 30px; /* spacing between left and right */
+  align-items: stretch; /* makes all children equal height */
+}
 
 .courses {
-  min-width: 500px;
   min-height: 150px;
   background-color: #eeeeee;
   border-radius: 15px;
@@ -428,7 +432,7 @@
   position: relative;         /* needed for absolute positioning of course-head */
   overflow: hidden;           /* optional, hides anything overflowing */
   margin-top: 20px;
-  margin-bottom: 50px;
+  margin-bottom: 30px;
 }
 
 .courseHead {
@@ -449,7 +453,7 @@
   justify-content: space-between; /* pushes h1 left, controls right */
   align-items: center;
   width: 100%;
-  padding-top: 20px;
+  padding-top: 40px;
   border-bottom: 2px solid #ddd;
   padding-bottom: 10px;
 }
@@ -464,4 +468,273 @@
   color: gray;
   margin-top: 5px;
   margin-left: 10px;
+}
+.description {
+  font-weight: lighter;
+  margin-left: 10px;
+  max-width: 450px;
+  margin-right: 10px;
+  border-bottom: 2px solid #ddd;
+}
+
+.description p {
+  font-weight: 300;
+  line-height: 1.5;
+  text-align: justify;
+}
+.innerfoot h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* space between text, dot, and status label */
+  font-weight: normal;
+  margin-left: 10px;
+}
+
+.statusDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-left: 230px;
+}
+
+.public {
+  background-color: #4CAF50; /* green for public */
+}
+
+.private {
+  background-color: #F44336; /* red for private */
+}
+
+.statusText {
+  font-size: 14px;
+  color: gray;
+}
+
+/*progress Bar*/
+.studyProgress{
+  min-height: 150px;
+  background-color: #eeeeee;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  padding: 0;                 /* remove padding so header sits flush */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+  position: relative;         /* needed for absolute positioning of course-head */
+  overflow: hidden;           /* optional, hides anything overflowing */
+  margin-top: 20px;
+  margin-bottom: 50px;
+}
+.ProgressHead{
+  position: absolute;  /* position it at the top of .courses */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 40px;
+  background-color: #C8A8E9;
+  border-top-left-radius: 15px;   /* match the parent .courses corners */
+  border-top-right-radius: 15px;
+}
+.innerProgress {
+  margin: 30px;
+  margin-top: 40px;
+}
+.innerProgress h1{
+  font-size: 25px;
+}
+.progressBarContainer {
+  width: 100%;
+  height: 10px;
+  background-color: #e0e0e0; /* light gray background */
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 0px;
+}
+
+.progressBar {
+  height: 100%;
+  background-color: #8A2BE2; /* your progress color */
+  border-radius: 10px 0 0 10px; /* rounded left side */
+  transition: width 0.5s ease;
+}
+
+.progressPercent {
+  margin-left: 5px;
+  margin-top: 5px;
+  font-size: 14px;
+  color: #555;
+}
+
+.cards{
+  min-height: 150px;
+  background-color: #eeeeee;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  padding: 0;                 /* remove padding so header sits flush */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+  position: relative;         /* needed for absolute positioning of course-head */
+  overflow: hidden;           /* optional, hides anything overflowing */
+  margin-top: 20px;
+  margin-bottom: 50px;
+}
+.cardHead{
+  display: flex;
+  justify-content: flex-end; 
+  position: absolute;  /* position it at the top of .courses */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  background-color: #C8A8E9;
+  border-top-left-radius: 15px;   /* match the parent .courses corners */
+  border-top-right-radius: 15px;
+}
+.cardButtons {
+  display: flex;
+  gap: 20px; /* space between buttons */
+  margin-right: 30px;
+}
+
+.btn {
+  padding: 3px 20px;
+  border: none;
+  color: rgb(7, 7, 7);
+  border-radius: 15px;
+  cursor: pointer;
+  transition: background 0.3s;
+  height: 30px;
+  margin-top: 10px;
+  font-family: 'jersey 15';
+  font-size: 15px;
+}
+
+/* Specific colors */
+.studyBtn {
+  background-color: #ffffff; /* green */
+  box-shadow: 2px 2px #000000;
+
+}
+
+.studyBtn:hover {
+  background-color: #cfcfcf; /* darker green */
+}
+
+.practiceBtn {
+  background-color: #8A2BE2;; /* orange/red */
+  color: rgb(255, 255, 255);
+    box-shadow: 2px 2px #000000;
+}
+
+.practiceBtn:hover {
+  background-color: #e487e2; /* darker shade */
+}
+
+.innercardHead{
+  justify-content: space-between; /* pushes h1 left, controls right */
+  align-items: center;
+  width: 100%;
+  gap: 50px;
+  border-bottom: 2px solid #ddd;
+  position: relative; 
+  margin-top: 70px;
+}
+
+
+/* Remove the pill-style background from tabs */
+.tabBtn {
+  padding: 0;                 /* remove extra spacing */
+  border: none;               /* no border */
+  border-radius: 0;           /* no rounded corners */
+  background: none;           /* transparent */
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 20px;
+  color: #555;                /* normal text color */
+  transition: color 0.3s, border-bottom 0.3s;
+  font-family: 'jersey 15';
+  margin-left: 30px;
+  position: relative; 
+}
+
+/* Hover effect */
+.tabBtn:hover {
+  color: #8a63d2;             /* highlight color on hover */
+  border-bottom: 2px solid #8a63d2; /* underline effect */
+
+}
+
+/* Active tab effect */
+.activeTab {
+  color: #8a63d2;             /* same highlight color */
+  border-bottom: 2px solid #8a63d2; /* underline */
+
+}
+
+.cardContent {
+  padding: 0px;
+  margin-top: 10px;
+}
+.tabBoxes {
+  display: flex;
+  flex-direction: column; /* stack vertically */
+  gap: 20px;
+  padding: 20px;
+}
+
+.box {
+  background-color: #ffffff;
+  padding: 15px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.box:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+}
+
+.question {
+  font-weight: 600;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.separator {
+  border: 0;
+  height: 1px;
+  background-color: #ddd;
+  margin: 10px 0;
+}
+
+.answer {
+  font-weight: 400;
+  font-size: 16px;
+}
+/* Remove restrictive min-width */
+.cards,
+.courses,
+.studyProgress {
+  min-width: 0; /* allows shrinking and expanding */
+  width: 100%;
+  max-width: 650px;
+  transition: max-width 0.3s ease;
+}
+.leftCont {
+  display: flex;
+  flex-direction: column;
+  flex: 2 1 0; /* grow, shrink, basis 0 */
+  transition: flex 0.3s ease;
+}
+
+.rightCol {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0; /* grow, shrink, basis 0 */
+  transition: flex 0.3s ease;
 }
