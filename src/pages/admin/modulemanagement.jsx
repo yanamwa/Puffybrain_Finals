@@ -2,8 +2,21 @@ import React, { useState } from "react";
 import "./modulemanage.css";
 
 export default function modulemanagement() {
+  const [modules, setModules] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedModule, setSelectedModule] = useState("");
+
+
+          useEffect(() => {
+            fetch("http://localhost/puffybrain/adminLearningModule.php")
+              .then(res => res.json())
+              .then(data => {
+                if (data.success) {
+                  setModules(data.modules);
+                }
+              })
+              .catch(err => console.error(err));
+          }, []);
 
   const modules = [
     { id: "QZ2025A01", title: "rairai", date: "10/11/2025", status: "active" },
