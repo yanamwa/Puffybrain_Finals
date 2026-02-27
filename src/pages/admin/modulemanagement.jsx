@@ -1,9 +1,32 @@
-import React, { useState } from "react";
-import "./modulemanage.css";
+import React, { useState, useRef } from "react";
+import { NavLink } from "react-router-dom";
+import {
+  LayoutDashboard,
+  Users,
+  BookOpen,
+  LogOut,
+  Search,
+  User,
+  ChevronDown,
+  Settings
+} from "lucide-react";
 
-export default function modulemanagement() {
+import styles from "./modulemanage.module.css";
+
+export default function ModuleManagement() {
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedModule, setSelectedModule] = useState("");
+  const [selectedModule, setSelectedModule] = useState(null);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const menuItems = [
+    { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
+    { label: "User Management", path: "/admin/users", icon: <Users size={20} /> },
+    { label: "Module Management", path: "/admin/modules", icon: <Users size={20} /> },
+    { label: "Decks Management", path: "/admin/decks", icon: <BookOpen size={20} /> },
+  ];
 
   const modules = [
     { id: "QZ2025A01", title: "rairai", date: "10/11/2025", status: "active" },
@@ -11,143 +34,190 @@ export default function modulemanagement() {
     { id: "BK07A2025", title: "Larah", date: "12/17/2025", status: "active" },
     { id: "BK08A2025", title: "meiko", date: "11/22/2025", status: "active" },
     { id: "BK09A2025", title: "jessy", date: "11/16/2025", status: "inactive" },
-  ];
-
-  const openModal = (module) => {
-    setSelectedModule(module);
-    setModalOpen(true);
-  };
-
-  const closeModal = () => setModalOpen(false);
-
-  return (
-    <div className="container">
-     
-      <form className="search-bar">
-        <input type="text" placeholder="Search your decks" />
-        <i className="bx bx-search"></i>
-      </form>
-
-     
-      <aside className="sidebar">
-        <div className="logo">
-          <img src="/images/logo.png" alt="Logo" />
-        </div>
-
-        <p className="my-decks">Menu</p>
-
-        <nav className="menu">
-          <a href="#" className="menu-item">
-            <i className="bx bx-home"></i> <span>Dashboard</span>
-          </a>
-          <a href="#" className="menu-item">
-            <i className="bx bx-book"></i> <span>User Management</span>
-          </a>
-          <a href="#" className="menu-item active">
-            <i className="bx bx-folder"></i> <span>Lesson Management</span>
-          </a>
-        </nav>
-
-        <nav className="logout">
-          <a href="#">
-            <i className="bx bx-log-out"></i> <span>Logout</span>
-          </a>
-        </nav>
-      </aside>
 
     
-      <div className="module-header">
-        <h1>Module Management</h1>
-        <button className="add-module-btn">
-          <i className="bx bx-plus"></i> Add New Module
+  ];
+
+  return (
+    <div className={styles.layout}>
+      
+       {/* SIDEBAR */}
+           <aside className={styles.sidebar}>
+             <div className={styles.logo}>
+               <img src="/images/logo1.png" alt="Logo" />
+             </div>
+     
+             <div className={styles.menuLabel}>Menu</div>
+     
+             {menuItems.map(item => (
+               <NavLink
+                 key={item.path}
+                 to={item.path}
+                 className={({ isActive }) =>
+                   `${styles.menuItem} ${isActive ? styles.active : ""}`
+                 }
+               >
+                 {item.icon}
+                 {item.label}
+               </NavLink>
+             ))}
+     
+             <div className={styles.sidebarFooter}>
+               <button className={styles.logoutBtn}>
+                 <LogOut size={20} /> Logout
+               </button>
+             </div>
+           </aside>
+     
+
+      {/* HEADER */}
+      <header className={styles.headerContainer}>
+        <div className={styles.searchBar}>
+          <Search size={18} />
+          <input
+            type="text"
+            placeholder="Search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+
+        <div className={styles.profileWrapper} ref={dropdownRef}>
+          <User size={22} />
+          <span className={styles.profileName}>@admin</span>
+
+          <button
+            className={styles.dropdownBtn}
+            onClick={() => setDropdownOpen(prev => !prev)}
+          >
+            <ChevronDown size={16} />
+          </button>
+
+          {dropdownOpen && (
+            <div className={styles.dropdownContent}>
+              <button className={styles.dropdownItem}>
+                <Settings size={16} /> Settings
+              </button>
+              <button className={styles.dropdownItem}>
+                <LogOut size={16} /> Logout
+              </button>
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* MAIN */}
+      <main className={styles.main}>
+        <div className={styles.header}>
+          <h1>Module Management</h1>
+          <button className={styles.addBtn}>+ Add new module</button>
+        </div>
+
+        <div className={styles.tableCard}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Module ID</th>
+                <th>Module Title</th>
+                <th>Date created</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {modules.map((mod) => (
+                <tr key={mod.id}>
+                  <td>{mod.id}</td>
+                  <td>{mod.title}</td>
+                  <td>{mod.date}</td>
+                  <td>
+                    <span
+                      className={
+                        mod.status === "active"
+                          ? styles.statusActive
+                          : styles.statusInactive
+                      }
+                    >
+                      ● {mod.status === "active" ? "Active" : "Inactive"}
+                    </span>
+                  </td>
+                  <td className={styles.actions}>
+                    <button className={styles.edit}>edit</button>
+                    <button className={styles.delete}>delete</button>
+                    <button
+                      className={styles.view}
+                      onClick={() => {
+                        setSelectedModule(mod);
+                        setModalOpen(true);
+                      }}
+                    >
+                      view
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </main>
+
+      {/* MODAL */}
+      {modalOpen && (
+  <div className={styles.modal} onClick={() => setModalOpen(false)}>
+    <div
+      className={styles.modalContent}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* HEADER */}
+      <div className={styles.modalHeader}>
+        <div className={styles.headerLeft}>
+          <h2>Module Details:</h2>
+          <button className={styles.editTopBtn}>Edit</button>
+        </div>
+
+        <button
+          className={styles.closeBtn}
+          onClick={() => setModalOpen(false)}
+        >
+          ✕
         </button>
       </div>
 
- 
-      <div className="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Module ID</th>
-              <th>Module Title</th>
-              <th>Date created</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
+      {/* BODY */}
+      <div className={styles.modalBody}>
+        <div className={styles.detailsGrid}>
+          <div className={styles.label}>Module Title</div>
+          <div className={styles.value}>{selectedModule.title}</div>
 
-          <tbody>
-            {modules.map((mod) => (
-              <tr key={mod.id}>
-                <td>{mod.id}</td>
-                <td>{mod.title}</td>
-                <td>{mod.date}</td>
-                <td>
-                  <span className={`status ${mod.status}`}>
-                    ● {mod.status === "active" ? "Active" : "Inactive"}
-                  </span>
-                </td>
-                <td>
-                  <button className="edit-btn">Edit</button>
-                  <button className="delete-btn">Delete</button>
-                  <button className="view-btn" onClick={() => openModal(mod)}>
-                    View
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          <div className={styles.label}>Module Description</div>
+          <div className={styles.value}>Deck Description</div>
+        </div>
 
-        <div className="pagination-container">
-          <div className="page-numbers">
-            <button className="page-btn">‹</button>
-            <button className="page-btn active">1</button>
-            <button className="page-btn">2</button>
-            <button className="page-btn">›</button>
+        <h3 className={styles.sectionTitle}>Module decks</h3>
+
+        <div className={styles.card}>
+          <p className={styles.question}>
+            What is the primary purpose of a "router" in a home network?
+          </p>
+          <div className={styles.answer}>
+            To forward data between different networks, such as your home
+            network and the internet.
           </div>
+        </div>
 
-          <div className="rows-control">
-            <span>Show</span>
-            <select>
-              <option>10</option>
-              <option>25</option>
-              <option>50</option>
-            </select>
-            <span>Row</span>
+        <div className={styles.card}>
+          <p className={styles.question}>
+            Which network device is used to amplify a Wi-Fi signal?
+          </p>
+          <div className={styles.answer}>
+            A Wi-Fi Repeater/Extender
           </div>
         </div>
       </div>
-
-      {modalOpen && (
-        <div className="modal active" onClick={closeModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Module Details</h2>
-              <button className="close-btn" onClick={closeModal}>
-                ×
-              </button>
-            </div>
-
-            <div className="modal-body">
-              <div className="detail-row">
-                <div className="detail-label">Module Title</div>
-                <div className="detail-value">{selectedModule.title}</div>
-              </div>
-
-              <div className="detail-row">
-                <div className="detail-label">Module ID</div>
-                <div className="detail-value">{selectedModule.id}</div>
-              </div>
-
-              <div className="detail-row">
-                <div className="detail-label">Date Created</div>
-                <div className="detail-value">{selectedModule.date}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+    </div>
+  </div>
+)}
     </div>
   );
 }

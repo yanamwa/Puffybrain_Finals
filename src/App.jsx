@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
+import 'boxicons/css/boxicons.min.css';
 
 /* User Account */
 import Login from "./pages/useraccount/Login";
@@ -26,7 +27,7 @@ import DeckPage from "./pages/decks/DeckPage";
 /* Admin */
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import ModuleManagement from "./pages/admin/modulemanagement";
+import ModuleManagement from "./pages/admin/ModuleManagement";
 
 function App() {
   return (
@@ -55,9 +56,10 @@ function App() {
       <Route path="/deckpage" element={<DeckPage/>} />
 
  {/* ADMIN ROUTES */}
+{/* ADMIN ROUTES */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
-      <Route path="/admin/modulemanagement" element={<ModuleManagement />} />
+      <Route path="/admin/modules" element={<ModuleManagement />} />
     </Routes>
     
   );

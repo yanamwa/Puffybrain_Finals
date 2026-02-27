@@ -1,49 +1,50 @@
-/* GRID */
-.gridContainer {
+.gridContainer, .layout {
   display: grid;
-  grid-template-columns: 220px 1fr;
-  grid-template-rows: 70px 1fr;
+  grid-template-columns: 220px 1fr; /* same width */
+  grid-template-rows: 70px 1fr; /* same height */
   grid-template-areas:
     "sidebar header"
     "sidebar main";
-  height: 100vh;
+  min-height: 100vh;
+  background: #ffffff; /* same background */
 }
 
-/* HEADER */
 .headerContainer {
   grid-area: header;
   display: flex;
-  justify-content: center;
+  justify-content: space-between; /* or center, choose one */
   align-items: center;
-  border-bottom: 2px solid hsl(0, 0%, 90%);
+  padding: 0 40px; /* same for both */
+  border-bottom: 2px solid hsl(0,0%,90%);
+  background: #ffffff;
 }
-
-/* SEARCH */
+/*search*/
 .searchBar {
   display: flex;
-  background-color: #ffffff;
-  border-radius: 100px;
-  height: 36px;
-  width: 431px;
-  border: 2px solid hsl(271, 42%, 75%);
   align-items: center;
-  padding: 0 4px;
+  gap: 8px;             /* space between input and icon */
+  background: #ffffff;   /* white background */
+  padding: 4px 12px;     /* small vertical and horizontal padding */
+  border-radius: 20px;   /* smooth rounded corners */
+  width: 280px;          /* smaller width */
+  height: 36px;          /* fixed height to prevent it from being too tall */
+  border: 1.5px solid hsl(271, 42%, 75%);
+  box-sizing: border-box; /* ensures padding doesn’t increase height */
 }
 
 .searchBar input {
   border: none;
   background: transparent;
-  padding: 0 16px;
-  flex: 1;
-  font-size: 15px;
   outline: none;
-  font-family: 'Jersey 15', sans-serif;
+  flex: 1;
+  font-size: 14px;
+  height: 100%;          /* fills the searchBar height */
+  padding: 0 6px;
 }
 
 .searchIcon {
-  margin-left: 12px;
-  color: hsl(271, 42%, 75%);
   font-size: 18px;
+  color: hsl(271, 42%, 75%);
 }
 
 /* PROFILE */
