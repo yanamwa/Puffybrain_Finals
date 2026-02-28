@@ -32,7 +32,7 @@ import ModuleManagement from "./pages/admin/ModuleManagement";
 function App() {
   return (
     <Routes>
-      {/* USER ACCOUNTS */}
+      {/* USER ACCOUNTS *
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />

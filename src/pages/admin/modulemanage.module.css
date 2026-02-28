@@ -688,7 +688,137 @@ tbody td {
   justify-content: center;
 }
 
-/* para consistent kulay ng icon */
 .profileIcon svg {
   stroke: hsl(220, 15%, 13%);
+}
+/* ===================================== */
+/* ===== ADD NEW MODULE MODAL FINAL ==== */
+/* ===================================== */
+
+/* OVERLAY */
+.addOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 40px; /* equal all sides */
+  box-sizing: border-box;
+  z-index: 9999;
+}
+
+/* MAIN MODAL CONTAINER */
+.addModal {
+  width: 900px;          
+  max-width: 95vw;        
+  background: #ffffff;
+
+  border-radius: 28px;
+  overflow: hidden;
+
+
+  border: 8px solid rgba(197, 142, 255, 0.25);
+
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+}
+
+/* HEADER */
+.addHeader {
+  background: #d7a6ff;
+  padding: 20px;
+  text-align: center;
+}
+
+.addHeaderTitle {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  color: #1f1f1f;
+}
+
+/* BODY */
+.addBody {
+  padding: 28px 24px;         
+  display: flex;
+  flex-direction: column;
+  align-items: center;         
+}
+
+
+.addLabel {
+  width: min(760px, 86%);       
+  font-weight: 600;
+  font-size: 20px;
+  color: #2b2b2b;
+  margin: 14px 0 6px;
+}
+
+
+.addInput,
+.addTextarea {
+  width: min(760px, 86%);       
+  background: #ededed;
+  border: none;
+  outline: none;
+  border-radius: 18px;
+  padding: 14px 16px;
+  font-size: 14px;
+  color: #222;
+  box-sizing: border-box;       
+}
+
+.addTextarea {
+  resize: none;
+}
+
+.addDivider {
+  width: min(760px, 86%);     
+  height: 1px;
+  background: rgba(0, 0, 0, 0.08);
+  margin: 22px 0 12px;
+}
+/* BUTTON AREA */
+.addActions {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding-top: 14px;
+}
+
+/* SAME SIZE BOTH BUTTONS */
+.addCancelBtn,
+.addConfirmBtn {
+  width: 140px;              
+  height: 44px;              
+  border-radius: 999px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 15px;         
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s ease;
+}
+
+/* CANCEL */
+.addCancelBtn {
+  background: #ffffff;
+  border: 2px solid #2b2b2b;
+  color: #2b2b2b;
+}
+
+/* ADD */
+.addConfirmBtn {
+  background: #d7a6ff;
+  color: #1f1f1f;
+  border: 2px solid #d7a6ff; 
+  box-shadow: 0 8px 18px rgba(215, 166, 255, 0.35);
+}
+
+.addConfirmBtn:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
 }
