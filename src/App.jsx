@@ -20,6 +20,7 @@ import Profile from "./pages/introduction/Profile";
 import Loading from "./pages/User/loading";
 import Homepage from "./pages/User/Homepage";
 import PublicDeck from "./pages/useraccount/public_decks/publicDeck";
+import UserProfile from "./pages/User_profile/UserProfile";
 
 /*Decks*/
 import DeckPage from "./pages/decks/DeckPage"; 
@@ -54,11 +55,11 @@ function App() {
       <Route path="/public-decks" element={<PublicDeck />} />
       <Route path="/module-management" element={<ModuleManagement />} />
       <Route path="/learning/:lessonId" element={<LearningModule />} />
+      <Route path="/user-profile" element={<UserProfile />}/>
 
     {/* DECKS */}
       <Route path="/deckpage" element={<DeckPage/>} />
 
- {/* ADMIN ROUTES */}
 {/* ADMIN ROUTES */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
