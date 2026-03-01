@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import {
@@ -14,6 +15,7 @@ import {
 import styles from "./modulemanage.module.css";
 
 export default function ModuleManagement() {
+  const API_URL = "http://localhost/puffybrain/adminLearningModule.php";
   const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -55,28 +57,52 @@ export default function ModuleManagement() {
   ];
 
   /* FETCH DATA */
-  useEffect(() => {
-    const fetchModules = async () => {
-      try {
-        const res = await fetch("http://localhost/puffybrain/adminLearningModule.php");
-        if (!res.ok) throw new Error("Network error");
-        const data = await res.json();
+  const fetchModules = async () => {
+    try {
+      const response = await fetch(API_URL);
+      const data = await response.json();
+      if (data.success) setModules(data.modules);
+      else setModules([]);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        if (data?.success && Array.isArray(data.modules)) {
-          setModules(data.modules);
-        } else {
-          setModules(fallbackData);
-        }
-      } catch (err) {
-        console.error(err);
-        setModules(fallbackData);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleAddModule = async () => {
+  console.log("Add button clicked!"); // confirms button is working
+  if (!newTitle.trim()) return;
 
-    fetchModules();
-  }, []);
+  try {
+    const response = await fetch(API_URL, {  // <-- use API_URL here
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: newTitle,
+        description: newDesc,
+        subject: newSubject,
+        status: newStatus,
+        lesson_text: lessonText,
+        quiz_contents: quizContents,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      alert("Module added successfully!");
+      closeAddModal();
+      fetchModules(); 
+    } else {
+      alert(data.message);
+    }
+  } catch (error) {
+    console.error("Error adding module:", error);
+  }
+};
 
   /* CLOSE DROPDOWN */
   useEffect(() => {
@@ -103,26 +129,8 @@ export default function ModuleManagement() {
     setQuizContents("");
   };
 
-  const handleAddModule = () => {
-    if (!newTitle.trim()) return;
 
-    // ✅ TEMP add sa UI table (palitan mo ng API POST later)
-    const newItem = {
-      id: `MD${Date.now()}`,
-      title: newTitle.trim(),
-      date: new Date().toLocaleDateString(),
-      status: newStatus === "Publish" ? "active" : "inactive",
 
-      // ✅ extra fields (for future backend)
-      module_description: newDesc.trim(),
-      subject_course: newSubject.trim(),
-      lesson_text_contents: lessonText.trim(),
-      quiz_cards_contents: quizContents.trim(),
-    };
-
-    setModules((prev) => [newItem, ...prev]);
-    closeAddModal();
-  };
 
   return (
     <div className={styles.layout}>

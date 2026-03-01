@@ -27,12 +27,13 @@ import DeckPage from "./pages/decks/DeckPage";
 /* Admin */
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import ModuleManagement from "./pages/admin/ModuleManagement";
+import ModuleManagement from "./pages/admin/modulemanagement";
+import LearningModule from "./pages/Learning_Module/LearningModule";
 
 function App() {
   return (
     <Routes>
-      {/* USER ACCOUNTS *
+      {/* USER ACCOUNTS */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
@@ -51,6 +52,8 @@ function App() {
       <Route path="/loading" element={<Loading />} />
       <Route path="/homepage" element={<Homepage />} />
       <Route path="/public-decks" element={<PublicDeck />} />
+      <Route path="/module-management" element={<ModuleManagement />} />
+      <Route path="/learning/:lessonId" element={<LearningModule />} />
 
     {/* DECKS */}
       <Route path="/deckpage" element={<DeckPage/>} />
@@ -60,6 +63,8 @@ function App() {
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
       <Route path="/admin/modules" element={<ModuleManagement />} />
+
+      <Route path="*" element={<h1>Page not found</h1>} />
     </Routes>
     
   );

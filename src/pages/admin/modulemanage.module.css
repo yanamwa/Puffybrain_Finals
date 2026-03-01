@@ -704,25 +704,25 @@ tbody td {
   display: flex;
   justify-content: center;
   align-items: center;
-
-  padding: 40px; /* equal all sides */
+  pointer-events: auto;
+  padding: 0px;
   box-sizing: border-box;
-  z-index: 9999;
+  z-index: 9999; /* background overlay */
 }
 
 /* MAIN MODAL CONTAINER */
 .addModal {
-  width: 900px;          
-  max-width: 95vw;        
+  position: relative;      /* <-- important */
+  z-index: 10000;          /* <-- ensure it’s above overlay */
+  pointer-events: auto;
+  width: 900px;
+  max-width: 95vw;
   background: #ffffff;
-
   border-radius: 28px;
   overflow: hidden;
-
-
   border: 8px solid rgba(197, 142, 255, 0.25);
-
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+  padding: 40px;
 }
 
 /* HEADER */

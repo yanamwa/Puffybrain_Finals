@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
 import Swal from "sweetalert2";
 import "./publicDeck.css";
 
@@ -7,7 +8,7 @@ import "./publicDeck.css";
 function PublicDeck() {
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
-
+  const [lessons, setLessons] = useState([]);
   const toggleSidebar = () => {
   setIsCollapsed(!isCollapsed);
 };
@@ -20,6 +21,16 @@ const toggleDropdown = () => {
 
 const [sortOpen, setSortOpen] = useState(false);
 const [levelOpen, setLevelOpen] = useState(false);
+
+useEffect(() => {
+  fetch("http://localhost/puffybrain/getLessons.php")
+    .then(res => res.json())
+    .then(data => {
+      console.log("LESSONS RESPONSE:", data);
+      setLessons(data);
+    })
+    .catch(err => console.error(err));
+}, []);
 
   const handleLogout = () => {
     Swal.fire({
@@ -226,28 +237,17 @@ const [levelOpen, setLevelOpen] = useState(false);
               </div>
 
                   <div className="lessons">
-                    {[...Array(6)].map((_, index) => (
-                      <div key={index} className="lesson-box">
-                        
-                        <div className="lesson-preview">
-                        </div>
-                        
-                      <div className="lesson-content">
-                        <div className="lesson-header">
-                          <h3 className="lesson-title">Lesson {index + 1}</h3>
-                          <button className="lesson-add">+</button>
-                        </div>
+  {lessons.map((lesson) => (
+  <div className="lesson-content" key={lesson.id}>
+    <h3 className="lesson-title">{lesson.title}</h3>
+    <p className="lesson-description">{lesson.description}</p>
 
-                        <p className="lesson-description">
-                          This is a short description of Lesson {index + 1}. It can be a few lines to summarize the content.
-                        </p>
-
-                        <button className="lesson-btn">Start Learning</button>
-                      </div>
-                                                  
-                      </div>
-                    ))}
-                  </div>
+    <Link to={`/learning/${lesson.id}`}>
+      <button className="lesson-btn">Start Learning</button>
+    </Link>
+  </div>
+))}
+</div>
 
             </div>
             
