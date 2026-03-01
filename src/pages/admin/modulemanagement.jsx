@@ -1,9 +1,5 @@
-<<<<<<< HEAD
 
-import React, { useState, useRef, useEffect } from "react";
-=======
 import React, { useEffect, useMemo, useRef, useState } from "react";
->>>>>>> 5bfeab9b8b1e266b68f9f0ecf9399d4668a63dd9
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -195,7 +191,6 @@ Local Area Network`,
     { label: "Decks Management", path: "/admin/decks", icon: <BookOpen size={20} /> },
   ];
 
-<<<<<<< HEAD
   /* FETCH DATA */
   const fetchModules = async () => {
     try {
@@ -243,7 +238,6 @@ Local Area Network`,
     console.error("Error adding module:", error);
   }
 };
-=======
   /* -----------------------------
      ✅ FETCH (guarded for StrictMode)
   ----------------------------- */
@@ -300,7 +294,6 @@ Local Area Network`,
     fetchModules();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
->>>>>>> 5bfeab9b8b1e266b68f9f0ecf9399d4668a63dd9
 
   /* CLOSE DROPDOWN OUTSIDE */
   useEffect(() => {
@@ -366,10 +359,8 @@ Local Area Network`,
     setQuizContents("");
   };
 
-<<<<<<< HEAD
 
 
-=======
   const handleAdd = () => {
     if (!newTitle.trim()) return;
 
@@ -456,7 +447,6 @@ Local Area Network`,
     closeDelete();
     setSuccessOpen(true);
   };
->>>>>>> 5bfeab9b8b1e266b68f9f0ecf9399d4668a63dd9
 
   return (
     <div className={styles.layout}>

@@ -518,30 +518,24 @@
   background: rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
-<<<<<<< HEAD
   pointer-events: auto;
   padding: 0px;
   box-sizing: border-box;
   z-index: 9999; /* background overlay */
-=======
   justify-content: center;
   padding: 30px;
   z-index: 9999;
->>>>>>> 5bfeab9b8b1e266b68f9f0ecf9399d4668a63dd9
 }
 
 .addModal {
-<<<<<<< HEAD
   position: relative;      /* <-- important */
   z-index: 10000;          /* <-- ensure it’s above overlay */
   pointer-events: auto;
   width: 900px;
   max-width: 95vw;
-=======
   width: 980px;
   max-width: 95vw;
   max-height: 92vh;
->>>>>>> 5bfeab9b8b1e266b68f9f0ecf9399d4668a63dd9
   background: #ffffff;
   border-radius: 28px;
   overflow: hidden;
