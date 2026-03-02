@@ -9,7 +9,6 @@ import Otp from "./pages/useraccount/Otp";
 import Forgot from "./pages/useraccount/Forgotpassword";
 import ChangePassword from "./pages/useraccount/Changepassword";
 
-
 import Welcome from "./pages/introduction/Welcome";
 import HowItWorks from "./pages/introduction/HowItWorks";
 import School from "./pages/introduction/School";
@@ -20,6 +19,7 @@ import Profile from "./pages/introduction/Profile";
 import Loading from "./pages/User/loading";
 import Homepage from "./pages/User/Homepage";
 import PublicDeck from "./pages/useraccount/public_decks/publicDeck";
+import UserProfile from "./pages/User_profile/UserProfile";
 
 /*Decks*/
 import DeckPage from "./pages/decks/DeckPage"; 
@@ -30,6 +30,7 @@ import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ModuleManagement from "./pages/admin/ModuleManagement";
 import UserManagement from "./pages/admin/usermanagement";
+import LearningModule from "./pages/Learning_Module/LearningModule";
 
 function App() {
   return (
@@ -53,6 +54,9 @@ function App() {
       <Route path="/loading" element={<Loading />} />
       <Route path="/homepage" element={<Homepage />} />
       <Route path="/public-decks" element={<PublicDeck />} />
+      <Route path="/module-management" element={<ModuleManagement />} />
+      <Route path="/learning/:lessonId" element={<LearningModule />} />
+      <Route path="/user-profile" element={<UserProfile />}/>
 
     {/* DECKS */}
       <Route path="/deckpage" element={<DeckPage/>} />
@@ -63,6 +67,7 @@ function App() {
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
       <Route path="/admin/users" element={<UserManagement/>} />
       <Route path="/admin/modules" element={<ModuleManagement />} />
+      <Route path="*" element={<h1>Page not found</h1>} />
     </Routes>
     
   );
