@@ -1,0 +1,94 @@
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* MODAL BOX */
+.modalBox {
+  background: white;
+  width: 1000px;
+  height: 550px;
+  padding: 0;
+  border-radius: 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  animation: fadeIn 0.3s ease;
+}
+
+/* HEADER */
+.modalHeader {
+  background: #D4B3F7;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 28px;
+  color: black;
+  font-weight: normal;
+  font-family: "Jersey 15", sans-serif;
+}
+
+.closeModal {
+  position: absolute;
+  right: 20px;
+  top: 5px;
+  background: none;
+  border: none;
+  font-size: 35px;
+  cursor: pointer;
+  color: black;
+  z-index: 10000;
+}
+
+/* SCROLL AREA */
+.cardsScroll {
+  height: calc(550px - 70px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-left: 20px;
+  padding-right: 10px;
+  scrollbar-gutter: stable both-edges;
+}
+
+/* SCROLLBAR */
+.cardsScroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.cardsScroll::-webkit-scrollbar-thumb {
+  background: #E0BBD4;
+  border-radius: 4px;
+}
+
+/* GRID */
+.modeOptions {
+  margin-top: 20px;
+  margin-bottom: 30px;
+  display: grid;
+  grid-template-columns: repeat(3, 220px);
+  justify-content: center;
+  gap: 70px;
+}
+
+/* ANIMATION */
+@keyframes fadeIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

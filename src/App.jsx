@@ -23,11 +23,13 @@ import PublicDeck from "./pages/useraccount/public_decks/publicDeck";
 
 /*Decks*/
 import DeckPage from "./pages/decks/DeckPage"; 
+import AddNewCard from "./pages/decks/AddNewCard";
 
 /* Admin */
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ModuleManagement from "./pages/admin/ModuleManagement";
+import UserManagement from "./pages/admin/usermanagement";
 
 function App() {
   return (
@@ -54,11 +56,12 @@ function App() {
 
     {/* DECKS */}
       <Route path="/deckpage" element={<DeckPage/>} />
+      <Route path="/addnewcard" element={<AddNewCard />} />
 
- {/* ADMIN ROUTES */}
 {/* ADMIN ROUTES */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
+      <Route path="/admin/users" element={<UserManagement/>} />
       <Route path="/admin/modules" element={<ModuleManagement />} />
     </Routes>
     

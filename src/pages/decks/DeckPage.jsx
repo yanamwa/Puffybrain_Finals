@@ -1,15 +1,15 @@
 import { useState } from "react";
 import QuizModesModal from "../../components/QuizModesModal";
-import "./deck.module.css";
+import styles from "./deck.module.css";
 
 export default function DeckPage() {
   const [openModes, setOpenModes] = useState(false);
 
   return (
     <>
-      <div className="deck-page">
+      <div className={styles.deckPage}>
         <button
-          className="practice"
+          className={styles.practiceBtn}
           onClick={() => setOpenModes(true)}
         >
           Practice
