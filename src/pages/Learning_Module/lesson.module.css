@@ -1,0 +1,162 @@
+/* Keep your gradient background */
+.wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Jersey 15", sans-serif;
+    background: linear-gradient(180deg, #D39FF7 0%, #AEB6FF 100%);
+}
+
+/* Notebook container */
+.content {
+    width: 650px;
+    background: #e7d4fb;
+    border-radius: 25px;
+    padding-top: 60px;
+    padding-bottom: 40px;
+    position: relative;
+    box-shadow: 10px 10px 0 #c9c8f8;
+    overflow: hidden;
+
+    transform: scale(1.2);    
+    transform-origin: center;
+}
+
+/* Tabs */
+.tabs {
+    position: absolute;
+    top: 15px;
+    left: 40px;
+    display: flex;
+    gap: 20px;
+}
+
+/* Each tab */
+.welcomeactive ,
+.aboutyou,
+.howitworks {
+    background: #d1b7f8;
+    padding: 10px 30px;
+    border-radius: 20px 20px 0 0;
+    font-size: 14px;
+    color: white;
+    border: none;
+    cursor: pointer;
+     font-family: "Jersey 15", sans-serif;
+    font-size: 14px;
+}
+
+/* Active tab style (matches .tab.active in sample) */
+.welcomeactive {
+    background: repeating-linear-gradient(
+        white,
+        white 30px,
+        #e4e4e4 31px
+    );
+    color: black;
+    transform: translateY(-8px);
+}
+
+/* Each tab */
+.welcome,
+.aboutyou,
+.howitworksactive {
+    background: #d1b7f8;
+    padding: 10px 30px;
+    border-radius: 20px 20px 0 0;
+    font-size: 14px;
+    color: white;
+    border: none;
+    cursor: pointer;
+     font-family: "Jersey 15", sans-serif;
+
+        font-size: 14px;
+}
+
+/* Active tab style (matches .tab.active in sample) */
+.howitworksactive {
+    background: repeating-linear-gradient(
+        white,
+        white 30px,
+        #e4e4e4 31px
+    );
+    color: black;
+    transform: translateY(-8px);
+}
+
+
+/* Bookmark ribbon */
+.ribbon {
+    position: absolute;
+    right: 40px;
+    top: 0;
+    width: 30px;
+    height: 85px;
+    background: #d48bda;
+    border-radius: 0 0 5px 5px;
+    clip-path: polygon(0 0, 100% 0, 100% 65%, 50% 100%, 0 65%);
+}
+
+/* Notebook page (your greets box) */
+.greets {
+    background: repeating-linear-gradient(
+        white,
+        white 30px,
+        #e4e4e4 31px
+    );
+    width:80%;
+    margin: auto;
+    padding: 40px 40px;
+    border-radius: 25px;
+
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+/* Heading on page */
+#hello {
+    font-family: "Jersey 15";
+    font-size: 403px;
+    margin-bottom: 20px;
+    color: #c486e5;
+}
+
+/* Text paragraph */
+#greeting1 {
+    font-size: 16px;
+    width: 90%;
+    line-height: 1.4;
+}
+
+/* Button – notebook style */
+.button{
+    background-color: #F2D1FF;
+    height: 40px;
+    width: 120px;
+    margin-top: 20px;
+    border-radius: 20px;
+    border: none;
+    box-shadow: 6px 4px 0cap rgb(200, 168, 233);
+    font-weight: normal;
+    font-size: 20px;
+    cursor: pointer;
+    font-family: "Jersey 15", sans-serif;
+}
+
+
+.button:hover {
+    transform: scale(1.07);
+    background-color: #a478d8;
+}
+
+/* Unused or adjusted */
+.text-wrapper,
+.text-wrapper-2,
+.frame-welcome,
+.tutorial-box,
+#backgroundgreet {
+    /* retain structure but neutralized */
+    background: transparent;
+}

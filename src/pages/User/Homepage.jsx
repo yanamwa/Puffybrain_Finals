@@ -1,25 +1,134 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 import styles from "./Homepage.module.css";
 import Calendar from "./Calendar";
 import TodoList from "./TodoList";
 
 function Homepage() {
   const navigate = useNavigate();
+
+  /* -----------------------------
+     STATE
+  ----------------------------- */
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
 
+  const [myDecks, setMyDecks] = useState([]);
+
+  const [deckTitle, setDeckTitle] = useState("");
+  const [deckDescription, setDeckDescription] = useState("");
+  const [deckVisibility, setDeckVisibility] = useState("private");
+  const [user, setUser] = useState({
+    username: "",
+    year_level: "",
+  });
+
+  /* -----------------------------
+     LOGOUT
+  ----------------------------- */
   const handleLogout = () => {
     const confirmed = window.confirm("Are you sure you want to logout?");
-    if (confirmed) {
-      navigate("/login");
+    if (confirmed) navigate("/login");
+  };
+
+  /* -----------------------------
+     FETCH USER DECKS
+  ----------------------------- */
+  const fetchUserDecks = async () => {
+    try {
+      const res = await fetch("http://localhost/puffybrain/userDecks.php", {
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (data.success) setMyDecks(data.decks);
+    } catch (err) {
+      console.error(err);
     }
   };
+
+  /* -----------------------------
+     FETCH USER
+  ----------------------------- */
+  const fetchUser = async () => {
+    try {
+      const res = await fetch("http://localhost/puffybrain/getUser.php", {
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (data.success) {
+        setUser(data.user);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserDecks();
+    fetchUser();
+  }, []);
+
+  /* -----------------------------
+     ADD DECK (BACKEND)
+  ----------------------------- */
+const handleAddDeck = async () => {
+  if (!deckTitle.trim()) {
+    Swal.fire({
+      icon: "warning",
+      title: "Missing title",
+      text: "Please enter a deck title.",
+      confirmButtonColor: "#7b5cff",
+    });
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append("title", deckTitle);
+    formData.append("description", deckDescription);
+    formData.append("visibility", deckVisibility);
+
+    const res = await fetch("http://localhost/puffybrain/userDecks.php", {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      Swal.fire({
+        icon: "success",
+        title: "Deck Created 🎉",
+        text: "Your deck has been created successfully.",
+        confirmButtonColor: "#7b5cff",
+      });
+
+      setShowPopup(false);
+      setDeckTitle("");
+      setDeckDescription("");
+      setDeckVisibility("private");
+      fetchUserDecks();
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Failed",
+        text: data.message || "Failed to create deck.",
+      });
+    }
+  } catch (err) {
+    Swal.fire({
+      icon: "error",
+      title: "Server Error",
+      text: "Something went wrong.",
+    });
+  }
+};
 
   return (
  <div className={`${styles.container} ${isCollapsed ? styles.sidebarCollapsed : ""}`}>
 
-      {/* LEFT SIDEBAR */}
       <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
 
         <div>
@@ -67,30 +176,24 @@ function Homepage() {
 
           <div className={styles.myDecksNav}>
             <p className={styles.myDecks}>My Decks</p>
-            <ul className={styles.sidebarList}>
-
+           <ul className={styles.sidebarList}>
+            {myDecks.length === 0 ? (
               <li className={styles.sidebarListItem}>
-                <Link to="/deck/1" className={styles.menuItem}>
-                  <i className="bx bx-book"></i>
-                  <span className={styles.menuText}>Lesson 1 to 3 Networking</span>
-                </Link>
+                <span className={styles.menuText} style={{ opacity: 0.6 }}>
+                  Don't have decks yet
+                </span>
               </li>
-
-              <li className={styles.sidebarListItem}>
-                <Link to="/deck/2" className={styles.menuItem}>
-                  <i className="bx bx-book"></i>
-                  <span className={styles.menuText}>Method of Research Lesson 2</span>
-                </Link>
-              </li>
-
-              <li className={styles.sidebarListItem}>
-                <Link to="/deck/3" className={styles.menuItem}>
-                  <i className="bx bx-book"></i>
-                  <span className={styles.menuText}>Method of Research Lesson 3</span>
-                </Link>
-              </li>
-
-            </ul>
+            ) : (
+              myDecks.map((deck) => (
+                <li key={deck.id} className={styles.sidebarListItem}>
+                  <Link to={`/deck/${deck.id}`} className={styles.menuItem}>
+                    <i className="bx bx-book"></i>
+                    <span className={styles.menuText}>{deck.title}</span>
+                  </Link>
+                </li>
+              ))
+            )}
+          </ul>
           </div>
         </div>
 
@@ -99,11 +202,11 @@ function Homepage() {
             <i className="bx bx-log-out"></i>
             <span className={styles.menuText}>Logout</span>
           </button>
-          
+
         </div>
       </aside>
 
-    
+
       <div className={styles.mainArea}>
         <header className={styles.header}>
           <form className={styles.searchBar}>
@@ -117,7 +220,7 @@ function Homepage() {
 
         <main className={styles.mainContent}>
           <div className={styles.centerBox}>
-            <h1>Hello, @meiko!</h1>
+            <h1>Hello, {user.username}!</h1>
             <p>What are we going to study?</p>
             <img className={styles.sideImage} src="/images/2.png" alt="Big" />
           </div>
@@ -133,7 +236,7 @@ function Homepage() {
                       <p className={styles.deckTitle}>Lesson 1 to 3 Networking</p>
                       <span className={styles.deckCount}>3 cards</span>
                     </div>
-                  </article>    
+                  </article>
                 </Link>
          <Link className={styles.deckLink}>
                   <article className={styles.deckCard}>
@@ -142,7 +245,7 @@ function Homepage() {
                       <p className={styles.deckTitle}>Lesson 1 to 3 Networking</p>
                       <span className={styles.deckCount}>3 cards</span>
                     </div>
-                  </article>    
+                  </article>
                 </Link>
             <Link className={styles.deckLink}>
                   <article className={styles.deckCard}>
@@ -151,90 +254,123 @@ function Homepage() {
                       <p className={styles.deckTitle}>Lesson 1 to 3 Networking</p>
                       <span className={styles.deckCount}>3 cards</span>
                     </div>
-                  </article>    
+                  </article>
                 </Link>
 
               </div>
             </div>
           </div>
+           <div className={styles.deckProgress}>
+  <div className={styles.sectionHeader}>
+    <h3>My Decks</h3>
+    <div className={styles.sectionButtons}>
+      <button
+        className={styles.btnAdd}
+        onClick={() => setShowPopup(true)}
+      >
+        Add Deck
+      </button>
 
-          <div className={styles.deckProgress}>
-            <div className={styles.sectionHeader}>
-              <h3>Deck Progress</h3>
-              <div className={styles.sectionButtons}>
-                <button className={styles.btnAdd} onClick={() => setShowPopup(true)}>
-                  Add Deck
-                </button>
-                <button className={styles.btnShow} onClick={() => window.location.href = '../User_Navigations/Mydecks.html'}>
-                  Show All
-                </button>
+      <button
+        className={styles.btnShow}
+        onClick={() => navigate("/decks")}
+      >
+        Show All
+      </button>
+    </div>
+  </div>
+
+  <div className={styles.decksArea}>
+    <div className={styles.decksGrid}>
+
+      {myDecks.length === 0 ? (
+        <p style={{ opacity: 0.6 }}>Don’t have decks yet</p>
+      ) : (
+        myDecks.map((deck, index) => (
+          <Link
+            key={deck.id}
+            to={`/deck/${deck.id}`}
+            className={styles.deckLink}
+          >
+            <article className={styles.deckCard}>
+              <div
+                className={`${styles.cardTop} ${
+                  styles[`cardTopColor${(index % 3) + 1}`]
+                }`}
+              ></div>
+
+              <div className={styles.cardBody}>
+                <p className={styles.deckTitle}>{deck.title}</p>
+                <span className={styles.deckCount}>
+                  {deck.card_count ?? 0} cards
+                </span>
               </div>
-            </div>
+            </article>
+          </Link>
+        ))
+      )}
 
-            <div className={styles.decksArea}>
-              <div className={styles.decksGrid}>
-                <Link className={styles.deckLink}>
-                  <article className={styles.deckCard}>
-                    <div className={`${styles.cardTop} ${styles.cardTopColor1}`}></div>
-                    <div className={styles.cardBody}>
-                      <p className={styles.deckTitle}>Lesson 1 to 3 Networking</p>
-                      <span className={styles.deckCount}>3 cards</span>
-                    </div>
-                  </article>
-                </Link>
-
-                <Link className={styles.deckLink}>
-                  <article className={styles.deckCard}>
-                    <div className={`${styles.cardTop} ${styles.cardTopColor2}`}></div>
-                    <div className={styles.cardBody}>
-                      <p className={styles.deckTitle}>Methods of Research Lesson 2</p>
-                      <span className={styles.deckCount}>30 cards</span>
-                    </div>
-                  </article>
-                </Link>
-
-                <Link className={styles.deckLink}>
-                  <article className={styles.deckCard}>
-                    <div className={`${styles.cardTop} ${styles.cardTopColor3}`}></div>
-                    <div className={styles.cardBody}>
-                      <p className={styles.deckTitle}>Methods of Research Lesson 3</p>
-                      <span className={styles.deckCount}>15 cards</span>
-                    </div>
-                  </article>
-                </Link>
-              </div>
-            </div>
-          </div>
+    </div>
+  </div>
+</div>
         </main>
 
         {showPopup && (
           <div className={styles.popupOverlay} onClick={() => setShowPopup(false)}>
             <div className={styles.popupContainer} onClick={(e) => e.stopPropagation()}>
-              <form className={styles.subtitleForm}>
-                <div className={styles.popupHeaderBar}>
+  <form
+    className={styles.subtitleForm}
+    onSubmit={(e) => {
+      e.preventDefault();
+      handleAddDeck();
+    }}
+  >                <div className={styles.popupHeaderBar}>
                   <h2 className={styles.popupHeaderTitle}>Create New Deck</h2>
                 </div>
 
                 <div className={styles.formGroup}>
                   <label className={styles.deckinfo}>Deck Title</label>
-                  <input type="text" className={styles.newdecktitle} placeholder="Enter your deck name" />
+<input
+  type="text"
+  className={styles.newdecktitle}
+  placeholder="Enter your deck name"
+  value={deckTitle}
+  onChange={(e) => setDeckTitle(e.target.value)}
+/>
                 </div>
 
                 <div className={styles.formGroup}>
                   <label className={styles.deckinfo}>Description</label>
-                  <input type="text" className={styles.newdecktitle} placeholder="Optional description" />
+<input
+  type="text"
+  className={styles.newdecktitle}
+  placeholder="Optional description"
+  value={deckDescription}
+  onChange={(e) => setDeckDescription(e.target.value)}
+/>
                 </div>
 
                 <div className={styles.formGroup}>
                   <label className={styles.deckinfo}>Visibility</label>
                   <div className={styles.radioGroup}>
                     <label className={styles.pubpriv}>
-                      <input type="radio" name="visibility" value="public" />
+                    <input
+  type="radio"
+  name="visibility"
+  value="public"
+  checked={deckVisibility === "public"}
+  onChange={() => setDeckVisibility("public")}
+/>
                       Public
                     </label>
                     <label className={styles.pubpriv}>
-                      <input type="radio" name="visibility" value="private" />
-                      Private
+<input
+  type="radio"
+  name="visibility"
+  value="private"
+  checked={deckVisibility === "private"}
+  onChange={() => setDeckVisibility("private")}
+/>                      Private
                     </label>
                   </div>
                 </div>
@@ -254,12 +390,10 @@ function Homepage() {
                 <div className={styles.popupDivider}></div>
 
                 <div className={styles.startsaveContainer}>
-                  <button type="button" className={styles.cancelBtn} onClick={() => setShowPopup(false)}>
-                    Cancel
-                  </button>
-                  <button type="button" className={styles.popaddBtn}>
-                    Add
-                  </button>
+             <button type="button" className={styles.cancelBtn} onClick={() => setShowPopup(false)}>
+                  Cancel
+                </button>
+<button type="submit" className={styles.popaddBtn}>Add</button>
                 </div>
               </form>
             </div>
@@ -270,8 +404,8 @@ function Homepage() {
       <aside className={styles.rightSidebar}>
         <div className={styles.profileSection}>
           <div className={styles.profileAvatar}></div>
-          <h3 className={styles.profileName}>@meiko</h3>
-          <p className={styles.profileRole}>2nd year</p>
+          <h3 className={styles.profileName}>{user.username}</h3>
+          <p className={styles.profileRole}>{user.year_level || "Rather not say"}</p>
           <Link to="/setting-profile/user_profile" className={styles.profileBtn}>
             Profile
           </Link>

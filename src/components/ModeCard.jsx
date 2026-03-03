@@ -1,13 +1,22 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import styles from "./ModeCard.module.css";
 
 export default function ModeCard({ title, img, desc, link }) {
+  const navigate = useNavigate();
+
   return (
-    <Link to={link} className="mode-link">
-      <div className="mode-card">
-        <img src={img} className="mode-icon" alt={title} />
-        <h3>{title}</h3>
-        <p>{desc}</p>
-      </div>
-    </Link>
+    <div
+      className={styles.modeCard}
+      onClick={() => navigate(link)}
+    >
+      <img
+        src={img}
+        alt={title}
+        className={styles.icon}
+      />
+
+      <h3 className={styles.title}>{title}</h3>
+      <p className={styles.desc}>{desc}</p>
+    </div>
   );
 }

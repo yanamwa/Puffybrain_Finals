@@ -1,0 +1,48 @@
+.modeCard {
+  width: 220px;
+  background: #EBD3FA;
+  padding: 20px;
+  border-radius: 18px;
+  cursor: pointer;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  transition: all 0.2s ease;
+
+  box-shadow:
+    0 10px 0 #A993D8,
+    10px 10px 0 #A993D8;
+}
+
+.modeCard:hover {
+  transform: translateY(-4px);
+  background: #e2a6dc;
+}
+
+.icon {
+  width: 100%;
+  height: 120px;
+  object-fit: contain;
+  object-position: center;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+  color: black;
+  font-weight: normal;
+  font-family: "Jersey 15", sans-serif;
+}
+
+.desc {
+  margin-top: 10px;
+  color: black;
+  font-size: 12px;
+  font-weight: normal;
+  font-family: "Poppins", sans-serif;
+}

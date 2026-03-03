@@ -10,16 +10,8 @@
     "sidebar main";
   min-height: 100vh;
   background: #ffffff;
-
-  /* ✅ prevents weird z-index stacking from other pages */
   isolation: isolate;
 }
-
-* {
-  box-sizing: border-box;
-  font-family: "Poppins", sans-serif;
-}
-
 /* =========================
    SIDEBAR
 ========================= */
