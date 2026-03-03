@@ -153,10 +153,54 @@ export default function ModuleManagement() {
     }
   };
 
+  const handleAddModule = async () => {
+    if (!newTitle.trim()) return;
+
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: newTitle,
+          description: newDesc,
+          subject: newSubject,
+          status: newStatus,
+          lesson_text: lessonText,
+          quiz_contents: quizContents,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        alert("Module added successfully!");
+        closeAdd();
+        fetchModules();
+      } else {
+        alert(data.message);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  /* FETCH (StrictMode guard) */
   useEffect(() => {
     if (fetchedOnce.current) return;
     fetchedOnce.current = true;
     fetchModules();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* CLOSE DROPDOWN OUTSIDE */
+  useEffect(() => {
+    const onDown = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
   }, []);
 
   /* -----------------------------
@@ -213,38 +257,6 @@ export default function ModuleManagement() {
     setNewStatus("Draft");
     setLessonText("");
     setQuizContents("");
-  };
-
-  /* ✅ FIXED: correct handler */
-  const handleAddModule = async () => {
-    if (!newTitle.trim()) return;
-
-    try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: newTitle,
-          description: newDesc,
-          subject: newSubject,
-          status: newStatus,
-          lesson_text: lessonText,
-          quiz_contents: quizContents,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        alert("Module added successfully!");
-        closeAdd();
-        fetchModules();
-      } else {
-        alert(data.message);
-      }
-    } catch (err) {
-      console.error(err);
-    }
   };
 
   const openEdit = (mod) => {

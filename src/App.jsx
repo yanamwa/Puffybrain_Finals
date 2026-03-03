@@ -9,7 +9,6 @@ import Otp from "./pages/useraccount/Otp";
 import Forgot from "./pages/useraccount/Forgotpassword";
 import ChangePassword from "./pages/useraccount/Changepassword";
 
-
 import Welcome from "./pages/introduction/Welcome";
 import HowItWorks from "./pages/introduction/HowItWorks";
 import School from "./pages/introduction/School";
@@ -25,11 +24,13 @@ import UserProfile from "./pages/User_profile/UserProfile";
 /*Decks*/
 import DeckPage from "./pages/decks/DeckPage"; 
 import UserDecks from "./pages/decks/userDecks";
+import AddNewCard from "./pages/decks/AddNewCard";
 
 /* Admin */
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ModuleManagement from "./pages/admin/modulemanagement";
+import UserManagement from "./pages/admin/usermanagement";
 import LearningModule from "./pages/Learning_Module/LearningModule";
 
 function App() {
@@ -61,12 +62,13 @@ function App() {
     {/* DECKS */}
       <Route path="/deckpage" element={<DeckPage/>} />
       <Route path="/userdecks" element={<UserDecks/>} />
+      <Route path="/addnewcard" element={<AddNewCard />} />
 
 {/* ADMIN ROUTES */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
+      <Route path="/admin/users" element={<UserManagement/>} />
       <Route path="/admin/modules" element={<ModuleManagement />} />
-
       <Route path="*" element={<h1>Page not found</h1>} />
     </Routes>
     
