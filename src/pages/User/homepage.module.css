@@ -20,6 +20,9 @@
     transition: all 0.3s ease;
 }
 
+.swal2-container {
+  z-index: 99999 !important;
+}
 
 .dashboardGrid {
   display: grid;

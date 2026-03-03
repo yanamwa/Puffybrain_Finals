@@ -1,9 +1,4 @@
-<<<<<<< HEAD
-
-import React, { useState, useRef, useEffect } from "react";
-=======
 import React, { useEffect, useMemo, useRef, useState } from "react";
->>>>>>> 5bfeab9b8b1e266b68f9f0ecf9399d4668a63dd9
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -29,86 +24,44 @@ function formatToday() {
   return `${mm}/${dd}/${yyyy}`;
 }
 
-/* ✅ STRONG parser: JSON / Q:A / blank blocks / 2-lines */
+/* -----------------------------
+   STRONG parser
+----------------------------- */
 function parseDeckCards(raw) {
   if (!raw) return [];
   const text = String(raw).trim();
   if (!text) return [];
 
-  // 1) JSON array
   try {
     const parsed = JSON.parse(text);
     if (Array.isArray(parsed)) {
-      const cards = parsed
+      return parsed
         .map((x, i) => ({
           id: i + 1,
           question: String(x.question ?? x.q ?? "").trim(),
           answer: String(x.answer ?? x.a ?? "").trim(),
         }))
         .filter((c) => c.question || c.answer);
-      if (cards.length) return cards;
     }
-  } catch (_) {}
+  } catch {}
 
-  // 2) Q:/A: format
-  if (/^\s*Q\s*:/im.test(text) || /^\s*A\s*:/im.test(text)) {
-    const lines = text.split("\n");
-    const cards = [];
-    let q = "";
-    let a = "";
-
-    const push = () => {
-      const qq = q.trim();
-      const aa = a.trim();
-      if (qq || aa) cards.push({ id: cards.length + 1, question: qq, answer: aa });
-      q = "";
-      a = "";
-    };
-
-    for (const line of lines) {
-      if (/^\s*Q\s*:/i.test(line)) {
-        if (q || a) push();
-        q = line.replace(/^\s*Q\s*:\s*/i, "");
-      } else if (/^\s*A\s*:/i.test(line)) {
-        a = line.replace(/^\s*A\s*:\s*/i, "");
-      } else {
-        if (a) a += "\n" + line;
-        else q += (q ? "\n" : "") + line;
-      }
-    }
-    push();
-    return cards;
-  }
-
-  // 3) blank-line blocks
   const blocks = text
     .split(/\n\s*\n+/g)
     .map((b) => b.trim())
     .filter(Boolean);
 
-  const fromBlocks = blocks
-    .map((block, idx) => {
-      const lines = block
-        .split("\n")
-        .map((l) => l.trim())
-        .filter(Boolean);
-
+  if (blocks.length) {
+    return blocks.map((block, idx) => {
+      const lines = block.split("\n").filter(Boolean);
       return {
         id: idx + 1,
         question: lines[0] || "",
-        answer: lines.slice(1).join("\n").trim(),
+        answer: lines.slice(1).join("\n"),
       };
-    })
-    .filter((c) => c.question || c.answer);
+    });
+  }
 
-  if (fromBlocks.length) return fromBlocks;
-
-  // 4) fallback: every 2 lines = Q/A
-  const lines = text
-    .split("\n")
-    .map((l) => l.trim())
-    .filter(Boolean);
-
+  const lines = text.split("\n").filter(Boolean);
   const cards = [];
   for (let i = 0; i < lines.length; i += 2) {
     cards.push({
@@ -117,29 +70,33 @@ function parseDeckCards(raw) {
       answer: lines[i + 1] || "",
     });
   }
-  return cards.filter((c) => c.question || c.answer);
+  return cards;
 }
 
 export default function ModuleManagement() {
   const API_URL = "http://localhost/puffybrain/adminLearningModule.php";
+
+  /* -----------------------------
+     MENU
+  ----------------------------- */
+  const menuItems = [
+    { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
+    { label: "User Management", path: "/admin/users", icon: <Users size={20} /> },
+    { label: "Module Management", path: "/admin/modules", icon: <BookOpen size={20} /> },
+  ];
+
+  /* -----------------------------
+     STATE
+  ----------------------------- */
   const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // header search
   const [searchQuery, setSearchQuery] = useState("");
-
-  // profile dropdown
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
-
-  // pagination UI only
   const [rowsToShow, setRowsToShow] = useState(10);
 
-  // ✅ VIEW: store ID only (prevents stale object issues)
   const [viewOpen, setViewOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
 
-  // ADD modal
   const [addOpen, setAddOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
@@ -148,7 +105,6 @@ export default function ModuleManagement() {
   const [lessonText, setLessonText] = useState("");
   const [quizContents, setQuizContents] = useState("");
 
-  // EDIT modal
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState(null);
   const [editTitle, setEditTitle] = useState("");
@@ -156,190 +112,86 @@ export default function ModuleManagement() {
   const [editLearning, setEditLearning] = useState("");
   const [editQuiz, setEditQuiz] = useState("");
 
-  // DELETE modal
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
-
-  // SUCCESS modal
   const [successOpen, setSuccessOpen] = useState(false);
 
-  // ✅ fallback data (same IDs)
-  const fallbackData = [
-    {
-      id: "QZ2025A01",
-      title: "rairai",
-      date: "10/11/2025",
-      status: "active",
-      module_description: "Sample module description",
-      subject_course: "IT 101 / Web Dev",
-      learningModule: "Learning module sample...",
-      quizModule: `What is the primary purpose of a "router" in a home network?
-To forward data between different networks, such as your home network and the internet.
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
-Which network device is used to amplify a Wi-Fi signal to extend the coverage area of a wireless network?
-A Wi-Fi Repeater/Extender
+  const dropdownRef = useRef(null);
+  const fetchedOnce = useRef(false);
 
-What does the acronym "LAN" commonly stand for?
-Local Area Network`,
-    },
-    { id: "BK06A2025", title: "Paps", date: "11/27/2025", status: "active", module_description: "", subject_course: "", learningModule: "", quizModule: "" },
-    { id: "BK07A2025", title: "Larah", date: "12/17/2025", status: "active", module_description: "", subject_course: "", learningModule: "", quizModule: "" },
-    { id: "BK08A2025", title: "meiko", date: "11/22/2025", status: "active", module_description: "", subject_course: "", learningModule: "", quizModule: "" },
-    { id: "BK09A2025", title: "jessy", date: "11/16/2025", status: "inactive", module_description: "", subject_course: "", learningModule: "", quizModule: "" },
-  ];
-
-  const menuItems = [
-    { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
-    { label: "User Management", path: "/admin/users", icon: <Users size={20} /> },
-    { label: "Module Management", path: "/admin/modules", icon: <Users size={20} /> },
-    { label: "Decks Management", path: "/admin/decks", icon: <BookOpen size={20} /> },
-  ];
-
-<<<<<<< HEAD
-  /* FETCH DATA */
+  /* -----------------------------
+     FETCH FROM DB
+  ----------------------------- */
   const fetchModules = async () => {
     try {
-      const response = await fetch(API_URL);
-      const data = await response.json();
-      if (data.success) setModules(data.modules);
-      else setModules([]);
-    } catch (error) {
-      console.error(error);
+      const res = await fetch(API_URL);
+      const data = await res.json();
+
+      if (data?.success && Array.isArray(data.modules)) {
+        setModules(
+          data.modules.map((m) => ({
+            id: m.id,
+            title: m.title,
+            date: m.created_at ?? formatToday(),
+            status: String(m.status).toLowerCase(),
+            module_description: m.description ?? "",
+            subject_course: m.subject ?? "",
+            learningModule: m.lesson_text ?? "",
+            quizModule: m.quiz_contents ?? "",
+          }))
+        );
+      } else {
+        setModules([]);
+      }
+    } catch (err) {
+      console.error(err);
+      setModules([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAddModule = async () => {
-  console.log("Add button clicked!"); // confirms button is working
-  if (!newTitle.trim()) return;
-
-  try {
-    const response = await fetch(API_URL, {  // <-- use API_URL here
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title: newTitle,
-        description: newDesc,
-        subject: newSubject,
-        status: newStatus,
-        lesson_text: lessonText,
-        quiz_contents: quizContents,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      alert("Module added successfully!");
-      closeAddModal();
-      fetchModules(); 
-    } else {
-      alert(data.message);
-    }
-  } catch (error) {
-    console.error("Error adding module:", error);
-  }
-};
-=======
-  /* -----------------------------
-     ✅ FETCH (guarded for StrictMode)
-  ----------------------------- */
-  const fetchedOnce = useRef(false);
-
   useEffect(() => {
     if (fetchedOnce.current) return;
     fetchedOnce.current = true;
-
-    const fetchModules = async () => {
-      try {
-        const res = await fetch("http://localhost/puffybrain/adminLearningModule.php");
-        if (!res.ok) throw new Error("Network error");
-        const data = await res.json();
-
-        if (data?.success && Array.isArray(data.modules)) {
-          const normalized = data.modules.map((m) => ({
-            id: m.id ?? m.module_id ?? m.moduleId ?? `MD${Date.now()}`,
-            title: m.title ?? m.module_title ?? m.moduleTitle ?? "",
-            date: m.date ?? m.date_created ?? m.created_at ?? formatToday(),
-            status: String(m.status ?? "inactive").toLowerCase(),
-
-            module_description: m.module_description ?? m.description ?? "",
-            subject_course: m.subject_course ?? m.subject ?? m.course ?? "",
-
-            learningModule:
-              m.learningModule ??
-              m.lesson_text_contents ??
-              m.lesson_contents ??
-              m.lesson ??
-              "",
-
-            quizModule:
-              m.quizModule ??
-              m.quiz_cards_contents ??
-              m.quiz_contents ??
-              m.quiz ??
-              m.deck_cards ??
-              "",
-          }));
-
-          setModules(normalized.length ? normalized : fallbackData);
-        } else {
-          setModules(fallbackData);
-        }
-      } catch (e) {
-        console.error(e);
-        setModules(fallbackData);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchModules();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
->>>>>>> 5bfeab9b8b1e266b68f9f0ecf9399d4668a63dd9
-
-  /* CLOSE DROPDOWN OUTSIDE */
-  useEffect(() => {
-    const onDown = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
   }, []);
 
   /* -----------------------------
-     memo computed
+     MEMOS
   ----------------------------- */
-  const filteredModules = useMemo(() => {
-    return modules.filter((m) =>
-      String(m.title || "").toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [modules, searchQuery]);
+  const filteredModules = useMemo(
+    () =>
+      modules.filter((m) =>
+        m.title.toLowerCase().includes(searchQuery.toLowerCase())
+      ),
+    [modules, searchQuery]
+  );
 
-  const shownModules = useMemo(() => {
-    return filteredModules.slice(0, rowsToShow);
-  }, [filteredModules, rowsToShow]);
+  const shownModules = useMemo(
+    () => filteredModules.slice(0, rowsToShow),
+    [filteredModules, rowsToShow]
+  );
 
-  const selectedModule = useMemo(() => {
-    return modules.find((m) => m.id === selectedId) || null;
-  }, [modules, selectedId]);
+  const selectedModule = useMemo(
+    () => modules.find((m) => m.id === selectedId) || null,
+    [modules, selectedId]
+  );
 
-  const selectedCards = useMemo(() => {
-    return selectedModule ? parseDeckCards(selectedModule.quizModule) : [];
-  }, [selectedModule]);
+  const selectedCards = useMemo(
+    () => (selectedModule ? parseDeckCards(selectedModule.quizModule) : []),
+    [selectedModule]
+  );
 
-  const editTarget = useMemo(() => {
-    return modules.find((m) => m.id === editId) || null;
-  }, [modules, editId]);
+  const editTarget = useMemo(
+    () => modules.find((m) => m.id === editId) || null,
+    [modules, editId]
+  );
 
   /* -----------------------------
-     VIEW
+     ACTIONS
   ----------------------------- */
   const openView = (mod) => {
     setSelectedId(mod.id);
@@ -351,9 +203,6 @@ Local Area Network`,
     setSelectedId(null);
   };
 
-  /* -----------------------------
-     ADD
-  ----------------------------- */
   const openAdd = () => setAddOpen(true);
 
   const closeAdd = () => {
@@ -366,97 +215,66 @@ Local Area Network`,
     setQuizContents("");
   };
 
-<<<<<<< HEAD
-
-
-=======
-  const handleAdd = () => {
+  /* ✅ FIXED: correct handler */
+  const handleAddModule = async () => {
     if (!newTitle.trim()) return;
 
-    const item = {
-      id: `MD${Date.now()}`,
-      title: newTitle.trim(),
-      date: formatToday(),
-      status: newStatus === "Publish" ? "active" : "inactive",
-      module_description: newDesc.trim(),
-      subject_course: newSubject.trim(),
-      learningModule: lessonText.trim(),
-      quizModule: quizContents.trim(),
-    };
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: newTitle,
+          description: newDesc,
+          subject: newSubject,
+          status: newStatus,
+          lesson_text: lessonText,
+          quiz_contents: quizContents,
+        }),
+      });
 
-    setModules((prev) => [item, ...prev]);
-    closeAdd();
+      const data = await res.json();
+
+      if (data.success) {
+        alert("Module added successfully!");
+        closeAdd();
+        fetchModules();
+      } else {
+        alert(data.message);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  /* -----------------------------
-     EDIT
-  ----------------------------- */
   const openEdit = (mod) => {
     setEditId(mod.id);
-    setEditTitle(mod.title || "");
-    setEditStatus(String(mod.status || "inactive").toLowerCase());
-    setEditLearning(mod.learningModule || "");
-    setEditQuiz(mod.quizModule || "");
+    setEditTitle(mod.title);
+    setEditStatus(mod.status);
+    setEditLearning(mod.learningModule);
+    setEditQuiz(mod.quizModule);
     setEditOpen(true);
   };
 
-  const closeEdit = () => {
-    setEditOpen(false);
-    setEditId(null);
-    setEditTitle("");
-    setEditStatus("inactive");
-    setEditLearning("");
-    setEditQuiz("");
-  };
+  const closeEdit = () => setEditOpen(false);
 
   const saveEdit = () => {
-    if (!editTarget) return;
-    const title = editTitle.trim();
-    if (!title) return;
-
-    setModules((prev) =>
-      prev.map((m) =>
-        m.id === editTarget.id
-          ? {
-              ...m,
-              title,
-              status: editStatus,
-              learningModule: editLearning.trim(),
-              quizModule: editQuiz.trim(),
-            }
-          : m
-      )
-    );
-
+    alert("Edit save not connected to DB yet");
     closeEdit();
   };
 
-  /* -----------------------------
-     DELETE
-  ----------------------------- */
   const openDelete = (mod) => {
     setDeleteTarget(mod);
     setDeleteOpen(true);
   };
 
-  const closeDelete = () => {
-    setDeleteOpen(false);
-    setDeleteTarget(null);
-  };
+  const closeDelete = () => setDeleteOpen(false);
 
   const confirmDelete = () => {
-    if (!deleteTarget) return;
-
     setModules((prev) => prev.filter((m) => m.id !== deleteTarget.id));
-
-    if (selectedId === deleteTarget.id) {
-      closeView();
-    }
-
     closeDelete();
     setSuccessOpen(true);
   };
->>>>>>> 5bfeab9b8b1e266b68f9f0ecf9399d4668a63dd9
 
   return (
     <div className={styles.layout}>
@@ -789,9 +607,13 @@ Local Area Network`,
                   <button className={styles.addCancelBtn} type="button" onClick={closeAdd}>
                     Cancel
                   </button>
-                  <button className={styles.addConfirmBtn} type="button" onClick={handleAdd}>
-                    Add
-                  </button>
+                <button
+  className={styles.addConfirmBtn}
+  type="button"
+  onClick={handleAddModule}
+>
+  Add
+</button>
                 </div>
               </div>
             </div>

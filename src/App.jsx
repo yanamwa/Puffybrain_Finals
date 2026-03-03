@@ -24,6 +24,7 @@ import UserProfile from "./pages/User_profile/UserProfile";
 
 /*Decks*/
 import DeckPage from "./pages/decks/DeckPage"; 
+import UserDecks from "./pages/decks/userDecks";
 
 /* Admin */
 import AdminLogin from "./pages/admin/AdminLogin";
@@ -59,6 +60,7 @@ function App() {
 
     {/* DECKS */}
       <Route path="/deckpage" element={<DeckPage/>} />
+      <Route path="/userdecks" element={<UserDecks/>} />
 
 {/* ADMIN ROUTES */}
       <Route path="/admin/login" element={<AdminLogin />} />
