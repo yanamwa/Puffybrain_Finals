@@ -26,13 +26,22 @@ import UserProfile from "./pages/User_profile/UserProfile";
 
 import Mydecks from "./pages/User/mydecks";
 
-/* Decks */
-import DeckPage from "./pages/decks/DeckPage";
+
+/*Decks*/
+import Lesson from "./pages/Learning_Module/Lesson";
+import Context from "./pages/Learning_Module/Context";
+
+
+/*Decks*/
+import DeckPage from "./pages/decks/DeckPage"; 
+import UserDecks from "./pages/decks/userDecks";
+import AddNewCard from "./pages/decks/AddNewCard";
 
 /* Admin */
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ModuleManagement from "./pages/admin/modulemanagement";
+import UserManagement from "./pages/admin/usermanagement";
 import LearningModule from "./pages/Learning_Module/LearningModule";
 
 export default function App() {
@@ -61,6 +70,14 @@ export default function App() {
 
       {/* ✅ MYDECKS ROUTE */}
       <Route path="/Mydecks" element={<Mydecks />} />
+    <Route path="/lesson" element={<Lesson />} /> 
+<Route path="/context" element={<Context />} /> 
+
+
+    {/* DECKS */}
+      <Route path="/deckpage" element={<DeckPage/>} />
+      <Route path="/userdecks" element={<UserDecks/>} />
+      <Route path="/addnewcard" element={<AddNewCard />} />
 
       {/* DECKS */}
       <Route path="/deckpage" element={<DeckPage />} />
@@ -68,6 +85,7 @@ export default function App() {
       {/* ADMIN */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
+      <Route path="/admin/users" element={<UserManagement/>} />
       <Route path="/admin/modules" element={<ModuleManagement />} />
 
       {/* LEARNING */}
