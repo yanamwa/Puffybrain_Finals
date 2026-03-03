@@ -1,6 +1,8 @@
 import { Routes, Route } from "react-router-dom";
+import "boxicons/css/boxicons.min.css";
+
+/* Landing */
 import LandingPage from "./pages/LandingPage";
-import 'boxicons/css/boxicons.min.css';
 
 /* User Account */
 import Login from "./pages/useraccount/Login";
@@ -9,6 +11,7 @@ import Otp from "./pages/useraccount/Otp";
 import Forgot from "./pages/useraccount/Forgotpassword";
 import ChangePassword from "./pages/useraccount/Changepassword";
 
+/* Introduction */
 import Welcome from "./pages/introduction/Welcome";
 import HowItWorks from "./pages/introduction/HowItWorks";
 import School from "./pages/introduction/School";
@@ -20,25 +23,18 @@ import Loading from "./pages/User/loading";
 import Homepage from "./pages/User/Homepage";
 import PublicDeck from "./pages/useraccount/public_decks/publicDeck";
 import UserProfile from "./pages/User_profile/UserProfile";
+import MyDecks from "./pages/User/Mydecks";
 
-/*Decks*/
-import Lesson from "./pages/Learning_Module/Lesson";
-import Context from "./pages/Learning_Module/Context";
-
-
-/*Decks*/
-import DeckPage from "./pages/decks/DeckPage"; 
-import UserDecks from "./pages/decks/userDecks";
-import AddNewCard from "./pages/decks/AddNewCard";
+/* Decks */
+import DeckPage from "./pages/decks/DeckPage";
 
 /* Admin */
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ModuleManagement from "./pages/admin/modulemanagement";
-import UserManagement from "./pages/admin/usermanagement";
 import LearningModule from "./pages/Learning_Module/LearningModule";
 
-function App() {
+export default function App() {
   return (
     <Routes>
       {/* USER ACCOUNTS */}
@@ -49,39 +45,36 @@ function App() {
       <Route path="/forgot" element={<Forgot />} />
       <Route path="/changepassword" element={<ChangePassword />} />
 
-     {/* USER INTRODUCTION */}
+      {/* USER INTRODUCTION */}
       <Route path="/welcome" element={<Welcome />} />
       <Route path="/how-it-works" element={<HowItWorks />} />
-      <Route path="/school" element={<School />} /> 
+      <Route path="/school" element={<School />} />
       <Route path="/year" element={<Year />} />
       <Route path="/profile" element={<Profile />} />
 
-    {/* HOME */}
+      {/* HOME */}
       <Route path="/loading" element={<Loading />} />
       <Route path="/homepage" element={<Homepage />} />
+      <Route path="/Mydecks" element={<MyDecks />} />
       <Route path="/public-decks" element={<PublicDeck />} />
-      <Route path="/module-management" element={<ModuleManagement />} />
-      <Route path="/learning/:lessonId" element={<LearningModule />} />
-      <Route path="/user-profile" element={<UserProfile />}/>
+      <Route path="/user-profile" element={<UserProfile />} />
 
       <Route path="/lesson" element={<Lesson />} /> 
       <Route path="/context" element={<Context />} /> 
 
+      {/* DECKS */}
+      <Route path="/deckpage" element={<DeckPage />} />
 
-    {/* DECKS */}
-      <Route path="/deckpage" element={<DeckPage/>} />
-      <Route path="/userdecks" element={<UserDecks/>} />
-      <Route path="/addnewcard" element={<AddNewCard />} />
-
-{/* ADMIN ROUTES */}
+      {/* ADMIN */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
-      <Route path="/admin/users" element={<UserManagement/>} />
       <Route path="/admin/modules" element={<ModuleManagement />} />
+
+      {/* LEARNING */}
+      <Route path="/module-management" element={<ModuleManagement />} />
+      <Route path="/learning/:lessonId" element={<LearningModule />} />
+
       <Route path="*" element={<h1>Page not found</h1>} />
     </Routes>
-    
   );
 }
-
-export default App;

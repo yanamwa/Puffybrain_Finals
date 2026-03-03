@@ -295,7 +295,6 @@
   opacity: 1;
   line-height: 35px;          /* match input height for perfect centering */
   letter-spacing: 1px;
-  font-family: sans-serif; 
 }
 /* Notification Button */
 .notificationBtn {
@@ -409,6 +408,7 @@
   background: #f5f5f5; 
   flex: 1;
   margin-top: 70px;
+
 }
 .container.sidebarCollapsed .mainContent {
   margin-left: 60px;
@@ -417,17 +417,16 @@
   display: flex;
   gap: 30px; /* spacing between left and right */
   align-items: stretch; /* makes all children equal height */
+
 }
 
 .courses {
-  min-height: 150px;
   background-color: #eeeeee;
   border-radius: 15px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.2);
   padding: 0;                 /* remove padding so header sits flush */
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: stretch;
   position: relative;         /* needed for absolute positioning of course-head */
   overflow: hidden;           /* optional, hides anything overflowing */
@@ -447,7 +446,7 @@
 
 }
 .innercourse{
-    padding: 20px;
+    padding: 30px;
 }
 .innerhead {
   justify-content: space-between; /* pushes h1 left, controls right */
@@ -458,7 +457,7 @@
   padding-bottom: 10px;
 }
 .innerhead h1{
-  font-size: 35px;
+  font-size: 25px;
   font-weight: lighter;
   margin: 0; /* THIS removes the hidden extra space */
   margin-left: 10px;
@@ -481,6 +480,7 @@
   font-weight: 300;
   line-height: 1.5;
   text-align: justify;
+  min-height: 100px;
 }
 .innerfoot h3 {
   display: flex;
@@ -495,7 +495,7 @@
   height: 12px;
   border-radius: 50%;
   display: inline-block;
-  margin-left: 230px;
+  margin-left: 200px;
 }
 
 .public {
@@ -609,7 +609,6 @@
   transition: background 0.3s;
   height: 30px;
   margin-top: 10px;
-  font-family: 'jersey 15';
   font-size: 15px;
 }
 
@@ -656,7 +655,6 @@
   font-size: 20px;
   color: #555;                /* normal text color */
   transition: color 0.3s, border-bottom 0.3s;
-  font-family: 'jersey 15';
   margin-left: 30px;
   position: relative; 
 }
