@@ -5,7 +5,11 @@
     align-items: center;
     justify-content: center;
     font-family: "Jersey 15", sans-serif;
-    background: linear-gradient(180deg, #D39FF7 0%, #AEB6FF 100%);
+    background-image: url("/background_notebook.png");    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    background-color: #0e0e0e;
 }
 
 /* Notebook container */
@@ -47,7 +51,6 @@
     font-size: 14px;
 }
 
-/* Active tab style (matches .tab.active in sample) */
 .welcomeactive {
     background: repeating-linear-gradient(
         white,

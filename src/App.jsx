@@ -23,8 +23,7 @@ import Loading from "./pages/User/loading";
 import Homepage from "./pages/User/Homepage";
 import PublicDeck from "./pages/useraccount/public_decks/publicDeck";
 import UserProfile from "./pages/User_profile/UserProfile";
-
-import Mydecks from "./pages/User/mydecks";
+import MyDecks from "./pages/User/Mydecks";
 
 
 /*Decks*/
@@ -65,6 +64,7 @@ export default function App() {
       {/* HOME */}
       <Route path="/loading" element={<Loading />} />
       <Route path="/homepage" element={<Homepage />} />
+      <Route path="/Mydecks" element={<MyDecks />} />
       <Route path="/public-decks" element={<PublicDeck />} />
       <Route path="/user-profile" element={<UserProfile />} />
 
@@ -78,6 +78,8 @@ export default function App() {
       <Route path="/deckpage" element={<DeckPage/>} />
       <Route path="/userdecks" element={<UserDecks/>} />
       <Route path="/addnewcard" element={<AddNewCard />} />
+      <Route path="/lesson" element={<Lesson />} /> 
+      <Route path="/context" element={<Context />} /> 
 
       {/* DECKS */}
       <Route path="/deckpage" element={<DeckPage />} />
