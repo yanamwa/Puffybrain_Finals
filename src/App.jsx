@@ -22,6 +22,11 @@ import PublicDeck from "./pages/useraccount/public_decks/publicDeck";
 import UserProfile from "./pages/User_profile/UserProfile";
 
 /*Decks*/
+import Lesson from "./pages/Learning_Module/Lesson";
+import Context from "./pages/Learning_Module/Context";
+
+
+/*Decks*/
 import DeckPage from "./pages/decks/DeckPage"; 
 import AddNewCard from "./pages/decks/AddNewCard";
 
@@ -57,6 +62,10 @@ function App() {
       <Route path="/module-management" element={<ModuleManagement />} />
       <Route path="/learning/:lessonId" element={<LearningModule />} />
       <Route path="/user-profile" element={<UserProfile />}/>
+
+    <Route path="/lesson" element={<Lesson />} /> 
+<Route path="/context" element={<Context />} /> 
+
 
     {/* DECKS */}
       <Route path="/deckpage" element={<DeckPage/>} />

@@ -1,0 +1,38 @@
+import styles from "./lesson.module.css";
+import { Link } from "react-router-dom";
+
+function Tutorial() {
+  const username = localStorage.getItem("username") || "user";
+
+  return (
+    <div className={styles.wrapper}>
+      <div className={styles.content}>
+        <div className={styles.ribbon}></div>
+
+        <div className={styles.tabs}>
+          <button className={styles.welcome}>Introduction</button>
+          <button className={styles.howitworksactive}>Lesson</button>
+          <button className={styles.aboutyou}>Review</button>
+        </div>
+
+        <div className={styles.greets}>
+          <h1 className={styles.hello}>Welcome, @{username}!</h1>
+
+          <p className={styles.greeting1}>
+            Hi there, smart cookie! We’re so happy you joined the PuffyBrain family.
+            <br />
+            PuffyBrain helps you learn, quiz, and remember everything with your own
+            cute decks and quizzes!
+            <br />
+            Ready to see how it works?
+          </p>
+<Link to="/lesson-2">
+  <button className={styles.button}>Next →</button>
+</Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Tutorial;
