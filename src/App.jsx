@@ -1,6 +1,8 @@
 import { Routes, Route } from "react-router-dom";
+import "boxicons/css/boxicons.min.css";
+
+/* Landing */
 import LandingPage from "./pages/LandingPage";
-import 'boxicons/css/boxicons.min.css';
 
 /* User Account */
 import Login from "./pages/useraccount/Login";
@@ -9,7 +11,7 @@ import Otp from "./pages/useraccount/Otp";
 import Forgot from "./pages/useraccount/Forgotpassword";
 import ChangePassword from "./pages/useraccount/Changepassword";
 
-
+/* Introduction */
 import Welcome from "./pages/introduction/Welcome";
 import HowItWorks from "./pages/introduction/HowItWorks";
 import School from "./pages/introduction/School";
@@ -22,8 +24,10 @@ import Homepage from "./pages/User/Homepage";
 import PublicDeck from "./pages/useraccount/public_decks/publicDeck";
 import UserProfile from "./pages/User_profile/UserProfile";
 
-/*Decks*/
-import DeckPage from "./pages/decks/DeckPage"; 
+import Mydecks from "./pages/User/mydecks";
+
+/* Decks */
+import DeckPage from "./pages/decks/DeckPage";
 
 /* Admin */
 import AdminLogin from "./pages/admin/AdminLogin";
@@ -31,7 +35,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import ModuleManagement from "./pages/admin/modulemanagement";
 import LearningModule from "./pages/Learning_Module/LearningModule";
 
-function App() {
+export default function App() {
   return (
     <Routes>
       {/* USER ACCOUNTS */}
@@ -42,33 +46,35 @@ function App() {
       <Route path="/forgot" element={<Forgot />} />
       <Route path="/changepassword" element={<ChangePassword />} />
 
-     {/* USER INTRODUCTION */}
+      {/* USER INTRODUCTION */}
       <Route path="/welcome" element={<Welcome />} />
       <Route path="/how-it-works" element={<HowItWorks />} />
-      <Route path="/school" element={<School />} /> 
+      <Route path="/school" element={<School />} />
       <Route path="/year" element={<Year />} />
       <Route path="/profile" element={<Profile />} />
 
-    {/* HOME */}
+      {/* HOME */}
       <Route path="/loading" element={<Loading />} />
       <Route path="/homepage" element={<Homepage />} />
       <Route path="/public-decks" element={<PublicDeck />} />
-      <Route path="/module-management" element={<ModuleManagement />} />
-      <Route path="/learning/:lessonId" element={<LearningModule />} />
-      <Route path="/user-profile" element={<UserProfile />}/>
+      <Route path="/user-profile" element={<UserProfile />} />
 
-    {/* DECKS */}
-      <Route path="/deckpage" element={<DeckPage/>} />
+      {/* ✅ MYDECKS ROUTE */}
+      <Route path="/Mydecks" element={<Mydecks />} />
 
-{/* ADMIN ROUTES */}
+      {/* DECKS */}
+      <Route path="/deckpage" element={<DeckPage />} />
+
+      {/* ADMIN */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
       <Route path="/admin/modules" element={<ModuleManagement />} />
 
+      {/* LEARNING */}
+      <Route path="/module-management" element={<ModuleManagement />} />
+      <Route path="/learning/:lessonId" element={<LearningModule />} />
+
       <Route path="*" element={<h1>Page not found</h1>} />
     </Routes>
-    
   );
 }
-
-export default App;
