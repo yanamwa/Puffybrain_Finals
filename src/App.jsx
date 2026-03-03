@@ -64,8 +64,8 @@ function App() {
       <Route path="/learning/:lessonId" element={<LearningModule />} />
       <Route path="/user-profile" element={<UserProfile />}/>
 
-    <Route path="/lesson" element={<Lesson />} /> 
-<Route path="/context" element={<Context />} /> 
+      <Route path="/lesson" element={<Lesson />} /> 
+      <Route path="/context" element={<Context />} /> 
 
 
     {/* DECKS */}

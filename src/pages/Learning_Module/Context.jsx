@@ -16,7 +16,7 @@ function Tutorial() {
         </div>
 
         <div className={styles.greets}>
-          <h1 className={styles.hello}>Welcome, @{username}!</h1>
+          <h1 className={styles.hello}>Lesson 1</h1>
 
           <p className={styles.greeting1}>
             Hi there, smart cookie! We’re so happy you joined the PuffyBrain family.
@@ -26,13 +26,14 @@ function Tutorial() {
             <br />
             Ready to see how it works?
           </p>
-<Link to="/lesson-2">
-  <button className={styles.button}>Next →</button>
-</Link>
-        </div>
-      </div>
-    </div>
-  );
-}
+
+        <Link to="/lesson-2">
+          <button className={styles.button}>Next →</button>
+        </Link>
+                </div>
+              </div>
+            </div>
+          );
+        }
 
 export default Tutorial;

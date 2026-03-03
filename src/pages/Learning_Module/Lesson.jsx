@@ -27,8 +27,8 @@ function Lesson() {
             Ready to see how it works?
           </p>
 
-          <Link to="context">
-            <button className={styles.button}>Next →</button>
+          <Link to="/context">
+            <button className={styles.button}>Next→</button>
           </Link>
         </div>
       </div>
