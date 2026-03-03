@@ -28,12 +28,13 @@ import Context from "./pages/Learning_Module/Context";
 
 /*Decks*/
 import DeckPage from "./pages/decks/DeckPage"; 
+import UserDecks from "./pages/decks/userDecks";
 import AddNewCard from "./pages/decks/AddNewCard";
 
 /* Admin */
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import ModuleManagement from "./pages/admin/ModuleManagement";
+import ModuleManagement from "./pages/admin/modulemanagement";
 import UserManagement from "./pages/admin/usermanagement";
 import LearningModule from "./pages/Learning_Module/LearningModule";
 
@@ -69,6 +70,7 @@ function App() {
 
     {/* DECKS */}
       <Route path="/deckpage" element={<DeckPage/>} />
+      <Route path="/userdecks" element={<UserDecks/>} />
       <Route path="/addnewcard" element={<AddNewCard />} />
 
 {/* ADMIN ROUTES */}

@@ -1,10 +1,11 @@
-import styles from './login.module.css';
+import styles from "./login.module.css";
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { useNavigate, Link } from "react-router-dom";
 
 function Login() {
   const navigate = useNavigate();
+
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -23,6 +24,7 @@ function Login() {
 
     fetch("http://localhost/puffybrain/login.php", {
       method: "POST",
+      credentials: "include", 
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),
     })
@@ -39,6 +41,7 @@ function Login() {
           return;
         }
 
+        // Optional localStorage (NOT for auth, just UI)
         localStorage.setItem("user_email", data.email);
         localStorage.setItem("username", data.username);
 
@@ -65,11 +68,11 @@ function Login() {
       });
   };
 
-    return (
+  return (
     <div className={styles.wrapper}>
       <section className={styles.container}>
-      <div className={styles.background}
-            ></div>
+        <div className={styles.background}></div>
+
         <div className={styles.navbar}>
           <div className={styles.logo}>
             <img src="/images/logo1.png" alt="Logo" />
@@ -88,8 +91,8 @@ function Login() {
           </div>
         </div>
 
-           <div className={styles.signupContainer}>
-             <div className={styles.signupCard}>
+        <div className={styles.signupContainer}>
+          <div className={styles.signupCard}>
             <h2>Login</h2>
 
             <label>Username</label>
@@ -108,9 +111,7 @@ function Login() {
               />
 
               <p className={styles.forgot}>
-                <a href="/forgot">
-                  Forgot your password?
-                </a>
+                <Link to="/forgot">Forgot your password?</Link>
               </p>
 
               <i
