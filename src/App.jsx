@@ -27,57 +27,60 @@ import MyDecks from "./pages/User/Mydecks";
 
 /* Decks */
 import DeckPage from "./pages/decks/DeckPage";
+import UserDecks from "./pages/decks/userDecks";
+
 /* Admin */
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ModuleManagement from "./pages/admin/modulemanagement";
+import UserManagement from "./pages/admin/UserManagement";
 
 /* Learning */
 import LearningModule from "./pages/Learning_Module/LearningModule";
-import UserDecks from "./pages/decks/userDecks";
 
 export default function App() {
-  return (
-    <Routes>
+return (
+<Routes>
+  {/* USER ACCOUNTS */}
+  <Route path="/" element={<LandingPage />} />
+  <Route path="/login" element={<Login />} />
+  <Route path="/signup" element={<Signup />} />
+  <Route path="/otp" element={<Otp />} />
+  <Route path="/forgot" element={<Forgot />} />
+  <Route path="/changepassword" element={<ChangePassword />} />
 
-      {/* USER ACCOUNTS */}
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
-      <Route path="/otp" element={<Otp />} />
-      <Route path="/forgot" element={<Forgot />} />
-      <Route path="/changepassword" element={<ChangePassword />} />
+  {/* USER INTRODUCTION */}
+  <Route path="/welcome" element={<Welcome />} />
+  <Route path="/how-it-works" element={<HowItWorks />} />
+  <Route path="/school" element={<School />} />
+  <Route path="/year" element={<Year />} />
+  <Route path="/profile" element={<Profile />} />
 
-      {/* USER INTRODUCTION */}
-      <Route path="/welcome" element={<Welcome />} />
-      <Route path="/how-it-works" element={<HowItWorks />} />
-      <Route path="/school" element={<School />} />
-      <Route path="/year" element={<Year />} />
-      <Route path="/profile" element={<Profile />} />
+  {/* HOME */}
+  <Route path="/loading" element={<Loading />} />
+  <Route path="/homepage" element={<Homepage />} />
+  <Route path="/mydecks" element={<MyDecks />} />
+  <Route path="/public-decks" element={<PublicDeck />} />
+  <Route path="/user-profile" element={<UserProfile />} />
 
-      {/* HOME */}
-      <Route path="/loading" element={<Loading />} />
-      <Route path="/homepage" element={<Homepage />} />
-      <Route path="/mydecks" element={<MyDecks />} />
-      <Route path="/public-decks" element={<PublicDeck />} />
-      <Route path="/user-profile" element={<UserProfile />} />
+  {/* DECKS */}
+  <Route path="/deckpage" element={<DeckPage />} />
+  <Route path="/deck/:deckId" element={<UserDecks />} />
 
-      {/* DECKS */}  
-       <Route path="/deckpage" element={<DeckPage />} />
-      <Route path="/deck/:deckId" element={<UserDecks />} />
-      {/* ADMIN */}
-      <Route path="/admin/login" element={<AdminLogin />} />
-      <Route path="/admin/dashboard" element={<AdminDashboard />} />
-      <Route path="/admin/users" element={<UserManagement/>} />
-      <Route path="/admin/modules" element={<ModuleManagement />} />
+  {/* ADMIN */}
+  <Route path="/admin/login" element={<AdminLogin />} />
+  <Route path="/admin/dashboard" element={<AdminDashboard />} />
+  <Route path="/admin/users" element={<UserManagement />} />
+  <Route path="/admin/modules" element={<ModuleManagement />} />
 
-      {/* LEARNING */}
-      <Route path="/module-management" element={<ModuleManagement />} />
-      <Route path="/learning/:lessonId" element={<LearningModule />} />
+  {/* LEARNING */}
+  <Route path="/module-management" element={<ModuleManagement />} />
+  <Route path="/learning/:lessonId" element={<LearningModule />} />
 
-      {/* FALLBACK */}
-      <Route path="*" element={<h1>Page not found</h1>} />
+  {/* FALLBACK */}
+  <Route path="*" element={<h1>Page not found</h1>} />
 
-    </Routes>
-  );
+</Routes>
+
+);
 }
