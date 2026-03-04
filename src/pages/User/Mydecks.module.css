@@ -1,32 +1,237 @@
 :root {
   --color-primary: #EBD3FA;
+  --color-secondary: #E3AADD;
   --color-third: #C8A8E9;
+  --color-fourth: #A993D8;
+  --color-fifth: #C3C7F3;
   --font-color: #2F2F2F;
-}
-
-* {
-  box-sizing: border-box;
-  font-family: "Jersey 15", sans-serif;
-  font-weight: normal;
+  --card-color1: #C8BBD0;
+  --card-color2: #E0BBD4;
+  --card-color3: #C3C7F3;
+  --card-color4: #90F897;
+  --card-color5: #CF8686;
+  --card-color6: #EECB99;
 }
 
 .container {
-  width: 100%;
+  display: flex;
   min-height: 100vh;
-  background: #ffffff;
+  background: #f5f5f5;
+  transition: all 0.3s ease;
+}
+
+.swal2-container {
+  z-index: 99999 !important;
+}
+
+.container.sidebarCollapsed .sidebar {
+  width: 60px;
+}
+
+.sidebar {
+  position: fixed;
+  width: 220px;
+  background-color: var(--color-primary);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100vh;
+  padding-top: 10px;
+  transition: width 0.3s ease;
+  z-index: 1000;
+}
+
+.sidebar.collapsed {
+  width: 60px;
+}
+
+.logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.logoExpanded {
+  display: block;
+  width: 150px;
+  height: auto;
+  object-fit: contain;
+  transition: all 0.3s ease;
+}
+
+.logoCollapsed {
+  display: none;
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+  transition: all 0.3s ease;
+  margin: 0;
+}
+
+.sidebar.collapsed .logoExpanded {
+  display: none;
+}
+
+.sidebar.collapsed .logoCollapsed {
+  display: block;
+}
+
+.sidebarToggle {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.sidebar.collapsed .sidebarToggle {
+  justify-content: center;
+  padding: 0;
+}
+
+.sidebarToggle i {
+  font-size: 24px;
+  color: #959494;
+}
+
+.menu,
+.myDecksNav,
+.logout {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebarList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebarListItem {
+  margin-left: 10px;
+}
+
+.sidebarList i {
+  width: 25px;
+  height: 25px;
+  font-size: 22px;
+  margin-left: 15px;
+  margin-right: 10px;
+  opacity: 0.3;
+  color: black;
+  transition: all 0.3s ease;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #000;
+  padding: 8px;
+  margin: 5px 0;
+  border-radius: 20px 0 0 20px;
+  transition: all 0.3s ease;
+}
+
+.menuItem:hover {
+  background: white;
+  margin-left: 15px;
+}
+
+.menuItem.active {
+  background: rgb(243, 243, 243);
+}
+
+.sidebar.collapsed .menuText {
+  display: none;
+}
+
+.myDecks,
+.myDecksTitle {
+  font-size: 17px;
+  margin: 0.3rem 0 0 15px;
+}
+
+.logout {
+  margin-bottom: 20px;
+}
+
+.logoutLink {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  color: #000;
+  padding: 8px;
+  margin: 5px 0;
+  border-radius: 20px 0 0 20px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  width: 100%;
+  text-align: left;
+  transition: all 0.3s ease;
+}
+
+.logoutLink:hover {
+  background: white;
+  margin-left: 15px;
+}
+
+.sidebar.collapsed i {
+  margin-left: 0;
+  justify-content: center;
+  width: 100%;
+  display: flex;
+  font-size: 1.5rem;
+}
+
+.sidebar.collapsed .logout .logoutLink {
+  justify-content: center;
+  padding: 10px 0;
+  margin-left: 0;
+}
+
+.sidebar.collapsed .sidebarList span {
+  display: none;
+}
+
+.divider {
+  height: 1px;
+  background-color: white;
+  margin: 0 10px;
+}
+
+.sidebar.collapsed .myDecks,
+.sidebar.collapsed .myDecksTitle {
+  display: none;
+}
+
+.mainArea {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  margin-left: 220px;
+  margin-right: 0px;
+  transition: margin-left 0.3s ease;
+}
+
+.sidebarCollapsed .mainArea {
+  margin-left: 90px;
 }
 
 .gridContainer {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 1fr;
   grid-template-rows: 70px 1fr;
   grid-template-areas:
-    "sidebar header"
-    "sidebar main";
-  height: 100vh;
+    "header"
+    "main";
+  height: 100%;
 }
 
-/* ================= HEADER ================= */
 .headerContainer {
   grid-area: header;
   display: flex;
@@ -68,7 +273,6 @@
   place-items: center;
 }
 
-/* profile right side */
 .profileWrapper {
   position: absolute;
   right: 30px;
@@ -139,135 +343,10 @@
   background: #f3f3f3;
 }
 
-/* IMPORTANT: show class for module */
 .show {
   display: block;
 }
 
-/* ================= SIDEBAR ================= */
-.sidebar {
-  grid-area: sidebar;
-  width: 220px;
-  background: var(--color-primary);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding-top: 10px;
-}
-
-.logo {
-  width: 100%;
-  height: 80px;
-  padding: 10px;
-}
-
-.logo img {
-  width: 255px;
-  margin-left: -25px;
-  margin-top: -10px;
-}
-
-.sectionTitle {
-  font-size: 17px;
-  margin: 10px 0 0 15px;
-}
-
-.sidebarList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.sidebarListItem {
-  margin-left: 10px;
-}
-
-/* links */
-.menuItem,
-.menuItemActive {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #000;
-  text-decoration: none;
-  padding: 15px 10px;
-  margin: 10px 0;
-  border-radius: 20px 0 0 20px;
-  transition: 0.2s ease;
-}
-
-.menuItem i,
-.menuItemActive i {
-  width: 25px;
-  height: 25px;
-  font-size: 22px;
-  margin-left: 15px;
-  opacity: 0.35;
-}
-
-.menuItem:hover {
-  margin-left: 15px;
-  background: #fff;
-}
-
-.menuItemActive {
-  background: rgb(243, 243, 243);
-}
-
-/* My decks sidebar button */
-.deckLinkBtn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: #000;
-  text-align: left;
-  padding: 6px 10px;
-  margin: 10px 0;
-  border-radius: 20px 0 0 20px;
-  transition: 0.2s ease;
-}
-
-.deckLinkBtn i {
-  width: 25px;
-  height: 25px;
-  font-size: 22px;
-  margin-left: 15px;
-  opacity: 0.35;
-}
-
-.deckLinkBtn:hover {
-  margin-left: 15px;
-  background: #fff;
-}
-
-/* logout */
-.logoutBtn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 10px 0 20px 15px;
-  padding: 10px 10px;
-  text-decoration: none;
-  color: #000;
-  border-radius: 20px 0 0 20px;
-  transition: 0.2s ease;
-}
-
-.logoutBtn i {
-  font-size: 22px;
-  opacity: 0.35;
-}
-
-.logoutBtn:hover {
-  margin-left: 15px;
-  background: #fff;
-}
-
-/* ================= MAIN ================= */
 .main {
   grid-area: main;
   padding: 28px 34px;
@@ -275,7 +354,6 @@
   overflow: auto;
 }
 
-/* panel wrapper (white card) */
 .panel {
   background: #fff;
   border-radius: 22px;
@@ -312,7 +390,6 @@
   cursor: pointer;
 }
 
-/* filter */
 .filterRow {
   position: absolute;
   top: 8px;
@@ -333,7 +410,6 @@
   font-size: 15px;
 }
 
-/* decks row */
 .deckArea {
   padding: 70px 40px 45px;
   display: flex;
@@ -341,7 +417,6 @@
   flex-wrap: wrap;
 }
 
-/* deck card */
 .deckCard {
   width: 250px;
   background: #fff;
@@ -356,7 +431,6 @@
   position: relative;
 }
 
-/* small tab */
 .deckTop::before {
   content: "";
   position: absolute;
@@ -368,7 +442,6 @@
   opacity: 0.6;
 }
 
-/* body */
 .deckBody {
   background: #f2f2f2;
   padding: 12px 14px 16px;
@@ -385,7 +458,6 @@
   color: #9b9b9b;
 }
 
-/* color variants */
 .blue .deckTop { background: #cfd4fa; }
 .blue .deckTop::before { background: #8f95cc; }
 
@@ -398,7 +470,6 @@
 .red .deckTop { background: #f4b3b3; }
 .red .deckTop::before { background: #e38b87; }
 
-/* ================= MODALS ================= */
 .overlay {
   position: fixed;
   inset: 0;
@@ -515,19 +586,5 @@
   background: #e3aadd;
   box-shadow: 0 4px 0 #a45de3;
   cursor: pointer;
-  font-size: 22px;
-}
-
-.filterOptions {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin-top: 10px;
-}
-
-.filterOption {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
   font-size: 22px;
 }

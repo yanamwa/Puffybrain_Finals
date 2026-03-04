@@ -21,22 +21,25 @@ import Profile from "./pages/introduction/Profile";
 /* Home */
 import Loading from "./pages/User/loading";
 import Homepage from "./pages/User/Homepage";
-import PublicDeck from "./pages/useraccount/public_decks/publicDeck";
+import PublicDeck from "./pages/public_decks/publicDeck";
 import UserProfile from "./pages/User_profile/UserProfile";
 import MyDecks from "./pages/User/Mydecks";
 
 /* Decks */
 import DeckPage from "./pages/decks/DeckPage";
-
 /* Admin */
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ModuleManagement from "./pages/admin/modulemanagement";
+
+/* Learning */
 import LearningModule from "./pages/Learning_Module/LearningModule";
+import UserDecks from "./pages/decks/userDecks";
 
 export default function App() {
   return (
     <Routes>
+
       {/* USER ACCOUNTS */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
@@ -55,16 +58,13 @@ export default function App() {
       {/* HOME */}
       <Route path="/loading" element={<Loading />} />
       <Route path="/homepage" element={<Homepage />} />
-      <Route path="/Mydecks" element={<MyDecks />} />
+      <Route path="/mydecks" element={<MyDecks />} />
       <Route path="/public-decks" element={<PublicDeck />} />
       <Route path="/user-profile" element={<UserProfile />} />
 
-      <Route path="/lesson" element={<Lesson />} /> 
-      <Route path="/context" element={<Context />} /> 
-
-      {/* DECKS */}
-      <Route path="/deckpage" element={<DeckPage />} />
-
+      {/* DECKS */}  
+       <Route path="/deckpage" element={<DeckPage />} />
+      <Route path="/deck/:deckId" element={<UserDecks />} />
       {/* ADMIN */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
@@ -74,7 +74,9 @@ export default function App() {
       <Route path="/module-management" element={<ModuleManagement />} />
       <Route path="/learning/:lessonId" element={<LearningModule />} />
 
+      {/* FALLBACK */}
       <Route path="*" element={<h1>Page not found</h1>} />
+
     </Routes>
   );
 }

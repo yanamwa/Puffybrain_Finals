@@ -8,6 +8,7 @@ import styles from "./Mydecks.module.css";
 export default function Mydecks() {
   const navigate = useNavigate();
 
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [search, setSearch] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [addPopupOpen, setAddPopupOpen] = useState(false);
@@ -15,19 +16,61 @@ export default function Mydecks() {
 
   const [deckTitle, setDeckTitle] = useState("");
   const [deckDesc, setDeckDesc] = useState("");
-  const [visibility, setVisibility] = useState(""); // public | private
+  const [visibility, setVisibility] = useState("");
   const [deckColor, setDeckColor] = useState("");
 
-  const [selectedFilter, setSelectedFilter] = useState(""); // private | shared | ""
+  const [selectedFilter, setSelectedFilter] = useState("");
 
-  const [decks, setDecks] = useState([
-    { id: 1, title: "Lesson 1 to 3 Networking", cards: 37, type: "private", colorClass: "blue" },
-    { id: 2, title: "Methods of research lesson 2", cards: 30, type: "shared", colorClass: "pink" },
-    { id: 3, title: "Methods of research lesson 3", cards: 15, type: "shared", colorClass: "violet" },
-    { id: 4, title: "Business Analysis Lesson 1", cards: 0, type: "private", colorClass: "red" },
-  ]);
+  const [decks, setDecks] = useState([]);
+  const [user, setUser] = useState({
+    username: "",
+    year_level: "",
+  });
 
-  // close dropdown when clicking outside
+  const fetchUserDecks = async () => {
+    try {
+      const res = await fetch("http://localhost/puffybrain/userDecks.php", {
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (data.success) {
+        setDecks(data.decks.map(deck => ({
+          id: deck.id,
+          title: deck.title,
+          cards: deck.card_count ?? 0,
+          type: deck.visibility === "public" ? "shared" : "private",
+          colorClass: "blue"
+        })));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchUser = async () => {
+    try {
+      const res = await fetch("http://localhost/puffybrain/getUser.php", {
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (data.success) {
+        setUser(data.user);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleLogout = () => {
+    const confirmed = window.confirm("Are you sure you want to logout?");
+    if (confirmed) navigate("/login");
+  };
+
+  useEffect(() => {
+    fetchUserDecks();
+    fetchUser();
+  }, []);
+
   useEffect(() => {
     const handler = (e) => {
       const insideDropdown = e.target.closest?.(`.${styles.dropdown}`);
@@ -44,9 +87,9 @@ export default function Mydecks() {
       .filter((d) => (!selectedFilter ? true : d.type === selectedFilter));
   }, [decks, search, selectedFilter]);
 
-  const openDeck = (deckId) => {
-    navigate(`/deckpage?id=${deckId}`);
-  };
+    const openDeck = (deckId) => {
+      navigate(`/deck/${deckId}`);
+    };
 
   const resetAddForm = () => {
     setDeckTitle("");
@@ -55,41 +98,139 @@ export default function Mydecks() {
     setDeckColor("");
   };
 
-  const handleAddDeck = () => {
-    setAddPopupOpen(false);
-
-    Swal.fire({
-      title: "Deck Added!",
-      text: "Your new deck has been successfully added.",
-      imageUrl: "/images/success.png",
-      imageWidth: 170,
-      imageHeight: 170,
-      timer: 1100,
-      showConfirmButton: false,
-    });
-
-    if (deckTitle.trim()) {
-      setDecks((prev) => [
-        ...prev,
-        {
-          id: Date.now(),
-          title: deckTitle.trim(),
-          cards: 0,
-          type: visibility === "private" ? "private" : "shared",
-          colorClass: deckColor ? "custom" : "blue",
-          hex: deckColor || "",
-          desc: deckDesc || "",
-        },
-      ]);
+  const handleAddDeck = async () => {
+    if (!deckTitle.trim()) {
+      Swal.fire({
+        icon: "warning",
+        title: "Missing title",
+        text: "Please enter a deck title.",
+        confirmButtonColor: "#7b5cff",
+      });
+      return;
     }
 
-    resetAddForm();
+    try {
+      const formData = new FormData();
+      formData.append("title", deckTitle);
+      formData.append("description", deckDesc);
+      formData.append("visibility", visibility === "private" ? "private" : "public");
+
+      const res = await fetch("http://localhost/puffybrain/userDecks.php", {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setAddPopupOpen(false);
+
+        Swal.fire({
+          title: "Deck Added!",
+          text: "Your new deck has been successfully added.",
+          imageUrl: "/images/success.png",
+          imageWidth: 170,
+          imageHeight: 170,
+          timer: 1100,
+          showConfirmButton: false,
+        });
+
+        resetAddForm();
+        fetchUserDecks();
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Failed",
+          text: data.message || "Failed to create deck.",
+        });
+      }
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Server Error",
+        text: "Something went wrong.",
+      });
+    }
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.gridContainer}>
-        {/* HEADER */}
+    <div className={`${styles.container} ${isCollapsed ? styles.sidebarCollapsed : ""}`}>
+      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
+        <div>
+          <div className={styles.sidebarToggle} onClick={() => setIsCollapsed(!isCollapsed)}>
+            <i className="bx bx-sidebar"></i>
+          </div>
+
+          <div className={styles.logo}>
+            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
+            <img className={styles.logoCollapsed} src="/images/logo_solo.png" alt="Logo" />
+          </div>
+
+          <div className={styles.divider}></div>
+
+          <p className={styles.myDecksTitle}>Menu</p>
+
+          <nav className={styles.menu}>
+            <ul className={styles.sidebarList}>
+              <li className={styles.sidebarListItem}>
+                <NavLink to="/homepage" className={styles.menuItem}>
+                  <i className="bx bx-home"></i>
+                  <span className={styles.menuText}>Home</span>
+                </NavLink>
+              </li>
+
+              <li className={styles.sidebarListItem}>
+                <NavLink to="/mydecks" className={`${styles.menuItem} ${styles.active}`}>
+                  <i className="bx bx-book"></i>
+                  <span className={styles.menuText}>Decks</span>
+                </NavLink>
+              </li>
+
+              <li className={styles.sidebarListItem}>
+                <NavLink to="/public-decks" className={styles.menuItem}>
+                  <i className="bx bx-folder"></i>
+                  <span className={styles.menuText}>Public Decks</span>
+                </NavLink>
+              </li>
+            </ul>
+          </nav>
+
+          <div className={styles.divider}></div>
+
+          <div className={styles.myDecksNav}>
+            <p className={styles.myDecks}>My Decks</p>
+            <ul className={styles.sidebarList}>
+              {decks.length === 0 ? (
+                <li className={styles.sidebarListItem}>
+                  <span className={styles.menuText} style={{ opacity: 0.6 }}>
+                    Don't have decks yet
+                  </span>
+                </li>
+              ) : (
+                decks.slice(0, 3).map((deck) => (
+                  <li key={deck.id} className={styles.sidebarListItem}>
+                    <button type="button" onClick={() => openDeck(deck.id)} className={styles.menuItem} style={{ background: 'transparent', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left' }}>
+                      <i className="bx bx-book"></i>
+                      <span className={styles.menuText}>{deck.title}</span>
+                    </button>
+                  </li>
+                ))
+              )}
+            </ul>
+          </div>
+        </div>
+
+        <div className={styles.logout}>
+          <button className={styles.logoutLink} onClick={handleLogout}>
+            <i className="bx bx-log-out"></i>
+            <span className={styles.menuText}>Logout</span>
+          </button>
+        </div>
+      </aside>
+
+      <div className={styles.mainArea}>
+        <div className={styles.gridContainer}>
         <div className={styles.headerContainer}>
           <form className={styles.searchBar} onSubmit={(e) => e.preventDefault()}>
             <input
@@ -107,7 +248,7 @@ export default function Mydecks() {
             </div>
 
             <div className={styles.userInfo}>
-              <p>@meiko</p>
+              <p>{user.username}</p>
             </div>
 
             <div className={styles.dropdown}>
@@ -142,64 +283,7 @@ export default function Mydecks() {
           </div>
         </div>
 
-        {/* SIDEBAR */}
-        <aside className={styles.sidebar}>
-          <div>
-            <div className={styles.logo}>
-              <img src="/images/logo.png" alt="Logo" />
-            </div>
-
-            <p className={styles.sectionTitle}>Menu</p>
-
-            <nav>
-              <ul className={styles.sidebarList}>
-                <li className={styles.sidebarListItem}>
-                  <NavLink to="/homepage" className={styles.menuItem}>
-                    <i className="bx bx-home" />
-                    <span>Home</span>
-                  </NavLink>
-                </li>
-
-                <li className={styles.sidebarListItem}>
-                  <NavLink to="/mydecks" className={styles.menuItemActive}>
-                    <i className="bx bx-book" />
-                    <span>Decks</span>
-                  </NavLink>
-                </li>
-
-                <li className={styles.sidebarListItem}>
-                  <NavLink to="/public-decks" className={styles.menuItem}>
-                    <i className="bx bx-folder" />
-                    <span>Public Decks</span>
-                  </NavLink>
-                </li>
-              </ul>
-            </nav>
-
-            <p className={styles.sectionTitle}>My Decks</p>
-            <ul className={styles.sidebarList}>
-              {decks.slice(0, 3).map((d) => (
-                <li className={styles.sidebarListItem} key={d.id}>
-                  <button type="button" onClick={() => openDeck(d.id)} className={styles.deckLinkBtn}>
-                    <i className="bx bx-book" />
-                    <span>{d.title}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <NavLink to="/login" className={styles.logoutBtn}>
-              <i className="bx bx-log-out" />
-              <span>Logout</span>
-            </NavLink>
-          </div>
-        </aside>
-
-        {/* MAIN */}
         <main className={styles.main}>
-          {/* HEADER PANEL */}
           <div className={styles.panel}>
             <div className={styles.purpleStrip} />
             <div className={styles.panelHeader}>
@@ -210,7 +294,6 @@ export default function Mydecks() {
             </div>
           </div>
 
-          {/* CONTENT PANEL */}
           <div className={styles.panel}>
             <div className={styles.purpleStrip} />
 
@@ -238,7 +321,6 @@ export default function Mydecks() {
           </div>
         </main>
 
-        {/* ADD POPUP */}
         {addPopupOpen && (
           <div className={styles.overlay} onClick={() => setAddPopupOpen(false)}>
             <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -315,7 +397,6 @@ export default function Mydecks() {
           </div>
         )}
 
-        {/* FILTER POPUP */}
         {filterOpen && (
           <div className={styles.overlay} onClick={() => setFilterOpen(false)}>
             <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -363,6 +444,7 @@ export default function Mydecks() {
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   );
