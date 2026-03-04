@@ -162,7 +162,7 @@ if (lesson?.quiz_contents) {
 
                         <div className={styles.innerhead}>
                             <h1>{lesson.title}
-                              <i className="bx bx-share-alt" style={{ marginLeft: "350px", cursor: "pointer", fontSize: "25px" }}></i>
+                              <i className="bx bx-share-alt" style={{ marginLeft: "330px", cursor: "pointer", fontSize: "20px" }}></i>
                             </h1>
                           <div className={styles.cardCount}>
                           {Math.floor(Math.random() * 10) + 1} Cards
@@ -250,70 +250,53 @@ if (lesson?.quiz_contents) {
                             </button>
                           </div>
 
+                          <div className={styles.cardContent}>
+                              <div className={styles.tabGroup}>
+                                {activeTab === 'tab1' && (
+                                  <div className={styles.tabBoxes}>
+                                    {quizzes.length === 0 ? (
+                                      <p>No quizzes available.</p>
+                                    ) : (
+                                      quizzes.map((quiz, index) => (
+                                        <div key={index} className={styles.box}>
+                                          <p className={styles.question}>{quiz.question}</p>
+                                          <hr className={styles.separator} />
+                                          <p className={styles.answer}>{quiz.answer}</p>
+                                        </div>
+                                      ))
+                                    )}
+                                  </div>
+                                )}
 
-                <div className={styles.cardContent}>
-                      {activeTab === 'tab1' && (
-                        <div className={styles.tabBoxes}>
-                          <div className={styles.box}>
-                            <p className={styles.question}>What is a network protocol?</p>
-                            <hr className={styles.separator} />
-                            <p className={styles.answer}>A set of rules that governs how data is transmitted over a network.</p>
-                          </div>
-                          <div className={styles.box}>
-                            <p className={styles.question}>What is an IP address?</p>
-                            <hr className={styles.separator} />
-                            <p className={styles.answer}>A unique numerical label assigned to each device connected to a computer network.</p>
-                          </div>
-                          <div className={styles.box}>
-                            <p className={styles.question}>What is a firewall?</p>
-                            <hr className={styles.separator} />
-                            <p className={styles.answer}>A network security system that monitors and controls incoming and outgoing network traffic.</p>
-                          </div>
-                        </div>
-                      )}
+                                {activeTab === 'tab2' && (
+                                  <div className={styles.tabBoxes}>
+                                    {quizzes
+                                      .filter(quiz => !quiz.memorized) // or however you mark "not memorized"
+                                      .map((quiz, index) => (
+                                        <div key={index} className={styles.box}>
+                                          <p className={styles.question}>{quiz.question}</p>
+                                          <hr className={styles.separator} />
+                                          <p className={styles.answer}>{quiz.answer}</p>
+                                        </div>
+                                      ))}
+                                  </div>
+                                )}
 
-                      {activeTab === 'tab2' && (
-                        <div className={styles.tabBoxes}>
-                          <div className={styles.box}>
-                            <p className={styles.question}>Not Memorized Question 1</p>
-                            <hr className={styles.separator} />
-                            <p className={styles.answer}>Answer for Not Memorized 1</p>
-                          </div>
-                          <div className={styles.box}>
-                            <p className={styles.question}>Not Memorized Question 2</p>
-                            <hr className={styles.separator} />
-                            <p className={styles.answer}>Answer for Not Memorized 2</p>
-                          </div>
-                          <div className={styles.box}>
-                            <p className={styles.question}>Not Memorized Question 3</p>
-                            <hr className={styles.separator} />
-                            <p className={styles.answer}>Answer for Not Memorized 3</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {activeTab === 'tab3' && (
-                        <div className={styles.tabBoxes}>
-                          <div className={styles.box}>
-                            <p className={styles.question}>Memorized Question 1</p>
-                            <hr className={styles.separator} />
-                            <p className={styles.answer}>Answer for Memorized 1</p>
-                          </div>
-                          <div className={styles.box}>
-                            <p className={styles.question}>Memorized Question 2</p>
-                            <hr className={styles.separator} />
-                            <p className={styles.answer}>Answer for Memorized 2</p>
-                          </div>
-                          <div className={styles.box}>
-                            <p className={styles.question}>Memorized Question 3</p>
-                            <hr className={styles.separator} />
-                            <p className={styles.answer}>Answer for Memorized 3</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                        
-
+                                {activeTab === 'tab3' && (
+                                  <div className={styles.tabBoxes}>
+                                    {quizzes
+                                      .filter(quiz => quiz.memorized) // filter memorized quizzes
+                                      .map((quiz, index) => (
+                                        <div key={index} className={styles.box}>
+                                          <p className={styles.question}>{quiz.question}</p>
+                                          <hr className={styles.separator} />
+                                          <p className={styles.answer}>{quiz.answer}</p>
+                                        </div>
+                                      ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                       
                     </div>
                   </div>

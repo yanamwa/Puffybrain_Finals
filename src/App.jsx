@@ -68,6 +68,7 @@ export default function App() {
       {/* ADMIN */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
+      <Route path="/admin/users" element={<UserManagement/>} />
       <Route path="/admin/modules" element={<ModuleManagement />} />
 
       {/* LEARNING */}
