@@ -1,0 +1,233 @@
+:root {
+  /* Theme colors */
+  --purple-light: #f5f0f9;
+  --purple-main: #9c6cbe;
+  --green-match: #86f98a;
+  --red-match: #ffaaa3;
+  --card-bg: #ffffff;
+  --text-color: #050505;
+  --color-primary: #EBD3FA;
+  --color-secondary: #E3AADD;
+  --color-third: #C8A8E9;
+  --color-fourth: #A993D8;
+  --color-fifth: #C3C7F3;
+  --font-color: #2F2F2F;
+  --card-color1: #C8BBD0;
+  --card-color2: #E0BBD4;
+  --card-color3: #C3C7F3;
+  --card-color4: #90F897;
+  --card-color5: #CF8686;
+  --card-color6: #EECB99;
+  --color-shadow: #DDDDDD;
+  --color-right: #17c723cc;
+  --color-right-border: #2AB434;
+  --color-wrong: #ff1010a1;
+  --color-wrong-border: #530909;
+}
+
+/* --- Body & Background --- */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #e9e9e9;
+  display: flex;
+  min-height: 100vh;
+  margin: 0;
+}
+
+.paperBackground {
+    width: 100%;
+    min-height: 100vh;
+    padding: 50px 40px; /* increase horizontal padding */
+    display: flex;
+    justify-content: center;
+    background: repeating-linear-gradient(
+        to bottom,
+        #ffffff 0px,
+        #ffffff 24px,
+        #828282 25px
+    );
+    background-size: 100% 25px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    overflow-y: auto;
+}
+
+/* --- Main Quiz Container --- */
+.quizAppContainer {
+    width: 100%; /* fill paperBackground */
+    max-width: 1600px; /* or remove this line if you want full width */
+    margin: 60px auto 0;
+    padding: 120px 50px 40px; /* optional: more padding for big screens */
+}
+
+.quizHeader {
+  width: 100%;
+  height: 90px;
+  background: #e3c2ff;
+  border-top-left-radius: 40px;
+  border-top-right-radius: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.quizHeader h1 {
+  font-family: 'Jersey 15';
+  font-size: 45px;
+  font-weight: normal;
+}
+
+.startButton {
+  margin-top: 20px;
+  width: 60%;
+  max-width: 300px;
+  padding: 12px;
+  background-color: var(--color-primary);
+  border: none;
+  border-radius: 23px;
+  cursor: pointer;
+  font-family: "Jersey 15", sans-serif;
+  font-size: 22px;
+  box-shadow: 0 4px 0 #a45de3;
+  transition: 0.3s ease;
+}
+
+.startButton:hover {
+  transform: scale(1.05);
+}
+.startButton:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #a45de3;
+}
+
+/* --- Slideshow Box --- */
+.slideshowBox {
+  width: 95%;
+  max-width: 1400px;
+  margin: 40px auto;
+  background: #ffffff;
+  padding: 50px 40px;
+  border-radius: 40px;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  position: relative;
+}
+
+/* --- Matching Cards --- */
+.quizContent {
+  display: flex;
+  justify-content: space-between;
+  gap: 50px; /* wider gap between columns */
+  text-align: left;
+  width: 100%;
+}
+
+.column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 25px; /* bigger gap between cards */
+}
+
+.card {
+  flex: 1; /* allow cards to fill column width */
+  width: 100%;
+  box-sizing: border-box;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.1s, box-shadow 0.3s;
+}
+
+.card:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  background-color: #f7f7f7;
+}
+
+.card.selected {
+  background-color: var(--red-match);
+  color: white;
+  box-shadow: 0 0 0 3px var(--red-match), 0 4px 10px rgba(0, 0, 0, 0.1);
+  transform: none;
+}
+
+.card.matched {
+  background-color: var(--green-match);
+  color: white;
+  box-shadow: 0 0 0 3px var(--green-match), 0 4px 10px rgba(0, 0, 0, 0.1);
+  cursor: default;
+}
+
+/* --- Pagination --- */
+.pagination {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.dot {
+  height: 12px;
+  width: 12px;
+  background-color: #ccc;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot.active {
+  background-color: var(--purple-main);
+}
+
+/* --- Additional helpers --- */
+.wrong-previous {
+  background: var(--color-wrong) !important;
+  border-color: var(--color-wrong-border) !important;
+}
+
+.matched {
+  background: var(--color-right)!important;
+  border-color: var(--color-right-border) !important;
+}
+
+.slide {
+  display: none;
+}
+
+.slide.active {
+  display: block;
+}
+
+/* --- Responsive --- */
+@media (max-width: 1200px) {
+  .quizAppContainer, .slideshowBox {
+    width: 90%;
+    padding: 100px 30px 30px;
+  }
+  .quizContent {
+    gap: 30px;
+  }
+  .column {
+    gap: 20px;
+  }
+  .card {
+    padding: 20px;
+  }
+}
+@media (max-width: 768px) {
+  .quizContent {
+    flex-direction: column;
+    gap: 20px;
+  }
+  .column {
+    width: 100%;
+  }
+}

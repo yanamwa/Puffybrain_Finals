@@ -37,6 +37,11 @@ import UserManagement from "./pages/admin/UserManagement";
 
 /* Learning */
 import LearningModule from "./pages/Learning_Module/LearningModule";
+import FlashcardsTutorial from "./pages/quizzes/flashcards-tutorial";
+import QandATutorial from "./pages/quizzes/QandA-tutorial";
+import MultipleChoice from "./pages/quizzes/multipleChoice-Tutorial";
+import MatchingTutorial from "./pages/quizzes/matching-tutorial";
+
 
 export default function App() {
 return (
@@ -76,6 +81,10 @@ return (
   {/* LEARNING */}
   <Route path="/module-management" element={<ModuleManagement />} />
   <Route path="/learning/:lessonId" element={<LearningModule />} />
+  <Route path="/flashcards-tutorial" element={<FlashcardsTutorial />} />
+  <Route path="/QandA-tutorial" element={<QandATutorial />} />
+  <Route path="/multipleChoice-tutorial" element={<MultipleChoice/>}/>
+  <Route path="/Matching-tutorial" element={<MatchingTutorial/>}/>
 
   {/* FALLBACK */}
   <Route path="*" element={<h1>Page not found</h1>} />
