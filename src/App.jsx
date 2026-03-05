@@ -34,6 +34,8 @@ import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ModuleManagement from "./pages/admin/modulemanagement";
 import UserManagement from "./pages/admin/UserManagement";
+import ModesManagement from "./pages/admin/Modesmangement";
+
 
 /* Learning */
 import LearningModule from "./pages/Learning_Module/LearningModule";
@@ -72,6 +74,7 @@ return (
   <Route path="/admin/dashboard" element={<AdminDashboard />} />
   <Route path="/admin/users" element={<UserManagement />} />
   <Route path="/admin/modules" element={<ModuleManagement />} />
+  <Route path="/admin/modes" element={<ModesManagement />} />
 
   {/* LEARNING */}
   <Route path="/module-management" element={<ModuleManagement />} />

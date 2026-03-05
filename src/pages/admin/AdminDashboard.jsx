@@ -114,6 +114,8 @@ export default function AdminDashboard() {
     { label: "User Management", path: "/admin/users", icon: <Users size={20} /> },
     { label: "Module Management", path: "/admin/modules", icon: <Users size={20} /> },
     { label: "Decks Management", path: "/admin/decks", icon: <BookOpen size={20} /> },
+    { label: "Modes Management", path: "/admin/modes", icon: <BookOpen size={20} /> },
+
   ];
 
   return (
