@@ -169,15 +169,20 @@
 
 /* ================= TABLE ================= */
 
+.tableHeader,
+.row{
+  display:grid;
+  grid-template-columns: 80px 200px 1fr 150px 200px;
+  align-items:center;
+  text-align:center;
+}
+
 .tableHeader {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1.5fr 1fr;
   padding: 14px;
   background: #fff;
   border-radius: 12px;
   box-shadow: var(--shadow);
   font-size: 18px;
-  text-align: center;
   margin-bottom: 12px;
 }
 
@@ -189,27 +194,12 @@
 }
 
 .row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1.5fr 1fr;
   padding: 15px;
-  text-align: center;
   border-bottom: 1px solid #eee;
 }
 
 .row:last-child {
   border-bottom: none;
-}
-
-.viewBtn {
-  background: #C3C7F3;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.viewBtn:hover {
-  background: var(--fourth);
 }
 
 /* ================= PAGINATION ================= */
@@ -275,12 +265,105 @@
   cursor: pointer;
 }
 
-.cardsList{
+.addModeContainer{
   display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-top: 15px;
+  justify-content: flex-end;
+  margin-bottom: 30px;
+  margin-left: 40px;
 }
 
+.actionButtons{
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
 
-  
+.addModeBtn {
+    padding: 10px 26px;
+    background: var(--primary);
+    color: rgb(74, 74, 74);
+    border: none;
+    border-radius: 25px;
+    font-family: "Jersey 15", sans-serif;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 var(--color-secondary);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.addModeBtn:hover {
+  background-color: #d5d1d3;
+}
+
+.actionButtons{
+  display: flex;
+  gap: 10px;
+}
+
+.viewBtn,
+.editBtn,
+.deleteBtn{
+  border:none;
+  padding:6px 14px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:500;
+  transition:all 0.2s ease;  
+}
+
+/* View */
+.viewBtn{
+  background:#C3C7F3;
+  color:#333;
+}
+
+.viewBtn:hover{
+  background:#A993D8;
+  transform:translateY(-1px);
+}
+
+/* Edit */
+.editBtn{
+  background:#EBD3FA;
+  color:#333;
+}
+
+.editBtn:hover{
+  background:#C8A8E9;
+  transform:translateY(-1px);
+}
+
+/* Delete */
+.deleteBtn{
+  background:#ffd6d6;
+  color:#8a1f1f;
+}
+
+.deleteBtn:hover{
+  background:#ffbcbc;
+  transform:translateY(-1px);
+}
+
+.swalPopup{
+  border-radius:14px;
+  font-family:"Jersey 15", sans-serif;
+}
+
+.swalTitle{
+  font-size:22px;
+}
+
+.swalInput{
+  border-radius:8px;
+  padding:10px;
+}
+
+.swalConfirm{
+  background:#C8A8E9 !important;
+  border-radius:20px !important;
+}
+
+.swalCancel{
+  border-radius:20px !important;
+}

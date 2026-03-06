@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
+import QuizModesModal from "../../components/QuizModesModal";
 import styles from "./userDecks.module.css";
 
 export default function UserDecks() {
+
   const navigate = useNavigate();
   const { deckId } = useParams();
 
@@ -15,10 +17,15 @@ export default function UserDecks() {
 
   const [deck, setDeck] = useState(null);
   const [myDecks, setMyDecks] = useState([]);
+  const [cards, setCards] = useState([]);
   const [user, setUser] = useState({
     username: "",
-    year_level: "",
+    year_level: ""
   });
+
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [image, setImage] = useState(null);
 
   const imageInputRef = useRef(null);
   const previewImgRef = useRef(null);
@@ -26,57 +33,95 @@ export default function UserDecks() {
   const handleImageAttach = () => {
     imageInputRef.current?.click();
   };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (previewImgRef.current) {
-        previewImgRef.current.src = reader.result;
-      }
-    };
-    reader.readAsDataURL(file);
-  };
+const handleImageChange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  setImage(file);
+  if (previewImgRef.current) {
+    previewImgRef.current.src = URL.createObjectURL(file);
+  }
+};
 
   const removeImage = () => {
+    setImage(null);
     if (previewImgRef.current) previewImgRef.current.src = "";
     if (imageInputRef.current) imageInputRef.current.value = "";
   };
 
   const fetchDeck = async () => {
     try {
+
       const res = await fetch(
         `http://localhost/puffybrain/getDeckById.php?deckId=${deckId}`,
         { credentials: "include" }
       );
+
       const data = await res.json();
-      if (data.success) setDeck(data.deck);
+
+      if (data.success) {
+        setDeck(data.deck);
+      }
+
     } catch (err) {
       console.error(err);
     }
   };
 
+const fetchCards = async () => {
+  const res = await fetch(
+    `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`
+  );
+
+  const data = await res.json();
+  console.log("Cards:", data);
+  if (data.success) {
+    setCards(data.cards);
+  }
+
+};
+
+  useEffect(() => {
+
+    fetchDeck();
+    fetchCards();
+
+  }, [deckId]);
+
   const fetchUserDecks = async () => {
+
     try {
-      const res = await fetch("http://localhost/puffybrain/userDecks.php", {
-        credentials: "include",
-      });
+
+      const res = await fetch(
+        "http://localhost/puffybrain/userDecks.php",
+        { credentials: "include" }
+      );
+
       const data = await res.json();
-      if (data.success) setMyDecks(data.decks);
+
+      if (data.success) {
+        setMyDecks(data.decks);
+      }
+
     } catch (err) {
       console.error(err);
     }
   };
 
   const fetchUser = async () => {
+
     try {
-      const res = await fetch("http://localhost/puffybrain/getUser.php", {
-        credentials: "include",
-      });
+
+      const res = await fetch(
+        "http://localhost/puffybrain/getUser.php",
+        { credentials: "include" }
+      );
+
       const data = await res.json();
-      if (data.success) setUser(data.user);
+
+      if (data.success) {
+        setUser(data.user);
+      }
+
     } catch (err) {
       console.error(err);
     }
@@ -84,36 +129,90 @@ export default function UserDecks() {
 
   useEffect(() => {
     fetchDeck();
+    fetchCards();
     fetchUserDecks();
     fetchUser();
   }, [deckId]);
 
+  
   useEffect(() => {
+
     const handler = (e) => {
       const insideDropdown = e.target.closest?.(`.${styles.dropdown}`);
       if (!insideDropdown) setDropdownOpen(false);
     };
+
     window.addEventListener("click", handler);
     return () => window.removeEventListener("click", handler);
+
   }, []);
 
   const openAddCard = () => setShowAddCard(true);
-  const closeAddCard = () => setShowAddCard(false);
-
-  const handleAddCard = () => {
-    closeAddCard();
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 2000);
+  const closeAddCard = () => {
+    setShowAddCard(false);
+    setQuestion("");
+    setAnswer("");
+    removeImage();
   };
 
+const handleAddCard = async () => {
+
+  if (!question || !answer) {
+    alert("Please fill the question and answer");
+    return;
+  }
+
+  const formData = new FormData();
+
+  formData.append("deckId", deckId);
+  formData.append("question", question);
+  formData.append("answer", answer);
+
+  if (image) {
+    formData.append("image", image);
+  }
+
+  try {
+
+    const res = await fetch("http://localhost/puffybrain/addCard.php", {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+
+      setQuestion("");
+      setAnswer("");
+      removeImage();
+
+      setShowAddCard(false);
+      setShowSuccess(true);
+
+      fetchCards();
+
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 2000);
+    }
+
+  } catch (err) {
+    console.error(err);
+  }
+
+};
+
   const handleLogout = () => {
+
     if (window.confirm("Are you sure you want to logout?")) {
       navigate("/login");
     }
+
   };
 
-  const openDeck = (deckId) => {
-    navigate(`/deck/${deckId}`);
+  const openDeck = (id) => {
+    navigate(`/deck/${id}`);
   };
 
   return (
@@ -300,16 +399,42 @@ export default function UserDecks() {
                 ))}
               </div>
 
+            {cards.length === 0 ? (
+
               <div className={styles["empty-wrapper"]}>
                 <img src="/images/cute1.png" className={styles["empty-img"]} alt="Empty" />
                 <p className={styles["empty-msg"]}>There are no cards</p>
               </div>
-            </section>
-          </main>
-        </div>
+
+            ) : (
+
+<div className={styles.cardsList}>
+  {cards.map((card) => (
+    <div key={card.id} className={styles.cards}>
+      <p>{card.question}</p>
+      <hr />
+      <p>{card.answer}</p>
+      {card.image && (
+        <img
+          src={`http://localhost/puffybrain/${card.image}`}
+          alt="card"
+          className={styles.cardImage}
+        />
+      )}
+    </div>
+  ))}
+</div>
+
+            )}
+
+          </section>
+
+        </main>
+
+      </div>
       </div>
 
-      {showAddCard && (
+        {showAddCard && (
         <div className={styles["modal-overlay"]} onClick={closeAddCard} style={{ display: 'flex' }}>
           <div
             className={styles["add-card-modal"]}
@@ -321,12 +446,22 @@ export default function UserDecks() {
 
             <div className={styles["form-group"]}>
               <label>Question</label>
-              <input />
-            </div>
+                <input
+                  type="text"
+                  placeholder="Add a question"
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                />
+         </div>
 
             <div className={styles["form-group"]}>
               <label>Answer</label>
-              <input />
+                <input
+                  type="text"
+                  placeholder="Add an answer"
+                  value={answer}
+                  onChange={(e) => setAnswer(e.target.value)}
+                />
             </div>
 
             <div className={styles["image-preview"]}>
@@ -367,12 +502,7 @@ export default function UserDecks() {
       )}
 
       {showModes && (
-        <div className={styles["modal-overlay"]} onClick={() => setShowModes(false)} style={{ display: 'flex' }}>
-          <div className={styles["modal-box"]} onClick={(e) => e.stopPropagation()}>
-            <h2>Choose Quiz Type</h2>
-            <button onClick={() => setShowModes(false)}>×</button>
-          </div>
-        </div>
+        <QuizModesModal onClose={() => setShowModes(false)} />
       )}
     </div>
   );
