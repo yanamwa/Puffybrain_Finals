@@ -16,47 +16,68 @@ const isPasswordValid = password.length >= 12;
 const doPasswordsMatch = password === confirmPassword && confirmPassword.length > 0;
   
 const handleSubmit = (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!password || password.length < 6) {
+  // Check password length (12 characters)
+  if (!isPasswordValid) {
+    Swal.fire({
+      title: "Weak Password",
+      text: "Password must be at least 12 characters.",
+      imageUrl: "/images/error.png",
+      imageWidth: 200,
+      imageHeight: 200,
+    });
+    return;
+  }
+
+  // Check confirm password empty
+  if (!confirmPassword) {
+    Swal.fire({
+      title: "Missing Field",
+      text: "Please confirm your password.",
+      imageUrl: "/images/error.png",
+      imageWidth: 200,
+      imageHeight: 200,
+    });
+    return;
+  }
+
+  // Check if passwords match
+  if (!doPasswordsMatch) {
+    Swal.fire({
+      title: "Password Mismatch",
+      text: "Passwords do not match.",
+      imageUrl: "/images/error.png",
+      imageWidth: 200,
+      imageHeight: 200,
+    });
+    return;
+  }
+
+  fetch("http://localhost/puffybrain/change-password.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, password }),
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (!data.success) {
+        Swal.fire("Error", data.message, "error");
+        return;
+      }
+
       Swal.fire({
-        title: "Weak Password",
-        text: "Password must be at least 6 characters.",
-        imageUrl: "/images/error.png",
+        title: "Success!",
+        text: "Your password has been updated.",
+        imageUrl: "/images/3.png",
         imageWidth: 200,
         imageHeight: 200,
-      });
-      return;
-    }
-    
-
-    fetch("http://localhost/puffybrain/change-password.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token, password }),
+      }).then(() => navigate("/login"));
     })
-      .then(res => res.json())
-      .then(data => {
-        if (!data.success) {
-          Swal.fire("Error", data.message, "error");
-          return;
-        }
-
-        Swal.fire({
-          title: "Success!",
-          text: "Your password has been updated.",
-          imageUrl: "/images/3.png",
-          imageWidth: 200,
-          imageHeight: 200,
-        }).then(() => navigate("/login"));
-      })
-
-      
-      .catch(() => {
-        Swal.fire("Server Error", "Please try again later.", "error");
-      });
-  };
-
+    .catch(() => {
+      Swal.fire("Server Error", "Please try again later.", "error");
+    });
+};
     return (
     <div className={styles.wrapper}>
       <section className={styles.container}>

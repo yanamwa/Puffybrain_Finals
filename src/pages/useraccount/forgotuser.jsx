@@ -23,7 +23,7 @@ function ForgotPassword() {
       return;
     }
 
-    fetch("http://localhost/puffybrain/forgot-password.php", {
+    fetch("http://localhost/puffybrain/fogot-username.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
@@ -32,7 +32,7 @@ function ForgotPassword() {
       .then(() => {
         Swal.fire({
           title: "Email Sent!",
-          text: "Check your email, a reset link has been sent.",
+          text: "Check your email, a email has been sent.",
           imageUrl: "/images/3.png",
           imageWidth: 200,
           imageHeight: 200,
@@ -72,7 +72,7 @@ return (
 
         <div className={styles.signupContainer}>
           <div className={styles.signupCard}>
-            <h2>Forgot Password</h2>
+            <h2>Forgot Username</h2>
 
             <label>Email Address</label>
             <input

@@ -3,6 +3,7 @@ import "boxicons/css/boxicons.min.css";
 
 /* Landing */
 import LandingPage from "./pages/LandingPage";
+import Aboutus from "./pages/Landing_page/Aboutus"
 
 /* User Account */
 import Login from "./pages/useraccount/Login";
@@ -10,6 +11,9 @@ import Signup from "./pages/useraccount/Signup";
 import Otp from "./pages/useraccount/Otp";
 import Forgot from "./pages/useraccount/Forgotpassword";
 import ChangePassword from "./pages/useraccount/Changepassword";
+import ForgotUsername from "./pages/useraccount/forgotuser";
+import CantSign from "./pages/useraccount/cant_sign";
+import ChangeUsername from "./pages/useraccount/Changeusername";
 
 /* Introduction */
 import Welcome from "./pages/introduction/Welcome";
@@ -48,13 +52,19 @@ import MatchingTutorial from "./pages/quizzes/matching-tutorial";
 export default function App() {
 return (
 <Routes>
-  {/* USER ACCOUNTS */}
+  {/* LANDING PAGES */}
   <Route path="/" element={<LandingPage />} />
-  <Route path="/login" element={<Login />} />
-  <Route path="/signup" element={<Signup />} />
-  <Route path="/otp" element={<Otp />} />
-  <Route path="/forgot" element={<Forgot />} />
-  <Route path="/changepassword" element={<ChangePassword />} />
+  <Route path="/about" element={<Aboutus />} />
+
+{/* USER ACCOUNTS */}
+<Route path="/login" element={<Login />} />
+<Route path="/signup" element={<Signup />} />
+<Route path="/otp" element={<Otp />} />
+<Route path="/forgot" element={<Forgot />} />
+<Route path="/changepassword" element={<ChangePassword />} />
+<Route path="/forgot-username" element={<ForgotUsername />} />
+<Route path="/cant-signin" element={<CantSign />} />
+<Route path="/change-username" element={<ChangeUsername />} />
 
   {/* USER INTRODUCTION */}
   <Route path="/welcome" element={<Welcome />} />

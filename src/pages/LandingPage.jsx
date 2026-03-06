@@ -36,8 +36,8 @@ function LandingPage() {
             </div>
 
             <nav className={styles.navLinks}>
-              <li><a href="">Home</a></li>
-              <li><a href="">About</a></li>
+              <li><a href="/">Home</a></li>
+              <li><a href="/about">About</a></li>
               <li><a href="">FAQ</a></li>
               <li><a href="">Contact Us</a></li>
             </nav>

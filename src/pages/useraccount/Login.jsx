@@ -82,10 +82,11 @@ function Login() {
             <li><Link to="/">Home</Link></li>
             <li><Link to="/about">About</Link></li>
             <li><Link to="/faq">FAQ</Link></li>
+            <li><Link to="/faq">Contact Us</Link></li>
           </ul>
 
           <div className={styles.navActions}>
-            <Link to="/signup" className={styles.startBtn}>
+            <Link to="/login" className={styles.startBtn}>
               Start Learning
             </Link>
           </div>
@@ -95,9 +96,10 @@ function Login() {
           <div className={styles.signupCard}>
             <h2>Login</h2>
 
-            <label>Username</label>
+         <label>Username</label>
             <input
               type="text"
+              placeholder="Enter your username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
             />
@@ -106,13 +108,10 @@ function Login() {
             <div className={styles.passwordWrapper}>
               <input
                 type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-
-              <p className={styles.forgot}>
-                <Link to="/forgot">Forgot your password?</Link>
-              </p>
 
               <i
                 className={`fa-solid ${
@@ -122,6 +121,9 @@ function Login() {
               />
             </div>
 
+            <p className={styles.forgot}>
+              <Link to="/forgot">Forgot your password?</Link>
+            </p>
             <button className={styles.loginBtn} onClick={handleLogin}>
               Login
             </button>
@@ -129,6 +131,9 @@ function Login() {
             <p className={styles.signupText}>
               Don't have an account? <Link to="/signup">Signup</Link>
             </p>
+                <p className={styles.signupText}>
+          <Link to="/cant-signin">Can't sign in?</Link>      
+      </p>
           </div>
         </div>
       </section>

@@ -8,12 +8,17 @@ function Signup() {
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
+
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   const [showPassword, setShowPassword] = useState(false);
+
   const isPasswordValid = password.length >= 12;
-  
+  const passwordsMatch = password === confirmPassword;
+
   const handleSignup = () => {
-    // 
+
     if (!username.trim()) {
       return Swal.fire({
         imageUrl: "/images/error.png",
@@ -35,6 +40,7 @@ function Signup() {
     }
 
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     if (!emailPattern.test(email)) {
       return Swal.fire({
         imageUrl: "/images/error.png",
@@ -55,13 +61,33 @@ function Signup() {
       });
     }
 
-    if (password.length < 12) {
+    if (!isPasswordValid) {
       return Swal.fire({
         imageUrl: "/images/error.png",
         imageWidth: 170,
         imageHeight: 170,
         title: "Password Too Short",
-        text: "Your password must be at least 12 characters long.",
+        text: "Password must be at least 12 characters.",
+      });
+    }
+
+    if (!confirmPassword.trim()) {
+      return Swal.fire({
+        imageUrl: "/images/error.png",
+        imageWidth: 170,
+        imageHeight: 170,
+        title: "Confirm Password Required",
+        text: "Please confirm your password.",
+      });
+    }
+
+    if (!passwordsMatch) {
+      return Swal.fire({
+        imageUrl: "/images/error.png",
+        imageWidth: 170,
+        imageHeight: 170,
+        title: "Password Mismatch",
+        text: "Passwords do not match.",
       });
     }
 
@@ -84,9 +110,9 @@ function Signup() {
       .then((data) => {
         if (data.success) {
           Swal.fire({
-             imageUrl: "/images/success.png",
-        imageWidth: 170,
-        imageHeight: 170,
+            imageUrl: "/images/success.png",
+            imageWidth: 170,
+            imageHeight: 170,
             title: "Verify Your Email",
             text: data.message,
           }).then(() => {
@@ -94,7 +120,7 @@ function Signup() {
           });
         } else {
           Swal.fire({
-             imageUrl: "/images/error.png",
+            imageUrl: "/images/error.png",
             imageWidth: 170,
             imageHeight: 170,
             title: "Signup Failed",
@@ -104,20 +130,20 @@ function Signup() {
       })
       .catch((err) => {
         Swal.fire({
-            imageUrl: "/images/error.png",
-            imageWidth: 170,
-            imageHeight: 170,
+          imageUrl: "/images/error.png",
+          imageWidth: 170,
+          imageHeight: 170,
           title: "Server Error",
           text: err.message,
         });
       });
   };
 
- return (
+  return (
     <div className={styles.wrapper}>
       <section className={styles.container}>
-      <div className={styles.background}
-            ></div>
+
+        <div className={styles.background}></div>
 
         <div className={styles.navbar}>
           <div className={styles.logo}>
@@ -128,10 +154,11 @@ function Signup() {
             <li><Link to="/">Home</Link></li>
             <li><Link to="/about">About</Link></li>
             <li><Link to="/faq">FAQ</Link></li>
+            <li><Link to="/faq">Contact Us</Link></li>
           </ul>
 
           <div className={styles.navActions}>
-            <Link to="/signup" className={styles.startBtn}>
+            <Link to="/login" className={styles.startBtn}>
               Start Learning
             </Link>
           </div>
@@ -166,21 +193,40 @@ function Signup() {
                 onChange={(e) => setPassword(e.target.value)}
               />
               <i
-                className={`fa-solid ${
-                  showPassword ? "fa-eye-slash" : "fa-eye"
-                } ${styles.toggleEye}`}
+                className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"} ${styles.toggleEye}`}
                 onClick={() => setShowPassword(!showPassword)}
               ></i>
             </div>
 
-                  {password.length > 0 && (
-                          <div className={`${styles.validationMessage} ${isPasswordValid ? styles.success : styles.error}`}>
-                            {isPasswordValid
-                              ? `✓ Password is strong (${password.length} characters)`
-                              : `Password must be at least 12 characters (current: ${password.length})`}
-                          </div>
-                        )}
-            
+            {password.length > 0 && (
+              <div className={`${styles.validationMessage} ${isPasswordValid ? styles.success : styles.error}`}>
+                {isPasswordValid
+                  ? `✓ Password is strong (${password.length} characters)`
+                  : `Password must be at least 12 characters (current: ${password.length})`}
+              </div>
+            )}
+
+            <label>Confirm Password</label>
+            <div className={styles.passwordWrapper}>
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Confirm your password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+              <i
+                className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"} ${styles.toggleEye}`}
+                onClick={() => setShowPassword(!showPassword)}
+              ></i>
+            </div>
+
+            {confirmPassword.length > 0 && (
+              <div className={`${styles.validationMessage} ${passwordsMatch ? styles.success : styles.error}`}>
+                {passwordsMatch
+                  ? "✓ Passwords match"
+                  : "Passwords do not match"}
+              </div>
+            )}
 
             <button className={styles.loginBtn} onClick={handleSignup}>
               Sign Up
@@ -193,8 +239,10 @@ function Signup() {
             <p className={styles.signinText}>
               Already have an account? <Link to="/login">Signin</Link>
             </p>
+
           </div>
         </div>
+
       </section>
     </div>
   );
