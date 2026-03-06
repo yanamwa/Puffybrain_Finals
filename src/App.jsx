@@ -3,7 +3,8 @@ import "boxicons/css/boxicons.min.css";
 
 /* Landing */
 import LandingPage from "./pages/LandingPage";
-import Aboutus from "./pages/Landing_page/Aboutus"
+import Aboutus from "./pages/Landing_page/Aboutus";
+import ContactUs from "./pages/Landing_page/ContactUs/ContactUs";
 
 /* User Account */
 import Login from "./pages/useraccount/Login";
@@ -55,6 +56,7 @@ return (
   {/* LANDING PAGES */}
   <Route path="/" element={<LandingPage />} />
   <Route path="/about" element={<Aboutus />} />
+  <Route path="/ContactUs" element={<ContactUs />} />
 
 {/* USER ACCOUNTS */}
 <Route path="/login" element={<Login />} />

@@ -1,49 +1,10 @@
-:root {
-  --color-primary: #EBD3FA;
-  --color-secondary: #E3AADD;
-  --color-third: #C8A8E9;
-  --color-fourth: #A993D8;
-  --color-fifth: #C3C7F3;
-  --font-color: #2F2F2F;
-  --card-color1: #C8BBD0;
-  --card-color2: #E0BBD4;
-  --card-color3: #C3C7F3;
-  --card-color4: #90F897;
-  --card-color5: #CF8686;
-  --card-color6: #EECB99;
+.container{
+display:flex;
+min-height:100vh;
+background:#f5f5f5;
 }
 
-.container {
-    display: flex;
-    min-height: 100vh;
-    background: #f5f5f5;
-    transition: all 0.3s ease;
-}
-
-
-.dashboardGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
-  width: 100%;
-  max-width: 1400px;
-}
-
-.container.sidebarCollapsed .sidebar {
-  width: 60px;
-}
-
-.progress,
-.deckProgress {
-  width: 100%;
-  background-color: #eeeeee;
-  border-radius: 15px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
+/* SIDEBAR */
 
 .sidebar {
   position: fixed;
@@ -315,165 +276,171 @@
   z-index: 1000;
 }
 
-.profileSection {
-  text-align: center;
-  margin-top: 10px;
-}
+/* MAIN AREA */
 
-.profileAvatar {
-  width: 100px;
-  height: 100px;
-  background-color: #ddd;
-  background-size: cover;
-  background-position: center;
-  border-radius: 50%;
-  margin: 0 auto 10px;
-}
-
-.profileName {
-  margin: 0;
-  font-size: 20px;
-  margin-bottom: 5px;
-}
-
-.profileRole {
-  margin: 3px 0 12px;
-  opacity: 0.8;
-  font-size: 16px;
-}
-
-.profileBtn {
-  display: inline-block;
-  background: white;
-  border: none;
-  padding: 8px 25px;
-  border-radius: 20px;
-  font-size: 16px;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  text-decoration: none;
-  color: inherit;
-}
-
-.settingsFooter {
-  margin-top: auto;
-  margin-bottom: 20px;
-  font-size: 18px;
-  cursor: pointer;
-  padding: 10px;
-  width: 100%;
-  text-align: center;
-  border-radius: 10px;
-  box-sizing: border-box;
-  transition: transform 0.2s;
-  color: #555;
-  text-decoration: none;
-}
-
-.settingsFooter:hover {
-  transform: translateX(4px);
-}
-
-.mainArea {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  margin-left: 220px;
-  margin-right: 0px;
-  transition: margin-left 0.3s ease;
-  margin-top: 50px;
-}
-
-.sidebarCollapsed .mainArea {
-  margin-left: 90px;
-}
-
-.mainContent {
-    padding: 100px 0px 40px 40px;
-    width: 100%;
-    background: #f5f5f5;
-    flex: 1;
-}
-
-
-.container {
-  display: flex;
-  min-height: 100vh;
-  font-family: Arial, sans-serif;
-}
-
-/* SIDEBAR */
-.sidebar {
-  width: 220px;
-  background: #EBD3FA;
-  padding: 20px;
-}
-
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-}
-
-.sidebar li {
-  margin: 10px 0;
-}
-
-/* RIGHT SIDE */
-.right {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+.mainArea{
+margin-left:220px;
+flex:1;
 }
 
 /* HEADER */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 30px;
-  border-bottom: 1px solid #ddd;
+
+.header{
+height:70px;
+background:white;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:0 40px;
+box-shadow:0 3px 8px rgba(0,0,0,0.1);
 }
 
-.search {
-  padding: 8px 15px;
-  border-radius: 20px;
-  border: 1px solid #ccc;
+.searchBar{
+display:flex;
+align-items:center;
+border:2px solid #c8a8e9;
+border-radius:50px;
+padding:6px 15px;
+width:500px;
 }
 
-.profile {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.dropdown {
-  position: absolute;
-  top: 30px;
-  right: 0;
-  background: white;
-  border: 1px solid #ccc;
-  padding: 10px;
+.searchBar input{
+border:none;
+outline:none;
+flex:1;
 }
 
 /* CONTENT */
-.content {
-  padding: 40px;
+
+.content{
+padding:40px;
+display:flex;
+flex-direction:column;
+align-items:center;
 }
 
-.card {
-  max-width: 500px;
-  border: 1px solid black;
-  padding: 30px;
-  border-radius: 10px;
-  background: white;
+.pageTitle{
+width:900px;
+margin-bottom:10px;
 }
 
-.editBtn {
-  margin-top: 20px;
-  padding: 8px 16px;
-  border-radius: 20px;
-  border: none;
-  background: #E3AADD;
-  cursor: pointer;
+/* PURPLE DASHED CONTAINER */
+
+.editWrapper{
+position:relative;
+border:3px dashed #b38ddb;
+background:#eadcf7;
+padding:40px;
+border-radius:15px;
+}
+
+/* TABS */
+
+.tabs{
+position:absolute;
+top:-20px;
+left:20px;
+display:flex;
+gap:10px;
+}
+
+.tabs button{
+padding:8px 18px;
+border-radius:10px;
+border:2px solid black;
+background:#d8c2eb;
+cursor:pointer;
+}
+
+.activeTab{
+background:white;
+}
+
+/* CARD */
+
+.editCard{
+background:white;
+padding:40px;
+border-radius:15px;
+width:750px;
+box-shadow:0 10px 20px rgba(0,0,0,0.15);
+}
+
+/* FORM LAYOUT */
+
+.editContent{
+display:flex;
+justify-content:space-between;
+}
+
+.formLeft{
+width:60%;
+display:flex;
+flex-direction:column;
+gap:10px;
+}
+
+.formLeft input{
+padding:10px;
+border-radius:10px;
+border:1px solid #ccc;
+}
+
+/* PHOTO */
+
+.photoUpload{
+width:35%;
+display:flex;
+flex-direction:column;
+align-items:center;
+}
+
+.photoCircle{
+width:120px;
+height:120px;
+border-radius:50%;
+background:#eee;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+.photoHint{
+font-size:11px;
+text-align:center;
+margin-top:10px;
+}
+
+/* SETTINGS */
+
+.settingsForm{
+display:flex;
+flex-direction:column;
+gap:10px;
+}
+
+.settingsForm input{
+padding:10px;
+border-radius:10px;
+border:1px solid #ccc;
+}
+
+/* BUTTONS */
+
+.saveBtn{
+margin-top:20px;
+padding:12px;
+border:none;
+border-radius:25px;
+background:linear-gradient(90deg,#c9a4e4,#a98ed1);
+cursor:pointer;
+}
+
+.backBtn{
+margin-top:10px;
+background:#ccc;
+border:none;
+padding:8px 20px;
+border-radius:20px;
+cursor:pointer;
 }

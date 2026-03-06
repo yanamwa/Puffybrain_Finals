@@ -82,7 +82,7 @@ function Login() {
             <li><Link to="/">Home</Link></li>
             <li><Link to="/about">About</Link></li>
             <li><Link to="/faq">FAQ</Link></li>
-            <li><Link to="/faq">Contact Us</Link></li>
+            <li><Link to="/ContactUs">Contact Us</Link></li>
           </ul>
 
           <div className={styles.navActions}>
