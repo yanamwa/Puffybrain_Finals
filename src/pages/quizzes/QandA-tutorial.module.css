@@ -14,7 +14,20 @@
      --color-shadow: #DDDDDD;
 }
 
+.container {
+    width: 100%;
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 
+    /* Background image */
+    background-image: url('/public/images/background_notebook.png'); /* Replace with your image path */
+    background-size: cover; /* Cover the entire container */
+    background-position: center; /* Center the image */
+    background-repeat: no-repeat; /* Don't repeat */
+}
 
 .headerBox {
     width: 70%;
