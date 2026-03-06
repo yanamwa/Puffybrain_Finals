@@ -34,7 +34,7 @@ function MultipleChoice() {
   };
 
   return (
-    <div>
+    <div className={styles.wrapper}>
       {/* HEADER */}
       <div className={styles.headerBox}>
         <div className={styles.headerTop}>

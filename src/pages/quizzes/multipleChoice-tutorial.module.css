@@ -14,15 +14,6 @@
      --color-shadow: #DDDDDD;
 }
 
-body {
-  background-image: url('/public/images/background_notebook.png');
-  background-position: center;
-  margin: 0;
-  font-family: 'Lato', sans-serif;
-    background-size: 100%;
-  background-repeat: no-repeat;
-
-}
 
 .headerBox {
     width: 70%;

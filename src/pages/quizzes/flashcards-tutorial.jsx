@@ -1,85 +1,68 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
 import styles from "./flashcards-tutorial.module.css";
-import "boxicons/css/boxicons.min.css";
 
-function FlashcardsTutorial() {
-  const [isFlipped, setIsFlipped] = useState(false);
+export default function FlashcardsTutorial() {
+  const [flipped, setFlipped] = useState(false);
+  const [tabLabel, setTabLabel] = useState("Question");
 
-  const flipCard = () => {
-    setIsFlipped((prev) => !prev);
+  const handleFlip = () => {
+    setFlipped(!flipped);
+    setTabLabel(!flipped ? "Answer" : "Question");
   };
 
   return (
-    <div className={styles.page}>
-      
-      {/* HEADER */}
-      <div className={styles["header-wrapper"]}>
-        <div className={styles["header-top"]}>
+    <div className={styles.flashcardsApp}>
+      {/* HEADER CARD */}
+      <div className={styles.headerWrapper}>
+        <div className={styles.headerTop}>
           <h1>Flashcards</h1>
         </div>
 
-        <div className={styles["header-body"]}>
+        <div className={styles.headerBody}>
           <p>
             Flip, learn, and master! <br />
             Review facts and test your memory in a fun, quick, and easy way —
             perfect for learning on the go!
           </p>
-
-          <Link to="/deckpage">
-            <button className={styles["start-btn"]}>Start</button>
-          </Link>
+          <a href="../Flashcard/flashcard.html">
+            <button className={styles.startBtn}>Start</button>
+          </a>
         </div>
       </div>
 
-      {/* FLASHCARD SECTION */}
-      <div className={styles["flashcard-wrapper"]}>
-        
-        {/* Tabs */}
+      {/* FLASHCARD CONTAINER */}
+      <div className={styles.flashcardWrapper}>
         <div className={styles.tab}>
-          <span className={styles.active}>
-            {isFlipped ? "Answer" : "Question"}
-          </span>
-
-          <span onClick={flipCard}>
-            Flip
-          </span>
+          <span className={styles.active}>{tabLabel}</span>
+          <span onClick={handleFlip}>Flip</span>
         </div>
 
-        {/* Card */}
         <div
-          className={`${styles.flashcard} ${
-            isFlipped ? styles.flipped : ""
-          }`}
-          onClick={flipCard}
+          className={`${styles.flashcard} ${flipped ? styles.flipped : ""}`}
+          onClick={handleFlip}
         >
-          <div className={styles["flashcard-inner"]}>
-            
-            {/* FRONT */}
-            <div className={`${styles["flashcard-face"]} ${styles.front}`}>
+          <div className={styles.flashcardInner}>
+            {/* FRONT (Question) */}
+            <div className={styles.flashcardFace + " " + styles.front}>
               <p className={styles.question}>
                 Which keyword is used to prevent a class from being subclassed?
               </p>
             </div>
 
-            {/* BACK */}
-            <div className={`${styles["flashcard-face"]} ${styles.back}`}>
+            {/* BACK (Answer) */}
+            <div className={styles.flashcardFace + " " + styles.back}>
               <p className={styles.question}>final</p>
             </div>
-
           </div>
 
-          {/* Difficulty Buttons */}
+          {/* DIFFICULTY BAR */}
           <div className={styles.difficulty}>
             <button className={styles.easy}>Easy</button>
             <button className={styles.good}>Good</button>
             <button className={styles.hard}>Hard</button>
           </div>
         </div>
-
       </div>
     </div>
   );
 }
-
-export default FlashcardsTutorial;

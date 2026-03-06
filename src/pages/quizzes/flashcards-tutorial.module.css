@@ -1,198 +1,172 @@
-
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: "Jersey 15", sans-serif;
+.flashcardsApp {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  font-family: "Jersey 15", sans-serif;
+    /* Background image */
+  background-image: url('/public/images/background_notebook.png'); /* replace with your image path */
+  background-size: cover;      /* makes the image cover the whole div */
+  background-position: center; /* centers the image */
+  background-repeat: no-repeat;/* prevents tiling */
 }
 
-html, body {
-    height: 100%;
-    overflow: hidden;
-}
-
-body {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    padding: 10px 0;
-    background-image: url('/public/images/background_notebook.png');
-    background-size: cover;        /* makes it fill screen */
-    background-position: center;   /* keeps it centered */
-    background-repeat: no-repeat;  /* prevents tiling */
-}
-.page{
-    justify-content: center;
-    max-width: 1000px;
-    margin-left: 250px;
-    margin-top: 60px;
-}
 /* HEADER WRAPPER */
-.header-wrapper {
-
-    max-width: 1700px;
-    margin-bottom: 20px;
+.headerWrapper {
+  width: 80%;
+  max-width: 900px;
+  margin-bottom: 20px;
 }
 
 /* PURPLE TOP */
-.header-top {
-    background: #efd9ff;
-    padding: 18px;
-    border-radius: 25px 25px 0 0;
-    text-align: center;
+.headerTop {
+  background: #efd9ff;
+  padding: 18px;
+  border-radius: 25px 25px 0 0;
+  text-align: center;
 }
 
-.header-top h1 {
-    font-weight: normal;
-    font-size: 26px;
-    margin: 0;
+.headerTop h1 {
+  font-weight: normal;
+  font-size: 26px;
+  margin: 0;
 }
 
 /* WHITE BODY */
-.header-body {
-    background: #ffffff;
-    padding: 25px;
-    text-align: center;
-    border-radius: 0 0 25px 25px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+.headerBody {
+  background: #ffffff;
+  padding: 25px;
+  text-align: center;
+  border-radius: 0 0 25px 25px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 
-.header-body p {
-    font-weight: normal;
-    font-size: 14px;
-    color: black;
-    margin-bottom: 18px;
+.headerBody p {
+  font-weight: normal;
+  font-size: 15px;
+  color: black;
+  margin-bottom: 18px;
 }
 
 /* START BUTTON */
-.start-btn {
-    background: #dba8ff;
-    border: none;
-    padding: 8px 26px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-weight: normal;
+.startBtn {
+  background: #dba8ff;
+  border: none;
+  padding: 8px 26px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: normal;
 }
 
-
 /* FLASHCARD SECTION */
-.flashcard-wrapper {
-    background: #eeeeee;
-    width: 100%;
-    height: 350px;
-    max-width: 1700px;
-    border-radius: 30px;
-    padding: 30px 30px 70px; /* extra space for buttons */
-    position: relative;
+.flashcardWrapper {
+  background: #eeeeee;
+  width: 80%;
+  max-width: 900px;
+  height: 300px;
+  border-radius: 30px;
+  padding: 30px 30px 70px;
+  position: relative;
 }
 
 /* TABS */
 .tab {
-    display: flex;
-    justify-content: space-between;
-    padding: 0 50px;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 50px;
 }
 
 .tab span {
-    background-image: url('../images/notebook\ line.png');;
-    width: 80px;
-    padding: 6px 20px;
-    border-radius: 13px 13px 0 0;
-    text-align: center;
-    font-size: 14px;
-    border-bottom: 3px solid #dba8ff;
+  background-image: url('../images/notebook line.png');
+  width: 80px;
+  padding: 6px 20px;
+  border-radius: 13px 13px 0 0;
+  text-align: center;
+  font-size: 14px;
+  border-bottom: 3px solid #dba8ff;
+  cursor: pointer;
 }
 
-.tab .active {
-    background-image: url('../images/notebook\ line.png');
-    width: 100px;
-    text-align: center;
-    border-bottom: 3px solid #dba8ff;
+.active {
+  width: 100px;
+  border-bottom: 3px solid #dba8ff;
 }
 
-/* FLASHCARD */
-/* FLIP CONTAINER */
 .flashcard {
-    height: 110%;
+    height: 100%;          /* fits inside wrapper */
     perspective: 1000px;
     cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* centers card vertically */
 }
 
-/* INNER WRAPPER */
-.flashcard-inner {
+.flashcardInner {
     width: 100%;
     height: 100%;
-    min-height: 180px;
     position: relative;
     transition: transform 0.6s ease;
     transform-style: preserve-3d;
 }
-
 /* FLIPPED STATE */
-.flashcard.flipped .flashcard-inner {
-    transform: rotateY(180deg);
+.flipped .flashcardInner {
+  transform: rotateY(180deg);
 }
 
 /* CARD FACES */
-.flashcard-face {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    padding: 50px;
-    border-radius: 20px;
-    backface-visibility: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-image: url('../images/notebook\ line.png');
+.flashcardFace {
+  position: absolute;
+  width: 88.5%;
+  height: 65%;
+  padding: 50px;
+  border-radius: 20px;
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-image: url('../images/notebook line.png');
 }
 
 /* BACK FACE */
-.flashcard-face.back {
-    transform: rotateY(180deg);
+.back {
+  transform: rotateY(180deg);
 }
-
 
 /* DIFFICULTY BAR */
 .difficulty {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-
-    background: #efd9ff;              /* light purple bar */
-    padding: 14px 20px;
-    border-radius: 0 0 20px 20px;      /* rounded bottom like image */
-    margin-top: 20px;
-
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  background: #efd9ff;
+  padding: 10px 0px;
+  border-radius: 0 0 20px 20px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
 }
-
 
 .difficulty button {
-    border: none;
-    width: 90px;
-    padding: 6px 0;
-    border-radius: 20px;
-    font-size: 13px;
-    cursor: pointer;
+  border: none;
+  width: 90px;
+  padding: 6px 0;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
 }
 
-
 .easy {
-    background: #b9a9ff;
-    color: #fff;
+  background: #b9a9ff;
+  color: #fff;
 }
 
 .good {
-    background: #3bb54a;
-    color: #fff;
+  background: #3bb54a;
+  color: #fff;
 }
 
 .hard {
-    background: #b53131;
-    color: #fff;
+  background: #b53131;
+  color: #fff;
 }
