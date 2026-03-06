@@ -4,6 +4,9 @@ import "boxicons/css/boxicons.min.css";
 /* Landing */
 import LandingPage from "./pages/LandingPage";
 
+/*nav*/
+import FAQ from "./pages/faq/faq";
+
 /* User Account */
 import Login from "./pages/useraccount/Login";
 import Signup from "./pages/useraccount/Signup";
@@ -88,6 +91,9 @@ return (
   <Route path="/QandA-tutorial" element={<QandATutorial />} />
   <Route path="/multipleChoice-tutorial" element={<MultipleChoice/>}/>
   <Route path="/Matching-tutorial" element={<MatchingTutorial/>}/>
+
+  {/*NAVIGATION*/}
+  <Route path="/FAQ" element={<FAQ />} />
 
   {/* FALLBACK */}
   <Route path="*" element={<h1>Page not found</h1>} />
