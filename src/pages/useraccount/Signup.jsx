@@ -165,7 +165,12 @@ function Signup() {
         </div>
 
         <div className={styles.signupContainer}>
-          <div className={styles.signupCard}>
+       <div 
+  className={styles.signupCard}
+  style={{ marginTop: "50px",
+          height: "600px"
+   }}
+>
             <h2>Create an Account</h2>
 
             <label>Username</label>

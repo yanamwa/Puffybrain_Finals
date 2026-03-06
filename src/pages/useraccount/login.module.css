@@ -11,8 +11,9 @@
      --card-color4: #90F897;
     --card-color5: #CF8686;
      --card-color6: #EECB99;
-     --color-shadow: #DDDDDD;
+     --color-shadow: #1b1b1b;
 }
+
 .wrapper {
     width: 100%;
     display: flex;
@@ -507,8 +508,8 @@
 }
 
 .cantCard {
-  width: 320px;              /* same width for both */
-  height: 320px;             /* forces equal height */
+  width: 320px;              
+  height: 320px;             
   background: #ffffff;
   border-radius: 20px;
   padding: 35px;

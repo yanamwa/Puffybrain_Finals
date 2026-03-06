@@ -59,12 +59,18 @@ const handleSubmit = (e) => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ token, password }),
   })
-    .then(res => res.json())
-    .then(data => {
-      if (!data.success) {
-        Swal.fire("Error", data.message, "error");
-        return;
-      }
+   .then(res => res.json())
+  .then(data => {
+    if (!data.success) {
+      Swal.fire({
+        title: "Error",
+        text: data.message,
+        imageUrl: "/images/error.png",
+        imageWidth: 200,
+        imageHeight: 200,
+      });
+      return;
+    }
 
       Swal.fire({
         title: "Success!",
@@ -78,6 +84,8 @@ const handleSubmit = (e) => {
       Swal.fire("Server Error", "Please try again later.", "error");
     });
 };
+
+
     return (
     <div className={styles.wrapper}>
       <section className={styles.container}>
