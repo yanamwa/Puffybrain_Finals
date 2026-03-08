@@ -28,24 +28,21 @@ export default function Mydecks() {
   });
 
   const fetchUserDecks = async () => {
-    try {
-      const res = await fetch("http://localhost/puffybrain/userDecks.php", {
-        credentials: "include",
-      });
-      const data = await res.json();
-      if (data.success) {
-        setDecks(data.decks.map(deck => ({
-          id: deck.id,
-          title: deck.title,
-          cards: deck.card_count ?? 0,
-          type: deck.visibility === "public" ? "shared" : "private",
-          colorClass: "blue"
-        })));
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  const res = await fetch("http://localhost/puffybrain/userDecks.php", {
+    credentials: "include",
+  });
+  const data = await res.json();
+
+  if (data.success) {
+    setDecks(data.decks.map(deck => ({
+      id: deck.id,
+      title: deck.title,
+      cards: deck.card_count ?? 0,
+      type: deck.visibility === "public" ? "shared" : "private",
+      colorClass: "blue"
+    })));
+  }
+};
 
   const fetchUser = async () => {
     try {
@@ -188,6 +185,13 @@ export default function Mydecks() {
               </li>
 
               <li className={styles.sidebarListItem}>
+                <NavLink to="/mycourse" className={styles.menuItem}>
+                  <i className="bx bx-folder"></i>
+                  <span className={styles.menuText}>My Course</span>
+                </NavLink>
+              </li>
+
+              <li className={styles.sidebarListItem}>
                 <NavLink to="/public-decks" className={styles.menuItem}>
                   <i className="bx bx-folder"></i>
                   <span className={styles.menuText}>Public Decks</span>
@@ -284,6 +288,7 @@ export default function Mydecks() {
         </div>
 
         <main className={styles.main}>
+
           <div className={styles.panel}>
             <div className={styles.purpleStrip} />
             <div className={styles.panelHeader}>
@@ -444,8 +449,43 @@ export default function Mydecks() {
             </div>
           </div>
         )}
-        </div>
+      <div className={styles.panel}>
+
+  <div className={styles.purpleStrip}></div>
+
+  <div className={styles.panelHeader}>
+    <h1>Decks From Other Users</h1>
+  </div>
+
+  <div className={styles.deckArea}>
+    {filteredDecks.filter((d) => d.type === "added").length === 0 ? (
+      <p className={styles.emptyText}>
+        No decks added from other users yet.
+      </p>
+    ) : (
+      filteredDecks
+        .filter((d) => d.type === "added")
+        .map((d) => (
+          <article
+            key={d.id}
+            className={styles.deckCard}
+            onClick={() => openDeck(d.id)}
+          >
+            <div className={styles.deckTop}></div>
+
+            <div className={styles.deckBody}>
+              <h4>{d.title}</h4>
+              <span>{d.cards} cards</span>
+            </div>
+          </article>
+        ))
+    )}
+  </div>
+
+</div>
+</div>
+
+</div>
       </div>
-    </div>
   );
 }

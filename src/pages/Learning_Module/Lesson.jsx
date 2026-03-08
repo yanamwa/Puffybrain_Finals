@@ -1,12 +1,33 @@
 import styles from "./lesson.module.css";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 function Lesson() {
+
+  const { lessonId } = useParams(); // get id from URL
   const username = localStorage.getItem("username") || "user";
+
+  const [lesson, setLesson] = useState(null);
+
+  useEffect(() => {
+
+    fetch(`http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`)
+      .then(res => res.json())
+      .then(data => {
+        setLesson(data);
+      })
+      .catch(err => console.error(err));
+
+  }, [lessonId]);
+
+  if (!lesson) {
+    return <div>Loading lesson...</div>;
+  }
 
   return (
     <div className={styles.wrapper}>
       <div className={styles.content}>
+
         <div className={styles.ribbon}></div>
 
         <div className={styles.tabs}>
@@ -16,21 +37,27 @@ function Lesson() {
         </div>
 
         <div className={styles.greets}>
-          <h1 className={styles.hello}>Hi there, @{username}!</h1>
 
+          <h1 className={styles.hello}>
+            Hi there, @{username}!
+          </h1>
+
+          {/* Lesson Title from DB */}
+          <h2>{lesson.title}</h2>
+
+          {/* Lesson Description from DB */}
           <p className={styles.greeting1}>
-            Hi there, smart cookie! We’re so happy you joined the PuffyBrain family.
-            <br />
-            PuffyBrain helps you learn, quiz, and remember everything with your own
-            cute decks and quizzes!
-            <br />
-            Ready to see how it works?
+            {lesson.description}
           </p>
 
-          <Link to="/context">
-            <button className={styles.button}>Next→</button>
+          <Link to={`/learning/${lessonId}`}>
+            <button className={styles.button}>
+              Next
+            </button>
           </Link>
+
         </div>
+
       </div>
     </div>
   );

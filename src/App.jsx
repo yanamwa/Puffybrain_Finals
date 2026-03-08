@@ -32,6 +32,9 @@ import MyDecks from "./pages/User/Mydecks";
 /* Decks */
 import DeckPage from "./pages/decks/DeckPage";
 import UserDecks from "./pages/decks/userDecks";
+import MyCourse from "./pages/User/MyCourse";
+
+import Lesson from "./pages/Learning_Module/Lesson";
 
 /* Admin */
 import AdminLogin from "./pages/admin/AdminLogin";
@@ -49,6 +52,7 @@ import MultipleChoice from "./pages/quizzes/multipleChoice-Tutorial";
 import MatchingTutorial from "./pages/quizzes/matching-tutorial";
 
 
+
 export default function App() {
 return (
 <Routes>
@@ -57,14 +61,14 @@ return (
   <Route path="/about" element={<Aboutus />} />
 
 {/* USER ACCOUNTS */}
-<Route path="/login" element={<Login />} />
-<Route path="/signup" element={<Signup />} />
-<Route path="/otp" element={<Otp />} />
-<Route path="/forgot" element={<Forgot />} />
-<Route path="/changepassword" element={<ChangePassword />} />
-<Route path="/forgot-username" element={<ForgotUsername />} />
-<Route path="/cant-signin" element={<CantSign />} />
-<Route path="/change-username" element={<ChangeUsername />} />
+  <Route path="/login" element={<Login />} />
+  <Route path="/signup" element={<Signup />} />
+  <Route path="/otp" element={<Otp />} />
+  <Route path="/forgot" element={<Forgot />} />
+  <Route path="/changepassword" element={<ChangePassword />} />
+  <Route path="/forgot-username" element={<ForgotUsername />} />
+  <Route path="/cant-signin" element={<CantSign />} />
+  <Route path="/change-username" element={<ChangeUsername />} />
 
   {/* USER INTRODUCTION */}
   <Route path="/welcome" element={<Welcome />} />
@@ -79,11 +83,13 @@ return (
   <Route path="/mydecks" element={<MyDecks />} />
   <Route path="/public-decks" element={<PublicDeck />} />
   <Route path="/user-profile" element={<UserProfile />} />
+  <Route path="/mycourse" element={<MyCourse />} />
 
   {/* DECKS */}
   <Route path="/deckpage" element={<DeckPage />} />
   <Route path="/deck/:deckId" element={<UserDecks />} />
 
+  <Route path="/lesson/:lessonId" element={<Lesson />} />
   {/* ADMIN */}
   <Route path="/admin/login" element={<AdminLogin />} />
   <Route path="/admin/dashboard" element={<AdminDashboard />} />
