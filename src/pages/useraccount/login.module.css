@@ -286,7 +286,8 @@
     margin-top: 100px;
     background: white;
     width: 380px;
-    padding: 50px;
+    padding: 60px;
+    height: auto;
     border-radius: 30px;
     box-shadow: 0 20px 0 var(--color-shadow),
                 22px 20px 0 var(--color-shadow);
@@ -541,4 +542,63 @@
     box-shadow: 0 20px 0 var(--color-shadow),
                 22px 20px 0 var(--color-shadow);
     position: relative;
+}
+
+/* Password checklist container */
+.passwordChecklist {
+  margin-top: 10px;
+  padding: 12px 14px;
+  background: #f8f9fc;
+  border: 1px solid #e6e8f0;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.validationMessage {
+  font-family: "Jersey 15", sans-serif;
+  font-size: 14px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+.warning {
+  background: #fff4e5;
+  color: #ff9800;
+  border: 1px solid #ffd699;
+}
+
+
+
+
+/* checklist items */
+.passwordChecklist p {
+  margin: 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+/* invalid rule */
+.invalid {
+  color: #a0a4b8;
+}
+
+/* valid rule */
+.valid {
+  color: #22c55e;
+  font-weight: 500;
+}
+
+/* optional: smooth check animation */
+.valid::before {
+  content: "✓";
+  color: #22c55e;
+  font-weight: bold;
+}
+
+.invalid::before {
+  content: "✗";
+  color: #d1d5db;
 }
