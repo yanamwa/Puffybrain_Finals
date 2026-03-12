@@ -50,7 +50,7 @@ import FlashcardsTutorial from "./pages/quizzes/flashcards-tutorial";
 import QandATutorial from "./pages/quizzes/QandA-tutorial";
 import MultipleChoice from "./pages/quizzes/multipleChoice-Tutorial";
 import MatchingTutorial from "./pages/quizzes/matching-tutorial";
-
+import SurvivalTutorial from "./pages/quizzes/survivaltutorial";
 
 
 export default function App() {
@@ -104,6 +104,8 @@ return (
   <Route path="/QandA-tutorial" element={<QandATutorial />} />
   <Route path="/multipleChoice-tutorial" element={<MultipleChoice/>}/>
   <Route path="/Matching-tutorial" element={<MatchingTutorial/>}/>
+  <Route path="/Survival-tutorial" element={<SurvivalTutorial/>}/>
+
 
   {/* FALLBACK */}
   <Route path="*" element={<h1>Page not found</h1>} />
