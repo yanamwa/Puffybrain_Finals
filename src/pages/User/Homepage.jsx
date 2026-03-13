@@ -149,7 +149,7 @@ const handleAddDeck = async () => {
             <ul className={styles.sidebarList}>
 
               <li className={styles.sidebarListItem}>
-                <Link to="/" className={`${styles.menuItem} ${styles.active}`}>
+                <Link to="/homepage" className={`${styles.menuItem} ${styles.active}`}>
                   <i className="bx bx-home"></i>
                   <span className={styles.menuText}>Home</span>
                 </Link>
@@ -159,6 +159,13 @@ const handleAddDeck = async () => {
                 <Link to="/Mydecks" className={styles.menuItem}>
                   <i className="bx bx-book"></i>
                   <span className={styles.menuText}>Decks</span>
+                </Link>
+              </li>
+
+  <li className={styles.sidebarListItem}>
+                <Link to="/mycourse" className={styles.menuItem}>
+                  <i className="bx bx-book"></i>
+                  <span className={styles.menuText}>My Course</span>
                 </Link>
               </li>
 

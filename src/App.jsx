@@ -3,6 +3,7 @@ import "boxicons/css/boxicons.min.css";
 
 /* Landing */
 import LandingPage from "./pages/LandingPage";
+import Aboutus from "./pages/Landing_page/Aboutus"
 
 /*nav*/
 import FAQ from "./pages/faq/faq";
@@ -13,6 +14,9 @@ import Signup from "./pages/useraccount/Signup";
 import Otp from "./pages/useraccount/Otp";
 import Forgot from "./pages/useraccount/Forgotpassword";
 import ChangePassword from "./pages/useraccount/Changepassword";
+import ForgotUsername from "./pages/useraccount/forgotuser";
+import CantSign from "./pages/useraccount/cant_sign";
+import ChangeUsername from "./pages/useraccount/Changeusername";
 
 /* Introduction */
 import Welcome from "./pages/introduction/Welcome";
@@ -31,6 +35,9 @@ import MyDecks from "./pages/User/Mydecks";
 /* Decks */
 import DeckPage from "./pages/decks/DeckPage";
 import UserDecks from "./pages/decks/userDecks";
+import MyCourse from "./pages/User/MyCourse";
+
+import Lesson from "./pages/Learning_Module/Lesson";
 
 /* Admin */
 import AdminLogin from "./pages/admin/AdminLogin";
@@ -46,18 +53,34 @@ import FlashcardsTutorial from "./pages/quizzes/flashcards-tutorial";
 import QandATutorial from "./pages/quizzes/QandA-tutorial";
 import MultipleChoice from "./pages/quizzes/multipleChoice-Tutorial";
 import MatchingTutorial from "./pages/quizzes/matching-tutorial";
+import SurvivalTutorial from "./pages/quizzes/survivaltutorial";
 
+/*Quizzes*/
+import Flashcards from "./pages/inQuiz/realFlashcard";
+import MatchingType from "./pages/inQuiz/matching";
+import Multiple from "./pages/inQuiz/multiplechoice";
+import QandA from "./pages/inQuiz/qanda";
+import Survival from "./pages/inQuiz/survival";
+
+/*results*/
+import Result from "./pages/quizResults/results";
 
 export default function App() {
 return (
 <Routes>
-  {/* USER ACCOUNTS */}
+  {/* LANDING PAGES */}
   <Route path="/" element={<LandingPage />} />
+  <Route path="/about" element={<Aboutus />} />
+
+{/* USER ACCOUNTS */}
   <Route path="/login" element={<Login />} />
   <Route path="/signup" element={<Signup />} />
   <Route path="/otp" element={<Otp />} />
   <Route path="/forgot" element={<Forgot />} />
   <Route path="/changepassword" element={<ChangePassword />} />
+  <Route path="/forgot-username" element={<ForgotUsername />} />
+  <Route path="/cant-signin" element={<CantSign />} />
+  <Route path="/change-username" element={<ChangeUsername />} />
 
   {/* USER INTRODUCTION */}
   <Route path="/welcome" element={<Welcome />} />
@@ -72,11 +95,13 @@ return (
   <Route path="/mydecks" element={<MyDecks />} />
   <Route path="/public-decks" element={<PublicDeck />} />
   <Route path="/user-profile" element={<UserProfile />} />
+  <Route path="/mycourse" element={<MyCourse />} />
 
   {/* DECKS */}
   <Route path="/deckpage" element={<DeckPage />} />
   <Route path="/deck/:deckId" element={<UserDecks />} />
 
+  <Route path="/lesson/:lessonId" element={<Lesson />} />
   {/* ADMIN */}
   <Route path="/admin/login" element={<AdminLogin />} />
   <Route path="/admin/dashboard" element={<AdminDashboard />} />
@@ -91,12 +116,24 @@ return (
   <Route path="/QandA-tutorial" element={<QandATutorial />} />
   <Route path="/multipleChoice-tutorial" element={<MultipleChoice/>}/>
   <Route path="/Matching-tutorial" element={<MatchingTutorial/>}/>
+  <Route path="/Survival-tutorial" element={<SurvivalTutorial/>}/>
+
+  {/*QUIZ*/}
+  <Route path="/flashcard" element={<Flashcards/>}/>
+  <Route path="/matching" element={<MatchingType/>}/>
+  <Route path="/multiple" element={<Multiple/>}/>
+  <Route path="/qandA" element={<QandA/>}/>
+  <Route path="/survival" element={<Survival/>}/>
+
+  <Route path="/result" element={<Result/>}/>
+
 
   {/*NAVIGATION*/}
   <Route path="/FAQ" element={<FAQ />} />
 
   {/* FALLBACK */}
   <Route path="*" element={<h1>Page not found</h1>} />
+
 
 </Routes>
 

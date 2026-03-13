@@ -4,82 +4,147 @@ import Swal from "sweetalert2";
 import styles from "./publicDeck.module.css";
 
 function PublicDecks() {
+
   const navigate = useNavigate();
 
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [lessons, setLessons] = useState([]);
   const [publicDecks, setPublicDecks] = useState([]);
-  const [myDecks, setMyDecks] = useState([]);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [myDecks, setMyDecks] = useState([]); // ✅ added
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // ✅ added
 
   const [user, setUser] = useState({
-    username: "",
-    year_level: "",
+    username: ""
   });
 
-  // ---------------- FETCH LESSONS ----------------
-  useEffect(() => {
-    fetch("http://localhost/puffybrain/getLessons.php")
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) setLessons(data);
-      })
-      .catch(err => console.error("Lessons error:", err));
-  }, []);
-
-  // ---------------- FETCH PUBLIC DECKS ----------------
-  useEffect(() => {
-    fetch("http://localhost/puffybrain/getPublicDecks.php")
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          setPublicDecks(data);
-        } else if (data?.decks && Array.isArray(data.decks)) {
-          setPublicDecks(data.decks);
-        } else {
-          setPublicDecks([]);
-        }
-      })
-      .catch(err => console.error("Public decks error:", err));
-  }, []);
-
-  // ---------------- FETCH USER ----------------
-  useEffect(() => {
-    fetchUser();
-  }, []);
-
-  const fetchUser = async () => {
-    try {
-      const res = await fetch("http://localhost/puffybrain/getUser.php", {
-        credentials: "include",
-      });
-      const data = await res.json();
-      if (data.success) setUser(data.user);
-    } catch (err) {
-      console.error("User fetch error:", err);
-    }
+  // ✅ added
+  const openDeck = (id) => {
+    navigate(`/deck/${id}`);
   };
 
-  // ---------------- LOGOUT ----------------
+  /* ---------------- FETCH LESSONS ---------------- */
+useEffect(() => {
+fetch("http://localhost/puffybrain/getLessons.php", {
+  credentials: "include"
+}) 
+    .then(res => res.json())
+    .then(data => {
+      if (Array.isArray(data)) {
+        setLessons(data);
+      }
+    })
+    .catch(err => console.error(err));
+}, []);
+  // ---------------- FETCH PUBLIC DECKS ----------------
+useEffect(() => {
+  fetch("http://localhost/puffybrain/getPublicDecks.php", {
+    credentials: "include"
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (Array.isArray(data)) {
+        setPublicDecks(data);
+      } else if (data?.decks && Array.isArray(data.decks)) {
+        setPublicDecks(data.decks);
+      } else {
+        setPublicDecks([]);
+      }
+    })
+    .catch(err => console.error("Public decks error:", err));
+}, []);
+  const fetchMyCourses = async () => {
+  try {
+
+    const res = await fetch("http://localhost/puffybrain/getMyCourses.php", {
+      credentials: "include"
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setMyDecks(data.courses);
+    }
+
+  } catch (err) {
+    console.error("My courses fetch error:", err);
+  }
+};
+
+
+  /* ---------------- ADD COURSE ---------------- */
+const handleAddCourse = async (lesson) => {
+
+  const result = await Swal.fire({
+    title: "Add Course?",
+    text: `Add "${lesson.title}" to My Courses?`,
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Yes, add it"
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+
+    const res = await fetch("http://localhost/puffybrain/addDeck.php", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: `lesson_id=${lesson.id}`
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+
+      await Swal.fire({
+        icon: "success",
+        title: "Added!",
+        text: "Course added successfully"
+      });
+
+      navigate("/mycourse");
+
+    } else {
+
+      Swal.fire({
+        icon: "error",
+        title: "Failed",
+        text: data.message
+      });
+
+    }
+
+  } catch (err) {
+    console.error(err);
+  }
+
+};
+  /* ---------------- LOGOUT ---------------- */
+
   const handleLogout = () => {
+
     Swal.fire({
       title: "Logout?",
       text: "Are you sure you want to logout?",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Yes, logout",
-    }).then((result) => {
+      confirmButtonText: "Yes"
+    }).then(result => {
+
       if (result.isConfirmed) {
         navigate("/login");
       }
-    });
-  };
 
-  const openDeck = (id) => {
-    navigate(`/deck/${id}`);
+    });
+
   };
 
   return (
+
+
     <div className={`${styles.container} ${isCollapsed ? styles.sidebarCollapsed : ""}`}>
 
       {/* ================= SIDEBAR ================= */}
@@ -118,8 +183,15 @@ function PublicDecks() {
                 </NavLink>
               </li>
 
+   <li className={styles.sidebarListItem}>
+                <NavLink to="/mycourse" className={styles.menuItem}>
+                  <i className="bx bx-book"></i>
+                  <span className={styles.menuText}>My Course</span>
+                </NavLink>
+              </li>
+
               <li className={styles.sidebarListItem}>
-                <NavLink to="/public-decks" className={styles.menuItem}>
+                <NavLink to="/public-decks" className={`${styles.menuItem} ${styles.active}`}>
                   <i className="bx bx-folder"></i>
                   <span className={styles.menuText}>Public Decks</span>
                 </NavLink>
@@ -241,22 +313,41 @@ function PublicDecks() {
                   <h1>All Courses</h1>
                 </div>
 
-                <div className={styles.lessons}>
-                  {lessons.map((lesson) => (
-                    <div className={styles.lessonContent} key={lesson.id}>
-                      <h3 className={styles.lessonTitle}>{lesson.title}</h3>
-                      <p className={styles.lessonDescription}>
-                        {lesson.description}
-                      </p>
+            <div className={styles.lessons}>
+              {lessons.map((lesson) => (
+      <div className={styles.lessonBox}>
+        <div className={styles.lessonTop}></div>
+        <div className={styles.lessonPreview}></div>
+        <div className={styles.lessonContent}>
+          <div className={styles.lessonHeader}>
 
-                      <Link to={`/learning/${lesson.id}`}>
-                        <button className={styles.lessonBtn}>
-                          Start Learning
-                        </button>
-                      </Link>
-                    </div>
-                  ))}
+      <h3 className={styles.lessonTitle}>{lesson.title}</h3>
+          <button
+          type="button"
+          className={styles.lessonAdd}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleAddCourse(lesson);
+          }}
+        >
+        <i className="bx bx-plus"></i>
+      </button>
+    </div>
+
+    <p className={styles.lessonDescription}>
+      {lesson.description}
+    </p>
+
+    <Link to={`/learning/${lesson.id}`}>
+      <button className={styles.lessonBtn}>
+        Start Learning
+      </button>
+    </Link>
+  </div>
+  
                 </div>
+              ))}
+            </div>
               </div>
             </div>
 
