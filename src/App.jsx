@@ -52,6 +52,15 @@ import MultipleChoice from "./pages/quizzes/multipleChoice-Tutorial";
 import MatchingTutorial from "./pages/quizzes/matching-tutorial";
 import SurvivalTutorial from "./pages/quizzes/survivaltutorial";
 
+/*Quizzes*/
+import Flashcards from "./pages/inQuiz/realFlashcard";
+import MatchingType from "./pages/inQuiz/matching";
+import Multiple from "./pages/inQuiz/multiplechoice";
+import QandA from "./pages/inQuiz/qanda";
+import Survival from "./pages/inQuiz/survival";
+
+/*results*/
+import Result from "./pages/quizResults/results";
 
 export default function App() {
 return (
@@ -106,9 +115,19 @@ return (
   <Route path="/Matching-tutorial" element={<MatchingTutorial/>}/>
   <Route path="/Survival-tutorial" element={<SurvivalTutorial/>}/>
 
+  {/*QUIZ*/}
+  <Route path="/flashcard" element={<Flashcards/>}/>
+  <Route path="/matching" element={<MatchingType/>}/>
+  <Route path="/multiple" element={<Multiple/>}/>
+  <Route path="/qandA" element={<QandA/>}/>
+  <Route path="/survival" element={<Survival/>}/>
+
+  <Route path="/result" element={<Result/>}/>
+
 
   {/* FALLBACK */}
   <Route path="*" element={<h1>Page not found</h1>} />
+
 
 </Routes>
 

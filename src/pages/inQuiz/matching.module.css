@@ -1,0 +1,125 @@
+:root{
+  --purple-light: #f5f0f9;
+  --purple-main: #9c6cbe51;
+  --green-match: #86f98a;
+  --red-match: #ffaaa3;
+  --card-bg: #ffffff;
+  --text-color: #111;
+}
+
+.wrapper {
+  font-family: 'Jersey 15', sans-serif;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.paperBackground {
+  width: 100%;
+  min-height: 100vh;
+
+  background-image: url("/images/background_notebook.png"); /* your image */
+  background-size: cover;       /* fill screen */
+  background-position: center;  /* center the image */
+  background-repeat: no-repeat; /* prevent repeating */
+
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+.siteHeader {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.courseTitle {
+  font-size: 28px;
+  letter-spacing: 2px;
+}
+
+.pageTitle {
+  font-size: 25px;
+}
+
+.progressContainer {
+  width: 100%;
+  height: 12px;
+  background: #ddd;
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+
+.progressBar {
+  height: 100%;
+  background: #c0b2e3;
+  width: 20%;
+  transition: 0.4s;
+}
+
+.quizAppContainer {
+  width: 90%;
+  max-width: 1100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.matchingWrapper {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+table {
+  border-collapse: collapse;
+  width: 420px;
+  max-width: 100%;
+  background: #fff;
+  border-radius: 12px;
+}
+
+td {
+  padding: 15px;
+}
+
+.card {
+  padding: 15px;
+  border-radius: 20px;
+  background: #f7f7f7;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  border: 1.5px solid #11111143;
+  transition: all 0.25s ease;
+}
+
+.card:hover:not(.matched) {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.matched {
+  background: var(--green-match);
+  opacity: 0.7;
+  transform: scale(0.98);
+  cursor: default;
+}
+
+.selected {
+  outline: 3px solid var(--purple-main);
+  background: #f3e7ff;
+}
+
+.correct {
+  background: var(--green-match) !important;
+  color: #000;
+}
+
+.wrong {
+  background: var(--red-match) !important;
+}
