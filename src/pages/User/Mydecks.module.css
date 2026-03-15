@@ -415,20 +415,27 @@
   display: flex;
   gap: 28px;
   flex-wrap: wrap;
+  position: relative;
+  overflow: visible;
 }
 
 .deckCard {
   width: 250px;
   background: #fff;
+  position: relative;
+}
+
+.deckCardInner{
+  background: #fff;
   border-radius: 18px;
   overflow: hidden;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
-  cursor: pointer;
 }
 
 .deckTop {
   height: 120px;
   position: relative;
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
 }
 
 .deckTop::before {
@@ -438,7 +445,7 @@
   left: 0;
   width: 58px;
   height: 28px;
-  border-radius: 0 0 14px 0;
+  border-radius: 18px 0 14px 0;
   opacity: 0.6;
 }
 
@@ -589,32 +596,60 @@
   font-size: 22px;
 }
 
-
-.panelHeader{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:20px;
-}
-
-.panelHeader h1{
-  font-size:22px;
-  font-weight:600;
-}
-
-
-.purpleStrip{
-  position:absolute;
-  top:0;
-  left:0;
-  width:100%;
-  height:10px;
-  background:#bba4e4;
-  border-top-left-radius:22px;
-  border-top-right-radius:22px;
-}
-
 .emptyText{
   opacity:0.6;
   font-size:14px;
+}
+
+.deckMenuBtn{
+  position:absolute;
+  top:8px;
+  right:8px;
+  width:28px;
+  height:28px;
+  border:none;
+  border-radius:50%;
+  background:white;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  box-shadow:0 2px 6px rgba(0,0,0,0.15);
+}
+
+.deckCard:hover .deckMenuBtn{
+  display:flex;
+}
+
+.deckCard{
+  overflow:visible;
+}
+
+.deckMenu{
+  position:absolute;
+  top:36px;
+  right:0;
+  background:white;
+  border-radius:12px;
+  padding:10px;
+  width:150px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  z-index:9999;
+  box-shadow:0 4px 12px rgba(0,0,0,0.15);
+}
+
+.deckMenu button{
+  width:100%;
+  border:none;
+  background:transparent;
+  padding:10px;
+  text-align:left;
+  cursor:pointer;
+  border-radius:8px;
+}
+
+.deckMenu button:hover{
+  background:#f2f2f2;
 }

@@ -280,7 +280,7 @@ const handleAddDeck = async () => {
 
       <button
         className={styles.btnShow}
-        onClick={() => navigate("/decks")}
+        onClick={() => navigate("/Mydecks")}
       >
         Show All
       </button>

@@ -560,15 +560,12 @@ const handleEditDeck = async () => {
 
                 <button
                   onClick={handleEditDeck}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    color: "#7B61FF"
-                  }}
+                  className={styles.deckEditBtn}
                 >
                   <i className="bx bx-edit"></i>
+                  Edit
                 </button>
+
               </div>
               <p>{cards.length} cards</p>    
 
@@ -581,9 +578,12 @@ const handleEditDeck = async () => {
                     </div>
 
                     <div className={styles["deck-meta"]}>
-<span>
-  Created by {deck.created_by === user.username ? "you" : deck.created_by}
-</span>
+                  <span>
+                    Created by {deck.created_by?.toLowerCase() === user.username?.toLowerCase()
+                      ? "you"
+                      : deck.created_by}
+                  </span>
+
                       <span className={styles["deck-privacy"]}>
                         <span className={styles.dot}></span> {deck.visibility}
                       </span>
@@ -630,23 +630,24 @@ const handleEditDeck = async () => {
   {cards.map((card) => (
     <div key={card.id} className={styles.cards}>
 
-      <div className={styles.cardHeader}>
-        <button
-          className={styles.editBtn}
-          onClick={() => handleEditCard(card)}
-        >
-          <i className="bx bx-edit"></i>
-        </button>
+<div className={styles.cardHeader}>
+  <button
+    className={styles.editBtn}
+    onClick={() => handleEditCard(card)}
+  >
+    <i className="bx bx-edit"></i>
+    <span>Edit</span>
+  </button>
 
-        <button
-          className={styles.deleteBtn}
-          onClick={() => handleDeleteCard(card.id)}
-        Delete
-        >
-          <i className="bx bx-trash"></i>
-        </button>
-        
-      </div>
+  <button
+    className={styles.deleteBtn}
+    onClick={() => handleDeleteCard(card.id)}
+  >
+    <i className="bx bx-trash"></i>
+    <span>Delete</span>
+  </button>
+</div>
+
 
       <p>{card.question}</p>
       <hr />
@@ -702,7 +703,7 @@ const handleEditDeck = async () => {
                 />
             </div>
 
-            <div className={styles["image-preview"]}>
+       {/*     <div className={styles["image-preview"]}>
               <img ref={previewImgRef} alt="" />
               <button className={styles["remove-img"]} onClick={removeImage}>
                 <i className="bx bx-x"></i>
@@ -720,6 +721,7 @@ const handleEditDeck = async () => {
               onChange={handleImageChange}
             />
 
+            */}
             <hr />
 
             <div className={styles["modal-actions"]}>
