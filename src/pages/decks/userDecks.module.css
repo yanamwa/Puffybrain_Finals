@@ -447,7 +447,8 @@
   cursor: pointer;
   transition: 0.3s;
   font-family: 'Jersey 15', sans-serif;
-  margin-right: 60px;
+  margin-left: 20px;
+  margin-right: 20px;
 }
 
 .add-cards {
@@ -457,7 +458,7 @@
 }
 
 .practice {
-  background: #E3AADD;
+  background: #ecb9e7;
   color: black;
   box-shadow: 0 4px 0 #cc61f0;
 }
@@ -793,3 +794,55 @@ cursor:pointer;
 font-size:18px;
 color:#ff4d4f;
 }
+.previewImage {
+  width: 100%;
+  max-height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.editBtn,
+.deleteBtn {
+  border: none;
+  cursor: pointer;
+  border-radius: 20px;
+  font-size: 18px;
+  font-weight: normal;
+  transition: 0.3s;
+  font-family: 'Jersey 15', sans-serif;
+  box-shadow: 2px 2px #5a5a5a;
+  padding: 4px 10px;
+  color: var(--font-color);
+}
+
+.editBtn {
+  background: #a7c7e79b;
+}
+
+.editBtn:hover {
+  background: #8fb6dd;
+}
+
+.deleteBtn {
+  background: #ff9aa2;
+}
+
+.deleteBtn:hover {
+  background: #ff7f87;
+}
+
+
+.deckEditBtn {
+  border: none;
+  cursor: pointer;
+  border-radius: 20px;
+  font-size: 18px;
+  font-weight: normal;
+  transition: 0.3s;
+  font-family: 'Jersey 15', sans-serif;
+  box-shadow: 2px 2px #5a5a5a;
+  padding: 4px 10px;
+  color: var(--font-color);
+  margin-left: auto;
+}
+
