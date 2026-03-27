@@ -426,6 +426,26 @@
   cursor: pointer;
 }
 
+._deckTop_f4xiy_857{
+    width: 250px;
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+}
+
+._deckTop_f4xiy_857::before{
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 58px;
+  height: 28px;
+  border-radius: 0 0 14px 0;
+  opacity: 0.6;
+}
+
 .deckTop {
   height: 120px;
   position: relative;
@@ -618,3 +638,4 @@
   opacity:0.6;
   font-size:14px;
 }
+

@@ -98,7 +98,7 @@ onClick={() => setIsCollapsed(!isCollapsed)}
 </li>
 
 <li className={styles.sidebarListItem}>
-<Link to="/decks" className={styles.menuItem}>
+<Link to="/mydecks" className={styles.menuItem}>
 <i className="bx bx-book"></i>
 <span className={styles.menuText}>Decks</span>
 </Link>

@@ -96,32 +96,44 @@ const handleAddCourse = async (lesson) => {
     });
 
     const data = await res.json();
+    
+    console.log("API Response:", data);
 
     if (data.success) {
 
       await Swal.fire({
         icon: "success",
         title: "Added!",
-        text: "Course added successfully"
+        text: "Course added successfully",
+        timer: 2000,
+        showConfirmButton: true
       });
 
+      await fetchMyCourses();
+        
       navigate("/mycourse");
 
     } else {
 
-      Swal.fire({
+      await Swal.fire({
         icon: "error",
         title: "Failed",
-        text: data.message
+        text: data.message || "Failed to add course"
       });
 
     }
 
   } catch (err) {
-    console.error(err);
+    console.error("Add course error:", err);
+    await Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "An error occurred while adding the course"
+    });
   }
 
 };
+
   /* ---------------- LOGOUT ---------------- */
 
   const handleLogout = () => {
