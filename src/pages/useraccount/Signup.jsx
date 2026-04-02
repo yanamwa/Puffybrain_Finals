@@ -14,7 +14,16 @@ function Signup() {
 
   const [showPassword, setShowPassword] = useState(false);
 
-  const isPasswordValid = password.length >= 12;
+  /* PASSWORD RULES */
+  const hasLength = password.length >= 12;
+  const hasUpper = /[A-Z]/.test(password);
+  const hasLower = /[a-z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSymbol = /[^A-Za-z0-9]/.test(password);
+
+  const isPasswordValid =
+    hasLength && hasUpper && hasLower && hasNumber && hasSymbol;
+
   const passwordsMatch = password === confirmPassword;
 
   const handleSignup = () => {
@@ -66,8 +75,8 @@ function Signup() {
         imageUrl: "/images/error.png",
         imageWidth: 170,
         imageHeight: 170,
-        title: "Password Too Short",
-        text: "Password must be at least 12 characters.",
+        title: "Weak Password",
+        text: "Password must meet all security requirements.",
       });
     }
 
@@ -139,6 +148,22 @@ function Signup() {
       });
   };
 
+  const getPasswordStrength = (password) => {
+    let strength = 0;
+
+    if (password.length >= 12) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+    if (strength <= 2) return "weak";
+    if (strength === 3 || strength === 4) return "medium";
+    return "strong";
+  };
+
+  const passwordStrength = getPasswordStrength(password);
+
   return (
     <div className={styles.wrapper}>
       <section className={styles.container}>
@@ -165,12 +190,13 @@ function Signup() {
         </div>
 
         <div className={styles.signupContainer}>
-       <div 
-  className={styles.signupCard}
-  style={{ marginTop: "50px",
-          height: "600px"
-   }}
->
+              <div
+            className={styles.signupCard}
+            style={{
+              marginTop: "50px"
+            }}
+          >
+
             <h2>Create an Account</h2>
 
             <label>Username</label>
@@ -204,10 +230,42 @@ function Signup() {
             </div>
 
             {password.length > 0 && (
-              <div className={`${styles.validationMessage} ${isPasswordValid ? styles.success : styles.error}`}>
-                {isPasswordValid
-                  ? `✓ Password is strong (${password.length} characters)`
-                  : `Password must be at least 12 characters (current: ${password.length})`}
+              <div className={styles.passwordChecklist}>
+                <p className={hasLength ? styles.valid : styles.invalid}>
+                  {hasLength ? "✓" : "✗"} At least 12 characters
+                </p>
+
+                <p className={hasUpper ? styles.valid : styles.invalid}>
+                  {hasUpper ? "✓" : "✗"} has uppercase letter
+                </p>
+
+                <p className={hasLower ? styles.valid : styles.invalid}>
+                  {hasLower ? "✓" : "✗"} has lowercase letter
+                </p>
+
+                <p className={hasNumber ? styles.valid : styles.invalid}>
+                  {hasNumber ? "✓" : "✗"} has number
+                </p>
+
+                <p className={hasSymbol ? styles.valid : styles.invalid}>
+                  {hasSymbol ? "✓" : "✗"} has special character (@#$ etc.)
+                </p>
+              </div>
+            )}
+
+            {password.length > 0 && (
+              <div
+                className={`${styles.validationMessage} ${
+                  passwordStrength === "strong"
+                    ? styles.success
+                    : passwordStrength === "medium"
+                    ? styles.warning
+                    : styles.error
+                }`}
+              >
+                {passwordStrength === "weak" && "Weak password"}
+                {passwordStrength === "medium" && "Medium strength password"}
+                {passwordStrength === "strong" && "✓ Strong password"}
               </div>
             )}
 

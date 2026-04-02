@@ -1,8 +1,54 @@
 import styles from "./lesson.module.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect, useMemo } from "react";
 
 function Lesson() {
-  const username = localStorage.getItem("username") || "user";
+  const { lessonId } = useParams();
+  const navigate = useNavigate();
+  const [lesson, setLesson] = useState(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    fetch(`http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setLesson(data);
+      })
+      .catch((err) => console.error(err));
+  }, [lessonId]);
+
+  const slides = useMemo(() => {
+    if (!lesson?.lesson_content) return [];
+    return lesson.lesson_content
+      .split("---")
+      .map((slide) => slide.trim())
+      .filter((slide) => slide.length > 0);
+  }, [lesson]);
+
+  const handleNext = () => {
+    const nextIndex = currentSlide + 1;
+
+    if (nextIndex < slides.length && nextIndex % 2 === 0) {
+      navigate(`/flashcard/${lessonId}`);
+      return;
+    }
+
+    if (nextIndex < slides.length) {
+      setCurrentSlide(nextIndex);
+    } else {
+      navigate(`/review/${lessonId}`);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentSlide > 0) {
+      setCurrentSlide(currentSlide - 1);
+    }
+  };
+
+  if (!lesson) {
+    return <div>Loading lesson...</div>;
+  }
 
   return (
     <div className={styles.wrapper}>
@@ -10,26 +56,43 @@ function Lesson() {
         <div className={styles.ribbon}></div>
 
         <div className={styles.tabs}>
-          <button className={styles.welcomeactive}>Introduction</button>
-          <button className={styles.howitworks}>Lesson</button>
-          <button className={styles.aboutyou}>Review</button>
+          <Link to={`/introduction/${lessonId}`}>
+            <button className={styles.welcome}>Introduction</button>
+          </Link>
+
+          <Link to={`/lesson/${lessonId}`}>
+            <button className={styles.howitworksactive}>Lesson</button>
+          </Link>
+
+          <Link to={`/review/${lessonId}`}>
+            <button className={styles.aboutyou}>Review</button>
+          </Link>
         </div>
 
         <div className={styles.greets}>
-          <h1 className={styles.hello}>Hi there, @{username}!</h1>
+          <h2>{lesson.title}</h2>
 
-          <p className={styles.greeting1}>
-            Hi there, smart cookie! We’re so happy you joined the PuffyBrain family.
-            <br />
-            PuffyBrain helps you learn, quiz, and remember everything with your own
-            cute decks and quizzes!
-            <br />
-            Ready to see how it works?
-          </p>
+          <h3>
+            Lesson Slide {slides.length > 0 ? currentSlide + 1 : 0} of {slides.length}
+          </h3>
 
-          <Link to="/context">
-            <button className={styles.button}>Next→</button>
-          </Link>
+          <div className={styles.lessonText}>
+            {slides.length > 0 ? slides[currentSlide] : "No lesson content yet."}
+          </div>
+
+          <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
+            <button
+              className={styles.button}
+              onClick={handlePrevious}
+              disabled={currentSlide === 0}
+            >
+              Previous
+            </button>
+
+            <button className={styles.button} onClick={handleNext}>
+              {currentSlide === slides.length - 1 ? "Finish" : "Next"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

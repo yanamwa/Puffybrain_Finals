@@ -2,11 +2,20 @@ import { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import QuizModesModal from "../../components/QuizModesModal";
 import styles from "./userDecks.module.css";
+import Swal from "sweetalert2";
 
 export default function UserDecks() {
 
+  /* =========================
+     NAVIGATION / PARAMS
+  ========================= */
+
   const navigate = useNavigate();
   const { deckId } = useParams();
+
+  /* =========================
+     STATE
+  ========================= */
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showAddCard, setShowAddCard] = useState(false);
@@ -18,6 +27,7 @@ export default function UserDecks() {
   const [deck, setDeck] = useState(null);
   const [myDecks, setMyDecks] = useState([]);
   const [cards, setCards] = useState([]);
+
   const [user, setUser] = useState({
     username: "",
     year_level: ""
@@ -27,26 +37,44 @@ export default function UserDecks() {
   const [answer, setAnswer] = useState("");
   const [image, setImage] = useState(null);
 
+  const [editingCardId, setEditingCardId] = useState(null);
+
+  /* =========================
+     REFS
+  ========================= */
+
   const imageInputRef = useRef(null);
   const previewImgRef = useRef(null);
+
+  /* =========================
+     IMAGE HANDLERS
+  ========================= */
 
   const handleImageAttach = () => {
     imageInputRef.current?.click();
   };
-const handleImageChange = (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  setImage(file);
-  if (previewImgRef.current) {
-    previewImgRef.current.src = URL.createObjectURL(file);
-  }
-};
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setImage(file);
+
+    if (previewImgRef.current) {
+      previewImgRef.current.src = URL.createObjectURL(file);
+    }
+  };
 
   const removeImage = () => {
     setImage(null);
+
     if (previewImgRef.current) previewImgRef.current.src = "";
     if (imageInputRef.current) imageInputRef.current.value = "";
   };
+
+  /* =========================
+     FETCH FUNCTIONS (API)
+  ========================= */
 
   const fetchDeck = async () => {
     try {
@@ -67,25 +95,21 @@ const handleImageChange = (e) => {
     }
   };
 
-const fetchCards = async () => {
-  const res = await fetch(
-    `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`
-  );
+  const fetchCards = async () => {
 
-  const data = await res.json();
-  console.log("Cards:", data);
-  if (data.success) {
-    setCards(data.cards);
-  }
+    const res = await fetch(
+      `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`
+    );
 
-};
+    const data = await res.json();
 
-  useEffect(() => {
+    console.log("Cards:", data);
 
-    fetchDeck();
-    fetchCards();
+    if (data.success) {
+      setCards(data.cards);
+    }
 
-  }, [deckId]);
+  };
 
   const fetchUserDecks = async () => {
 
@@ -105,6 +129,7 @@ const fetchCards = async () => {
     } catch (err) {
       console.error(err);
     }
+
   };
 
   const fetchUser = async () => {
@@ -125,16 +150,29 @@ const fetchCards = async () => {
     } catch (err) {
       console.error(err);
     }
+
   };
 
+  /* =========================
+     USE EFFECTS
+  ========================= */
+
   useEffect(() => {
+
+    fetchDeck();
+    fetchCards();
+
+  }, [deckId]);
+
+  useEffect(() => {
+
     fetchDeck();
     fetchCards();
     fetchUserDecks();
     fetchUser();
+
   }, [deckId]);
 
-  
   useEffect(() => {
 
     const handler = (e) => {
@@ -143,65 +181,24 @@ const fetchCards = async () => {
     };
 
     window.addEventListener("click", handler);
+
     return () => window.removeEventListener("click", handler);
 
   }, []);
 
+  /* =========================
+     UI CONTROLS
+  ========================= */
+
   const openAddCard = () => setShowAddCard(true);
+
   const closeAddCard = () => {
     setShowAddCard(false);
     setQuestion("");
     setAnswer("");
+    setEditingCardId(null);
     removeImage();
   };
-
-const handleAddCard = async () => {
-
-  if (!question || !answer) {
-    alert("Please fill the question and answer");
-    return;
-  }
-
-  const formData = new FormData();
-
-  formData.append("deckId", deckId);
-  formData.append("question", question);
-  formData.append("answer", answer);
-
-  if (image) {
-    formData.append("image", image);
-  }
-
-  try {
-
-    const res = await fetch("http://localhost/puffybrain/addCard.php", {
-      method: "POST",
-      body: formData
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-
-      setQuestion("");
-      setAnswer("");
-      removeImage();
-
-      setShowAddCard(false);
-      setShowSuccess(true);
-
-      fetchCards();
-
-      setTimeout(() => {
-        setShowSuccess(false);
-      }, 2000);
-    }
-
-  } catch (err) {
-    console.error(err);
-  }
-
-};
 
   const handleLogout = () => {
 
@@ -215,7 +212,211 @@ const handleAddCard = async () => {
     navigate(`/deck/${id}`);
   };
 
+  /* =========================
+     CARD CRUD
+  ========================= */
+
+const handleAddCard = async () => {
+
+  if (!question || !answer) {
+    alert("Please fill the question and answer");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("deckId", deckId);
+  formData.append("question", question);
+  formData.append("answer", answer);
+
+  if (image) {
+    formData.append("image", image);
+  }
+
+  if (editingCardId) {
+    formData.append("cardId", editingCardId);
+  }
+
+  try {
+
+    const url = editingCardId
+      ? "http://localhost/puffybrain/updateCard.php"
+      : "http://localhost/puffybrain/addCard.php";
+
+    const res = await fetch(url, {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+
+      const isEditing = editingCardId !== null;
+
+      setQuestion("");
+      setAnswer("");
+      removeImage();
+
+      setEditingCardId(null);
+      setShowAddCard(false);
+
+      fetchCards();
+
+      Swal.fire({
+        title: isEditing ? "Edit Successfully!" : "Card Added!",
+        text: isEditing
+          ? "The card was edited successfully."
+          : "The card was added successfully.",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false
+      });
+
+    }
+
+  } catch (err) {
+    console.error(err);
+  }
+
+};
+
+const handleDeleteCard = async (cardId) => {
+
+  const result = await Swal.fire({
+    title: "Delete this card?",
+    text: "This action cannot be undone.",
+    imageUrl: "/images/error.png",
+    imageWidth: 80,
+    imageHeight: 80,
+    showCancelButton: true,
+    confirmButtonText: "Delete",
+    cancelButtonText: "Cancel",
+    confirmButtonColor: "#e74c3c",
+    cancelButtonColor: "#6c757d"
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+
+    const formData = new FormData();
+    formData.append("cardId", cardId);
+
+    const res = await fetch("http://localhost/puffybrain/deleteCard.php", {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+
+      setCards((prev) => prev.filter(card => card.id !== cardId));
+
+      Swal.fire({
+        title: "Deleted!",
+        text: "The card was removed.",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false
+      });
+
+    } else {
+
+      Swal.fire({
+        title: "Error",
+        text: "Failed to delete card",
+        icon: "error"
+      });
+
+    }
+
+  } catch (error) {
+
+    console.error("Delete error:", error);
+
+    Swal.fire({
+      title: "Server Error",
+      text: "Something went wrong.",
+      icon: "error"
+    });
+
+  }
+
+};
+const handleEditDeck = async () => {
+
+  const { value: formValues } = await Swal.fire({
+    title: "Edit Deck",
+    html: `
+      <input id="swal-title" class="swal2-input" placeholder="Deck title" value="${deck.title}">
+      <textarea id="swal-desc" class="swal2-textarea" placeholder="Deck description">${deck.description || ""}</textarea>
+    `,
+    focusConfirm: false,
+    showCancelButton: true,
+    confirmButtonText: "Save",
+    cancelButtonText: "Cancel",
+    preConfirm: () => {
+      return {
+        title: document.getElementById("swal-title").value,
+        description: document.getElementById("swal-desc").value
+      };
+    }
+  });
+
+  if (!formValues) return;
+
+  try {
+
+    const formData = new FormData();
+    formData.append("deckId", deckId);
+    formData.append("title", formValues.title);
+    formData.append("description", formValues.description);
+
+    const res = await fetch("http://localhost/puffybrain/updateDeck.php", {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+
+      fetchDeck();
+
+      Swal.fire({
+        title: "Updated!",
+        text: "Deck information updated successfully.",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false
+      });
+
+    } else {
+
+      Swal.fire({
+        title: "Error",
+        text: "Failed to update deck.",
+        icon: "error"
+      });
+
+    }
+
+  } catch (err) {
+    console.error(err);
+  }
+
+};
+
+  const handleEditCard = (card) => {
+    setQuestion(card.question);
+    setAnswer(card.answer);
+    setEditingCardId(card.id);
+    setShowAddCard(true);
+  };
+
   return (
+
     <div className={`${styles.container} ${isCollapsed ? styles.sidebarCollapsed : ""}`}>
       <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
         <div>
@@ -354,9 +555,21 @@ const handleAddCard = async () => {
               <div className={styles["deck-info"]}>
                 {deck ? (
                   <>
-                    <h3>{deck.title}</h3>
-                    <p>0 cards</p>
-                    <hr />
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <h3>{deck.title}</h3>
+
+                <button
+                  onClick={handleEditDeck}
+                  className={styles.deckEditBtn}
+                >
+                  <i className="bx bx-edit"></i>
+                  Edit
+                </button>
+
+              </div>
+              <p>{cards.length} cards</p>    
+
+                <hr />
 
                     <div className={styles.desc}>
                       <p>Description</p>
@@ -365,7 +578,12 @@ const handleAddCard = async () => {
                     </div>
 
                     <div className={styles["deck-meta"]}>
-                      <span>Created by you</span>
+                  <span>
+                    Created by {deck.created_by?.toLowerCase() === user.username?.toLowerCase()
+                      ? "you"
+                      : deck.created_by}
+                  </span>
+
                       <span className={styles["deck-privacy"]}>
                         <span className={styles.dot}></span> {deck.visibility}
                       </span>
@@ -411,9 +629,30 @@ const handleAddCard = async () => {
 <div className={styles.cardsList}>
   {cards.map((card) => (
     <div key={card.id} className={styles.cards}>
+
+<div className={styles.cardHeader}>
+  <button
+    className={styles.editBtn}
+    onClick={() => handleEditCard(card)}
+  >
+    <i className="bx bx-edit"></i>
+    <span>Edit</span>
+  </button>
+
+  <button
+    className={styles.deleteBtn}
+    onClick={() => handleDeleteCard(card.id)}
+  >
+    <i className="bx bx-trash"></i>
+    <span>Delete</span>
+  </button>
+</div>
+
+
       <p>{card.question}</p>
       <hr />
       <p>{card.answer}</p>
+
       {card.image && (
         <img
           src={`http://localhost/puffybrain/${card.image}`}
@@ -421,10 +660,10 @@ const handleAddCard = async () => {
           className={styles.cardImage}
         />
       )}
+
     </div>
   ))}
 </div>
-
             )}
 
           </section>
@@ -464,7 +703,7 @@ const handleAddCard = async () => {
                 />
             </div>
 
-            <div className={styles["image-preview"]}>
+       {/*     <div className={styles["image-preview"]}>
               <img ref={previewImgRef} alt="" />
               <button className={styles["remove-img"]} onClick={removeImage}>
                 <i className="bx bx-x"></i>
@@ -482,11 +721,14 @@ const handleAddCard = async () => {
               onChange={handleImageChange}
             />
 
+            */}
             <hr />
 
             <div className={styles["modal-actions"]}>
               <button onClick={closeAddCard}>Cancel</button>
-              <button onClick={handleAddCard}>Add</button>
+              <button onClick={handleAddCard}>
+                {editingCardId ? "Update" : "Add"}
+              </button>
             </div>
           </div>
         </div>

@@ -415,10 +415,24 @@
   display: flex;
   gap: 28px;
   flex-wrap: wrap;
+  position: relative;
+  overflow: visible;
 }
 
 .deckCard {
   width: 250px;
+  background: #fff;
+  position: relative;
+}
+
+.deckCardInner{
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+._deckTop_f4xiy_857{
+    width: 250px;
   background: #fff;
   border-radius: 18px;
   overflow: hidden;
@@ -426,9 +440,22 @@
   cursor: pointer;
 }
 
+._deckTop_f4xiy_857::before{
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 58px;
+  height: 28px;
+  border-radius: 0 0 14px 0;
+  opacity: 0.6;
+}
+
 .deckTop {
   height: 120px;
   position: relative;
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
 }
 
 .deckTop::before {
@@ -438,7 +465,7 @@
   left: 0;
   width: 58px;
   height: 28px;
-  border-radius: 0 0 14px 0;
+  border-radius: 18px 0 14px 0;
   opacity: 0.6;
 }
 
@@ -588,3 +615,9 @@
   cursor: pointer;
   font-size: 22px;
 }
+
+.emptyText{
+  opacity:0.6;
+  font-size:14px;
+}
+

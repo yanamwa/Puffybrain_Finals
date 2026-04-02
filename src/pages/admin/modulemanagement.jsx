@@ -10,12 +10,10 @@ import {
   ChevronDown,
   Settings,
 } from "lucide-react";
+import Swal from "sweetalert2";
 
 import styles from "./modulemanage.module.css";
 
-/* -----------------------------
-   helpers
------------------------------ */
 function formatToday() {
   const d = new Date();
   const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -24,9 +22,6 @@ function formatToday() {
   return `${mm}/${dd}/${yyyy}`;
 }
 
-/* -----------------------------
-   STRONG parser
------------------------------ */
 function parseDeckCards(raw) {
   if (!raw) return [];
   const text = String(raw).trim();
@@ -73,21 +68,38 @@ function parseDeckCards(raw) {
   return cards;
 }
 
+function serializeQuizItems(items) {
+  return JSON.stringify(
+    items
+      .map((item) => ({
+        question: String(item.question || "").trim(),
+        answer: String(item.answer || "").trim(),
+      }))
+      .filter((item) => item.question || item.answer)
+  );
+}
+
 export default function ModuleManagement() {
   const API_URL = "http://localhost/puffybrain/adminLearningModule.php";
 
-  /* -----------------------------
-     MENU
-  ----------------------------- */
   const menuItems = [
-    { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
-    { label: "User Management", path: "/admin/users", icon: <Users size={20} /> },
-    { label: "Module Management", path: "/admin/modules", icon: <BookOpen size={20} /> },
+    {
+      label: "Dashboard",
+      path: "/admin/dashboard",
+      icon: <LayoutDashboard size={20} />,
+    },
+    {
+      label: "User Management",
+      path: "/admin/users",
+      icon: <Users size={20} />,
+    },
+    {
+      label: "Module Management",
+      path: "/admin/modules",
+      icon: <BookOpen size={20} />,
+    },
   ];
 
-  /* -----------------------------
-     STATE
-  ----------------------------- */
   const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -101,29 +113,51 @@ export default function ModuleManagement() {
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [newSubject, setNewSubject] = useState("");
+  const [newLearningObjectives, setNewLearningObjectives] = useState("");
+  const [newLessonContent, setNewLessonContent] = useState("");
   const [newStatus, setNewStatus] = useState("Draft");
-  const [lessonText, setLessonText] = useState("");
-  const [quizContents, setQuizContents] = useState("");
+  const [newQuizItems, setNewQuizItems] = useState([]);
 
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState(null);
   const [editTitle, setEditTitle] = useState("");
+  const [editDesc, setEditDesc] = useState("");
+  const [editSubject, setEditSubject] = useState("");
+  const [editLearningObjectives, setEditLearningObjectives] = useState("");
+  const [editLessonContent, setEditLessonContent] = useState("");
   const [editStatus, setEditStatus] = useState("inactive");
-  const [editLearning, setEditLearning] = useState("");
-  const [editQuiz, setEditQuiz] = useState("");
+  const [editQuizItems, setEditQuizItems] = useState([]);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [successOpen, setSuccessOpen] = useState(false);
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const [textViewOpen, setTextViewOpen] = useState(false);
+  const [textViewTitle, setTextViewTitle] = useState("");
+  const [textViewContent, setTextViewContent] = useState("");
 
   const dropdownRef = useRef(null);
   const fetchedOnce = useRef(false);
 
-  /* -----------------------------
-     FETCH FROM DB
-  ----------------------------- */
+  const openTextView = (title, content) => {
+    setTextViewTitle(title);
+    setTextViewContent(content || "—");
+    setTextViewOpen(true);
+  };
+
+  const closeTextView = () => {
+    setTextViewOpen(false);
+    setTextViewTitle("");
+    setTextViewContent("");
+  };
+
+  const getPreviewText = (text, max = 140) => {
+    const clean = String(text || "").trim();
+    if (!clean) return "—";
+    return clean.length > max ? `${clean.slice(0, max)}...` : clean;
+  };
+
   const fetchModules = async () => {
     try {
       const res = await fetch(API_URL);
@@ -137,8 +171,9 @@ export default function ModuleManagement() {
             date: m.created_at ?? formatToday(),
             status: String(m.status).toLowerCase(),
             module_description: m.description ?? "",
-            subject_course: m.subject ?? "",
-            learningModule: m.lesson_text ?? "",
+            subject: m.subject ?? "",
+            learningObjectives: m.learning_objectives ?? "",
+            lessonContent: m.lesson_content ?? "",
             quizModule: m.quiz_contents ?? "",
           }))
         );
@@ -148,13 +183,25 @@ export default function ModuleManagement() {
     } catch (err) {
       console.error(err);
       setModules([]);
+      await Swal.fire({
+        icon: "error",
+        title: "Load Failed",
+        text: "Could not fetch modules.",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleAddModule = async () => {
-    if (!newTitle.trim()) return;
+    if (!newTitle.trim()) {
+      await Swal.fire({
+        icon: "warning",
+        title: "Missing Title",
+        text: "Module title is required.",
+      });
+      return;
+    }
 
     try {
       const res = await fetch(API_URL, {
@@ -164,48 +211,205 @@ export default function ModuleManagement() {
           title: newTitle,
           description: newDesc,
           subject: newSubject,
+          learning_objectives: newLearningObjectives,
+          lesson_content: newLessonContent,
           status: newStatus,
-          lesson_text: lessonText,
-          quiz_contents: quizContents,
+          quiz_contents: serializeQuizItems(newQuizItems),
         }),
       });
 
       const data = await res.json();
 
       if (data.success) {
-        alert("Module added successfully!");
         closeAdd();
-        fetchModules();
+        await fetchModules();
+        await Swal.fire({
+          icon: "success",
+          title: "Added!",
+          text: "Module added successfully.",
+        });
       } else {
-        alert(data.message);
+        await Swal.fire({
+          icon: "error",
+          title: "Add Failed",
+          text: data.message || "Failed to add module.",
+        });
       }
     } catch (err) {
       console.error(err);
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error adding module.",
+      });
     }
   };
 
-  /* FETCH (StrictMode guard) */
+  const saveEdit = async () => {
+    if (!editId) return;
+
+    if (!editTitle.trim()) {
+      await Swal.fire({
+        icon: "warning",
+        title: "Missing Title",
+        text: "Module title is required.",
+      });
+      return;
+    }
+
+    const payload = {
+      action: "update",
+      id: editId,
+      title: editTitle,
+      description: editDesc,
+      subject: editSubject,
+      learning_objectives: editLearningObjectives,
+      lesson_content: editLessonContent,
+      status: editStatus,
+      quiz_contents: serializeQuizItems(editQuizItems),
+    };
+
+    console.log("SAVE EDIT PAYLOAD:", payload);
+
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      console.log("SAVE EDIT RESPONSE:", data);
+
+      if (data.success) {
+        closeEdit();
+        await fetchModules();
+        await Swal.fire({
+          icon: "success",
+          title: "Updated!",
+          text: "Module updated successfully.",
+        });
+      } else {
+        await Swal.fire({
+          icon: "error",
+          title: "Update Failed",
+          text: data.message || "Update failed.",
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error updating module.",
+      });
+    }
+  };
+
+  const confirmDelete = async (mod) => {
+    if (!mod?.id) return;
+
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "delete",
+          id: mod.id,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        await fetchModules();
+        await Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "Module has been deleted.",
+        });
+      } else {
+        await Swal.fire({
+          icon: "error",
+          title: "Delete Failed",
+          text: data.message || "Delete failed.",
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error deleting module.",
+      });
+    }
+  };
+
+  const openDelete = (mod) => {
+    setDeleteTarget(mod);
+    setDeleteOpen(true);
+  };
+
+  const closeDelete = () => {
+    setDeleteOpen(false);
+    setDeleteTarget(null);
+  };
+
+  const handleDeleteConfirmed = async () => {
+    if (!deleteTarget?.id) return;
+    await confirmDelete(deleteTarget);
+    closeDelete();
+  };
+
+  const addNewQuizItem = () => {
+    setNewQuizItems((prev) => [...prev, { question: "", answer: "" }]);
+  };
+
+  const updateNewQuizItem = (index, field, value) => {
+    setNewQuizItems((prev) =>
+      prev.map((item, i) =>
+        i === index ? { ...item, [field]: value } : item
+      )
+    );
+  };
+
+  const removeNewQuizItem = (index) => {
+    setNewQuizItems((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const addEditQuizItem = () => {
+    setEditQuizItems((prev) => [...prev, { question: "", answer: "" }]);
+  };
+
+  const updateEditQuizItem = (index, field, value) => {
+    setEditQuizItems((prev) =>
+      prev.map((item, i) =>
+        i === index ? { ...item, [field]: value } : item
+      )
+    );
+  };
+
+  const removeEditQuizItem = (index) => {
+    setEditQuizItems((prev) => prev.filter((_, i) => i !== index));
+  };
+
   useEffect(() => {
     if (fetchedOnce.current) return;
     fetchedOnce.current = true;
     fetchModules();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* CLOSE DROPDOWN OUTSIDE */
   useEffect(() => {
     const onDown = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownOpen(false);
       }
     };
+
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
   }, []);
 
-  /* -----------------------------
-     MEMOS
-  ----------------------------- */
   const filteredModules = useMemo(
     () =>
       modules.filter((m) =>
@@ -234,9 +438,6 @@ export default function ModuleManagement() {
     [modules, editId]
   );
 
-  /* -----------------------------
-     ACTIONS
-  ----------------------------- */
   const openView = (mod) => {
     setSelectedId(mod.id);
     setViewOpen(true);
@@ -254,43 +455,39 @@ export default function ModuleManagement() {
     setNewTitle("");
     setNewDesc("");
     setNewSubject("");
+    setNewLearningObjectives("");
+    setNewLessonContent("");
     setNewStatus("Draft");
-    setLessonText("");
-    setQuizContents("");
+    setNewQuizItems([]);
   };
 
   const openEdit = (mod) => {
+    console.log("OPEN EDIT MODULE:", mod);
     setEditId(mod.id);
     setEditTitle(mod.title);
+    setEditDesc(mod.module_description || "");
+    setEditSubject(mod.subject || "");
+    setEditLearningObjectives(mod.learningObjectives || "");
+    setEditLessonContent(mod.lessonContent || "");
     setEditStatus(mod.status);
-    setEditLearning(mod.learningModule);
-    setEditQuiz(mod.quizModule);
+    setEditQuizItems(parseDeckCards(mod.quizModule));
     setEditOpen(true);
   };
 
-  const closeEdit = () => setEditOpen(false);
-
-  const saveEdit = () => {
-    alert("Edit save not connected to DB yet");
-    closeEdit();
-  };
-
-  const openDelete = (mod) => {
-    setDeleteTarget(mod);
-    setDeleteOpen(true);
-  };
-
-  const closeDelete = () => setDeleteOpen(false);
-
-  const confirmDelete = () => {
-    setModules((prev) => prev.filter((m) => m.id !== deleteTarget.id));
-    closeDelete();
-    setSuccessOpen(true);
+  const closeEdit = () => {
+    setEditOpen(false);
+    setEditId(null);
+    setEditTitle("");
+    setEditDesc("");
+    setEditSubject("");
+    setEditLearningObjectives("");
+    setEditLessonContent("");
+    setEditStatus("inactive");
+    setEditQuizItems([]);
   };
 
   return (
     <div className={styles.layout}>
-      {/* SIDEBAR */}
       <aside className={styles.sidebar}>
         <div className={styles.logo}>
           <img src="/images/logo1.png" alt="Logo" />
@@ -318,7 +515,6 @@ export default function ModuleManagement() {
         </div>
       </aside>
 
-      {/* HEADER */}
       <header className={styles.headerContainer}>
         <div className={styles.searchBar}>
           <Search size={18} />
@@ -357,13 +553,12 @@ export default function ModuleManagement() {
         </div>
       </header>
 
-      {/* MAIN */}
       <main className={styles.main}>
         <div className={styles.pageHeader}>
           <h1>Module Management</h1>
-          <button className={styles.addBtn} type="button" onClick={openAdd}>
+          <NavLink to="/admin/modules/new" className={styles.addBtn}>
             + Add new module
-          </button>
+          </NavLink>
         </div>
 
         <div className={styles.tableCard}>
@@ -397,7 +592,6 @@ export default function ModuleManagement() {
                     <td>{mod.id}</td>
                     <td>{mod.title}</td>
                     <td>{mod.date}</td>
-
                     <td>
                       <span
                         className={
@@ -409,15 +603,27 @@ export default function ModuleManagement() {
                         ● {mod.status === "active" ? "Active" : "Inactive"}
                       </span>
                     </td>
-
                     <td className={styles.actions}>
-                      <button className={styles.actionEdit} type="button" onClick={() => openEdit(mod)}>
+                      <NavLink
+                        to={`/admin/modules/edit/${mod.id}`}
+                        className={styles.actionEdit}
+                      >
                         ✎ <span>edit</span>
-                      </button>
-                      <button className={styles.actionDelete} type="button" onClick={() => openDelete(mod)}>
+                      </NavLink>
+
+                      <button
+                        className={styles.actionDelete}
+                        type="button"
+                        onClick={() => openDelete(mod)}
+                      >
                         🗑 <span>delete</span>
                       </button>
-                      <button className={styles.actionView} type="button" onClick={() => openView(mod)}>
+
+                      <button
+                        className={styles.actionView}
+                        type="button"
+                        onClick={() => openView(mod)}
+                      >
                         👁 <span>view</span>
                       </button>
                     </td>
@@ -427,14 +633,16 @@ export default function ModuleManagement() {
             </tbody>
           </table>
 
-          {/* PAGINATION (UI only) */}
           <div className={styles.paginationWrapper}>
             <div className={styles.paginationCenter}>
               <button className={styles.navBtn} type="button">
                 {"<"}
               </button>
 
-              <button className={`${styles.pageBtn} ${styles.pageActive}`} type="button">
+              <button
+                className={`${styles.pageBtn} ${styles.pageActive}`}
+                type="button"
+              >
                 1
               </button>
               <button className={styles.pageBtn} type="button">
@@ -471,9 +679,6 @@ export default function ModuleManagement() {
         </div>
       </main>
 
-      {/* =========================
-          ✅ VIEW MODAL (Module Details)
-         ========================= */}
       {viewOpen && selectedModule && (
         <div className={styles.mmOverlay} onClick={closeView}>
           <div className={styles.mmModal} onClick={(e) => e.stopPropagation()}>
@@ -488,7 +693,11 @@ export default function ModuleManagement() {
                 Edit
               </button>
 
-              <button type="button" className={styles.mmClose} onClick={closeView}>
+              <button
+                type="button"
+                className={styles.mmClose}
+                onClick={closeView}
+              >
                 ✕
               </button>
             </div>
@@ -498,7 +707,9 @@ export default function ModuleManagement() {
                 <div className={styles.mmCol}>
                   <div className={styles.mmGroup}>
                     <div className={styles.mmLabel}>Module Title</div>
-                    <div className={styles.mmValue}>{selectedModule.title || "—"}</div>
+                    <div className={styles.mmValue}>
+                      {selectedModule.title || "—"}
+                    </div>
                   </div>
 
                   <div className={styles.mmGroup}>
@@ -509,20 +720,56 @@ export default function ModuleManagement() {
                         : "—"}
                     </div>
                   </div>
+
+                  <div className={styles.mmGroup}>
+                    <div className={styles.mmLabel}>Subject</div>
+                    <div className={styles.mmValue}>
+                      {selectedModule.subject?.trim()
+                        ? selectedModule.subject
+                        : "—"}
+                    </div>
+                  </div>
                 </div>
 
                 <div className={styles.mmCol}>
                   <div className={styles.mmGroup}>
-                    <div className={styles.mmLabel}>Deck Title</div>
-                    <div className={styles.mmValue}>{selectedModule.title || "—"}</div>
+                    <div className={styles.mmLabelRow}>
+                      <div className={styles.mmLabel}>Learning Objectives</div>
+                      <button
+                        type="button"
+                        className={styles.mmViewBtn}
+                        onClick={() =>
+                          openTextView(
+                            "Learning Objectives",
+                            selectedModule.learningObjectives
+                          )
+                        }
+                      >
+                        View
+                      </button>
+                    </div>
+
+                    <div className={styles.mmValue}>
+                      {getPreviewText(selectedModule.learningObjectives)}
+                    </div>
                   </div>
 
                   <div className={styles.mmGroup}>
-                    <div className={styles.mmLabel}>Deck Description</div>
+                    <div className={styles.mmLabelRow}>
+                      <div className={styles.mmLabel}>Lessons</div>
+                      <button
+                        type="button"
+                        className={styles.mmViewBtn}
+                        onClick={() =>
+                          openTextView("Lessons", selectedModule.lessonContent)
+                        }
+                      >
+                        View
+                      </button>
+                    </div>
+
                     <div className={styles.mmValue}>
-                      {selectedModule.module_description?.trim()
-                        ? selectedModule.module_description
-                        : "—"}
+                      {getPreviewText(selectedModule.lessonContent)}
                     </div>
                   </div>
                 </div>
@@ -548,150 +795,177 @@ export default function ModuleManagement() {
         </div>
       )}
 
-      {/* =========================
-          ✅ ADD MODAL
-         ========================= */}
-      {addOpen && (
-        <div className={styles.addOverlay} onClick={closeAdd}>
-          <div className={styles.addModal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.addHeader}>
-              <h2 className={styles.addHeaderTitle}>Add New Module</h2>
+      {textViewOpen && (
+        <div className={styles.popupOverlay} onClick={closeTextView}>
+          <div
+            className={styles.textViewModal}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.popupHeader}>
+              <h2 className={styles.popupTitle}>{textViewTitle}</h2>
+              <button
+                type="button"
+                className={styles.popupClose}
+                onClick={closeTextView}
+              >
+                ✕
+              </button>
             </div>
 
-            <div className={styles.addBody}>
-              <div className={styles.addBodyInner}>
-                <label className={styles.addLabel}>Module Title</label>
-                <input
-                  className={styles.addInput}
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder="Enter module title"
-                />
-
-                <label className={styles.addLabel}>Module Description</label>
-                <textarea
-                  className={styles.addTextarea}
-                  rows={3}
-                  value={newDesc}
-                  onChange={(e) => setNewDesc(e.target.value)}
-                  placeholder="Enter module description"
-                />
-
-                <label className={styles.addLabel}>Subject / Course</label>
-                <input
-                  className={styles.addInput}
-                  value={newSubject}
-                  onChange={(e) => setNewSubject(e.target.value)}
-                  placeholder="e.g. IT 101 / Web Dev"
-                />
-
-                <label className={styles.addLabel}>Status</label>
-                <select
-                  className={styles.addInput}
-                  value={newStatus}
-                  onChange={(e) => setNewStatus(e.target.value)}
-                >
-                  <option value="Draft">Draft</option>
-                  <option value="Publish">Publish</option>
-                </select>
-
-                <label className={styles.addLabel}>Lesson Text Contents</label>
-                <textarea
-                  className={styles.addTextarea}
-                  rows={4}
-                  value={lessonText}
-                  onChange={(e) => setLessonText(e.target.value)}
-                  placeholder="Paste or type lesson text contents here..."
-                />
-
-                <label className={styles.addLabel}>Quiz/Cards Contents</label>
-                <textarea
-                  className={styles.addTextarea}
-                  rows={4}
-                  value={quizContents}
-                  onChange={(e) => setQuizContents(e.target.value)}
-                  placeholder="Paste or type quiz/cards contents here..."
-                />
-
-                <div className={styles.addDivider} />
-
-                <div className={styles.addActions}>
-                  <button className={styles.addCancelBtn} type="button" onClick={closeAdd}>
-                    Cancel
-                  </button>
-                <button
-  className={styles.addConfirmBtn}
-  type="button"
-  onClick={handleAddModule}
->
-  Add
-</button>
-                </div>
-              </div>
-            </div>
+            <div className={styles.textViewBody}>{textViewContent}</div>
           </div>
         </div>
       )}
 
-      {/* =========================
-          ✅ EDIT MODAL
-         ========================= */}
-      {editOpen && editTarget && (
-        <div className={styles.editOverlay} onClick={closeEdit}>
-          <div className={styles.editModal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.editHeader}>
-              <h2 className={styles.editHeaderTitle}>Edit Module</h2>
+      {addOpen && (
+        <div className={styles.popupOverlay} onClick={closeAdd}>
+          <div
+            className={styles.popupModal}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.popupHeader}>
+              <h2 className={styles.popupTitle}>Add Module</h2>
+              <button
+                type="button"
+                className={styles.popupClose}
+                onClick={closeAdd}
+              >
+                ✕
+              </button>
             </div>
 
-            <div className={styles.editBody}>
-              <label className={styles.editLabel}>Module ID</label>
-              <input className={styles.editInput} value={editTarget.id} disabled />
+            <div className={styles.popupBody}>
+              <div className={styles.popupInfoGrid}>
+                <div className={styles.popupField}>
+                  <label className={styles.popupLabel}>Module Title</label>
+                  <input
+                    className={styles.popupInput}
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    placeholder="Enter module title"
+                  />
+                </div>
 
-              <label className={styles.editLabel}>Module Title</label>
-              <input
-                className={styles.editInput}
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-              />
+                <div className={styles.popupField}>
+                  <label className={styles.popupLabel}>Status</label>
+                  <select
+                    className={styles.popupSelect}
+                    value={newStatus}
+                    onChange={(e) => setNewStatus(e.target.value)}
+                  >
+                    <option value="Draft">Draft</option>
+                    <option value="Publish">Publish</option>
+                  </select>
+                </div>
+              </div>
 
-              <label className={styles.editLabel}>Date created</label>
-              <input className={styles.editInput} value={editTarget.date} disabled />
+              <div className={styles.popupSection}>
+                <label className={styles.popupLabel}>Module Description</label>
+                <textarea
+                  className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
+                  value={newDesc}
+                  onChange={(e) => setNewDesc(e.target.value)}
+                  placeholder="Enter module description"
+                />
+              </div>
 
-              <label className={styles.editLabel}>Status</label>
-              <select
-                className={styles.editInput}
-                value={editStatus}
-                onChange={(e) => setEditStatus(e.target.value)}
-              >
-                <option value="active">active</option>
-                <option value="inactive">inactive</option>
-              </select>
+              <div className={styles.popupSection}>
+                <label className={styles.popupLabel}>Subject</label>
+                <input
+                  className={styles.popupInput}
+                  value={newSubject}
+                  onChange={(e) => setNewSubject(e.target.value)}
+                  placeholder="Enter subject/course"
+                />
+              </div>
 
-              <label className={styles.editLabel}>Learning Module</label>
-              <textarea
-                className={styles.editTextarea}
-                rows={4}
-                value={editLearning}
-                onChange={(e) => setEditLearning(e.target.value)}
-                placeholder="Paste or type lesson contents here..."
-              />
+              <div className={styles.popupSection}>
+                <label className={styles.popupLabel}>Learning Objectives</label>
+                <textarea
+                  className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
+                  value={newLearningObjectives}
+                  onChange={(e) => setNewLearningObjectives(e.target.value)}
+                  placeholder="Enter learning objectives here..."
+                />
+              </div>
 
-              <label className={styles.editLabel}>Quiz Module</label>
-              <textarea
-                className={styles.editTextarea}
-                rows={4}
-                value={editQuiz}
-                onChange={(e) => setEditQuiz(e.target.value)}
-                placeholder="Paste or type quiz/cards contents here..."
-              />
+              <div className={styles.popupSection}>
+                <label className={styles.popupLabel}>Lessons</label>
+                <textarea
+                  className={`${styles.popupTextarea} ${styles.popupLargeBox}`}
+                  value={newLessonContent}
+                  onChange={(e) => setNewLessonContent(e.target.value)}
+                  placeholder="Enter lesson content here..."
+                />
+              </div>
 
-              <div className={styles.editDivider} />
+              <div className={styles.popupSection}>
+                <div className={styles.popupSectionRow}>
+                  <label className={styles.popupLabel}>Quiz Module</label>
+                  <button
+                    type="button"
+                    className={styles.popupAddBtn}
+                    onClick={addNewQuizItem}
+                  >
+                    Add +
+                  </button>
+                </div>
 
-              <div className={styles.editActions}>
-                <button className={styles.editCancelBtn} type="button" onClick={closeEdit}>
+                {newQuizItems.length === 0 ? (
+                  <div className={styles.popupEmptyQuiz}>
+                    No quiz items yet.
+                  </div>
+                ) : (
+                  newQuizItems.map((item, index) => (
+                    <div key={index} className={styles.popupQuizCard}>
+                      <div className={styles.popupQuizCardTop}>
+                        <span className={styles.popupQuizCardTitle}>
+                          Item {index + 1}
+                        </span>
+                        <button
+                          type="button"
+                          className={styles.popupRemoveBtn}
+                          onClick={() => removeNewQuizItem(index)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+
+                      <input
+                        className={styles.popupInput}
+                        value={item.question}
+                        onChange={(e) =>
+                          updateNewQuizItem(index, "question", e.target.value)
+                        }
+                        placeholder="Question"
+                      />
+
+                      <textarea
+                        className={`${styles.popupTextarea} ${styles.popupAnswerBox}`}
+                        value={item.answer}
+                        onChange={(e) =>
+                          updateNewQuizItem(index, "answer", e.target.value)
+                        }
+                        placeholder="Answer"
+                      />
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className={styles.popupActions}>
+                <button
+                  className={styles.popupCancelBtn}
+                  type="button"
+                  onClick={closeAdd}
+                >
                   Cancel
                 </button>
-                <button className={styles.editConfirmBtn} type="button" onClick={saveEdit}>
+                <button
+                  className={styles.popupSaveBtn}
+                  type="button"
+                  onClick={handleAddModule}
+                >
                   Save
                 </button>
               </div>
@@ -700,42 +974,229 @@ export default function ModuleManagement() {
         </div>
       )}
 
-      {/* =========================
-          ✅ DELETE MODAL
-         ========================= */}
-      {deleteOpen && deleteTarget && (
-        <div className={styles.alertOverlay} onClick={closeDelete}>
-          <div className={styles.alertModal} onClick={(e) => e.stopPropagation()}>
-            <p className={styles.alertText}>
-              Are you sure you want to delete this module?
-              <br />
-              <span>This cannot be undo.</span>
-            </p>
+      {editOpen && editTarget && (
+        <div className={styles.popupOverlay} onClick={closeEdit}>
+          <div
+            className={styles.popupModal}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.popupHeader}>
+              <h2 className={styles.popupTitle}>Quiz Details:</h2>
+              <button
+                type="button"
+                className={styles.popupClose}
+                onClick={closeEdit}
+              >
+                ✕
+              </button>
+            </div>
 
-            <div className={styles.alertActions}>
-              <button className={styles.alertCancelBtn} type="button" onClick={closeDelete}>
-                Cancel
-              </button>
-              <button className={styles.alertConfirmBtn} type="button" onClick={confirmDelete}>
-                Confirm
-              </button>
+            <div className={styles.popupBody}>
+              <div className={styles.popupInfoGrid}>
+                <div className={styles.popupField}>
+                  <label className={styles.popupLabel}>Module ID</label>
+                  <input
+                    className={styles.popupInput}
+                    value={editTarget.id}
+                    disabled
+                  />
+                </div>
+
+                <div className={styles.popupField}>
+                  <label className={styles.popupLabel}>Module Title</label>
+                  <input
+                    className={styles.popupInput}
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                  />
+                </div>
+
+                <div className={styles.popupField}>
+                  <label className={styles.popupLabel}>Date Created</label>
+                  <input
+                    className={styles.popupInput}
+                    value={editTarget.date}
+                    disabled
+                  />
+                </div>
+
+                <div className={styles.popupField}>
+                  <label className={styles.popupLabel}>Status</label>
+                  <select
+                    className={styles.popupSelect}
+                    value={editStatus}
+                    onChange={(e) => setEditStatus(e.target.value)}
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className={styles.popupSection}>
+                <label className={styles.popupLabel}>Module Description</label>
+                <textarea
+                  className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
+                  value={editDesc}
+                  onChange={(e) => setEditDesc(e.target.value)}
+                  placeholder="Enter module description"
+                />
+              </div>
+
+              <div className={styles.popupSection}>
+                <label className={styles.popupLabel}>Subject</label>
+                <input
+                  className={styles.popupInput}
+                  value={editSubject}
+                  onChange={(e) => setEditSubject(e.target.value)}
+                  placeholder="Enter subject/course"
+                />
+              </div>
+
+              <div className={styles.popupSection}>
+                <label className={styles.popupLabel}>Learning Objectives</label>
+                <textarea
+                  className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
+                  value={editLearningObjectives}
+                  onChange={(e) => setEditLearningObjectives(e.target.value)}
+                  placeholder="Enter learning objectives here..."
+                />
+              </div>
+
+              <div className={styles.popupSection}>
+                <label className={styles.popupLabel}>Lessons</label>
+                <textarea
+                  className={`${styles.popupTextarea} ${styles.popupLargeBox}`}
+                  value={editLessonContent}
+                  onChange={(e) => setEditLessonContent(e.target.value)}
+                  placeholder="Enter lesson content here..."
+                />
+              </div>
+
+              <div className={styles.popupSection}>
+                <div className={styles.popupSectionRow}>
+                  <label className={styles.popupLabel}>Quiz Module</label>
+                  <button
+                    type="button"
+                    className={styles.popupAddBtn}
+                    onClick={addEditQuizItem}
+                  >
+                    Add +
+                  </button>
+                </div>
+
+                {editQuizItems.length === 0 ? (
+                  <div className={styles.popupEmptyQuiz}>
+                    No quiz items yet.
+                  </div>
+                ) : (
+                  editQuizItems.map((item, index) => (
+                    <div key={index} className={styles.popupQuizCard}>
+                      <div className={styles.popupQuizCardTop}>
+                        <span className={styles.popupQuizCardTitle}>
+                          Item {index + 1}
+                        </span>
+                        <button
+                          type="button"
+                          className={styles.popupRemoveBtn}
+                          onClick={() => removeEditQuizItem(index)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+
+                      <input
+                        className={styles.popupInput}
+                        value={item.question}
+                        onChange={(e) =>
+                          updateEditQuizItem(index, "question", e.target.value)
+                        }
+                        placeholder="Question"
+                      />
+
+                      <textarea
+                        className={`${styles.popupTextarea} ${styles.popupAnswerBox}`}
+                        value={item.answer}
+                        onChange={(e) =>
+                          updateEditQuizItem(index, "answer", e.target.value)
+                        }
+                        placeholder="Answer"
+                      />
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className={styles.popupActions}>
+                <button
+                  className={styles.popupCancelBtn}
+                  type="button"
+                  onClick={closeEdit}
+                >
+                  Cancel
+                </button>
+                <button
+                  className={styles.popupSaveBtn}
+                  type="button"
+                  onClick={saveEdit}
+                >
+                  Save
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* SUCCESS */}
-      {successOpen && (
-        <div className={styles.successOverlay} onClick={() => setSuccessOpen(false)}>
-          <div className={styles.successModal} onClick={(e) => e.stopPropagation()}>
-            <p className={styles.successText}>Deleted successfully</p>
-            <button
-              className={styles.successBtn}
-              type="button"
-              onClick={() => setSuccessOpen(false)}
-            >
-              OK
-            </button>
+      {deleteOpen && deleteTarget && (
+        <div className={styles.popupOverlay} onClick={closeDelete}>
+          <div
+            className={styles.popupDeleteModal}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.popupHeader}>
+              <h2 className={styles.popupTitle}>Delete Module</h2>
+              <button
+                type="button"
+                className={styles.popupClose}
+                onClick={closeDelete}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className={styles.popupBody}>
+              <p className={styles.popupDeleteText}>
+                Are you sure you want to delete{" "}
+                <strong>{deleteTarget.title}</strong>?
+              </p>
+
+              <p className={styles.popupDeleteText}>
+                Description: {deleteTarget.module_description || "—"}
+              </p>
+
+              <p className={styles.popupDeleteText}>
+                This action cannot be undone.
+              </p>
+
+              <div className={styles.popupActions}>
+                <button
+                  className={styles.popupCancelBtn}
+                  type="button"
+                  onClick={closeDelete}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  className={styles.popupDeleteBtn}
+                  type="button"
+                  onClick={handleDeleteConfirmed}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
