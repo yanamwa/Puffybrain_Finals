@@ -517,24 +517,24 @@
   background-color: #eeeeee;
   border-radius: 15px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-  padding: 0;                 /* remove padding so header sits flush */
+  padding: 0;               
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: stretch;
-  position: relative;         /* needed for absolute positioning of course-head */
-  overflow: hidden;           /* optional, hides anything overflowing */
+  position: relative;         
+  overflow: hidden;           
   margin-top: 20px;
   margin-bottom: 50px;
 }
 .ProgressHead{
-  position: absolute;  /* position it at the top of .courses */
+  position: absolute; 
   top: 0;
   left: 0;
   width: 100%;
   height: 40px;
   background-color: #C8A8E9;
-  border-top-left-radius: 15px;   /* match the parent .courses corners */
+  border-top-left-radius: 15px;   
   border-top-right-radius: 15px;
 }
 .innerProgress {
@@ -547,7 +547,7 @@
 .progressBarContainer {
   width: 100%;
   height: 10px;
-  background-color: #e0e0e0; /* light gray background */
+  background-color: #e0e0e0; 
   border-radius: 10px;
   overflow: hidden;
   margin-top: 0px;
@@ -555,8 +555,8 @@
 
 .progressBar {
   height: 100%;
-  background-color: #8A2BE2; /* your progress color */
-  border-radius: 10px 0 0 10px; /* rounded left side */
+  background-color: #8A2BE2; 
+  border-radius: 10px 0 0 10px; 
   transition: width 0.5s ease;
 }
 
@@ -572,16 +572,17 @@
   background-color: #eeeeee;
   border-radius: 15px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-  padding: 0;                 /* remove padding so header sits flush */
+  padding: 0;                
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: stretch;
-  position: relative;         /* needed for absolute positioning of course-head */
-  overflow: hidden;           /* optional, hides anything overflowing */
+  position: relative;        
+  overflow: hidden;        
   margin-top: 20px;
   margin-bottom: 50px;
 }
+
 .cardHead{
   display: flex;
   justify-content: flex-end; 
@@ -600,39 +601,6 @@
   margin-right: 30px;
 }
 
-.btn {
-  padding: 3px 20px;
-  border: none;
-  color: rgb(7, 7, 7);
-  border-radius: 15px;
-  cursor: pointer;
-  transition: background 0.3s;
-  height: 30px;
-  margin-top: 10px;
-  font-size: 15px;
-}
-
-/* Specific colors */
-.studyBtn {
-  background-color: #ffffff; /* green */
-  box-shadow: 2px 2px #000000;
-
-}
-
-.studyBtn:hover {
-  background-color: #cfcfcf; /* darker green */
-}
-
-.practiceBtn {
-  background-color: #8A2BE2;; /* orange/red */
-  color: rgb(255, 255, 255);
-    box-shadow: 2px 2px #000000;
-}
-
-.practiceBtn:hover {
-  background-color: #e487e2; /* darker shade */
-}
-
 .innercardHead{
     display: flex;    
   align-items: center;
@@ -648,12 +616,12 @@
   display: flex;
   gap: 40px;
 }
-/* Remove the pill-style background from tabs */
+
 .tabBtn {
-  padding: 0;                 /* remove extra spacing */
-  border: none;               /* no border */
-  border-radius: 0;           /* no rounded corners */
-  background: none;           /* transparent */
+  padding: 0;                 
+  border: none;              
+  border-radius: 0;           
+  background: none;           
   cursor: pointer;
   font-weight: 500;
   font-size: 20px;
@@ -751,42 +719,11 @@
   padding: 40px;
 }
 
-.practiceBtn {
-  padding: 12px 26px;
-  font-size: 18px;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  background: #d4b3f7;
-  font-family: "Jersey 15", sans-serif;
-  transition: background 0.2s ease, transform 0.2s ease;
-}
-
-.practiceBtn:hover {
-  background: #c59af0;
-  transform: translateY(-2px);
-}:root {
-  --color-primary: #EBD3FA;
-  --color-secondary: #E3AADD;
-  --color-third: #C8A8E9;
-  --color-fourth: #A993D8;
-  --color-fifth: #C3C7F3;
-  --color-shadow: #A993D8;
-  --font-color: #2F2F2F;
-  --card-color1: #C8BBD0;
-  --card-color2: #E0BBD4;
-  --card-color3: #C3C7F3;
-  --card-color4: #90F897;
-  --card-color5: #CF8686;
-  --card-color6: #EECB99;
-}
-
 .container {
   display: flex;
   min-height: 100vh;
   background: #f5f5f5;
   transition: all 0.3s ease;
-
 }
 
 .swal2-container {
@@ -1536,4 +1473,46 @@
 
 .cardsList::-webkit-scrollbar-thumb:hover{
   background: #aaa;
+}
+
+.cardButtons {
+  display: flex;
+  gap: 15px;
+  margin-right: 30px;
+  align-items: center;
+}
+
+.btn {
+  padding: 6px 22px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 16px;
+  height: 34px;
+  margin-top: 8px;
+  font-family: "Jersey 15", sans-serif;
+  box-shadow: 2px 2px #000;
+  transition: all 0.2s ease;
+}
+
+/* study */
+.studyBtn {
+  background-color: #ffffff;
+  color: #000;
+}
+
+.studyBtn:hover {
+  background-color: #dcdcdc;
+  transform: translateY(-1px);
+}
+
+/* practice */
+.practiceBtn {
+  background-color: #8A2BE2;
+  color: #fff;
+}
+
+.practiceBtn:hover {
+  background-color: #a855f7;
+  transform: translateY(-1px);
 }

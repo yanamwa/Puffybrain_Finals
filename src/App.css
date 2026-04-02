@@ -1,3 +1,18 @@
+:root {
+    --color-primary: #EBD3FA;
+    --color-secondary: #E3AADD;
+    --color-third: #C8A8E9;
+    --color-fourth: #A993D8;
+    --color-fifth: #C3C7F3;
+    --font-color: #2F2F2F;
+    --card-color1: #C8BBD0;
+    --card-color2: #E0BBD4;
+     --card-color3: #C3C7F3;
+     --card-color4: #90F897;
+    --card-color5: #CF8686;
+     --card-color6: #EECB99;
+     --color-shadow: #DDDDDD;
+}
 #root {
   width: 100%;
   min-height: 100vh;

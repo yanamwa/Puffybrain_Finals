@@ -785,3 +785,1086 @@
   border: none;
   color: #ffffff;
 }
+
+/* =========================
+   SHARED POPUP STYLE
+========================= */
+.popupOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 99999;
+  backdrop-filter: blur(2px);
+}
+
+.popupModal {
+  width: 980px;
+  max-width: 95vw;
+  max-height: 92vh;
+  background: #ffffff;
+  border-radius: 32px;
+  overflow: hidden;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.28);
+  display: flex;
+  flex-direction: column;
+}
+
+.popupHeader {
+  background: #e4c8f7;
+  min-height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+}
+
+.popupTitle {
+  margin: 0;
+  font-size: 25px;
+  font-weight: 900;
+  color: #111;
+  text-align: center;
+  align-items: center;
+  margin-left: 400px;
+}
+
+.popupClose {
+  border: none;
+  background: transparent;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  color: #444;
+}
+
+.popupBody {
+  padding: 26px 30px 30px;
+  overflow-y: auto;
+}
+
+.popupInfoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px 34px;
+  margin-bottom: 28px;
+}
+
+.popupField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.popupLabel {
+  font-size: 14px;
+  font-weight: 900;
+  color: #111;
+}
+
+.popupInput,
+.popupSelect,
+.popupTextarea {
+  width: 100%;
+  background: #f1f1f1;
+  border: none;
+  outline: none;
+  border-radius: 18px;
+  padding: 14px 16px;
+  font-size: 14px;
+  color: #222;
+}
+
+.popupTextarea {
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.popupSmallBox {
+  min-height: 90px;
+}
+
+.popupLargeBox {
+  min-height: 130px;
+}
+
+.popupQuizBox {
+  min-height: 180px;
+}
+
+.popupSection {
+  margin-bottom: 18px;
+}
+
+.popupSectionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.popupAddBtn {
+  border: none;
+  background: #d9d9d9;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  color: #111;
+}
+
+.popupActions {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 26px;
+}
+
+.popupCancelBtn,
+.popupSaveBtn,
+.popupDeleteBtn {
+  min-width: 140px;
+  height: 46px;
+  padding: 0 24px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.popupCancelBtn {
+  background: #ffffff;
+  border: 2px solid #2b2b2b;
+  color: #111;
+}
+
+.popupSaveBtn {
+  background: #d7a6ff;
+  border: none;
+  color: #111;
+}
+
+.popupDeleteBtn {
+  background: #ef5350;
+  border: none;
+  color: #ffffff;
+}
+
+.popupDeleteText {
+  font-size: 15px;
+  color: #333;
+  line-height: 1.7;
+  margin: 10px 0 0;
+}
+
+@media (max-width: 768px) {
+  .popupInfoGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .popupBody {
+    padding: 20px;
+  }
+}
+
+.popupEmptyQuiz {
+  background: #f3f3f3;
+  border-radius: 18px;
+  padding: 16px;
+  font-size: 14px;
+  color: #666;
+}
+
+.popupQuizCard {
+  background: #ececec;
+  border-radius: 18px;
+  padding: 14px;
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.popupQuizCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.popupQuizCardTitle {
+  font-size: 13px;
+  font-weight: 900;
+  color: #111;
+}
+
+.popupRemoveBtn {
+  border: none;
+  background: #d9d9d9;
+  color: #222;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.popupQuizCard .popupInput,
+.popupQuizCard .popupTextarea {
+  width: 100%;
+  background: #f8f8f8;
+  border: none;
+  outline: none;
+  border-radius: 16px;
+  padding: 12px 14px;
+  font-size: 14px;
+  color: #222;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.popupQuizCard .popupInput {
+  min-height: 44px;
+}
+
+.popupAnswerBox {
+  min-height: 90px;
+  max-height: 140px;
+  resize: vertical;
+}
+
+.popupSection {
+  margin-bottom: 22px;
+}
+
+.popupSectionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+/* =========================
+   ROOT / BASE
+========================= */
+.layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  grid-template-rows: 70px 1fr;
+  grid-template-areas:
+    "sidebar header"
+    "sidebar main";
+  min-height: 100vh;
+  background: #ffffff;
+  isolation: isolate;
+}
+
+/* =========================
+   SIDEBAR
+========================= */
+.sidebar {
+  grid-area: sidebar;
+  width: 220px;
+  background: hsl(277, 68%, 90%);
+  display: flex;
+  flex-direction: column;
+  padding-top: 10px;
+}
+
+.logo {
+  padding: 8px 16px;
+}
+
+.logo img {
+  width: 250px;
+  margin-left: -30px;
+}
+
+.menuLabel {
+  padding: 8px 20px;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: hsl(220, 5%, 46%);
+  letter-spacing: 1px;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  margin: 2px 0 2px 10px;
+  border-radius: 20px 0 0 20px;
+  cursor: pointer;
+  font-size: 16px;
+  color: hsl(220, 15%, 13%);
+  text-decoration: none;
+  transition: 0.2s ease;
+}
+
+.menuItem:hover {
+  background: #ffffff;
+}
+
+.active {
+  background: #ffffff;
+  color: hsl(220, 15%, 13%);
+}
+
+.sidebarFooter {
+  margin-top: auto;
+  padding: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.logoutBtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 16px;
+  color: hsl(220, 15%, 13%);
+  border: none;
+  background: none;
+  width: 100%;
+}
+
+.logoutBtn:hover {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+/* =========================
+   HEADER
+========================= */
+.headerContainer {
+  grid-area: header;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px;
+  border-bottom: 2px solid hsl(0, 0%, 90%);
+  background: #ffffff;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  padding: 8px 15px;
+  border-radius: 30px;
+  width: 430px;
+  border: 1.5px solid hsl(271, 42%, 75%);
+}
+
+.searchBar input {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  font-size: 14px;
+}
+
+.profileWrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+}
+
+.profileIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: hsl(277, 68%, 90%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profileName {
+  font-size: 14px;
+  color: hsl(220, 15%, 13%);
+}
+
+.dropdownBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.dropdownContent {
+  position: absolute;
+  top: 46px;
+  right: 0;
+  background: #ffffff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  padding: 10px;
+  width: 150px;
+  z-index: 1000;
+}
+
+.dropdownItem {
+  width: 100%;
+  padding: 10px 10px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 10px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.dropdownItem:hover {
+  background: #f5f5f5;
+}
+
+/* =========================
+   MAIN
+========================= */
+.main {
+  grid-area: main;
+  padding: 40px;
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.pageHeader h1 {
+  font-size: 26px;
+  font-weight: 900;
+  margin: 0;
+}
+
+.addBtn {
+  background: #b388eb;
+  color: #ffffff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.tableCard {
+  background: #ffffff;
+  padding: 26px;
+  border-radius: 20px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 14px;
+}
+
+.table thead th {
+  background: #f3f3f3;
+  padding: 12px 16px;
+  text-align: left;
+  border-radius: 999px;
+  font-weight: 900;
+  color: #4b4b4b;
+  font-size: 13px;
+}
+
+.table tbody td {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #222;
+}
+
+/* =========================
+   STATUS
+========================= */
+.statusActive,
+.statusInactive {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.statusActive {
+  background: #28a745;
+}
+
+.statusInactive {
+  background: #f4b400;
+}
+
+/* =========================
+   ACTIONS
+========================= */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.actionEdit,
+.actionDelete,
+.actionView {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 900;
+  transition: 0.15s ease;
+}
+
+.actionEdit {
+  background: #2f2f2f;
+  color: #ffffff;
+}
+
+.actionDelete {
+  background: #e74c3c;
+  color: #ffffff;
+}
+
+.actionView {
+  background: #6c7a89;
+  color: #ffffff;
+}
+
+/* =========================
+   PAGINATION
+========================= */
+.paginationWrapper {
+  position: relative;
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.paginationCenter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pageBtn {
+  border: none;
+  background: transparent;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.pageActive {
+  background: #d9a3d7;
+  color: #ffffff;
+}
+
+.navBtn {
+  border: none;
+  background: #eeeeee;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.dots {
+  color: #777;
+}
+
+.rowsControl {
+  position: absolute;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.rowsControl select {
+  width: 110px;
+  height: 34px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  background: #ffffff;
+}
+
+/* =========================
+   VIEW MODAL
+========================= */
+.mmOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 999999;
+  backdrop-filter: blur(2px);
+}
+
+.mmModal {
+  width: 980px;
+  max-width: 96vw;
+  background: #ffffff;
+  border-radius: 26px;
+  overflow: hidden;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  position: relative;
+}
+
+.mmHeader {
+  flex: 0 0 74px;
+  background: #e7c9ff;
+  display: flex;
+  align-items: center;
+  padding: 0 26px;
+  gap: 14px;
+  position: relative;
+}
+
+.mmTitle {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 900;
+  color: #111;
+}
+
+.mmHeaderEdit {
+  height: 34px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: none;
+  background: #ffffff;
+  font-weight: 900;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.18);
+}
+
+.mmClose {
+  position: absolute;
+  right: 22px;
+  top: 18px;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 28px;
+  line-height: 1;
+  color: #111;
+}
+
+.mmBody {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 22px 28px 26px;
+  overscroll-behavior: contain;
+}
+
+.mmDetails {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 180px;
+}
+
+.mmCol {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mmGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mmLabel {
+  font-weight: 900;
+  font-size: 13px;
+  color: #111;
+}
+
+.mmValue {
+  font-size: 13px;
+  font-weight: 600;
+  color: #222;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.mmDecksTitle {
+  margin: 18px 0 12px;
+  font-weight: 900;
+  font-size: 13px;
+  color: #111;
+}
+
+.mmCard {
+  background: #f2f2f2;
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.mmQ {
+  padding: 14px 18px;
+  font-weight: 700;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.mmA {
+  padding: 14px 18px;
+  font-size: 13px;
+  color: #444;
+  white-space: pre-wrap;
+}
+
+/* =========================
+   SHARED POPUP STYLE
+========================= */
+.popupOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 99999;
+  backdrop-filter: blur(2px);
+}
+
+.popupModal {
+  width: 980px;
+  max-width: 95vw;
+  max-height: 92vh;
+  background: #ffffff;
+  border-radius: 32px;
+  overflow: hidden;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.28);
+  display: flex;
+  flex-direction: column;
+}
+
+.popupDeleteModal {
+  width: 520px;
+  max-width: 95vw;
+  background: #ffffff;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.28);
+  display: flex;
+  flex-direction: column;
+}
+
+.popupHeader {
+  background: #e4c8f7;
+  min-height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+}
+
+.popupTitle {
+  margin: 0;
+  font-size: 25px;
+  font-weight: 900;
+  color: #111;
+}
+
+.popupClose {
+  border: none;
+  background: transparent;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  color: #444;
+}
+
+.popupBody {
+  padding: 26px 30px 30px;
+  overflow-y: auto;
+}
+
+.popupInfoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px 34px;
+  margin-bottom: 28px;
+}
+
+.popupField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.popupLabel {
+  font-size: 14px;
+  font-weight: 900;
+  color: #111;
+}
+
+.popupInput,
+.popupSelect,
+.popupTextarea {
+  width: 100%;
+  background: #f1f1f1;
+  border: none;
+  outline: none;
+  border-radius: 18px;
+  padding: 14px 16px;
+  font-size: 14px;
+  color: #222;
+  box-sizing: border-box;
+}
+
+.popupTextarea {
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.popupSmallBox {
+  min-height: 90px;
+}
+
+.popupLargeBox {
+  min-height: 130px;
+}
+
+.popupSection {
+  margin-bottom: 22px;
+}
+
+.popupSectionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.popupAddBtn {
+  border: none;
+  background: #d9d9d9;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  color: #111;
+}
+
+.popupActions {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 26px;
+}
+
+.popupCancelBtn,
+.popupSaveBtn,
+.popupDeleteBtn {
+  min-width: 140px;
+  height: 46px;
+  padding: 0 24px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.popupCancelBtn {
+  background: #ffffff;
+  border: 2px solid #2b2b2b;
+  color: #111;
+}
+
+.popupSaveBtn {
+  background: #d7a6ff;
+  border: none;
+  color: #111;
+}
+
+.popupDeleteBtn {
+  background: #ef5350;
+  border: none;
+  color: #ffffff;
+}
+
+.popupDeleteText {
+  font-size: 15px;
+  color: #333;
+  line-height: 1.7;
+  margin: 10px 0 0;
+}
+
+.popupEmptyQuiz {
+  background: #f3f3f3;
+  border-radius: 18px;
+  padding: 16px;
+  font-size: 14px;
+  color: #666;
+}
+
+.popupQuizCard {
+  background: #ececec;
+  border-radius: 18px;
+  padding: 14px;
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.popupQuizCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.popupQuizCardTitle {
+  font-size: 13px;
+  font-weight: 900;
+  color: #111;
+}
+
+.popupRemoveBtn {
+  border: none;
+  background: #d9d9d9;
+  color: #222;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.popupQuizCard .popupInput,
+.popupQuizCard .popupTextarea {
+  width: 100%;
+  background: #f8f8f8;
+  border: none;
+  outline: none;
+  border-radius: 16px;
+  padding: 12px 14px;
+  font-size: 14px;
+  color: #222;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.popupQuizCard .popupInput {
+  min-height: 44px;
+}
+
+.popupAnswerBox {
+  min-height: 90px;
+  max-height: 140px;
+  resize: vertical;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 768px) {
+  .popupInfoGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .popupBody {
+    padding: 20px;
+  }
+
+  .mmDetails {
+    grid-template-columns: 1fr;
+    column-gap: 0;
+    row-gap: 16px;
+  }
+
+  .headerContainer {
+    padding: 0 20px;
+  }
+
+  .searchBar {
+    width: 260px;
+  }
+}
+
+.mmLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.mmViewBtn {
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: #cdb4f6;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.mmViewBtn:hover {
+  opacity: 0.9;
+}
+
+.textViewModal {
+  width: min(900px, 90vw);
+  max-height: 85vh;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+}
+
+.textViewBody {
+  padding: 24px;
+  max-height: calc(85vh - 90px);
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 18px;
+  line-height: 1.7;
+  color: #222;
+}
