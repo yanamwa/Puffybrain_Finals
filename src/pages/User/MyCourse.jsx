@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import "boxicons/css/boxicons.min.css";
 import styles from "./Mydecks.module.css";
@@ -8,46 +8,48 @@ export default function MyCourse() {
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [search, setSearch] = useState("");
-
-  const [decks, setDecks] = useState([]);
+  const [courses, setCourses] = useState([]);
   const [user, setUser] = useState({
     username: "",
     year_level: "",
   });
 
+  // ✅ FETCH COURSES (PHP)
   const fetchAddedCourses = async () => {
     try {
       const res = await fetch("http://localhost/puffybrain/getMyCourses.php", {
-        credentials: "include",
+        credentials: "include"
       });
 
       const data = await res.json();
 
+      console.log("COURSES:", data); // 👀 DEBUG
+
       if (data.success) {
-        setDecks(
-          data.courses.map(course => ({
-            id: course.id,
-            title: course.title,
-            cards: course.card_count ?? 0
-          }))
-        );
+        setCourses(data.courses);
       }
+
     } catch (err) {
-      console.error("Added decks error:", err);
+      console.error("Fetch error:", err);
     }
   };
 
+  // ✅ FETCH USER (PHP)
   const fetchUser = async () => {
     try {
       const res = await fetch("http://localhost/puffybrain/getUser.php", {
-        credentials: "include",
+        credentials: "include"
       });
 
       const data = await res.json();
 
       if (data.success) {
-        setUser(data.user);
+        setUser({
+          username: data.username,
+          year_level: data.year_level || ""
+        });
       }
+
     } catch (err) {
       console.error("User fetch error:", err);
     }
@@ -58,27 +60,23 @@ export default function MyCourse() {
     fetchUser();
   }, []);
 
-  const filteredDecks = useMemo(() => {
+  const filteredCourses = useMemo(() => {
     const q = search.trim().toLowerCase();
-
-    return decks.filter(d =>
-      d.title.toLowerCase().includes(q)
+    return courses.filter((c) =>
+      c.title.toLowerCase().includes(q)
     );
-  }, [decks, search]);
+  }, [courses, search]);
 
-  const openDeck = (deckId) => {
-    navigate(`/deck/${deckId}`);
+  const openCourse = (courseId) => {
+    navigate(`/learning/${courseId}`);
   };
 
   const handleLogout = () => {
-    if (window.confirm("Are you sure you want to logout?")) {
-      navigate("/login");
-    }
+    navigate("/login");
   };
 
   return (
     <div className={`${styles.container} ${isCollapsed ? styles.sidebarCollapsed : ""}`}>
-
       <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
         <div>
           <div className={styles.sidebarToggle} onClick={() => setIsCollapsed(!isCollapsed)}>
@@ -132,23 +130,29 @@ export default function MyCourse() {
             <p className={styles.myDecks}>My Courses</p>
 
             <ul className={styles.sidebarList}>
-              {decks.length === 0 ? (
+              {courses.length === 0 ? (
                 <li className={styles.sidebarListItem}>
                   <span className={styles.menuText} style={{ opacity: 0.6 }}>
                     No courses added yet
                   </span>
                 </li>
               ) : (
-                decks.slice(0,3).map((deck) => (
-                  <li key={deck.id} className={styles.sidebarListItem}>
+                courses.slice(0, 3).map((course) => (
+                  <li key={course.id} className={styles.sidebarListItem}>
                     <button
                       type="button"
-                      onClick={() => openDeck(deck.id)}
+                      onClick={() => openCourse(course.id)}
                       className={styles.menuItem}
-                      style={{background:"transparent",border:"none",cursor:"pointer",width:"100%",textAlign:"left"}}
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        cursor: "pointer",
+                        width: "100%",
+                        textAlign: "left",
+                      }}
                     >
                       <i className="bx bx-book"></i>
-                      <span className={styles.menuText}>{deck.title}</span>
+                      <span className={styles.menuText}>{course.title}</span>
                     </button>
                   </li>
                 ))
@@ -173,12 +177,12 @@ export default function MyCourse() {
                 type="text"
                 placeholder="Search your courses"
                 value={search}
-                onChange={(e)=>setSearch(e.target.value)}
+                onChange={(e) => setSearch(e.target.value)}
               />
             </form>
 
             <div className={styles.profileWrapper}>
-              <img src="/images/temporary profile.jpg" className={styles.profilePic} alt=""/>
+              <img src="/images/temporary profile.jpg" className={styles.profilePic} alt="" />
               <p>{user.username}</p>
             </div>
           </div>
@@ -192,16 +196,16 @@ export default function MyCourse() {
               </div>
 
               <div className={styles.deckArea}>
-                {filteredDecks.length === 0 ? (
+                {filteredCourses.length === 0 ? (
                   <p className={styles.emptyText}>
-                    You haven't added any courses yet.
+                    {search ? "No courses match your search." : "You haven't added any courses yet."}
                   </p>
                 ) : (
-                  filteredDecks.map((course) => (
+                  filteredCourses.map((course) => (
                     <article
                       key={course.id}
                       className={styles.deckCard}
-                      onClick={()=>openDeck(course.id)}
+                      onClick={() => openCourse(course.id)}
                     >
                       <div className={styles.deckTop}></div>
 

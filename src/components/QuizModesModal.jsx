@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import ModeCard from "./ModeCard";
 import styles from "./QuizModesModal.module.css";
 
-export default function QuizModesModal({ onClose }) {
-
+export default function QuizModesModal({ onClose, lessonId }) {
   const [modes, setModes] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchModes();
@@ -12,16 +12,27 @@ export default function QuizModesModal({ onClose }) {
 
   const fetchModes = async () => {
     try {
-
       const res = await fetch("http://localhost/puffybrain/getModes.php");
-      const data = await res.json();
 
-      if (data.success) {
-        setModes(data.modes);
+      if (!res.ok) {
+        throw new Error("Failed to fetch");
       }
 
+      const data = await res.json();
+
+      console.log("Modes API response:", data);
+
+      if (data.success && Array.isArray(data.modes)) {
+        setModes(data.modes);
+      } else {
+        console.warn("No modes found or wrong format");
+        setModes([]);
+      }
     } catch (error) {
       console.error("Error loading modes:", error);
+      setModes([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -43,17 +54,22 @@ export default function QuizModesModal({ onClose }) {
 
         <div className={styles.cardsScroll}>
           <div className={styles.modeOptions}>
-
-            {modes.map((mode) => (
-              <ModeCard
-                key={mode.id}
-                title={mode.title}
-                img={`http://localhost/puffybrain/images/${mode.image}`}
-                desc={mode.description}
-                link={mode.route}
-              />
-            ))}
-
+            {loading ? (
+              <p>Loading quiz modes...</p>
+            ) : modes.length === 0 ? (
+              <p>No quiz modes available.</p>
+            ) : (
+              modes.map((mode) => (
+                <ModeCard
+                  key={mode.id}
+                  title={mode.title}
+                  img={`http://localhost/puffybrain/images/${mode.image}`}
+                  desc={mode.description}
+                  link={mode.route}
+                  lessonId={lessonId}
+                />
+              ))
+            )}
           </div>
         </div>
       </div>
