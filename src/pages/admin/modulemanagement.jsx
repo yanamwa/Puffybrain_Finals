@@ -81,6 +81,7 @@ function serializeQuizItems(items) {
 
 export default function ModuleManagement() {
   const API_URL = "http://localhost/puffybrain/adminLearningModule.php";
+  const AI_API_URL = "http://localhost/puffybrain/generateQuizAI.php";
 
   const menuItems = [
     {
@@ -117,6 +118,7 @@ export default function ModuleManagement() {
   const [newLessonContent, setNewLessonContent] = useState("");
   const [newStatus, setNewStatus] = useState("Draft");
   const [newQuizItems, setNewQuizItems] = useState([]);
+  const [generatingNewQuiz, setGeneratingNewQuiz] = useState(false);
 
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -127,6 +129,7 @@ export default function ModuleManagement() {
   const [editLessonContent, setEditLessonContent] = useState("");
   const [editStatus, setEditStatus] = useState("inactive");
   const [editQuizItems, setEditQuizItems] = useState([]);
+  const [generatingEditQuiz, setGeneratingEditQuiz] = useState(false);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -190,6 +193,150 @@ export default function ModuleManagement() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGenerateQuizForNew = async () => {
+    if (!newLearningObjectives.trim() && !newLessonContent.trim()) {
+      await Swal.fire({
+        icon: "warning",
+        title: "Missing Content",
+        text: "Please enter learning objectives or lesson content first.",
+      });
+      return;
+    }
+
+    setGeneratingNewQuiz(true);
+
+    try {
+      const res = await fetch(AI_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          learning_objectives: newLearningObjectives,
+          lesson_content: newLessonContent,
+        }),
+      });
+
+      const data = await res.json();
+      console.log("AI GENERATE NEW RESPONSE:", data);
+
+      if (data.success && Array.isArray(data.quiz)) {
+        setNewQuizItems(
+          data.quiz.map((item, index) => ({
+            id: index + 1,
+            question: String(item.question || "").trim(),
+            answer: String(item.answer || "").trim(),
+          }))
+        );
+
+        await Swal.fire({
+          icon: "success",
+          title: "Quiz Generated",
+          text: "AI generated quiz items successfully.",
+        });
+      } else {
+        await Swal.fire({
+          icon: "error",
+          title: "Generation Failed",
+          text: `${data.message || "Could not generate quiz."}${
+            data.http_code ? `\nHTTP Code: ${data.http_code}` : ""
+          }${
+            data.debug
+              ? `\nDebug: ${
+                  typeof data.debug === "string"
+                    ? data.debug
+                    : JSON.stringify(data.debug, null, 2)
+                }`
+              : ""
+          }`,
+        });
+      }
+    } catch (err) {
+      console.error("AI GENERATE NEW ERROR:", err);
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: `Something went wrong while generating quiz.\n${
+          err.message || err
+        }`,
+      });
+    } finally {
+      setGeneratingNewQuiz(false);
+    }
+  };
+
+  const handleGenerateQuizForEdit = async () => {
+    if (!editLearningObjectives.trim() && !editLessonContent.trim()) {
+      await Swal.fire({
+        icon: "warning",
+        title: "Missing Content",
+        text: "Please enter learning objectives or lesson content first.",
+      });
+      return;
+    }
+
+    setGeneratingEditQuiz(true);
+
+    try {
+      const res = await fetch(AI_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          learning_objectives: editLearningObjectives,
+          lesson_content: editLessonContent,
+        }),
+      });
+
+      const data = await res.json();
+      console.log("AI GENERATE EDIT RESPONSE:", data);
+
+      if (data.success && Array.isArray(data.quiz)) {
+        setEditQuizItems(
+          data.quiz.map((item, index) => ({
+            id: index + 1,
+            question: String(item.question || "").trim(),
+            answer: String(item.answer || "").trim(),
+          }))
+        );
+
+        await Swal.fire({
+          icon: "success",
+          title: "Quiz Generated",
+          text: "AI generated quiz items successfully.",
+        });
+      } else {
+        await Swal.fire({
+          icon: "error",
+          title: "Generation Failed",
+          text: `${data.message || "Could not generate quiz."}${
+            data.http_code ? `\nHTTP Code: ${data.http_code}` : ""
+          }${
+            data.debug
+              ? `\nDebug: ${
+                  typeof data.debug === "string"
+                    ? data.debug
+                    : JSON.stringify(data.debug, null, 2)
+                }`
+              : ""
+          }`,
+        });
+      }
+    } catch (err) {
+      console.error("AI GENERATE EDIT ERROR:", err);
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: `Something went wrong while generating quiz.\n${
+          err.message || err
+        }`,
+      });
+    } finally {
+      setGeneratingEditQuiz(false);
     }
   };
 
@@ -413,7 +560,9 @@ export default function ModuleManagement() {
   const filteredModules = useMemo(
     () =>
       modules.filter((m) =>
-        m.title.toLowerCase().includes(searchQuery.toLowerCase())
+        String(m.title || "")
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase())
       ),
     [modules, searchQuery]
   );
@@ -464,12 +613,12 @@ export default function ModuleManagement() {
   const openEdit = (mod) => {
     console.log("OPEN EDIT MODULE:", mod);
     setEditId(mod.id);
-    setEditTitle(mod.title);
+    setEditTitle(mod.title || "");
     setEditDesc(mod.module_description || "");
     setEditSubject(mod.subject || "");
     setEditLearningObjectives(mod.learningObjectives || "");
     setEditLessonContent(mod.lessonContent || "");
-    setEditStatus(mod.status);
+    setEditStatus(mod.status || "inactive");
     setEditQuizItems(parseDeckCards(mod.quizModule));
     setEditOpen(true);
   };
@@ -556,9 +705,9 @@ export default function ModuleManagement() {
       <main className={styles.main}>
         <div className={styles.pageHeader}>
           <h1>Module Management</h1>
-          <NavLink to="/admin/modules/new" className={styles.addBtn}>
+          <button type="button" className={styles.addBtn} onClick={openAdd}>
             + Add new module
-          </NavLink>
+          </button>
         </div>
 
         <div className={styles.tableCard}>
@@ -604,12 +753,13 @@ export default function ModuleManagement() {
                       </span>
                     </td>
                     <td className={styles.actions}>
-                      <NavLink
-                        to={`/admin/modules/edit/${mod.id}`}
+                      <button
+                        type="button"
                         className={styles.actionEdit}
+                        onClick={() => openEdit(mod)}
                       >
                         ✎ <span>edit</span>
-                      </NavLink>
+                      </button>
 
                       <button
                         className={styles.actionDelete}
@@ -902,13 +1052,25 @@ export default function ModuleManagement() {
               <div className={styles.popupSection}>
                 <div className={styles.popupSectionRow}>
                   <label className={styles.popupLabel}>Quiz Module</label>
-                  <button
-                    type="button"
-                    className={styles.popupAddBtn}
-                    onClick={addNewQuizItem}
-                  >
-                    Add +
-                  </button>
+
+                  <div style={{ display: "flex", gap: "10px" }}>
+                    <button
+                      type="button"
+                      className={styles.popupAddBtn}
+                      onClick={handleGenerateQuizForNew}
+                      disabled={generatingNewQuiz}
+                    >
+                      {generatingNewQuiz ? "Generating..." : "AI Generate"}
+                    </button>
+
+                    <button
+                      type="button"
+                      className={styles.popupAddBtn}
+                      onClick={addNewQuizItem}
+                    >
+                      Add +
+                    </button>
+                  </div>
                 </div>
 
                 {newQuizItems.length === 0 ? (
@@ -1076,13 +1238,25 @@ export default function ModuleManagement() {
               <div className={styles.popupSection}>
                 <div className={styles.popupSectionRow}>
                   <label className={styles.popupLabel}>Quiz Module</label>
-                  <button
-                    type="button"
-                    className={styles.popupAddBtn}
-                    onClick={addEditQuizItem}
-                  >
-                    Add +
-                  </button>
+
+                  <div style={{ display: "flex", gap: "10px" }}>
+                    <button
+                      type="button"
+                      className={styles.popupAddBtn}
+                      onClick={handleGenerateQuizForEdit}
+                      disabled={generatingEditQuiz}
+                    >
+                      {generatingEditQuiz ? "Generating..." : "AI Generate"}
+                    </button>
+
+                    <button
+                      type="button"
+                      className={styles.popupAddBtn}
+                      onClick={addEditQuizItem}
+                    >
+                      Add +
+                    </button>
+                  </div>
                 </div>
 
                 {editQuizItems.length === 0 ? (
