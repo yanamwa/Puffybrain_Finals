@@ -1,0 +1,1070 @@
+:root {
+  --color-primary: #ebd3fa;
+  --color-secondary: #e3aadd;
+  --color-third: #c8a8e9;
+  --color-fourth: #a993d8;
+  --color-fifth: #c3c7f3;
+  --font-color: #2f2f2f;
+}
+
+/* PAGE */
+.container {
+  display: flex;
+  min-height: 100vh;
+  background: #f5f5f5;
+  transition: all 0.3s ease;
+}
+
+.container.sidebarCollapsed .sidebar {
+  width: 60px;
+}
+
+/* SIDEBAR */
+.sidebar {
+  position: fixed;
+  width: 220px;
+  background-color: var(--color-primary);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100vh;
+  padding-top: 10px;
+  transition: width 0.3s ease;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.sidebar.collapsed {
+  width: 60px;
+}
+
+.logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.logoExpanded {
+  display: block;
+  width: 150px;
+  height: auto;
+  object-fit: contain;
+}
+
+.logoCollapsed {
+  display: none;
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+  margin: 0;
+}
+
+.sidebar.collapsed .logoExpanded {
+  display: none;
+}
+
+.sidebar.collapsed .logoCollapsed {
+  display: block;
+}
+
+.sidebarToggle {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 10px;
+  cursor: pointer;
+}
+
+.sidebar.collapsed .sidebarToggle {
+  justify-content: center;
+  padding: 0;
+}
+
+.sidebarToggle i {
+  font-size: 24px;
+  color: #959494;
+}
+
+.menu,
+.myDecksNav,
+.logout {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebarList {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 10px;
+}
+
+.sidebarListItem {
+  margin: 0;
+}
+
+.sidebarList i {
+  width: 25px;
+  height: 25px;
+  font-size: 22px;
+  margin-left: 15px;
+  margin-right: 10px;
+  opacity: 0.3;
+  color: black;
+  flex-shrink: 0;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #000;
+  padding: 10px 12px;
+  margin: 5px 0;
+  border-radius: 20px 0 0 20px;
+  transition: background 0.3s ease;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+  min-height: 44px;
+}
+
+.menuItem:hover {
+  background: white;
+}
+
+.menuText {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar.collapsed .menuText {
+  display: none;
+}
+
+.myDecks,
+.myDecksTitle {
+  font-size: 17px;
+  margin: 0.3rem 0 0 15px;
+  color: #000;
+}
+
+.logout {
+  margin-bottom: 20px;
+  padding-left: 10px;
+}
+
+.logoutLink {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  color: #000;
+  padding: 10px 12px;
+  margin: 5px 0;
+  border-radius: 20px 0 0 20px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  width: 100%;
+  text-align: left;
+  transition: background 0.3s ease;
+  box-sizing: border-box;
+  min-height: 44px;
+}
+
+.logoutLink:hover {
+  background: white;
+}
+
+.sidebar.collapsed i {
+  margin-left: 0;
+  margin-right: 0;
+  justify-content: center;
+  width: 100%;
+  display: flex;
+  font-size: 1.5rem;
+}
+
+.sidebar.collapsed .menuItem,
+.sidebar.collapsed .logoutLink {
+  width: 100%;
+  justify-content: center;
+  padding: 10px 0;
+  border-radius: 16px;
+}
+
+.sidebar.collapsed .sidebarList span {
+  display: none;
+}
+
+.divider {
+  height: 1px;
+  background-color: white;
+  margin: 0 10px;
+}
+
+.sidebar.collapsed .myDecks,
+.sidebar.collapsed .myDecksTitle {
+  display: none;
+}
+
+/* MAIN */
+.mainArea {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  margin-left: 220px;
+  transition: margin-left 0.3s ease;
+}
+
+.sidebarCollapsed .mainArea {
+  margin-left: 90px;
+}
+
+.gridContainer {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 70px 1fr;
+  grid-template-areas:
+    "header"
+    "main";
+  min-height: 100vh;
+}
+
+/* HEADER */
+.headerContainer {
+  grid-area: header;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 2px solid #e6e6e6;
+  background: #fff;
+  position: relative;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 100px;
+  height: 34px;
+  width: 520px;
+  max-width: 640px;
+  border: 2px solid var(--color-third);
+  overflow: hidden;
+}
+
+.searchBar input {
+  border: none;
+  background: transparent;
+  padding: 0 18px;
+  flex: 1;
+  font-size: 15px;
+  outline: none;
+  color: var(--font-color);
+}
+
+.searchBar i {
+  font-size: 16px;
+  color: #000;
+  width: 52px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+}
+
+.profileWrapper {
+  position: absolute;
+  right: 30px;
+  top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 10;
+}
+
+.dpContainer {
+  width: 40px;
+  height: 40px;
+}
+
+.profilePic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.userInfo p {
+  margin: 0;
+  font-size: 20px;
+  color: #000;
+  white-space: nowrap;
+}
+
+.dropdown {
+  position: relative;
+}
+
+.dropdownBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 6px;
+}
+
+.dropdownContent {
+  position: absolute;
+  top: 34px;
+  right: 0;
+  display: none;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  min-width: 190px;
+  padding: 8px;
+  z-index: 9999;
+}
+
+.dropdownContent a,
+.dropdownLogout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #000;
+  background: #fff;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.dropdownContent a:hover,
+.dropdownLogout:hover {
+  background: #f3f3f3;
+}
+
+.show {
+  display: block;
+}
+
+/* PAGE CONTENT */
+.main {
+  grid-area: main;
+  padding: 28px 34px 50px;
+  background: rgb(243, 243, 243);
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pageHeader {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.profileTitle {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: #111;
+  margin: 0;
+  padding-left: 10px;
+}
+
+/* PROFILE PAGE */
+.profilePage {
+  width: 100%;
+  max-width: 1040px;
+  margin-top: 10px;
+}
+
+.profileOuter {
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  background: #d9bdf1;
+  border-radius: 22px;
+  padding: 12px;
+}
+
+.profileInner {
+  border: 2px dashed #6d5a7b;
+  border-radius: 18px;
+  padding: 14px 14px 12px;
+  position: relative;
+}
+
+.profileCard {
+  position: relative;
+  background: #fdfdfd;
+  border: 1.5px solid #8a8a8a;
+  border-radius: 22px;
+  padding: 44px 28px 24px;
+  margin-top: 18px;
+  overflow: visible;
+  min-height: 470px;
+}
+
+.profileTabs {
+  position: absolute;
+  top: -28px;
+  left: 18px;
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  z-index: 5;
+}
+
+.tabBtn {
+  min-width: 200px;
+  height: 35px;
+  padding: 0 28px;
+  border: 1.5px solid #8a8a8a;
+  border-bottom: none;
+  background: #cfcfcf;
+  color: #111;
+  border-radius: 26px 26px 0 0;
+  font-size: 15px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.1;
+  cursor: pointer;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.activeTab {
+  background: #fdfdfd;
+  height: 45px;
+  z-index: 2;
+}
+
+.tabBtn + .tabBtn {
+  margin-left: -12px;
+}
+
+.tabBtn:not(.activeTab) {
+  margin-left: -6px;
+}
+
+.editTop {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.editBtn {
+  border: none;
+  background: #d89add;
+  color: #111;
+  font-weight: 600;
+  padding: 10px 26px;
+  border-radius: 14px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.profileContent {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 28px;
+}
+
+.profileForm {
+  width: 100%;
+  max-width: 430px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 18px;
+}
+
+.formGroup label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 8px;
+}
+
+.formGroup input {
+  width: 100%;
+  height: 40px;
+  border-radius: 22px;
+  border: 1px solid #b5b5b5;
+  background: #efefef;
+  padding: 0 16px;
+  font-size: 14px;
+  color: #444;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.profileImageSection {
+  margin-left: auto;
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 8px;
+}
+
+.largeProfilePic {
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.imageHint {
+  margin-top: 14px;
+  text-align: center;
+  font-size: 18px;
+  color: #9a9a9a;
+  line-height: 1.4;
+  max-width: 220px;
+}
+
+/* SETTINGS */
+.settingsContent {
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+  margin-top: 4px;
+}
+
+.settingsCard {
+  background: #fdfdfd;
+  border: 1.5px solid #8a8a8a;
+  border-radius: 38px;
+  overflow: hidden;
+}
+
+.settingsHeading {
+  margin: 0;
+  padding: 26px 34px 18px;
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: #111;
+}
+
+.deleteHeading {
+  color: #8f0000;
+}
+
+.settingsDivider {
+  height: 1px;
+  background: #d9d9d9;
+}
+
+.settingsBody {
+  padding: 28px 38px 34px;
+}
+
+.passwordGroup {
+  margin-bottom: 28px;
+}
+
+.passwordGroup label {
+  display: block;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #111;
+  margin-bottom: 10px;
+}
+
+.passwordInputWrap {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 520px;
+  height: 48px;
+  border-radius: 14px;
+  background: #efefef;
+  border: 1px solid #e1e1e1;
+  padding: 0 14px;
+  box-sizing: border-box;
+}
+
+.passwordInputWrap input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 1rem;
+  color: #666;
+  font-weight: 600;
+}
+
+.eyeBtn {
+  border: none;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.eyeBtn i {
+  font-size: 24px;
+  color: #b39bd9;
+}
+
+.changePasswordBtn {
+  width: 100%;
+  max-width: 520px;
+  height: 42px;
+  border: none;
+  border-radius: 24px;
+  background: #d9c2f5;
+  color: #111;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #ba9ddd;
+}
+
+.deleteBody {
+  padding: 28px 38px 30px;
+  text-align: center;
+}
+
+.deleteText {
+  margin: 0 0 24px;
+  color: #9a1c1c;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.deleteAccountBtn {
+  min-width: 180px;
+  height: 38px;
+  border: 2px solid #6b0000;
+  border-radius: 22px;
+  background: #c91010;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #7d0000;
+}
+
+/* MODAL */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 3000;
+}
+
+.editModal {
+  position: relative;
+  width: min(880px, 100%);
+  max-height: 92vh;
+  overflow-y: auto;
+  background: #d9bdf1;
+  border-radius: 26px;
+  padding: 16px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.22);
+}
+
+.modalCloseBtn {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  font-size: 24px;
+  display: grid;
+  place-items: center;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+}
+
+.modalTabs {
+  display: flex;
+  gap: 0;
+  margin-left: 24px;
+  position: relative;
+  z-index: 2;
+}
+
+.modalTabBtn {
+  min-width: 190px;
+  height: 48px;
+  border: 1.5px solid #8a8a8a;
+  border-bottom: none;
+  background: #cfcfcf;
+  border-radius: 24px 24px 0 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: #111;
+}
+
+.modalTabBtn + .modalTabBtn {
+  margin-left: -10px;
+}
+
+.modalTabActive {
+  background: #fdfdfd;
+}
+
+.modalCard {
+  background: #fdfdfd;
+  border: 1.5px solid #8a8a8a;
+  border-radius: 34px;
+  margin-top: -1px;
+  overflow: hidden;
+}
+
+.modalTitle {
+  margin: 0;
+  padding: 28px 34px 18px;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #111;
+}
+
+.modalDivider {
+  height: 1px;
+  background: #d8d8d8;
+}
+
+.modalContent {
+  padding: 26px 30px 32px;
+  display: flex;
+  align-items: flex-start;
+  gap: 34px;
+}
+
+.modalForm {
+  flex: 1;
+}
+
+.modalFormGroup {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 22px;
+}
+
+.modalFormGroup label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #111;
+  margin-bottom: 10px;
+}
+
+.modalFormGroup input {
+  width: 100%;
+  height: 46px;
+  border: none;
+  border-radius: 14px;
+  background: #efefef;
+  padding: 0 14px;
+  font-size: 1rem;
+  color: #666;
+  font-weight: 600;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.modalPhotoSection {
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 8px;
+}
+
+.uploadPhotoCircle {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: #f3f3f3;
+  border: 1.5px solid #d0d0d0;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+}
+
+.uploadPhotoCircle i {
+  font-size: 48px;
+  color: #8f8f8f;
+}
+
+.uploadPhotoCircle span {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111;
+}
+
+.uploadPhotoCircle input {
+  display: none;
+}
+
+.uploadPreview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.modalPhotoHint {
+  margin-top: 14px;
+  text-align: center;
+  font-size: 14px;
+  color: #8d8d8d;
+  line-height: 1.4;
+  max-width: 210px;
+}
+
+.modalActions {
+  display: flex;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.cancelBtn,
+.saveChangesBtn {
+  height: 42px;
+  min-width: 180px;
+  border: none;
+  border-radius: 24px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cancelBtn {
+  background: #ececec;
+  color: #333;
+}
+
+.saveChangesBtn {
+  background: #d9c2f5;
+  color: #111;
+  box-shadow: 0 4px 0 #ba9ddd;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1200px) {
+  .profileOuter {
+    max-width: 960px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .searchBar {
+    width: 420px;
+  }
+
+  .profileContent {
+    gap: 20px;
+  }
+
+  .profileImageSection {
+    width: 190px;
+  }
+
+  .largeProfilePic {
+    width: 170px;
+    height: 170px;
+  }
+
+  .imageHint {
+    font-size: 14px;
+    max-width: 180px;
+  }
+}
+
+@media (max-width: 900px) {
+  .main {
+    padding: 24px 20px 40px;
+  }
+
+  .profileOuter {
+    max-width: 100%;
+  }
+
+  .profileCard {
+    padding: 44px 20px 22px;
+  }
+
+  .profileContent {
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .profileForm {
+    max-width: 100%;
+  }
+
+  .profileImageSection {
+    margin-left: 0;
+    width: 100%;
+    padding-top: 0;
+  }
+
+  .formGroup input {
+    max-width: 100%;
+  }
+
+  .settingsBody,
+  .deleteBody {
+    padding: 24px 20px 28px;
+  }
+
+  .settingsHeading {
+    font-size: 1.8rem;
+    padding: 22px 20px 16px;
+  }
+
+  .passwordInputWrap,
+  .changePasswordBtn {
+    max-width: 100%;
+  }
+
+  .modalContent {
+    flex-direction: column-reverse;
+    align-items: center;
+  }
+
+  .modalForm {
+    width: 100%;
+  }
+
+  .modalPhotoSection {
+    width: 100%;
+    padding-top: 0;
+  }
+
+  .modalActions {
+    flex-direction: column;
+  }
+
+  .cancelBtn,
+  .saveChangesBtn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 700px) {
+  .mainArea {
+    margin-left: 60px;
+  }
+
+  .sidebar {
+    width: 60px;
+  }
+
+  .logoExpanded {
+    display: none;
+  }
+
+  .logoCollapsed {
+    display: block;
+  }
+
+  .menuText,
+  .myDecks,
+  .myDecksTitle {
+    display: none;
+  }
+
+  .sidebarList i {
+    margin-left: 0;
+    margin-right: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .menuItem,
+  .logoutLink {
+    justify-content: center;
+    padding: 10px 0;
+    border-radius: 16px;
+  }
+
+  .searchBar {
+    width: 260px;
+  }
+
+  .userInfo p {
+    font-size: 16px;
+  }
+
+  .profileTitle {
+    font-size: 1.9rem;
+  }
+
+  .tabBtn {
+    min-width: 145px;
+    padding: 0 14px;
+    font-size: 12px;
+  }
+
+  .largeProfilePic {
+    width: 130px;
+    height: 130px;
+  }
+
+  .imageHint {
+    font-size: 12px;
+  }
+
+  .settingsHeading {
+    font-size: 1.5rem;
+  }
+
+  .modalTabs {
+    margin-left: 8px;
+  }
+
+  .modalTabBtn {
+    min-width: 140px;
+    font-size: 12px;
+    padding: 0 10px;
+  }
+
+  .modalTitle {
+    font-size: 1.6rem;
+    padding: 24px 20px 16px;
+  }
+
+  .modalContent {
+    padding: 22px 18px 24px;
+  }
+}

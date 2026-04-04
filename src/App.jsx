@@ -17,6 +17,7 @@ import ChangePassword from "./pages/useraccount/Changepassword";
 import ForgotUsername from "./pages/useraccount/forgotuser";
 import CantSign from "./pages/useraccount/cant_sign";
 import ChangeUsername from "./pages/useraccount/Changeusername";
+import EditProfile from "./pages/User_profile/edit-profile";
 
 /* Introduction */
 import Welcome from "./pages/introduction/Welcome";
@@ -83,6 +84,7 @@ export default function App() {
       <Route path="/forgot-username" element={<ForgotUsername />} />
       <Route path="/cant-signin" element={<CantSign />} />
       <Route path="/change-username" element={<ChangeUsername />} />
+      <Route path="/edit-profile" element={<EditProfile />} />
 
       {/* USER INTRODUCTION */}
       <Route path="/welcome" element={<Welcome />} />

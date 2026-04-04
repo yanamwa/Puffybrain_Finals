@@ -296,7 +296,7 @@ function UserProfile() {
                     <div className={styles.profileButtonWrap}>
                       <button
                         className={styles.editBtn}
-                        onClick={() => navigate("/setting-profile/setting-profilee")}
+                        onClick={() => navigate("/edit-profile")}
                       >
                         Edit Profile
                       </button>
