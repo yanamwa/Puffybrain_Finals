@@ -5,18 +5,15 @@ import styles from "./userDecks.module.css";
 import Swal from "sweetalert2";
 
 export default function UserDecks() {
-
   /* =========================
      NAVIGATION / PARAMS
   ========================= */
-
   const navigate = useNavigate();
   const { deckId } = useParams();
 
   /* =========================
      STATE
   ========================= */
-
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showAddCard, setShowAddCard] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -30,55 +27,70 @@ export default function UserDecks() {
 
   const [user, setUser] = useState({
     username: "",
-    year_level: ""
+    year_level: "",
   });
 
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [image, setImage] = useState(null);
+  const [preview, setPreview] = useState("");
 
   const [editingCardId, setEditingCardId] = useState(null);
 
   /* =========================
      REFS
   ========================= */
-
   const imageInputRef = useRef(null);
-  const previewImgRef = useRef(null);
 
   /* =========================
      IMAGE HANDLERS
   ========================= */
-
   const handleImageAttach = () => {
     imageInputRef.current?.click();
   };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
 
     setImage(file);
-
-    if (previewImgRef.current) {
-      previewImgRef.current.src = URL.createObjectURL(file);
-    }
+    setPreview(URL.createObjectURL(file));
   };
 
   const removeImage = () => {
     setImage(null);
+    setPreview("");
 
-    if (previewImgRef.current) previewImgRef.current.src = "";
-    if (imageInputRef.current) imageInputRef.current.value = "";
+    if (imageInputRef.current) {
+      imageInputRef.current.value = "";
+    }
+  };
+
+  /* =========================
+     HELPERS
+  ========================= */
+  const resetCardForm = () => {
+    setQuestion("");
+    setAnswer("");
+    setEditingCardId(null);
+    removeImage();
+  };
+
+  const getCardImageSrc = (cardImage) => {
+    if (!cardImage) return "";
+
+    if (cardImage.startsWith("http://") || cardImage.startsWith("https://")) {
+      return cardImage;
+    }
+
+    return `http://localhost/puffybrain/card_images/${cardImage}`;
   };
 
   /* =========================
      FETCH FUNCTIONS (API)
   ========================= */
-
   const fetchDeck = async () => {
     try {
-
       const res = await fetch(
         `http://localhost/puffybrain/getDeckById.php?deckId=${deckId}`,
         { credentials: "include" }
@@ -88,124 +100,121 @@ export default function UserDecks() {
 
       if (data.success) {
         setDeck(data.deck);
+      } else {
+        console.error("Failed to fetch deck:", data.message);
       }
-
     } catch (err) {
-      console.error(err);
+      console.error("fetchDeck error:", err);
     }
   };
 
   const fetchCards = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`
+      );
 
-    const res = await fetch(
-      `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`
-    );
+      const data = await res.json();
+      console.log("Cards response:", data);
 
-    const data = await res.json();
-
-    console.log("Cards:", data);
-
-    if (data.success) {
-      setCards(data.cards);
+      if (data.success) {
+        setCards(data.cards);
+      } else {
+        console.error("Failed to fetch cards:", data.message);
+        setCards([]);
+      }
+    } catch (err) {
+      console.error("fetchCards error:", err);
+      setCards([]);
     }
-
   };
 
   const fetchUserDecks = async () => {
-
     try {
-
-      const res = await fetch(
-        "http://localhost/puffybrain/userDecks.php",
-        { credentials: "include" }
-      );
+      const res = await fetch("http://localhost/puffybrain/userDecks.php", {
+        credentials: "include",
+      });
 
       const data = await res.json();
 
       if (data.success) {
         setMyDecks(data.decks);
+      } else {
+        console.error("Failed to fetch user decks:", data.message);
       }
-
     } catch (err) {
-      console.error(err);
+      console.error("fetchUserDecks error:", err);
     }
-
   };
 
   const fetchUser = async () => {
-
     try {
-
-      const res = await fetch(
-        "http://localhost/puffybrain/getUser.php",
-        { credentials: "include" }
-      );
+      const res = await fetch("http://localhost/puffybrain/getUser.php", {
+        credentials: "include",
+      });
 
       const data = await res.json();
 
       if (data.success) {
         setUser(data.user);
+      } else {
+        console.error("Failed to fetch user:", data.message);
       }
-
     } catch (err) {
-      console.error(err);
+      console.error("fetchUser error:", err);
     }
-
   };
 
   /* =========================
      USE EFFECTS
   ========================= */
-
   useEffect(() => {
-
-    fetchDeck();
-    fetchCards();
-
-  }, [deckId]);
-
-  useEffect(() => {
+    if (!deckId) {
+      console.error("deckId is missing from route params");
+      return;
+    }
 
     fetchDeck();
     fetchCards();
     fetchUserDecks();
     fetchUser();
-
   }, [deckId]);
 
   useEffect(() => {
-
     const handler = (e) => {
       const insideDropdown = e.target.closest?.(`.${styles.dropdown}`);
       if (!insideDropdown) setDropdownOpen(false);
     };
 
     window.addEventListener("click", handler);
-
     return () => window.removeEventListener("click", handler);
-
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (preview) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
 
   /* =========================
      UI CONTROLS
   ========================= */
-
-  const openAddCard = () => setShowAddCard(true);
+  const openAddCard = () => {
+    resetCardForm();
+    setShowAddCard(true);
+  };
 
   const closeAddCard = () => {
     setShowAddCard(false);
-    setQuestion("");
-    setAnswer("");
-    setEditingCardId(null);
-    removeImage();
+    resetCardForm();
   };
 
   const handleLogout = () => {
-
     if (window.confirm("Are you sure you want to logout?")) {
       navigate("/login");
     }
-
   };
 
   const openDeck = (id) => {
@@ -215,218 +224,259 @@ export default function UserDecks() {
   /* =========================
      CARD CRUD
   ========================= */
-
-const handleAddCard = async () => {
-
-  if (!question || !answer) {
-    alert("Please fill the question and answer");
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("deckId", deckId);
-  formData.append("question", question);
-  formData.append("answer", answer);
-
-  if (image) {
-    formData.append("image", image);
-  }
-
-  if (editingCardId) {
-    formData.append("cardId", editingCardId);
-  }
-
-  try {
-
-    const url = editingCardId
-      ? "http://localhost/puffybrain/updateCard.php"
-      : "http://localhost/puffybrain/addCard.php";
-
-    const res = await fetch(url, {
-      method: "POST",
-      body: formData
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-
-      const isEditing = editingCardId !== null;
-
-      setQuestion("");
-      setAnswer("");
-      removeImage();
-
-      setEditingCardId(null);
-      setShowAddCard(false);
-
-      fetchCards();
-
+  const handleAddCard = async () => {
+    if (!deckId) {
       Swal.fire({
-        title: isEditing ? "Edit Successfully!" : "Card Added!",
-        text: isEditing
-          ? "The card was edited successfully."
-          : "The card was added successfully.",
-        icon: "success",
-        timer: 1500,
-        showConfirmButton: false
+        title: "Missing deck",
+        text: "Deck ID is missing.",
+        icon: "error",
       });
-
+      return;
     }
 
-  } catch (err) {
-    console.error(err);
-  }
-
-};
-
-const handleDeleteCard = async (cardId) => {
-
-  const result = await Swal.fire({
-    title: "Delete this card?",
-    text: "This action cannot be undone.",
-    imageUrl: "/images/error.png",
-    imageWidth: 80,
-    imageHeight: 80,
-    showCancelButton: true,
-    confirmButtonText: "Delete",
-    cancelButtonText: "Cancel",
-    confirmButtonColor: "#e74c3c",
-    cancelButtonColor: "#6c757d"
-  });
-
-  if (!result.isConfirmed) return;
-
-  try {
-
-    const formData = new FormData();
-    formData.append("cardId", cardId);
-
-    const res = await fetch("http://localhost/puffybrain/deleteCard.php", {
-      method: "POST",
-      body: formData
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-
-      setCards((prev) => prev.filter(card => card.id !== cardId));
-
+    if (!question.trim() || !answer.trim()) {
       Swal.fire({
-        title: "Deleted!",
-        text: "The card was removed.",
-        icon: "success",
-        timer: 1500,
-        showConfirmButton: false
+        title: "Missing fields",
+        text: "Please fill in both question and answer.",
+        icon: "warning",
       });
-
-    } else {
-
-      Swal.fire({
-        title: "Error",
-        text: "Failed to delete card",
-        icon: "error"
-      });
-
+      return;
     }
-
-  } catch (error) {
-
-    console.error("Delete error:", error);
-
-    Swal.fire({
-      title: "Server Error",
-      text: "Something went wrong.",
-      icon: "error"
-    });
-
-  }
-
-};
-const handleEditDeck = async () => {
-
-  const { value: formValues } = await Swal.fire({
-    title: "Edit Deck",
-    html: `
-      <input id="swal-title" class="swal2-input" placeholder="Deck title" value="${deck.title}">
-      <textarea id="swal-desc" class="swal2-textarea" placeholder="Deck description">${deck.description || ""}</textarea>
-    `,
-    focusConfirm: false,
-    showCancelButton: true,
-    confirmButtonText: "Save",
-    cancelButtonText: "Cancel",
-    preConfirm: () => {
-      return {
-        title: document.getElementById("swal-title").value,
-        description: document.getElementById("swal-desc").value
-      };
-    }
-  });
-
-  if (!formValues) return;
-
-  try {
 
     const formData = new FormData();
     formData.append("deckId", deckId);
-    formData.append("title", formValues.title);
-    formData.append("description", formValues.description);
+    formData.append("question", question.trim());
+    formData.append("answer", answer.trim());
 
-    const res = await fetch("http://localhost/puffybrain/updateDeck.php", {
-      method: "POST",
-      body: formData
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-
-      fetchDeck();
-
-      Swal.fire({
-        title: "Updated!",
-        text: "Deck information updated successfully.",
-        icon: "success",
-        timer: 1500,
-        showConfirmButton: false
-      });
-
-    } else {
-
-      Swal.fire({
-        title: "Error",
-        text: "Failed to update deck.",
-        icon: "error"
-      });
-
+    if (image) {
+      formData.append("image", image);
     }
 
-  } catch (err) {
-    console.error(err);
-  }
+    if (editingCardId) {
+      formData.append("cardId", editingCardId);
+    }
 
-};
+    try {
+      const url = editingCardId
+        ? "http://localhost/puffybrain/updateCard.php"
+        : "http://localhost/puffybrain/addCard.php";
 
-  const handleEditCard = (card) => {
-    setQuestion(card.question);
-    setAnswer(card.answer);
-    setEditingCardId(card.id);
-    setShowAddCard(true);
+      const res = await fetch(url, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      console.log("ADD/UPDATE CARD RESPONSE:", data);
+
+      if (data.success) {
+        const isEditing = editingCardId !== null;
+
+        resetCardForm();
+        setShowAddCard(false);
+
+        await fetchCards();
+
+        Swal.fire({
+          title: isEditing ? "Edit Successfully!" : "Card Added!",
+          text: isEditing
+            ? "The card was edited successfully."
+            : "The card was added successfully.",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      } else {
+        Swal.fire({
+          title: "Failed",
+          text: data.message || "Could not save the card.",
+          icon: "error",
+        });
+      }
+    } catch (err) {
+      console.error("handleAddCard error:", err);
+
+      Swal.fire({
+        title: "Server Error",
+        text: "Something went wrong while saving the card.",
+        icon: "error",
+      });
+    }
   };
 
-  return (
+  const handleDeleteCard = async (cardId) => {
+    const result = await Swal.fire({
+      title: "Delete this card?",
+      text: "This action cannot be undone.",
+      imageUrl: "/images/error.png",
+      imageWidth: 80,
+      imageHeight: 80,
+      showCancelButton: true,
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#e74c3c",
+      cancelButtonColor: "#6c757d",
+    });
 
-    <div className={`${styles.container} ${isCollapsed ? styles.sidebarCollapsed : ""}`}>
-      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
+    if (!result.isConfirmed) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("cardId", cardId);
+
+      const res = await fetch("http://localhost/puffybrain/deleteCard.php", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setCards((prev) => prev.filter((card) => card.id !== cardId));
+
+        Swal.fire({
+          title: "Deleted!",
+          text: "The card was removed.",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: data.message || "Failed to delete card.",
+          icon: "error",
+        });
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+
+      Swal.fire({
+        title: "Server Error",
+        text: "Something went wrong.",
+        icon: "error",
+      });
+    }
+  };
+
+  const handleEditDeck = async () => {
+    if (!deck) return;
+
+    const { value: formValues } = await Swal.fire({
+      title: "Edit Deck",
+      html: `
+        <input id="swal-title" class="swal2-input" placeholder="Deck title" value="${deck.title || ""}">
+        <textarea id="swal-desc" class="swal2-textarea" placeholder="Deck description">${deck.description || ""}</textarea>
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: "Save",
+      cancelButtonText: "Cancel",
+      preConfirm: () => {
+        return {
+          title: document.getElementById("swal-title").value,
+          description: document.getElementById("swal-desc").value,
+        };
+      },
+    });
+
+    if (!formValues) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("deckId", deckId);
+      formData.append("title", formValues.title);
+      formData.append("description", formValues.description);
+
+      const res = await fetch("http://localhost/puffybrain/updateDeck.php", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        await fetchDeck();
+
+        Swal.fire({
+          title: "Updated!",
+          text: "Deck information updated successfully.",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: data.message || "Failed to update deck.",
+          icon: "error",
+        });
+      }
+    } catch (err) {
+      console.error("handleEditDeck error:", err);
+    }
+  };
+
+  const handleEditCard = (card) => {
+    setQuestion(card.question || "");
+    setAnswer(card.answer || "");
+    setEditingCardId(card.id);
+    setShowAddCard(true);
+
+    if (card.image) {
+      setPreview(getCardImageSrc(card.image));
+    } else {
+      setPreview("");
+    }
+
+    setImage(null);
+  };
+
+  /* =========================
+     FILTERED CARDS
+  ========================= */
+  const filteredCards = cards.filter((card) => {
+    if (activeTab === "All Cards") return true;
+
+    if (activeTab === "Memorized") {
+      return Number(card.is_memorized) === 1;
+    }
+
+    if (activeTab === "Not Memorized") {
+      return Number(card.is_memorized) !== 1;
+    }
+
+    return true;
+  });
+
+  return (
+    <div
+      className={`${styles.container} ${
+        isCollapsed ? styles.sidebarCollapsed : ""
+      }`}
+    >
+      <aside
+        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
+      >
         <div>
-          <div className={styles.sidebarToggle} onClick={() => setIsCollapsed(!isCollapsed)}>
+          <div
+            className={styles.sidebarToggle}
+            onClick={() => setIsCollapsed(!isCollapsed)}
+          >
             <i className="bx bx-sidebar"></i>
           </div>
 
           <div className={styles.logo}>
-            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
-            <img className={styles.logoCollapsed} src="/images/logo_solo.png" alt="Logo" />
+            <img
+              className={styles.logoExpanded}
+              src="/images/logo1.png"
+              alt="Logo"
+            />
+            <img
+              className={styles.logoCollapsed}
+              src="/images/logo_solo.png"
+              alt="Logo"
+            />
           </div>
 
           <div className={styles.divider}></div>
@@ -443,7 +493,10 @@ const handleEditDeck = async () => {
               </li>
 
               <li className={styles.sidebarListItem}>
-                <NavLink to="/mydecks" className={`${styles.menuItem} ${styles.active}`}>
+                <NavLink
+                  to="/mydecks"
+                  className={`${styles.menuItem} ${styles.active}`}
+                >
                   <i className="bx bx-book"></i>
                   <span className={styles.menuText}>Decks</span>
                 </NavLink>
@@ -465,21 +518,30 @@ const handleEditDeck = async () => {
             <ul className={styles.sidebarList}>
               {myDecks.length === 0 ? (
                 <li className={styles.sidebarListItem}>
-                  <span className={styles.menuText} style={{ opacity: 0.6 }}>
+                  <span
+                    className={styles.menuText}
+                    style={{ opacity: 0.6 }}
+                  >
                     Don't have decks yet
                   </span>
                 </li>
               ) : (
-                myDecks.slice(0, 3).map((deck) => (
-                  <li key={deck.id} className={styles.sidebarListItem}>
+                myDecks.slice(0, 3).map((deckItem) => (
+                  <li key={deckItem.id} className={styles.sidebarListItem}>
                     <button
                       type="button"
-                      onClick={() => openDeck(deck.id)}
+                      onClick={() => openDeck(deckItem.id)}
                       className={styles.menuItem}
-                      style={{ background: 'transparent', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left' }}
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        cursor: "pointer",
+                        width: "100%",
+                        textAlign: "left",
+                      }}
                     >
                       <i className="bx bx-book"></i>
-                      <span className={styles.menuText}>{deck.title}</span>
+                      <span className={styles.menuText}>{deckItem.title}</span>
                     </button>
                   </li>
                 ))
@@ -499,17 +561,21 @@ const handleEditDeck = async () => {
       <div className={styles.mainArea}>
         <div className={styles.gridContainer}>
           <div className={styles.headerContainer}>
-            <form className={styles.searchBar} onSubmit={(e) => e.preventDefault()}>
-              <input
-                type="text"
-                placeholder="Search your decks"
-              />
+            <form
+              className={styles.searchBar}
+              onSubmit={(e) => e.preventDefault()}
+            >
+              <input type="text" placeholder="Search your decks" />
               <i className="bx bx-search" />
             </form>
 
             <div className={styles.profileWrapper}>
               <div className={styles.dpContainer}>
-                <img src="/images/temporary profile.jpg" alt="Profile" className={styles.profilePic} />
+                <img
+                  src="/images/temporary profile.jpg"
+                  alt="Profile"
+                  className={styles.profilePic}
+                />
               </div>
 
               <div className={styles.userInfo}>
@@ -528,7 +594,11 @@ const handleEditDeck = async () => {
                   <i className="bx bx-chevron-down" />
                 </button>
 
-                <div className={`${styles.dropdownContent} ${dropdownOpen ? styles.show : ""}`}>
+                <div
+                  className={`${styles.dropdownContent} ${
+                    dropdownOpen ? styles.show : ""
+                  }`}
+                >
                   <NavLink to="/user-profile">
                     <i className="bx bx-cog" />
                     <span>Settings</span>
@@ -555,21 +625,27 @@ const handleEditDeck = async () => {
               <div className={styles["deck-info"]}>
                 {deck ? (
                   <>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <h3>{deck.title}</h3>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                      }}
+                    >
+                      <h3>{deck.title}</h3>
 
-                <button
-                  onClick={handleEditDeck}
-                  className={styles.deckEditBtn}
-                >
-                  <i className="bx bx-edit"></i>
-                  Edit
-                </button>
+                      <button
+                        onClick={handleEditDeck}
+                        className={styles.deckEditBtn}
+                      >
+                        <i className="bx bx-edit"></i>
+                        Edit
+                      </button>
+                    </div>
 
-              </div>
-              <p>{cards.length} cards</p>    
+                    <p>{cards.length} cards</p>
 
-                <hr />
+                    <hr />
 
                     <div className={styles.desc}>
                       <p>Description</p>
@@ -578,11 +654,13 @@ const handleEditDeck = async () => {
                     </div>
 
                     <div className={styles["deck-meta"]}>
-                  <span>
-                    Created by {deck.created_by?.toLowerCase() === user.username?.toLowerCase()
-                      ? "you"
-                      : deck.created_by}
-                  </span>
+                      <span>
+                        Created by{" "}
+                        {deck.created_by?.toLowerCase() ===
+                        user.username?.toLowerCase()
+                          ? "you"
+                          : deck.created_by}
+                      </span>
 
                       <span className={styles["deck-privacy"]}>
                         <span className={styles.dot}></span> {deck.visibility}
@@ -600,7 +678,10 @@ const handleEditDeck = async () => {
                 <button className={styles["add-cards"]} onClick={openAddCard}>
                   Add Cards
                 </button>
-                <button className={styles.practice} onClick={() => setShowModes(true)}>
+                <button
+                  className={styles.practice}
+                  onClick={() => setShowModes(true)}
+                >
                   Practice
                 </button>
               </div>
@@ -617,100 +698,109 @@ const handleEditDeck = async () => {
                 ))}
               </div>
 
-            {cards.length === 0 ? (
+              {filteredCards.length === 0 ? (
+                <div className={styles["empty-wrapper"]}>
+                  <img
+                    src="/images/cute1.png"
+                    className={styles["empty-img"]}
+                    alt="Empty"
+                  />
+                  <p className={styles["empty-msg"]}>There are no cards</p>
+                </div>
+              ) : (
+                <div className={styles.cardsList}>
+                  {filteredCards.map((card) => (
+                    <div key={card.id} className={styles.cards}>
+                      <div className={styles.cardHeader}>
+                        <button
+                          className={styles.editBtn}
+                          onClick={() => handleEditCard(card)}
+                        >
+                          <i className="bx bx-edit"></i>
+                          <span>Edit</span>
+                        </button>
 
-              <div className={styles["empty-wrapper"]}>
-                <img src="/images/cute1.png" className={styles["empty-img"]} alt="Empty" />
-                <p className={styles["empty-msg"]}>There are no cards</p>
-              </div>
+                        <button
+                          className={styles.deleteBtn}
+                          onClick={() => handleDeleteCard(card.id)}
+                        >
+                          <i className="bx bx-trash"></i>
+                          <span>Delete</span>
+                        </button>
+                      </div>
 
-            ) : (
+                      <p>{card.question}</p>
+                      <hr />
+                      <p>{card.answer}</p>
 
-<div className={styles.cardsList}>
-  {cards.map((card) => (
-    <div key={card.id} className={styles.cards}>
-
-<div className={styles.cardHeader}>
-  <button
-    className={styles.editBtn}
-    onClick={() => handleEditCard(card)}
-  >
-    <i className="bx bx-edit"></i>
-    <span>Edit</span>
-  </button>
-
-  <button
-    className={styles.deleteBtn}
-    onClick={() => handleDeleteCard(card.id)}
-  >
-    <i className="bx bx-trash"></i>
-    <span>Delete</span>
-  </button>
-</div>
-
-
-      <p>{card.question}</p>
-      <hr />
-      <p>{card.answer}</p>
-
-      {card.image && (
-        <img
-          src={`http://localhost/puffybrain/${card.image}`}
-          alt="card"
-          className={styles.cardImage}
-        />
-      )}
-
-    </div>
-  ))}
-</div>
-            )}
-
-          </section>
-
-        </main>
-
-      </div>
+                      {card.image && (
+                        <img
+                          src={getCardImageSrc(card.image)}
+                          alt="card"
+                          className={styles.cardImage}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </main>
+        </div>
       </div>
 
-        {showAddCard && (
-        <div className={styles["modal-overlay"]} onClick={closeAddCard} style={{ display: 'flex' }}>
+      {showAddCard && (
+        <div
+          className={styles["modal-overlay"]}
+          onClick={closeAddCard}
+          style={{ display: "flex" }}
+        >
           <div
             className={styles["add-card-modal"]}
             onClick={(e) => e.stopPropagation()}
           >
             <div className={styles["add-card-modalheader"]}>
-              <span>Add New Card</span>
+              <span>{editingCardId ? "Edit Card" : "Add New Card"}</span>
             </div>
 
             <div className={styles["form-group"]}>
               <label>Question</label>
-                <input
-                  type="text"
-                  placeholder="Add a question"
-                  value={question}
-                  onChange={(e) => setQuestion(e.target.value)}
-                />
-         </div>
+              <input
+                type="text"
+                placeholder="Add a question"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+              />
+            </div>
 
             <div className={styles["form-group"]}>
               <label>Answer</label>
-                <input
-                  type="text"
-                  placeholder="Add an answer"
-                  value={answer}
-                  onChange={(e) => setAnswer(e.target.value)}
-                />
+              <input
+                type="text"
+                placeholder="Add an answer"
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+              />
             </div>
 
-       {/*     <div className={styles["image-preview"]}>
-              <img ref={previewImgRef} alt="" />
-              <button className={styles["remove-img"]} onClick={removeImage}>
-                <i className="bx bx-x"></i>
-              </button>
-            </div>
+            {preview && (
+              <div className={styles["image-preview"]}>
+                <img src={preview} alt="preview" />
+                <button
+                  type="button"
+                  className={styles["remove-img"]}
+                  onClick={removeImage}
+                >
+                  <i className="bx bx-x"></i>
+                </button>
+              </div>
+            )}
 
-            <button className={styles["attach-img"]} onClick={handleImageAttach}>
+            <button
+              type="button"
+              className={styles["attach-img"]}
+              onClick={handleImageAttach}
+            >
               <i className="bx bx-image"></i> Attach image
             </button>
 
@@ -718,10 +808,10 @@ const handleEditDeck = async () => {
               type="file"
               hidden
               ref={imageInputRef}
+              accept="image/*"
               onChange={handleImageChange}
             />
 
-            */}
             <hr />
 
             <div className={styles["modal-actions"]}>
@@ -735,7 +825,7 @@ const handleEditDeck = async () => {
       )}
 
       {showSuccess && (
-        <div className={styles["modal-overlay"]} style={{ display: 'flex' }}>
+        <div className={styles["modal-overlay"]} style={{ display: "flex" }}>
           <div className={styles["success-box"]}>
             <img src="/images/3.png" alt="Success" />
             <p>Card Successfully Added</p>
@@ -743,9 +833,7 @@ const handleEditDeck = async () => {
         </div>
       )}
 
-      {showModes && (
-        <QuizModesModal onClose={() => setShowModes(false)} />
-      )}
+      {showModes && <QuizModesModal onClose={() => setShowModes(false)} />}
     </div>
   );
 }

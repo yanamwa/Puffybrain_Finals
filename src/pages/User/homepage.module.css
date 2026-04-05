@@ -116,6 +116,12 @@
   color: #959494;
 }
 
+.myDecks,
+.myDecksTitle {
+  font-size: 17px;
+  margin: 0.3rem 0 0 15px;
+}
+
 .menu,
 .myDecksNav,
 .logout {
@@ -130,14 +136,15 @@
 }
 
 .sidebarListItem {
-  margin-left: 10px;
+  margin: 0;
+  padding: 0 8px 0 10px;
 }
 
 .sidebarList i {
-  width: 25px;
-  height: 25px;
-  font-size: 22px;
-  margin-left: 15px;
+  width: 22px;
+  min-width: 22px;
+  font-size: 20px;
+  margin-left: 14px;
   margin-right: 10px;
   opacity: 0.3;
   color: black;
@@ -147,57 +154,62 @@
 .menuItem {
   display: flex;
   align-items: center;
+  width: 100%;
+  box-sizing: border-box;
   text-decoration: none;
   color: #000;
-  padding: 8px;
-  margin: 5px 0;
-  border-radius: 20px 0 0 20px;
-  transition: all 0.3s ease;
+  background: transparent;
+  border: none;
+  padding: 10px 14px;
+  margin: 4px 0;
+  border-radius: 999px 0 0 999px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.25s ease;
 }
 
 .menuItem:hover {
-  background: white;
-  margin-left: 15px;
+  background: #ffffff;
+  transform: translateX(6px);
 }
 
 .menuItem.active {
-  background: rgb(243, 243, 243);
+  background: #ffffff;
+  transform: translateX(6px);
 }
 
-.sidebar.collapsed .menuText {
-  display: none;
+.menuItem:hover i,
+.menuItem.active i {
+  opacity: 1;
 }
 
-.myDecks,
-.myDecksTitle {
-  font-size: 17px;
-  margin: 0.3rem 0 0 15px;
-}
-
-.logout {
-  margin-bottom: 20px;
+.menuText {
+  display: inline-block;
+  line-height: 1.2;
+  white-space: normal;
+  word-break: break-word;
+  right: 40px;
 }
 
 .logoutLink {
   display: flex;
   align-items: center;
-  background: none;
+  width: calc(100% - 18px);
+  box-sizing: border-box;
+  background: transparent;
   border: none;
   color: #000;
-  padding: 8px;
-  margin: 5px 0;
-  border-radius: 20px 0 0 20px;
+  padding: 10px 14px;
+  margin: 4px 8px 0 10px;
+  border-radius: 999px 0 0 999px;
   cursor: pointer;
-  font-family: inherit;
-  font-size: inherit;
-  width: 100%;
   text-align: left;
-  transition: all 0.3s ease;
+  transition: background 0.25s ease, transform 0.25s ease;
 }
 
 .logoutLink:hover {
-  background: white;
-  margin-left: 15px;
+  background: #ffffff;
+  transform: translateX(6px);
 }
 
 .sidebar.collapsed i {
@@ -843,4 +855,84 @@
   .centerBox p {
     font-size: 34px;
   }
+}
+
+/* SECTION WRAPPER */
+.sectionBlock {
+  margin-top: 10px;
+}
+
+/* TITLE */
+.sectionTitle {
+  font-size: 17px;
+  margin: 10px 0 5px 15px;
+  font-weight: 500;
+}
+
+/* DIVIDER LINE */
+.sectionDivider {
+  height: 1px;
+  background-color: white;
+  margin: 8px 10px;
+}
+
+/* LIST SAME STYLE */
+.sectionList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* EMPTY TEXT */
+.emptyText {
+  opacity: 0.6;
+  padding-left: 20px;
+  font-size: 14px;
+}
+/* FIX: make buttons behave like menu items */
+.menuItem {
+  width: 100%;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.courseProgressWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.courseProgressRing {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+}
+
+.courseProgressSvg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.courseProgressBg {
+  fill: none;
+  stroke: #d9d9d9;
+  stroke-width: 4;
+}
+
+.courseProgressValue {
+  fill: none;
+  stroke: #a993d8;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.35s ease;
+}
+
+.courseProgressText {
+  font-size: 13px;
+  color: #555;
+  font-weight: 500;
 }
