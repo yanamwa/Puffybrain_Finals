@@ -7,7 +7,6 @@
   --font-color: #2f2f2f;
 }
 
-/* PAGE */
 .container {
   display: flex;
   min-height: 100vh;
@@ -15,11 +14,12 @@
   transition: all 0.3s ease;
 }
 
+/* SIDEBAR SAME AS MYCOURSE */
+
 .container.sidebarCollapsed .sidebar {
   width: 60px;
 }
 
-/* SIDEBAR */
 .sidebar {
   position: fixed;
   width: 220px;
@@ -43,6 +43,7 @@
   justify-content: center;
   align-items: center;
   width: 100%;
+  margin-bottom: 0;
 }
 
 .logoExpanded {
@@ -50,6 +51,7 @@
   width: 150px;
   height: auto;
   object-fit: contain;
+  transition: all 0.3s ease;
 }
 
 .logoCollapsed {
@@ -57,6 +59,7 @@
   width: 90px;
   height: 90px;
   object-fit: contain;
+  transition: all 0.3s ease;
   margin: 0;
 }
 
@@ -73,6 +76,7 @@
   justify-content: flex-end;
   padding: 0 10px;
   cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .sidebar.collapsed .sidebarToggle {
@@ -85,6 +89,11 @@
   color: #959494;
 }
 
+.myDecksTitle {
+  font-size: 17px;
+  margin: 0.3rem 0 0 15px;
+}
+
 .menu,
 .myDecksNav,
 .logout {
@@ -92,92 +101,71 @@
   flex-direction: column;
 }
 
-.sidebarList {
+.sidebarList,
+.sectionList {
   list-style: none;
   margin: 0;
-  padding: 0 0 0 10px;
+  padding: 0;
 }
 
 .sidebarListItem {
   margin: 0;
+  padding: 0 8px 0 10px;
 }
 
-.sidebarList i {
-  width: 25px;
-  height: 25px;
-  font-size: 22px;
-  margin-left: 15px;
+.sidebarList i,
+.sectionList i {
+  width: 22px;
+  min-width: 22px;
+  font-size: 20px;
+  margin-left: 14px;
   margin-right: 10px;
   opacity: 0.3;
   color: black;
-  flex-shrink: 0;
+  transition: all 0.3s ease;
 }
 
 .menuItem {
   display: flex;
   align-items: center;
+  width: 100%;
+  box-sizing: border-box;
   text-decoration: none;
   color: #000;
-  padding: 10px 12px;
-  margin: 5px 0;
-  border-radius: 20px 0 0 20px;
-  transition: background 0.3s ease;
   background: transparent;
   border: none;
-  width: 100%;
+  padding: 10px 14px;
+  margin: 4px 0;
+  border-radius: 999px 0 0 999px;
   text-align: left;
   cursor: pointer;
-  box-sizing: border-box;
-  min-height: 44px;
+  transition: background 0.25s ease, transform 0.25s ease;
+  font-family: inherit;
+  font-size: inherit;
 }
 
 .menuItem:hover {
-  background: white;
+  background: #ffffff;
+  transform: translateX(6px);
+}
+
+.menuItem.active,
+.active {
+  background: #ffffff;
+  transform: translateX(6px);
+}
+
+.menuItem:hover i,
+.menuItem.active i,
+.active i {
+  opacity: 1;
 }
 
 .menuText {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.sidebar.collapsed .menuText {
-  display: none;
-}
-
-.myDecks,
-.myDecksTitle {
-  font-size: 17px;
-  margin: 0.3rem 0 0 15px;
-  color: #000;
-}
-
-.logout {
-  margin-bottom: 20px;
-  padding-left: 10px;
-}
-
-.logoutLink {
-  display: flex;
-  align-items: center;
-  background: transparent;
-  border: none;
-  color: #000;
-  padding: 10px 12px;
-  margin: 5px 0;
-  border-radius: 20px 0 0 20px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: inherit;
-  width: 100%;
-  text-align: left;
-  transition: background 0.3s ease;
-  box-sizing: border-box;
-  min-height: 44px;
-}
-
-.logoutLink:hover {
-  background: white;
+  display: inline-block;
+  line-height: 1.2;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .sidebar.collapsed i {
@@ -189,15 +177,9 @@
   font-size: 1.5rem;
 }
 
-.sidebar.collapsed .menuItem,
-.sidebar.collapsed .logoutLink {
-  width: 100%;
-  justify-content: center;
-  padding: 10px 0;
-  border-radius: 16px;
-}
-
-.sidebar.collapsed .sidebarList span {
+.sidebar.collapsed .sidebarList span,
+.sidebar.collapsed .sectionList span,
+.sidebar.collapsed .menuText {
   display: none;
 }
 
@@ -207,12 +189,37 @@
   margin: 0 10px;
 }
 
-.sidebar.collapsed .myDecks,
-.sidebar.collapsed .myDecksTitle {
+.sidebar.collapsed .myDecksTitle,
+.sidebar.collapsed .sectionTitle,
+.sidebar.collapsed .sidebarEmptyText {
   display: none;
 }
 
-/* MAIN */
+.sectionBlock {
+  margin-top: 10px;
+}
+
+.sectionTitle {
+  font-size: 17px;
+  margin: 10px 0 5px 15px;
+  font-weight: 500;
+}
+
+.sectionDivider {
+  height: 1px;
+  background-color: white;
+  margin: 8px 10px;
+}
+
+.sidebarEmptyText {
+  opacity: 0.6;
+  padding-left: 20px;
+  font-size: 14px;
+  color: #333;
+}
+
+/* MAIN LAYOUT */
+
 .mainArea {
   display: flex;
   flex-direction: column;
@@ -222,7 +229,7 @@
 }
 
 .sidebarCollapsed .mainArea {
-  margin-left: 90px;
+  margin-left: 60px;
 }
 
 .gridContainer {
@@ -235,15 +242,18 @@
   min-height: 100vh;
 }
 
-/* HEADER */
+/* HEADER SAME AS MYCOURSE */
+
 .headerContainer {
   grid-area: header;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-bottom: 2px solid #e6e6e6;
+  border: 2px solid #e6e6e6;
   background: #fff;
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 500;
 }
 
 .searchBar {
@@ -275,6 +285,10 @@
   height: 34px;
   display: grid;
   place-items: center;
+}
+
+.searchBar:focus-within {
+  box-shadow: 0 0 0 3px rgba(200, 168, 233, 0.18);
 }
 
 .profileWrapper {
@@ -321,37 +335,44 @@
 
 .dropdownContent {
   position: absolute;
-  top: 34px;
+  top: calc(100% + 8px);
   right: 0;
+  left: auto;
+
   display: none;
   background: #fff;
   border: 1px solid #e5e5e5;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.12);
   border-radius: 12px;
-  min-width: 190px;
+
+  width: 190px;
+  max-width: calc(100vw - 20px);
+
   padding: 8px;
   z-index: 9999;
 }
 
 .dropdownContent a,
-.dropdownLogout {
+.dropdownContent button {
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
   padding: 10px 12px;
   border-radius: 10px;
   text-decoration: none;
   color: #000;
-  background: #fff;
+  background: transparent;
   border: none;
-  width: 100%;
   cursor: pointer;
-  font: inherit;
+  font-family: inherit;
+  font-size: 15px;
   text-align: left;
 }
 
 .dropdownContent a:hover,
-.dropdownLogout:hover {
+.dropdownContent button:hover {
   background: #f3f3f3;
 }
 
@@ -360,6 +381,7 @@
 }
 
 /* PAGE CONTENT */
+
 .main {
   grid-area: main;
   padding: 28px 34px 50px;
@@ -383,7 +405,6 @@
   padding-left: 10px;
 }
 
-/* PROFILE PAGE */
 .profilePage {
   width: 100%;
   max-width: 1040px;
@@ -543,6 +564,7 @@
 }
 
 /* SETTINGS */
+
 .settingsContent {
   display: flex;
   flex-direction: column;
@@ -667,6 +689,7 @@
 }
 
 /* MODAL */
+
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -724,10 +747,6 @@
   font-size: 15px;
   font-weight: 800;
   color: #111;
-}
-
-.modalTabBtn + .modalTabBtn {
-  margin-left: -10px;
 }
 
 .modalTabActive {
@@ -830,17 +849,13 @@
   color: #111;
 }
 
-.uploadPhotoCircle input {
-  display: none;
-}
-
-.uploadPreview {
+.uploadedPreview {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.modalPhotoHint {
+.uploadHint {
   margin-top: 14px;
   text-align: center;
   font-size: 14px;
@@ -878,11 +893,6 @@
 }
 
 /* RESPONSIVE */
-@media (max-width: 1200px) {
-  .profileOuter {
-    max-width: 960px;
-  }
-}
 
 @media (max-width: 1100px) {
   .searchBar {
@@ -909,6 +919,18 @@
 }
 
 @media (max-width: 900px) {
+  .searchBar {
+    width: 360px;
+  }
+
+  .profileWrapper {
+    right: 14px;
+  }
+
+  .userInfo {
+    display: none;
+  }
+
   .main {
     padding: 24px 20px 40px;
   }
@@ -935,10 +957,6 @@
     margin-left: 0;
     width: 100%;
     padding-top: 0;
-  }
-
-  .formGroup input {
-    max-width: 100%;
   }
 
   .settingsBody,
@@ -980,50 +998,33 @@
   }
 }
 
-@media (max-width: 700px) {
-  .mainArea {
-    margin-left: 60px;
-  }
-
+@media (max-width: 768px) {
   .sidebar {
     width: 60px;
   }
 
-  .logoExpanded {
+  .sidebar .menuText,
+  .sidebar .myDecksTitle,
+  .sidebar .sectionTitle,
+  .sidebar .sidebarEmptyText {
     display: none;
   }
 
-  .logoCollapsed {
-    display: block;
+  .mainArea {
+    margin-left: 60px;
   }
 
-  .menuText,
-  .myDecks,
-  .myDecksTitle {
-    display: none;
-  }
-
-  .sidebarList i {
-    margin-left: 0;
-    margin-right: 0;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-  }
-
-  .menuItem,
-  .logoutLink {
-    justify-content: center;
-    padding: 10px 0;
-    border-radius: 16px;
+  .headerContainer {
+    justify-content: flex-start;
+    padding-left: 20px;
   }
 
   .searchBar {
-    width: 260px;
+    width: calc(100% - 90px);
   }
 
-  .userInfo p {
-    font-size: 16px;
+  .main {
+    padding: 20px;
   }
 
   .profileTitle {

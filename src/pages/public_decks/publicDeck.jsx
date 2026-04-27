@@ -1,47 +1,122 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Swal from "sweetalert2";
+import "boxicons/css/boxicons.min.css";
 import styles from "./publicDeck.module.css";
 
 function PublicDecks() {
-
   const navigate = useNavigate();
+
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [search, setSearch] = useState("");
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
   const [lessons, setLessons] = useState([]);
   const [publicDecks, setPublicDecks] = useState([]);
-  const [myDecks, setMyDecks] = useState([]); // ✅ added
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // ✅ added
+  const [myDecks, setMyDecks] = useState([]);
+  const [courses, setCourses] = useState([]);
 
   const [user, setUser] = useState({
-    username: ""
+    username: "",
+    year_level: "",
   });
 
-  // ✅ added
-  const openDeck = (id) => {
-    navigate(`/deck/${id}`);
+  const handleLogout = () => {
+    Swal.fire({
+      title: "Logout?",
+      text: "Are you sure you want to logout?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes",
+      confirmButtonColor: "#7b5cff",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        navigate("/login");
+      }
+    });
   };
 
-  /* ---------------- FETCH LESSONS ---------------- */
-useEffect(() => {
-fetch("http://localhost/puffybrain/getLessons.php", {
-  credentials: "include"
-}) 
-    .then(res => res.json())
-    .then(data => {
+  const fetchUser = async () => {
+    try {
+      const res = await fetch("http://localhost/puffybrain/getUser.php", {
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setUser(data.user);
+      }
+    } catch (err) {
+      console.error("Error fetching user:", err);
+    }
+  };
+
+  const fetchUserDecks = async () => {
+    try {
+      const res = await fetch("http://localhost/puffybrain/userDecks.php", {
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setMyDecks(data.decks || []);
+      } else {
+        setMyDecks([]);
+      }
+    } catch (err) {
+      console.error("Error fetching decks:", err);
+      setMyDecks([]);
+    }
+  };
+
+  const fetchCourses = async () => {
+    try {
+      const res = await fetch("http://localhost/puffybrain/getMyCourses.php", {
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setCourses(data.courses || []);
+      } else {
+        setCourses([]);
+      }
+    } catch (err) {
+      console.error("Error fetching courses:", err);
+      setCourses([]);
+    }
+  };
+
+  const fetchLessons = async () => {
+    try {
+      const res = await fetch("http://localhost/puffybrain/getLessons.php", {
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
       if (Array.isArray(data)) {
         setLessons(data);
+      } else {
+        setLessons([]);
       }
-    })
-    .catch(err => console.error(err));
-}, []);
-  // ---------------- FETCH PUBLIC DECKS ----------------
-useEffect(() => {
-  fetch("http://localhost/puffybrain/getPublicDecks.php", {
-    credentials: "include"
-  })
-    .then(res => res.json())
-    .then(data => {
+    } catch (err) {
+      console.error("Lessons fetch error:", err);
+      setLessons([]);
+    }
+  };
+
+  const fetchPublicDecks = async () => {
+    try {
+      const res = await fetch("http://localhost/puffybrain/getPublicDecks.php", {
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
       if (Array.isArray(data)) {
         setPublicDecks(data);
       } else if (data?.decks && Array.isArray(data.decks)) {
@@ -49,120 +124,119 @@ useEffect(() => {
       } else {
         setPublicDecks([]);
       }
-    })
-    .catch(err => console.error("Public decks error:", err));
-}, []);
-  const fetchMyCourses = async () => {
-  try {
-
-    const res = await fetch("http://localhost/puffybrain/getMyCourses.php", {
-      credentials: "include"
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      setMyDecks(data.courses);
+    } catch (err) {
+      console.error("Public decks error:", err);
+      setPublicDecks([]);
     }
+  };
 
-  } catch (err) {
-    console.error("My courses fetch error:", err);
-  }
-};
+  useEffect(() => {
+    fetchUser();
+    fetchUserDecks();
+    fetchCourses();
+    fetchLessons();
+    fetchPublicDecks();
+  }, []);
 
+  useEffect(() => {
+    const handler = (e) => {
+      const insideDropdown = e.target.closest(
+        `.${styles.dropdownBtn}, .${styles.dropdownContent}`
+      );
 
-  /* ---------------- ADD COURSE ---------------- */
-const handleAddCourse = async (lesson) => {
+      if (!insideDropdown) {
+        setProfileDropdownOpen(false);
+      }
+    };
 
-  const result = await Swal.fire({
-    title: "Add Course?",
-    text: `Add "${lesson.title}" to My Courses?`,
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonText: "Yes, add it"
-  });
+    window.addEventListener("click", handler);
+    return () => window.removeEventListener("click", handler);
+  }, []);
 
-  if (!result.isConfirmed) return;
+  const openCourse = (courseId) => {
+    navigate(`/learning/${courseId}`);
+  };
 
-  try {
-
-    const res = await fetch("http://localhost/puffybrain/addDeck.php", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
-      },
-      body: `lesson_id=${lesson.id}`
+  const handleAddCourse = async (lesson) => {
+    const result = await Swal.fire({
+      title: "Add Course?",
+      text: `Add "${lesson.title}" to My Courses?`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Yes, add it",
+      confirmButtonColor: "#7b5cff",
     });
 
-    const data = await res.json();
-    
-    console.log("API Response:", data);
+    if (!result.isConfirmed) return;
 
-    if (data.success) {
-
-      await Swal.fire({
-        icon: "success",
-        title: "Added!",
-        text: "Course added successfully",
-        timer: 2000,
-        showConfirmButton: true
+    try {
+      const res = await fetch("http://localhost/puffybrain/addDeck.php", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: `lesson_id=${lesson.id}`,
       });
 
-      await fetchMyCourses();
-        
-      navigate("/mycourse");
+      const data = await res.json();
 
-    } else {
+      if (data.success) {
+        await Swal.fire({
+          icon: "success",
+          title: "Added!",
+          text: "Course added successfully",
+          timer: 2000,
+          showConfirmButton: true,
+          confirmButtonColor: "#7b5cff",
+        });
+
+        await fetchCourses();
+        navigate("/mycourse");
+      } else {
+        await Swal.fire({
+          icon: "error",
+          title: "Failed",
+          text: data.message || "Failed to add course",
+        });
+      }
+    } catch (err) {
+      console.error("Add course error:", err);
 
       await Swal.fire({
         icon: "error",
-        title: "Failed",
-        text: data.message || "Failed to add course"
+        title: "Error",
+        text: "An error occurred while adding the course",
       });
-
     }
-
-  } catch (err) {
-    console.error("Add course error:", err);
-    await Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: "An error occurred while adding the course"
-    });
-  }
-
-};
-
-  /* ---------------- LOGOUT ---------------- */
-
-  const handleLogout = () => {
-
-    Swal.fire({
-      title: "Logout?",
-      text: "Are you sure you want to logout?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes"
-    }).then(result => {
-
-      if (result.isConfirmed) {
-        navigate("/login");
-      }
-
-    });
-
   };
 
+  const filteredLessons = useMemo(() => {
+    const q = search.trim().toLowerCase();
+
+    return lessons.filter((lesson) =>
+      (lesson.title || "").toLowerCase().includes(q)
+    );
+  }, [lessons, search]);
+
+  const filteredPublicDecks = useMemo(() => {
+    const q = search.trim().toLowerCase();
+
+    return publicDecks.filter((deck) =>
+      (deck.title || "").toLowerCase().includes(q)
+    );
+  }, [publicDecks, search]);
+
   return (
-
-
-    <div className={`${styles.container} ${isCollapsed ? styles.sidebarCollapsed : ""}`}>
-
-      {/* ================= SIDEBAR ================= */}
-      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
+    <div
+      className={`${styles.container} ${
+        isCollapsed ? styles.sidebarCollapsed : ""
+      }`}
+    >
+      <aside
+        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
+      >
         <div>
-
           <div
             className={styles.sidebarToggle}
             onClick={() => setIsCollapsed(!isCollapsed)}
@@ -171,39 +245,66 @@ const handleAddCourse = async (lesson) => {
           </div>
 
           <div className={styles.logo}>
-            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
-            <img className={styles.logoCollapsed} src="/images/logo_solo.png" alt="Logo" />
+            <img
+              className={styles.logoExpanded}
+              src="/images/logo1.png"
+              alt="Logo"
+            />
+            <img
+              className={styles.logoCollapsed}
+              src="/images/logo_solo.png"
+              alt="Logo"
+            />
           </div>
 
           <div className={styles.divider}></div>
-
           <p className={styles.myDecksTitle}>Menu</p>
 
           <nav className={styles.menu}>
             <ul className={styles.sidebarList}>
               <li className={styles.sidebarListItem}>
-                <NavLink to="/homepage" className={styles.menuItem}>
+                <NavLink
+                  to="/homepage"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
                   <i className="bx bx-home"></i>
                   <span className={styles.menuText}>Home</span>
                 </NavLink>
               </li>
 
               <li className={styles.sidebarListItem}>
-                <NavLink to="/mydecks" className={styles.menuItem}>
+                <NavLink
+                  to="/Mydecks"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
                   <i className="bx bx-book"></i>
                   <span className={styles.menuText}>Decks</span>
                 </NavLink>
               </li>
 
-   <li className={styles.sidebarListItem}>
-                <NavLink to="/mycourse" className={styles.menuItem}>
+              <li className={styles.sidebarListItem}>
+                <NavLink
+                  to="/mycourse"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
                   <i className="bx bx-book"></i>
                   <span className={styles.menuText}>My Course</span>
                 </NavLink>
               </li>
 
               <li className={styles.sidebarListItem}>
-                <NavLink to="/public-decks" className={`${styles.menuItem} ${styles.active}`}>
+                <NavLink
+                  to="/public-decks"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
                   <i className="bx bx-folder"></i>
                   <span className={styles.menuText}>Public Decks</span>
                 </NavLink>
@@ -213,54 +314,70 @@ const handleAddCourse = async (lesson) => {
 
           <div className={styles.divider}></div>
 
-          {/* My Decks Preview */}
           <div className={styles.myDecksNav}>
-            <p className={styles.myDecks}>My Decks</p>
-            <ul className={styles.sidebarList}>
-              {myDecks.length === 0 ? (
-                <li className={styles.sidebarListItem}>
-                  <span className={styles.menuText} style={{ opacity: 0.6 }}>
-                    Don't have decks yet
-                  </span>
-                </li>
-              ) : (
-                myDecks.slice(0, 3).map((deck) => (
-                  <li key={deck.id} className={styles.sidebarListItem}>
-                    <button
-                      type="button"
-                      onClick={() => openDeck(deck.id)}
-                      className={styles.menuItem}
-                      style={{ background: 'transparent', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left' }}
-                    >
-                      <i className="bx bx-book"></i>
-                      <span className={styles.menuText}>{deck.title}</span>
-                    </button>
-                  </li>
-                ))
-              )}
-            </ul>
-          </div>
-        </div>
+            <div className={styles.sectionBlock}>
+              <p className={styles.sectionTitle}>My Decks</p>
 
-        <div className={styles.logout}>
-          <button className={styles.logoutLink} onClick={handleLogout}>
-            <i className="bx bx-log-out"></i>
-            <span className={styles.menuText}>Logout</span>
-          </button>
+              <ul className={styles.sectionList}>
+                {myDecks.length === 0 ? (
+                  <li className={styles.sidebarEmptyText}>
+                    Don't have decks yet
+                  </li>
+                ) : (
+                  myDecks.slice(0, 3).map((deck) => (
+                    <li key={deck.id} className={styles.sidebarListItem}>
+                      <Link to={`/deck/${deck.id}`} className={styles.menuItem}>
+                        <i className="bx bx-book"></i>
+                        <span className={styles.menuText}>{deck.title}</span>
+                      </Link>
+                    </li>
+                  ))
+                )}
+              </ul>
+            </div>
+
+            <div className={styles.sectionBlock}>
+              <div className={styles.sectionDivider}></div>
+              <p className={styles.sectionTitle}>My Courses</p>
+
+              <ul className={styles.sectionList}>
+                {courses.length === 0 ? (
+                  <li className={styles.sidebarEmptyText}>
+                    No courses added yet
+                  </li>
+                ) : (
+                  courses.slice(0, 3).map((course) => (
+                    <li key={course.id} className={styles.sidebarListItem}>
+                      <button
+                        type="button"
+                        onClick={() => openCourse(course.id)}
+                        className={styles.menuItem}
+                      >
+                        <i className="bx bx-book"></i>
+                        <span className={styles.menuText}>{course.title}</span>
+                      </button>
+                    </li>
+                  ))
+                )}
+              </ul>
+            </div>
+          </div>
         </div>
       </aside>
 
-      {/* ================= MAIN AREA ================= */}
       <div className={styles.mainArea}>
         <div className={styles.gridContainer}>
-
-          {/* Header */}
           <div className={styles.headerContainer}>
             <form
               className={styles.searchBar}
               onSubmit={(e) => e.preventDefault()}
             >
-              <input type="text" placeholder="Search your decks" />
+              <input
+                type="text"
+                placeholder="Search public decks"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
               <i className="bx bx-search" />
             </form>
 
@@ -283,7 +400,7 @@ const handleAddCourse = async (lesson) => {
                   className={styles.dropdownBtn}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setIsDropdownOpen((prev) => !prev);
+                    setProfileDropdownOpen(!profileDropdownOpen);
                   }}
                 >
                   <i className="bx bx-chevron-down" />
@@ -291,20 +408,20 @@ const handleAddCourse = async (lesson) => {
 
                 <div
                   className={`${styles.dropdownContent} ${
-                    isDropdownOpen ? styles.show : ""
+                    profileDropdownOpen ? styles.show : ""
                   }`}
                 >
-                  <NavLink to="/user-profile">
+                  <NavLink to="/edit-profile">
                     <i className="bx bx-cog" />
                     <span>Settings</span>
                   </NavLink>
 
-                  <NavLink to="/how-it-works">
+                  <NavLink to="/faq">
                     <i className="bx bx-help-circle" />
                     <span>FAQs</span>
                   </NavLink>
 
-                  <button onClick={handleLogout}>
+                  <button type="button" onClick={handleLogout}>
                     <i className="bx bx-log-out" />
                     <span>Logout</span>
                   </button>
@@ -313,11 +430,8 @@ const handleAddCourse = async (lesson) => {
             </div>
           </div>
 
-          {/* Content */}
           <main className={styles.mainContent}>
-
-            {/* Courses */}
-            <div className={styles.courses}>
+            <section className={styles.courses}>
               <div className={styles.courseHead}></div>
 
               <div className={styles.innercourse}>
@@ -325,46 +439,53 @@ const handleAddCourse = async (lesson) => {
                   <h1>All Courses</h1>
                 </div>
 
-            <div className={styles.lessons}>
-              {lessons.map((lesson) => (
-      <div className={styles.lessonBox}>
-        <div className={styles.lessonTop}></div>
-        <div className={styles.lessonPreview}></div>
-        <div className={styles.lessonContent}>
-          <div className={styles.lessonHeader}>
+                <div className={styles.lessons}>
+                  {filteredLessons.length === 0 ? (
+                    <p className={styles.emptyMain}>
+                      {search ? "No courses match your search." : "No courses available."}
+                    </p>
+                  ) : (
+                    filteredLessons.map((lesson) => (
+                      <div className={styles.lessonBox} key={lesson.id}>
+                        <div className={styles.lessonTop}></div>
+                        <div className={styles.lessonPreview}></div>
 
-      <h3 className={styles.lessonTitle}>{lesson.title}</h3>
-          <button
-          type="button"
-          className={styles.lessonAdd}
-          onClick={(e) => {
-            e.stopPropagation();
-            handleAddCourse(lesson);
-          }}
-        >
-        <i className="bx bx-plus"></i>
-      </button>
-    </div>
+                        <div className={styles.lessonContent}>
+                          <div className={styles.lessonHeader}>
+                            <h3 className={styles.lessonTitle}>
+                              {lesson.title}
+                            </h3>
 
-    <p className={styles.lessonDescription}>
-      {lesson.description}
-    </p>
+                            <button
+                              type="button"
+                              className={styles.lessonAdd}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAddCourse(lesson);
+                              }}
+                            >
+                              <i className="bx bx-plus"></i>
+                            </button>
+                          </div>
 
-    <Link to={`/learning/${lesson.id}`}>
-      <button className={styles.lessonBtn}>
-        Start Learning
-      </button>
-    </Link>
-  </div>
-  
+                          <p className={styles.lessonDescription}>
+                            {lesson.description || "No description available."}
+                          </p>
+
+                          <Link to={`/learning/${lesson.id}`}>
+                            <button className={styles.lessonBtn}>
+                              Start Learning
+                            </button>
+                          </Link>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
-              ))}
-            </div>
               </div>
-            </div>
+            </section>
 
-            {/* Public Decks */}
-            <div className={styles.courses}>
+            <section className={styles.courses}>
               <div className={styles.courseHead}></div>
 
               <div className={styles.innercourse}>
@@ -373,51 +494,37 @@ const handleAddCourse = async (lesson) => {
                 </div>
 
                 <div className={styles.deckGrid}>
-                  {publicDecks.length === 0 ? (
-                    <p style={{ opacity: 0.6 }}>
-                      No public decks available.
+                  {filteredPublicDecks.length === 0 ? (
+                    <p className={styles.emptyMain}>
+                      {search
+                        ? "No public decks match your search."
+                        : "No public decks available."}
                     </p>
                   ) : (
-                    publicDecks.map((deck, index) => {
-                      const colors = [
-                        "#EFAAAA",
-                        "#C8BBD0",
-                        "#FFE0B5",
-                        "#E0BBD4",
-                        "#EBD3FA",
-                        "#B6F4BA",
-                        "#C3C7F3",
-                      ];
-
-                      const headColor = colors[index % colors.length];
-
-                      return (
+                    filteredPublicDecks.map((deck, index) => (
+                      <div
+                        className={styles.deckBox}
+                        key={deck.id}
+                        onClick={() => navigate(`/deck/${deck.id}`)}
+                      >
                         <div
-                          className={styles.deckBox}
-                          key={deck.id}
-                          onClick={() => navigate(`/deck/${deck.id}`)}
-                        >
-                          <div
-                            className={styles.deckHead}
-                            style={{ backgroundColor: headColor }}
-                          ></div>
+                          className={`${styles.deckHead} ${
+                            styles[`deckColor${(index % 6) + 1}`]
+                          }`}
+                        ></div>
 
-                          <div className={styles.deckContent}>
-                            <h3 className={styles.deckTitle}>
-                              {deck.title}
-                            </h3>
-                            <p className={styles.deckCount}>
-                              {deck.description || "No description"}
-                            </p>
-                          </div>
+                        <div className={styles.deckContent}>
+                          <h3 className={styles.deckTitle}>{deck.title}</h3>
+                          <p className={styles.deckCount}>
+                            {deck.description || "No description"}
+                          </p>
                         </div>
-                      );
-                    })
+                      </div>
+                    ))
                   )}
                 </div>
               </div>
-            </div>
-
+            </section>
           </main>
         </div>
       </div>

@@ -11,22 +11,6 @@
   --card-color4: #90F897;
   --card-color5: #CF8686;
   --card-color6: #EECB99;
-  --color-shadow: #DDDDDD;
-}
-:root {
-  --color-primary: #EBD3FA;
-  --color-secondary: #E3AADD;
-  --color-third: #C8A8E9;
-  --color-fourth: #A993D8;
-  --color-fifth: #C3C7F3;
-  --color-shadow: #A993D8;
-  --font-color: #2F2F2F;
-  --card-color1: #C8BBD0;
-  --card-color2: #E0BBD4;
-  --card-color3: #C3C7F3;
-  --card-color4: #90F897;
-  --card-color5: #CF8686;
-  --card-color6: #EECB99;
 }
 
 .container {
@@ -43,6 +27,8 @@
 .container.sidebarCollapsed .sidebar {
   width: 60px;
 }
+
+/* SIDEBAR */
 
 .sidebar {
   position: fixed;
@@ -112,6 +98,11 @@
   color: #959494;
 }
 
+.myDecksTitle {
+  font-size: 17px;
+  margin: 0.3rem 0 0 15px;
+}
+
 .menu,
 .myDecksNav,
 .logout {
@@ -119,21 +110,24 @@
   flex-direction: column;
 }
 
-.sidebarList {
+.sidebarList,
+.sectionList {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
 .sidebarListItem {
-  margin-left: 10px;
+  margin: 0;
+  padding: 0 8px 0 10px;
 }
 
-.sidebarList i {
-  width: 25px;
-  height: 25px;
-  font-size: 22px;
-  margin-left: 15px;
+.sidebarList i,
+.sectionList i {
+  width: 22px;
+  min-width: 22px;
+  font-size: 20px;
+  margin-left: 14px;
   margin-right: 10px;
   opacity: 0.3;
   color: black;
@@ -143,31 +137,44 @@
 .menuItem {
   display: flex;
   align-items: center;
+  width: 100%;
+  box-sizing: border-box;
   text-decoration: none;
   color: #000;
-  padding: 8px;
-  margin: 5px 0;
-  border-radius: 20px 0 0 20px;
-  transition: all 0.3s ease;
+  background: transparent;
+  border: none;
+  padding: 10px 14px;
+  margin: 4px 0;
+  border-radius: 999px 0 0 999px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.25s ease;
+  font-family: inherit;
+  font-size: inherit;
 }
 
 .menuItem:hover {
-  background: white;
-  margin-left: 15px;
+  background: #ffffff;
+  transform: translateX(6px);
 }
 
-.menuItem.active {
-  background: rgb(243, 243, 243);
+.menuItem.active,
+.active {
+  background: #ffffff;
+  transform: translateX(6px);
 }
 
-.sidebar.collapsed .menuText {
-  display: none;
+.menuItem:hover i,
+.menuItem.active i,
+.active i {
+  opacity: 1;
 }
 
-.myDecks,
-.myDecksTitle {
-  font-size: 17px;
-  margin: 0.3rem 0 0 15px;
+.menuText {
+  display: inline-block;
+  line-height: 1.2;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .logout {
@@ -177,23 +184,34 @@
 .logoutLink {
   display: flex;
   align-items: center;
-  background: none;
+  width: calc(100% - 18px);
+  box-sizing: border-box;
+  background: transparent;
   border: none;
   color: #000;
-  padding: 8px;
-  margin: 5px 0;
-  border-radius: 20px 0 0 20px;
+  padding: 10px 14px;
+  margin: 4px 8px 0 10px;
+  border-radius: 999px 0 0 999px;
   cursor: pointer;
+  text-align: left;
+  transition: background 0.25s ease, transform 0.25s ease;
   font-family: inherit;
   font-size: inherit;
-  width: 100%;
-  text-align: left;
-  transition: all 0.3s ease;
 }
 
 .logoutLink:hover {
-  background: white;
-  margin-left: 15px;
+  background: #ffffff;
+  transform: translateX(6px);
+}
+
+.logoutLink i {
+  width: 22px;
+  min-width: 22px;
+  font-size: 20px;
+  margin-left: 14px;
+  margin-right: 10px;
+  opacity: 0.3;
+  color: black;
 }
 
 .sidebar.collapsed i {
@@ -210,7 +228,15 @@
   margin-left: 0;
 }
 
-.sidebar.collapsed .sidebarList span {
+.sidebar.collapsed .sidebarList span,
+.sidebar.collapsed .sectionList span,
+.sidebar.collapsed .menuText {
+  display: none;
+}
+
+.sidebar.collapsed .myDecksTitle,
+.sidebar.collapsed .sectionTitle,
+.sidebar.collapsed .sidebarEmptyText {
   display: none;
 }
 
@@ -220,22 +246,42 @@
   margin: 0 10px;
 }
 
-.sidebar.collapsed .myDecks,
-.sidebar.collapsed .myDecksTitle {
-  display: none;
+.sectionBlock {
+  margin-top: 10px;
 }
+
+.sectionTitle {
+  font-size: 17px;
+  margin: 10px 0 5px 15px;
+  font-weight: 500;
+}
+
+.sectionDivider {
+  height: 1px;
+  background-color: white;
+  margin: 8px 10px;
+}
+
+.sidebarEmptyText {
+  opacity: 0.6;
+  padding-left: 20px;
+  font-size: 14px;
+  color: #333;
+}
+
+/* MAIN AREA */
 
 .mainArea {
   display: flex;
   flex-direction: column;
   flex: 1;
   margin-left: 220px;
-  margin-right: 0px;
   transition: margin-left 0.3s ease;
+  min-height: 100vh;
 }
 
 .sidebarCollapsed .mainArea {
-  margin-left: 90px;
+  margin-left: 60px;
 }
 
 .gridContainer {
@@ -245,8 +291,10 @@
   grid-template-areas:
     "header"
     "main";
-  height: 100%;
+  min-height: 100vh;
 }
+
+/* HEADER SAME AS MYDECKS */
 
 .headerContainer {
   grid-area: header;
@@ -255,7 +303,9 @@
   justify-content: center;
   border: 2px solid #E6E6E6;
   background: #fff;
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 500;
 }
 
 .searchBar {
@@ -287,6 +337,10 @@
   height: 34px;
   display: grid;
   place-items: center;
+}
+
+.searchBar:focus-within {
+  box-shadow: 0 0 0 3px rgba(200, 168, 233, 0.18);
 }
 
 .profileWrapper {
@@ -333,342 +387,70 @@
 
 .dropdownContent {
   position: absolute;
-  top: 34px;
+  top: calc(100% + 8px);
   right: 0;
+  left: auto;
+
   display: none;
   background: #fff;
   border: 1px solid #e5e5e5;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.12);
   border-radius: 12px;
-  min-width: 190px;
+
+  width: 190px;
+  max-width: calc(100vw - 20px);
+
   padding: 8px;
   z-index: 9999;
 }
 
-.dropdownContent a {
+.dropdownContent a,
+.dropdownContent button {
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
   padding: 10px 12px;
   border-radius: 10px;
   text-decoration: none;
   color: #000;
-}
-
-.dropdownContent a:hover {
-  background: #f3f3f3;
-}
-
-/*---MAIN CONTENT---*/
-.main-content {
-  margin-left: 230px;  /* width of expanded sidebar */
-  padding-top: 20px;   /* header height */
-  padding-left: 50px;
-  padding-right: 60px;
-  transition: margin-left 0.3s ease;
-  background: #f5f5f5; 
-  flex: 1;
-  margin-top: 70px;
-}
-.sidebar-collapsed .main-content {
-  margin-left: 80px;
-}
-
-.courses {
-  max-width: 1400px;
-  min-height: 150px;
-  background-color: #eeeeee;
-  border-radius: 15px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-  padding: 0;                 /* remove padding so header sits flush */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: stretch;
-  position: relative;         /* needed for absolute positioning of course-head */
-  overflow: hidden;           /* optional, hides anything overflowing */
-  margin-top: 20px;
-  margin-bottom: 50px;
-}
-
-.course-head {
-  position: absolute;  /* position it at the top of .courses */
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 50px;
-  background-color: #C8A8E9;
-  border-top-left-radius: 15px;   /* match the parent .courses corners */
-  border-top-right-radius: 15px;
-
-}
-.innerhead {
-  display: flex;
-  justify-content: space-between; /* pushes h1 left, controls right */
-  align-items: center;
-  width: 100%;
-  padding-top: 60px;
-  padding-left: 20px;
-  border-bottom: 2px solid #ddd;
-  padding-bottom: 10px;
-}
-.innerhead h1{
-  font-size: 40px;
-  font-weight: lighter;
-  margin: 0; /* THIS removes the hidden extra space */
-  margin-left: 20px;
-}
-.filter-controls {
-  display: flex;
-  gap: 10px;
-  margin-right: 50px;
-}
-.sort-btn,
-.level-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 10px;
-  border-radius: 10px;
-  border: none;
-  background: rgb(230, 228, 228);
-  cursor: pointer;
-  transition: 0.2s ease;
-  font-size: 10px;
-}
-
-.sort-btn i,
-.level-btn i {
-  font-size: 15px;
-}
-
-.sort-btn:hover,
-.level-btn:hover {
-  background: var(--color-secondary);
-}
-.arrow {
-  transition: transform 0.3s ease;
-  font-size: 18px;
-}
-
-.rotate {
-  transform: rotate(180deg);
-}
-.lessons {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px;
-  margin-top: 20px;
-}
-
-/* Each lesson wrapper */
-.lesson-box {
-  position: relative;
-}
-
-/* Preview box (bottom layer) */
-.lesson-preview {
-  background: #E2CADF;
-  border-top-left-radius: 30px;
-  border-top-right-radius: 30px;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-  padding: 20px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-  height: 60px; /* adjust preview height */
-}
-
-.lesson-content {
-  background: #EBD3FA;
-  border-top-left-radius: 30px;
-  border-top-right-radius: 30px;
-  border-bottom-left-radius: 30px;
-  border-bottom-right-radius: 30px;
-  padding: 20px;
-  position: relative;
-  margin-top: -30px; /* overlapping preview */
-  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between; /* pushes button to bottom */
-  min-height: 100px; /* ensures space for content + button */
-  transition: 0.2s ease;
-}
-
-.lesson-content:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-}
-
-.lesson-header {
-  display: flex;
-  justify-content: space-between; /* title left, button right */
-  align-items: center;
-  margin-bottom: 0px;
-}
-
-.lesson-title {
-  font-size: 18px;
-  font-weight: lighter;
-  margin: 0;
-}
-
-/* Lesson description */
-.lesson-description {
-  font-size: 14px;
-  color: #555;
-  flex: 1; /* take up remaining space */
-}
-.lesson-add {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;          /* makes it a circle */
-  border: none;
-  background: white;
-  color: #A993D8;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: 0.2s ease;
-}
-
-.lesson-add:hover {
-  background: #f0f0f0;
-  transform: scale(1.1);
-}
-/* Button */
-.lesson-btn {
-  padding: 8px 0;
-  border: none;
-  border-radius: 20px;
-  background-color: #FFFFFF;
-  color: rgb(0, 0, 0);
-  cursor: pointer;
-  transition: 0.2s ease;
-  width: 150px;
-  font-family: 'Jersey 15';
-  font-size: 15px;
-  box-shadow: 0 4px 0 rgb(100, 89, 104);
-  margin: 0 auto; 
-  display: block;
-}
-
-.lesson-btn:hover {
-  background-color: #a7a0ae;
-}
-.container {
-  display: flex;
-  min-height: 100vh;
-  background: #f5f5f5;
-}
-
-.sidebar {
-  position: fixed;
-  width: 220px;
-  background-color: var(--color-primary);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100vh;
-  padding-top: 10px;
-  transition: width 0.3s ease;
-}
-
-.collapsed {
-  width: 60px;
-}
-
-.sidebarCollapsed .mainArea {
-  margin-left: 90px;
-}
-
-.mainArea {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  margin-left: 220px;
-  transition: margin-left 0.3s ease;
-}
-
-.gridContainer {
-  display: grid;
-  grid-template-rows: 70px 1fr;
-  height: 100%;
-}
-
-.headerContainer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #E6E6E6;
-  background: #fff;
-  position: relative;
-}
-
-.searchBar {
-  display: flex;
-  align-items: center;
-  border-radius: 100px;
-  height: 34px;
-  width: 520px;
-  border: 2px solid var(--color-third);
-  overflow: hidden;
-}
-
-.searchBar input {
-  border: none;
   background: transparent;
-  padding: 0 18px;
-  flex: 1;
-  outline: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 15px;
+  text-align: left;
 }
 
-.profileWrapper {
-  position: absolute;
-  right: 30px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.profilePic {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-}
-
-.dropdownContent {
-  position: absolute;
-  top: 34px;
-  right: 0;
-  display: none;
-  background: #fff;
-  border: 1px solid #e5e5e5;
-  border-radius: 12px;
-  padding: 8px;
+.dropdownContent a:hover,
+.dropdownContent button:hover {
+  background: #f3f3f3;
 }
 
 .show {
   display: block;
 }
 
-/* MAIN CONTENT */
+/* CONTENT */
 
 .mainContent {
-  padding: 40px;
-  margin-top: 70px;
+  grid-area: main;
+  padding: 28px 40px 40px;
   background: #f5f5f5;
+  flex: 1;
 }
 
 .courses {
-  background: #eeeeee;
+  width: 100%;
+  max-width: 1400px;
+  background-color: #eeeeee;
   border-radius: 15px;
-  padding: 20px;
-  margin-bottom: 40px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  padding: 0;
   position: relative;
+  overflow: hidden;
+  margin-bottom: 50px;
 }
 
 .courseHead {
@@ -676,141 +458,106 @@
   top: 0;
   left: 0;
   width: 100%;
+  background-color: var(--color-third);
   height: 50px;
-  background-color: #C8A8E9;
   border-top-left-radius: 15px;
   border-top-right-radius: 15px;
 }
 
+.innercourse {
+  position: relative;
+  z-index: 1;
+}
+
 .innerhead {
-  padding-top: 60px;
-  border-bottom: 2px solid #ddd;
-  padding-bottom: 10px;
-}
-
-.lessons {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 30px;
-  padding: 40px;
-}
-
-.lessonContent {
-  background: #EBD3FA;
-  border-radius: 30px;
-  padding: 20px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-}
-
-.lessonTitle {
-  font-size: 18px;
-}
-
-.lessonDescription {
-  font-size: 14px;
-}
-
-.lessonBtn {
-  margin-top: 15px;
-  border-radius: 20px;
-  background: white;
-  padding: 8px 20px;
-  border: none;
-  cursor: pointer;
-}
-
-/* DECKS */
-
-.deckGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
-}
-
-.deckBox {
-  background-color: #EBD3FA;
-  border-radius: 15px;
-  overflow: hidden;
-  cursor: pointer;
-}
-
-.deckHead {
-  height: 30px;
+  display: flex;
+  align-items: center;
   width: 100%;
+  padding-top: 70px;
+  padding-left: 40px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #ddd;
+  box-sizing: border-box;
 }
 
-.deckContent {
-  background: white;
-  padding: 15px;
+.innerhead h1 {
+  font-size: 40px;
+  font-weight: lighter;
+  margin: 0;
 }
 
-.deckTitle {
-  font-size: 18px;
-}
+/* LESSON CARDS */
 
-.deckCount {
-  font-size: 14px;
-  color: #555;
-}
 .lessons {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  margin-top: 20px;
+  gap: 15px;
+  margin-top: 10px;
+  margin-bottom: 30px;
+  padding: 20px 40px 30px;
 }
-/* CARD WRAPPER */
+
 .lessonBox {
   border-radius: 20px;
   padding: 20px;
   position: relative;
-  min-height: 180px;
+  min-height: 230px;
   width: 100%;
-}
-/* TOP BIG ROUNDED AREA */
-.lessonTop{
-  height:110px;
-  background:#bfbfbf;
-  border-radius:30px;
+  box-sizing: border-box;
 }
 
-/* SHADOW LAYER */
-.lessonPreview{
-  position:absolute;
-  bottom:-10px;
-  left:20px;
-  right:20px;
-  height:80px;
-  background:#a5a5a5;
-  border-radius:25px;
-  opacity:0.6;
+.lessonTop {
+  height: 110px;
+  background: #c8bbd0;
+  border-radius: 30px;
 }
 
-/* MAIN CARD */
-.lessonContent{
-  position:absolute;
-  top:70px;
-  left:20px;
-  right:20px;
-  background:#9f9f9f;
-  border-radius:30px;
-  padding:20px;
-  color:white;
-  display:flex;
-  flex-direction:column;
+.lessonPreview {
+  position: absolute;
+  bottom: 20px;
+  left: 35px;
+  right: 35px;
+  height: 60px;
+  background: #d9d9d9;
+  border-radius: 25px;
+  opacity: 0.7;
 }
+
+.lessonContent {
+  position: absolute;
+  top: 80px;
+  left: 20px;
+  right: 20px;
+  background: #EBD3FA;
+  border-radius: 30px;
+  padding: 14px 16px;
+  color: #2F2F2F;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 125px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lessonContent:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
 .lessonHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
 }
 
-.lessonTitle{
-  font-size:18px;
-  font-weight:600;
+.lessonTitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
 }
 
-/* PLUS BUTTON */
 .lessonAdd {
   background: white;
   border: none;
@@ -818,26 +565,200 @@
   width: 34px;
   height: 34px;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: 0.2s ease;
 }
 
-/* DESCRIPTION */
-.lessonDescription{
-  font-size:14px;
-  margin-top:5px;
+.lessonAdd:hover {
+  transform: scale(1.1);
+  background: #f5f5f5;
 }
 
-/* START BUTTON */
+.lessonAdd i {
+  color: #A993D8;
+  font-size: 20px;
+}
+
+.lessonDescription {
+  font-size: 14px;
+  margin-top: 8px;
+  color: #555;
+  line-height: 1.4;
+}
+
 .lessonBtn {
-  margin-top: 12px;
+  margin-top: 5px;
   padding: 8px 16px;
   border-radius: 18px;
   border: none;
   background: white;
   font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 4px 0 rgb(100, 89, 104);
+  transition: 0.2s ease;
 }
 
-.lessonBtn:hover{
-  transform:translateY(1px);
+.lessonBtn:hover {
+  transform: translateY(1px);
+  background: #f3f3f3;
+}
+
+/* PUBLIC DECKS */
+
+.deckGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  padding: 20px 35px 30px;
+}
+
+.deckBox {
+  background-color: #f2f2f2;
+  border-radius: 15px;
+  overflow: hidden;
+  cursor: pointer;
+  height: 150px;
+  box-shadow: 0 6px 14px rgba(16, 16, 16, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.deckBox:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(16, 16, 16, 0.12);
+}
+
+.deckHead {
+  height: 70px;
+}
+
+.deckContent {
+  background: white;
+  padding: 14px;
+  height: 110px;
+}
+
+.deckTitle {
+  font-size: 16px;
+  margin: 0 0 6px;
+  color: #111;
+}
+
+.deckCount {
+  font-size: 13px;
+  color: #555;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.deckColor1 {
+  background: var(--card-color1);
+}
+
+.deckColor2 {
+  background: var(--card-color2);
+}
+
+.deckColor3 {
+  background: var(--card-color3);
+}
+
+.deckColor4 {
+  background: var(--card-color4);
+}
+
+.deckColor5 {
+  background: var(--card-color5);
+}
+
+.deckColor6 {
+  background: var(--card-color6);
+}
+
+.emptyMain {
+  opacity: 0.6;
+  padding: 40px;
+  margin: 0;
+  width: 100%;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1100px) {
+  .lessons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .deckGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    width: 60px;
+  }
+
+  .sidebar .logoExpanded,
+  .sidebar .myDecksTitle,
+  .sidebar .sectionTitle,
+  .sidebar .sidebarEmptyText,
+  .sidebar .menuText {
+    display: none;
+  }
+
+  .sidebar .logoCollapsed {
+    display: block;
+  }
+
+  .mainArea {
+    margin-left: 60px;
+  }
+
+  .searchBar {
+    width: 360px;
+  }
+
+  .profileWrapper {
+    right: 14px;
+  }
+
+  .userInfo {
+    display: none;
+  }
+
+  .mainContent {
+    padding: 28px 20px 30px;
+  }
+
+  .lessons,
+  .deckGrid {
+    padding: 25px;
+  }
+
+  .innerhead {
+    padding-left: 25px;
+  }
+
+  .innerhead h1 {
+    font-size: 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .headerContainer {
+    justify-content: flex-start;
+    padding-left: 20px;
+  }
+
+  .searchBar {
+    width: calc(100% - 90px);
+  }
+
+  .lessons,
+  .deckGrid {
+    grid-template-columns: 1fr;
+  }
 }

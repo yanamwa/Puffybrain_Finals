@@ -24,6 +24,8 @@
   z-index: 99999 !important;
 }
 
+/* ===== SIDEBAR SAME AS HOMEPAGE ===== */
+
 .container.sidebarCollapsed .sidebar {
   width: 60px;
 }
@@ -96,6 +98,11 @@
   color: #959494;
 }
 
+.myDecksTitle {
+  font-size: 17px;
+  margin: 0.3rem 0 0 15px;
+}
+
 .menu,
 .myDecksNav,
 .logout {
@@ -103,21 +110,24 @@
   flex-direction: column;
 }
 
-.sidebarList {
+.sidebarList,
+.sectionList {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
 .sidebarListItem {
-  margin-left: 10px;
+  margin: 0;
+  padding: 0 8px 0 10px;
 }
 
-.sidebarList i {
-  width: 25px;
-  height: 25px;
-  font-size: 22px;
-  margin-left: 15px;
+.sidebarList i,
+.sectionList i {
+  width: 22px;
+  min-width: 22px;
+  font-size: 20px;
+  margin-left: 14px;
   margin-right: 10px;
   opacity: 0.3;
   color: black;
@@ -127,31 +137,44 @@
 .menuItem {
   display: flex;
   align-items: center;
+  width: 100%;
+  box-sizing: border-box;
   text-decoration: none;
   color: #000;
-  padding: 8px;
-  margin: 5px 0;
-  border-radius: 20px 0 0 20px;
-  transition: all 0.3s ease;
+  background: transparent;
+  border: none;
+  padding: 10px 14px;
+  margin: 4px 0;
+  border-radius: 999px 0 0 999px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.25s ease;
+  font-family: inherit;
+  font-size: inherit;
 }
 
 .menuItem:hover {
-  background: white;
-  margin-left: 15px;
+  background: #ffffff;
+  transform: translateX(6px);
 }
 
-.menuItem.active {
-  background: rgb(243, 243, 243);
+.menuItem.active,
+.active {
+  background: #ffffff;
+  transform: translateX(6px);
 }
 
-.sidebar.collapsed .menuText {
-  display: none;
+.menuItem:hover i,
+.menuItem.active i,
+.active i {
+  opacity: 1;
 }
 
-.myDecks,
-.myDecksTitle {
-  font-size: 17px;
-  margin: 0.3rem 0 0 15px;
+.menuText {
+  display: inline-block;
+  line-height: 1.2;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .logout {
@@ -161,23 +184,39 @@
 .logoutLink {
   display: flex;
   align-items: center;
-  background: none;
+  width: calc(100% - 18px);
+  box-sizing: border-box;
+  background: transparent;
   border: none;
   color: #000;
-  padding: 8px;
-  margin: 5px 0;
-  border-radius: 20px 0 0 20px;
+  padding: 10px 14px;
+  margin: 4px 8px 0 10px;
+  border-radius: 999px 0 0 999px;
   cursor: pointer;
+  text-align: left;
+  transition: background 0.25s ease, transform 0.25s ease;
   font-family: inherit;
   font-size: inherit;
-  width: 100%;
-  text-align: left;
-  transition: all 0.3s ease;
 }
 
 .logoutLink:hover {
-  background: white;
-  margin-left: 15px;
+  background: #ffffff;
+  transform: translateX(6px);
+}
+
+.logoutLink i {
+  width: 22px;
+  min-width: 22px;
+  font-size: 20px;
+  margin-left: 14px;
+  margin-right: 10px;
+  opacity: 0.3;
+  color: black;
+  transition: all 0.3s ease;
+}
+
+.logoutLink:hover i {
+  opacity: 1;
 }
 
 .sidebar.collapsed i {
@@ -194,7 +233,9 @@
   margin-left: 0;
 }
 
-.sidebar.collapsed .sidebarList span {
+.sidebar.collapsed .sidebarList span,
+.sidebar.collapsed .sectionList span,
+.sidebar.collapsed .menuText {
   display: none;
 }
 
@@ -204,22 +245,47 @@
   margin: 0 10px;
 }
 
-.sidebar.collapsed .myDecks,
-.sidebar.collapsed .myDecksTitle {
+.sidebar.collapsed .myDecksTitle,
+.sidebar.collapsed .sectionTitle,
+.sidebar.collapsed .sidebarEmptyText {
   display: none;
 }
+
+.sectionBlock {
+  margin-top: 10px;
+}
+
+.sectionTitle {
+  font-size: 17px;
+  margin: 10px 0 5px 15px;
+  font-weight: 500;
+}
+
+.sectionDivider {
+  height: 1px;
+  background-color: white;
+  margin: 8px 10px;
+}
+
+.sidebarEmptyText {
+  opacity: 0.6;
+  padding-left: 20px;
+  font-size: 14px;
+  color: #333;
+}
+
+/* ===== MAIN LAYOUT ===== */
 
 .mainArea {
   display: flex;
   flex-direction: column;
   flex: 1;
   margin-left: 220px;
-  margin-right: 0;
   transition: margin-left 0.3s ease;
 }
 
 .sidebarCollapsed .mainArea {
-  margin-left: 90px;
+  margin-left: 60px;
 }
 
 .gridContainer {
@@ -229,8 +295,10 @@
   grid-template-areas:
     "header"
     "main";
-  height: 100%;
+  min-height: 100vh;
 }
+
+/* ===== HEADER ===== */
 
 .headerContainer {
   grid-area: header;
@@ -239,7 +307,9 @@
   justify-content: center;
   border: 2px solid #E6E6E6;
   background: #fff;
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 500;
 }
 
 .searchBar {
@@ -271,6 +341,10 @@
   height: 34px;
   display: grid;
   place-items: center;
+}
+
+.searchBar:focus-within {
+  box-shadow: 0 0 0 3px rgba(200, 168, 233, 0.18);
 }
 
 .profileWrapper {
@@ -317,35 +391,52 @@
 
 .dropdownContent {
   position: absolute;
-  top: 34px;
+  top: calc(100% + 8px);
   right: 0;
+  left: auto;
+
   display: none;
   background: #fff;
   border: 1px solid #e5e5e5;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.12);
   border-radius: 12px;
-  min-width: 190px;
+
+  width: 190px;
+  max-width: calc(100vw - 20px);
+
   padding: 8px;
   z-index: 9999;
 }
 
-.dropdownContent a {
+.dropdownContent a,
+.dropdownContent button {
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
   padding: 10px 12px;
   border-radius: 10px;
   text-decoration: none;
   color: #000;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 15px;
+  text-align: left;
 }
 
-.dropdownContent a:hover {
+.dropdownContent a:hover,
+.dropdownContent button:hover {
   background: #f3f3f3;
 }
 
 .show {
   display: block;
 }
+
+/* ===== PAGE CONTENT ===== */
 
 .main {
   grid-area: main;
@@ -359,12 +450,13 @@
   border-radius: 22px;
   margin-bottom: 20px;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .purpleStrip {
   height: 16px;
   background: #d3b7f3;
+  border-radius: 22px 22px 0 0;
 }
 
 .panelHeader {
@@ -388,6 +480,12 @@
   background: #e5e5e5;
   box-shadow: 2px 4px 0 #ababab;
   cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.addBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 3px 5px 0 #ababab;
 }
 
 .filterRow {
@@ -429,7 +527,7 @@
   background: #fff;
   position: relative;
   border-radius: 18px;
-  overflow: visible; /* changed */
+  overflow: visible;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
   cursor: pointer;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
@@ -444,6 +542,7 @@
   background: #fff;
   border-radius: 18px;
   overflow: hidden;
+  height: 100%;
 }
 
 .deckTop {
@@ -451,7 +550,7 @@
   position: relative;
   border-top-left-radius: 18px;
   border-top-right-radius: 18px;
-  overflow: hidden; /* keep only top clipped */
+  overflow: hidden;
 }
 
 .deckTop::before {
@@ -469,7 +568,7 @@
   position: absolute;
   top: 10px;
   right: 10px;
-  z-index: 10;
+  z-index: 20;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -483,6 +582,49 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+
+.deckMenuBtn i {
+  font-size: 18px;
+  color: #000;
+}
+
+.deckCard:hover .deckMenuBtn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.deckMenuBtn:hover {
+  background: #f3f3f3;
+  transform: scale(1.08);
+}
+
+.deckMenu {
+  position: absolute;
+  top: 46px;
+  right: 10px;
+  min-width: 160px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+  padding: 8px 0;
+  z-index: 9999;
+  animation: fadeIn 0.15s ease;
+}
+
+.deckMenu button {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #222;
+}
+
+.deckMenu button:hover {
+  background: #f5f5f5;
 }
 
 .deckBody {
@@ -513,10 +655,6 @@
 .deckBody span {
   font-size: 14px;
   color: #9b9b9b;
-}
-
-.deckClickable {
-  cursor: pointer;
 }
 
 .blue .deckTop {
@@ -550,39 +688,33 @@
 .red .deckTop::before {
   background: #e38b87;
 }
-.deckMenuBtn i {
-  font-size: 18px;
-  color: #000;
-  margin: 0;
-  opacity: 1;
-  width: auto;
-  height: auto;
-}
 
-.deckCard:hover .deckMenuBtn {
-  opacity: 1;
-  pointer-events: auto;
-}
+/* ===== EMPTY STATE ===== */
 
-.deckMenuBtn:hover {
-  background: #f3f3f3;
-  transform: scale(1.08);
-}
-
-.deckMenu button {
+.emptyState {
   width: 100%;
-  border: none;
-  background: transparent;
-  text-align: left;
-  padding: 10px 14px;
-  cursor: pointer;
-  font-size: 14px;
-  color: #222;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 60px 0;
 }
 
-.deckMenu button:hover {
-  background: #f5f5f5;
+.emptyImg {
+  width: 160px;
+  height: auto;
+  margin-bottom: 15px;
 }
+
+.emptyText {
+  font-size: 22px;
+  color: #666;
+  font-weight: 600;
+}
+
+/* ===== MODAL ===== */
 
 .overlay {
   position: fixed;
@@ -703,653 +835,64 @@
   font-size: 22px;
 }
 
-.emptyText {
-  opacity: 0.6;
-  font-size: 14px;
-}
-
-.deckMenu {
-  animation: fadeIn 0.15s ease;
-}
-
 @keyframes fadeIn {
   from {
     opacity: 0;
     transform: translateY(-4px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-:root {
-  --color-primary: #EBD3FA;
-  --color-secondary: #E3AADD;
-  --color-third: #C8A8E9;
-  --color-fourth: #A993D8;
-  --color-fifth: #C3C7F3;
-  --font-color: #2F2F2F;
-  --card-color1: #C8BBD0;
-  --card-color2: #E0BBD4;
-  --card-color3: #C3C7F3;
-  --card-color4: #90F897;
-  --card-color5: #CF8686;
-  --card-color6: #EECB99;
-}
-
-.container {
-  display: flex;
-  min-height: 100vh;
-  background: #f5f5f5;
-  transition: all 0.3s ease;
-}
-
-.swal2-container {
-  z-index: 99999 !important;
-}
-
-.container.sidebarCollapsed .sidebar {
-  width: 60px;
-}
-
-.sidebar {
-  position: fixed;
-  width: 220px;
-  background-color: var(--color-primary);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100vh;
-  padding-top: 10px;
-  transition: width 0.3s ease;
-  z-index: 1000;
-}
-
-.sidebar.collapsed {
-  width: 60px;
-}
-
-.logo {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  margin-bottom: 0;
-}
-
-.logoExpanded {
-  display: block;
-  width: 150px;
-  height: auto;
-  object-fit: contain;
-  transition: all 0.3s ease;
-}
-
-.logoCollapsed {
-  display: none;
-  width: 90px;
-  height: 90px;
-  object-fit: contain;
-  transition: all 0.3s ease;
-  margin: 0;
-}
-
-.sidebar.collapsed .logoExpanded {
-  display: none;
-}
-
-.sidebar.collapsed .logoCollapsed {
-  display: block;
-}
-
-.sidebarToggle {
-  display: flex;
-  justify-content: flex-end;
-  padding: 0 10px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.sidebar.collapsed .sidebarToggle {
-  justify-content: center;
-  padding: 0;
-}
-
-.sidebarToggle i {
-  font-size: 24px;
-  color: #959494;
-}
-
-.menu,
-.myDecksNav,
-.logout {
-  display: flex;
-  flex-direction: column;
-}
-
-.sidebarList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.sidebarListItem {
-  margin-left: 10px;
-}
-
-.sidebarList i {
-  width: 25px;
-  height: 25px;
-  font-size: 22px;
-  margin-left: 15px;
-  margin-right: 10px;
-  opacity: 0.3;
-  color: black;
-  transition: all 0.3s ease;
-}
-
-.menuItem {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  color: #000;
-  padding: 8px;
-  margin: 5px 0;
-  border-radius: 20px 0 0 20px;
-  transition: all 0.3s ease;
-}
-
-.menuItem:hover {
-  background: white;
-  margin-left: 15px;
-}
-
-.menuItem.active {
-  background: rgb(243, 243, 243);
-}
-
-.sidebar.collapsed .menuText {
-  display: none;
-}
-
-.myDecks,
-.myDecksTitle {
-  font-size: 17px;
-  margin: 0.3rem 0 0 15px;
-}
-
-.logout {
-  margin-bottom: 20px;
-}
-
-.logoutLink {
-  display: flex;
-  align-items: center;
-  background: none;
-  border: none;
-  color: #000;
-  padding: 8px;
-  margin: 5px 0;
-  border-radius: 20px 0 0 20px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: inherit;
-  width: 100%;
-  text-align: left;
-  transition: all 0.3s ease;
-}
-
-.logoutLink:hover {
-  background: white;
-  margin-left: 15px;
-}
-
-.sidebar.collapsed i {
-  margin-left: 0;
-  justify-content: center;
-  width: 100%;
-  display: flex;
-  font-size: 1.5rem;
-}
-
-.sidebar.collapsed .logout .logoutLink {
-  justify-content: center;
-  padding: 10px 0;
-  margin-left: 0;
-}
-
-.sidebar.collapsed .sidebarList span {
-  display: none;
-}
-
-.divider {
-  height: 1px;
-  background-color: white;
-  margin: 0 10px;
-}
-
-.sidebar.collapsed .myDecks,
-.sidebar.collapsed .myDecksTitle {
-  display: none;
-}
-
-.mainArea {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  margin-left: 220px;
-  margin-right: 0;
-  transition: margin-left 0.3s ease;
-}
-
-.sidebarCollapsed .mainArea {
-  margin-left: 90px;
-}
-
-.gridContainer {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: 70px 1fr;
-  grid-template-areas:
-    "header"
-    "main";
-  height: 100%;
-}
-
-.headerContainer {
-  grid-area: header;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #E6E6E6;
-  background: #fff;
-  position: relative;
-}
-
-.searchBar {
-  display: flex;
-  align-items: center;
-  background: #fff;
-  border-radius: 100px;
-  height: 34px;
-  width: 520px;
-  max-width: 640px;
-  border: 2px solid var(--color-third);
-  overflow: hidden;
-}
-
-.searchBar input {
-  border: none;
-  background: transparent;
-  padding: 0 18px;
-  flex: 1;
-  font-size: 15px;
-  outline: none;
-  color: var(--font-color);
-}
-
-/* This keeps the search field centered even without a search icon in MyCourse */
-.searchBar:focus-within {
-  box-shadow: 0 0 0 3px rgba(200, 168, 233, 0.18);
-}
-
-.profileWrapper {
-  position: absolute;
-  right: 30px;
-  top: 8px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  z-index: 10;
-}
-
-.profilePic {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  display: block;
-}
-
-/* MyCourse uses <p> directly inside profileWrapper */
-.profileWrapper p {
-  margin: 0;
-  font-size: 18px;
-  color: #000;
-  white-space: nowrap;
-  font-weight: 500;
-}
-
-.main {
-  grid-area: main;
-  padding: 28px 34px;
-  background: rgb(243, 243, 243);
-  overflow: auto;
-}
-
-.panel {
-  background: #fff;
-  border-radius: 22px;
-  margin-bottom: 20px;
-  position: relative;
-  overflow: hidden;
-}
-
-.purpleStrip {
-  height: 16px;
-  background: #d3b7f3;
-}
-
-.panelHeader {
-  padding: 22px 28px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.panelHeader h1 {
-  margin: 0;
-  font-size: 30px;
-  color: #2f2f2f;
-}
-
-.addBtn {
-  padding: 7px 16px;
-  border-radius: 18px;
-  border: 1px solid #2f2f2f;
-  font-size: 15px;
-  background: #e5e5e5;
-  box-shadow: 2px 4px 0 #ababab;
-  cursor: pointer;
-}
-
-.filterRow {
-  position: absolute;
-  top: 8px;
-  left: 26px;
-  height: 26px;
-  padding: 0 16px;
-  display: flex;
-  align-items: center;
-  background: #efd9ff;
-  border-radius: 14px;
-  z-index: 2;
-}
-
-.filterPill {
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-size: 15px;
-}
-
-.deckArea {
-  padding: 70px 40px 45px;
-  display: flex;
-  gap: 28px;
-  flex-wrap: wrap;
-  position: relative;
-  overflow: visible;
-  align-items: flex-start;
-}
-
-
-.deckCard:hover .deckMenuBtn {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.deckMenu {
-  position: absolute;
-  top: 50px;
-  right: 12px;
-  min-width: 160px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
-  padding: 8px 0;
-  z-index: 999;
-}
-
-.deckTop {
-  height: 120px;
-  position: relative;
-  border-top-left-radius: 18px;
-  border-top-right-radius: 18px;
-  overflow: hidden;
-}
-
-.deckMenuBtn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 5;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: #fff;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease;
-}
-
-.deckCard:hover .deckMenuBtn {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-
-.deckBody {
-  background: #f2f2f2;
-  padding: 12px 14px 14px;
-  border-bottom-left-radius: 18px;
-  border-bottom-right-radius: 18px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.deckBody h4 {
-  margin: 0 0 4px;
-  font-size: 16px;
-  color: #333;
-  font-weight: 600;
-  min-height: 40px;
-}
-.deckBody span {
-  font-size: 14px;
-  color: #9b9b9b;
-}
-
-.emptyText {
-  opacity: 0.7;
-  font-size: 15px;
-  width: 100%;
-  text-align: center;
-  padding: 30px 0 10px;
-}
-
-/* ===== LABEL ===== */
-.courseLabel {
-  font-size: 11px;
-  letter-spacing: 2px;
-  color: #7c7c9a;
-  margin-bottom: 6px;
-}
-
-/* ===== PROGRESS ===== */
-.progressWrap {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.progressRing {
-  width: 28px;
-  height: 28px;
-}
-
-.progressSvg {
-  width: 28px;
-  height: 28px;
-  transform: rotate(-90deg);
-}
-
-.progressBg {
-  fill: none;
-  stroke: #ddd;
-  stroke-width: 5;
-}
-
-.progressValue {
-  fill: none;
-  stroke: #f2c94c;
-  stroke-width: 5;
-  stroke-linecap: round;
-  transition: stroke-dashoffset 0.3s ease;
-}
-
-.progressText {
-  font-size: 13px;
-  font-weight: 600;
-  color: #444;
-}
-
-/* ===== FINAL FIX OVERRIDE ===== */
-
-.deckCard {
-  overflow: visible !important;
-  position: relative !important;
-}
-
-.deckTop {
-  overflow: hidden !important;
-}
-
-.deckMenu {
-  position: absolute !important;
-  top: 46px !important;
-  right: 10px !important;
-  z-index: 9999 !important;
-}
-
-.deckMenuBtn {
-  z-index: 20 !important;
-}
-
-.deckArea {
-  overflow: visible !important;
-}
-
-
-/* ===== LABEL ===== */
-.courseLabel {
-  font-size: 11px;
-  letter-spacing: 2px;
-  color: #7c7c9a;
-  margin-bottom: 6px;
-}
-
-/* ===== PROGRESS ===== */
-.progressWrap {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.progressRing {
-  width: 28px;
-  height: 28px;
-}
-
-.progressSvg {
-  width: 28px;
-  height: 28px;
-  transform: rotate(-90deg);
-}
-
-.progressBg {
-  fill: none;
-  stroke: #ddd;
-  stroke-width: 5;
-}
-
-.progressValue {
-  fill: none;
-  stroke: #f2c94c;
-  stroke-width: 5;
-  stroke-linecap: round;
-  transition: stroke-dashoffset 0.3s ease;
-}
-
-.progressText {
-  font-size: 13px;
-  font-weight: 600;
-  color: #444;
-}
-.sectionBlock {
-  margin-top: 10px;
-}
-
-.sectionTitle {
-  font-size: 17px;
-  margin: 10px 0 5px 15px;
-  font-weight: 500;
-}
-
-.sectionDivider {
-  height: 1px;
-  background-color: white;
-  margin: 8px 10px;
-}
-
-.sectionList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.emptyText {
-  font-size: 20px; 
-  font-weight: 600;
-  color: #444;
-}
-
-.menuItem {
-  width: 100%;
-  background: transparent;
-  border: none;
-  text-align: left;
-  cursor: pointer;
-}
-
-.emptyState {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;   
-  align-items: center;  
-  text-align: center;
-  padding: 60px 0;
-}
-
-.emptyImg {
-  width: 160px;
-  height: auto;
-  margin-bottom: 15px;
-}
-
-.emptyText {
-  font-size: 22px;
-  color: #666;
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 900px) {
+  .searchBar {
+    width: 360px;
+  }
+
+  .profileWrapper {
+    right: 14px;
+  }
+
+  .userInfo {
+    display: none;
+  }
+
+  .deckArea {
+    padding: 70px 20px 35px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 60px;
+  }
+
+  .sidebar .menuText,
+  .sidebar .myDecksTitle,
+  .sidebar .sectionTitle,
+  .sidebar .sidebarEmptyText {
+    display: none;
+  }
+
+  .mainArea {
+    margin-left: 60px;
+  }
+
+  .headerContainer {
+    justify-content: flex-start;
+    padding-left: 20px;
+  }
+
+  .searchBar {
+    width: calc(100% - 90px);
+  }
+
+  .main {
+    padding: 20px;
+  }
 }

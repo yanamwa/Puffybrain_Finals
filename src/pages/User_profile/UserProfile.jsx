@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import "boxicons/css/boxicons.min.css";
 import styles from "./UserProfile.module.css";
 
@@ -11,6 +11,8 @@ function UserProfile() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const [myDecks, setMyDecks] = useState([]);
+  const [courses, setCourses] = useState([]);
+
   const [user, setUser] = useState({
     username: "",
     year_level: "",
@@ -23,13 +25,36 @@ function UserProfile() {
       const res = await fetch("http://localhost/puffybrain/userDecks.php", {
         credentials: "include",
       });
+
       const data = await res.json();
 
       if (data.success) {
-        setMyDecks(data.decks);
+        setMyDecks(data.decks || []);
+      } else {
+        setMyDecks([]);
       }
     } catch (err) {
       console.error("Failed to fetch user decks:", err);
+      setMyDecks([]);
+    }
+  };
+
+  const fetchAddedCourses = async () => {
+    try {
+      const res = await fetch("http://localhost/puffybrain/getMyCourses.php", {
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setCourses(data.courses || []);
+      } else {
+        setCourses([]);
+      }
+    } catch (err) {
+      console.error("Fetch courses error:", err);
+      setCourses([]);
     }
   };
 
@@ -38,19 +63,32 @@ function UserProfile() {
       const res = await fetch("http://localhost/puffybrain/getUser.php", {
         credentials: "include",
       });
+
       const data = await res.json();
 
       if (data.success) {
         setUser({
-          username: data.user.username || "",
-          year_level: data.user.year_level || "",
-          school: data.user.school || "Cavite State University Imus Campus",
-          signature: data.user.signature || data.user.username || "",
+          username: data.user?.username || data.username || "",
+          year_level: data.user?.year_level || data.year_level || "",
+          school:
+            data.user?.school ||
+            data.school ||
+            "Cavite State University Imus Campus",
+          signature:
+            data.user?.signature ||
+            data.signature ||
+            data.user?.username ||
+            data.username ||
+            "",
         });
       }
     } catch (err) {
       console.error("Failed to fetch user:", err);
     }
+  };
+
+  const openCourse = (courseId) => {
+    navigate(`/learning/${courseId}`);
   };
 
   const handleLogout = () => {
@@ -60,13 +98,19 @@ function UserProfile() {
 
   useEffect(() => {
     fetchUserDecks();
+    fetchAddedCourses();
     fetchUser();
   }, []);
 
   useEffect(() => {
     const handler = (e) => {
-      const insideDropdown = e.target.closest?.(`.${styles.dropdown}`);
-      if (!insideDropdown) setDropdownOpen(false);
+      const insideDropdown = e.target.closest(
+        `.${styles.dropdownBtn}, .${styles.dropdownContent}`
+      );
+
+      if (!insideDropdown) {
+        setDropdownOpen(false);
+      }
     };
 
     window.addEventListener("click", handler);
@@ -79,7 +123,6 @@ function UserProfile() {
         isCollapsed ? styles.sidebarCollapsed : ""
       }`}
     >
-      {/* ================= LEFT SIDEBAR ================= */}
       <aside
         className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
       >
@@ -105,37 +148,56 @@ function UserProfile() {
           </div>
 
           <div className={styles.divider}></div>
-
           <p className={styles.myDecksTitle}>Menu</p>
 
           <nav className={styles.menu}>
             <ul className={styles.sidebarList}>
               <li className={styles.sidebarListItem}>
-                <Link to="/homepage" className={styles.menuItem}>
+                <NavLink
+                  to="/homepage"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
                   <i className="bx bx-home"></i>
                   <span className={styles.menuText}>Home</span>
-                </Link>
+                </NavLink>
               </li>
 
               <li className={styles.sidebarListItem}>
-                <Link to="/Mydecks" className={styles.menuItem}>
+                <NavLink
+                  to="/Mydecks"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
                   <i className="bx bx-book"></i>
                   <span className={styles.menuText}>Decks</span>
-                </Link>
+                </NavLink>
               </li>
 
               <li className={styles.sidebarListItem}>
-                <Link to="/mycourse" className={styles.menuItem}>
+                <NavLink
+                  to="/mycourse"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
                   <i className="bx bx-book"></i>
                   <span className={styles.menuText}>My Course</span>
-                </Link>
+                </NavLink>
               </li>
 
               <li className={styles.sidebarListItem}>
-                <Link to="/public-decks" className={styles.menuItem}>
+                <NavLink
+                  to="/public-decks"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
                   <i className="bx bx-folder"></i>
                   <span className={styles.menuText}>Public Decks</span>
-                </Link>
+                </NavLink>
               </li>
             </ul>
           </nav>
@@ -143,38 +205,56 @@ function UserProfile() {
           <div className={styles.divider}></div>
 
           <div className={styles.myDecksNav}>
-            <p className={styles.myDecks}>My Decks</p>
+            <div className={styles.sectionBlock}>
+              <p className={styles.sectionTitle}>My Decks</p>
 
-            <ul className={styles.sidebarList}>
-              {myDecks.length === 0 ? (
-                <li className={styles.sidebarListItem}>
-                  <span className={styles.menuText} style={{ opacity: 0.6 }}>
+              <ul className={styles.sectionList}>
+                {myDecks.length === 0 ? (
+                  <li className={styles.sidebarEmptyText}>
                     Don't have decks yet
-                  </span>
-                </li>
-              ) : (
-                myDecks.map((deck) => (
-                  <li key={deck.id} className={styles.sidebarListItem}>
-                    <Link to={`/deck/${deck.id}`} className={styles.menuItem}>
-                      <i className="bx bx-book"></i>
-                      <span className={styles.menuText}>{deck.title}</span>
-                    </Link>
                   </li>
-                ))
-              )}
-            </ul>
-          </div>
-        </div>
+                ) : (
+                  myDecks.slice(0, 3).map((deck) => (
+                    <li key={deck.id} className={styles.sidebarListItem}>
+                      <Link to={`/deck/${deck.id}`} className={styles.menuItem}>
+                        <i className="bx bx-book"></i>
+                        <span className={styles.menuText}>{deck.title}</span>
+                      </Link>
+                    </li>
+                  ))
+                )}
+              </ul>
+            </div>
 
-        <div className={styles.logout}>
-          <button className={styles.logoutLink} onClick={handleLogout}>
-            <i className="bx bx-log-out"></i>
-            <span className={styles.menuText}>Logout</span>
-          </button>
+            <div className={styles.sectionBlock}>
+              <div className={styles.sectionDivider}></div>
+              <p className={styles.sectionTitle}>My Courses</p>
+
+              <ul className={styles.sectionList}>
+                {courses.length === 0 ? (
+                  <li className={styles.sidebarEmptyText}>
+                    No courses added yet
+                  </li>
+                ) : (
+                  courses.slice(0, 3).map((course) => (
+                    <li key={course.id} className={styles.sidebarListItem}>
+                      <button
+                        type="button"
+                        onClick={() => openCourse(course.id)}
+                        className={styles.menuItem}
+                      >
+                        <i className="bx bx-book"></i>
+                        <span className={styles.menuText}>{course.title}</span>
+                      </button>
+                    </li>
+                  ))
+                )}
+              </ul>
+            </div>
+          </div>
         </div>
       </aside>
 
-      {/* ================= RIGHT SIDE ================= */}
       <div className={styles.mainArea}>
         <div className={styles.gridContainer}>
           <div className={styles.headerContainer}>
@@ -210,7 +290,7 @@ function UserProfile() {
                   className={styles.dropdownBtn}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setDropdownOpen((v) => !v);
+                    setDropdownOpen(!dropdownOpen);
                   }}
                 >
                   <i className="bx bx-chevron-down" />
@@ -221,21 +301,17 @@ function UserProfile() {
                     dropdownOpen ? styles.show : ""
                   }`}
                 >
-                  <Link to="/setting-profile/setting-profilee">
+                  <NavLink to="/edit-profile">
                     <i className="bx bx-cog" />
                     <span>Settings</span>
-                  </Link>
+                  </NavLink>
 
-                  <Link to="/how-it-works">
+                  <NavLink to="/faq">
                     <i className="bx bx-help-circle" />
                     <span>FAQs</span>
-                  </Link>
+                  </NavLink>
 
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className={styles.dropdownLogout}
-                  >
+                  <button type="button" onClick={handleLogout}>
                     <i className="bx bx-log-out" />
                     <span>Logout</span>
                   </button>
@@ -246,64 +322,70 @@ function UserProfile() {
 
           <main className={styles.main}>
             <div className={styles.profileCard}>
-                <div className={styles.idPhotoBox}>
-                  <div className={styles.idPhotoFrame}>
-                    <img
-                      src="/images/temporary profile.jpg"
-                      alt="Profile"
-                      className={styles.idPhoto}
-                    />
-                  </div>
-                  <div className={styles.idBarcode}></div>
+              <div className={styles.idPhotoBox}>
+                <div className={styles.idPhotoFrame}>
+                  <img
+                    src="/images/temporary profile.jpg"
+                    alt="Profile"
+                    className={styles.idPhoto}
+                  />
+                </div>
+                <div className={styles.idBarcode}></div>
+              </div>
+
+              <div className={styles.profileCardInner}>
+                <div className={styles.profileCardTop}>
+                  <h1 className={styles.profileTitle}>Student ID Card</h1>
+
+                  <button className={styles.shareBtn} type="button">
+                    <i className="bx bx-share-alt"></i>
+                  </button>
                 </div>
 
-                <div className={styles.profileCardInner}>
-                  <div className={styles.profileCardTop}>
-                    <h1 className={styles.profileTitle}>Student ID Card</h1>
+                <div className={styles.profileDivider}></div>
 
-                    <button className={styles.shareBtn} type="button">
-                      <i className="bx bx-share-alt"></i>
-                    </button>
+                <div className={styles.profileInfoGrid}>
+                  <div className={styles.profileField}>
+                    <span className={styles.profileLabel}>Username:</span>
+                    <span className={styles.profileValue}>
+                      {user.username || "meiko"}
+                    </span>
                   </div>
 
-                  <div className={styles.profileDivider}></div>
+                  <div className={styles.profileField}>
+                    <span className={styles.profileLabel}>Year:</span>
+                    <span className={styles.profileValue}>
+                      {user.year_level || "2nd Year"}
+                    </span>
+                  </div>
 
-                  <div className={styles.profileInfoGrid}>
-                    <div className={styles.profileField}>
-                      <span className={styles.profileLabel}>Username:</span>
-                      <span className={styles.profileValue}>{user.username || "meiko"}</span>
-                    </div>
+                  <div
+                    className={`${styles.profileField} ${styles.profileFieldWide}`}
+                  >
+                    <span className={styles.profileLabel}>School:</span>
+                    <span className={styles.profileValue}>
+                      {user.school || "Cavite State University Imus Campus"}
+                    </span>
+                  </div>
 
-                    <div className={styles.profileField}>
-                      <span className={styles.profileLabel}>Year:</span>
-                      <span className={styles.profileValue}>{user.year_level || "2nd Year"}</span>
-                    </div>
+                  <div className={styles.profileField}>
+                    <span className={styles.profileLabel}>Signature:</span>
+                    <span className={styles.signatureText}>
+                      {user.signature || user.username || "Meiko"}
+                    </span>
+                  </div>
 
-                    <div className={`${styles.profileField} ${styles.profileFieldWide}`}>
-                      <span className={styles.profileLabel}>School:</span>
-                      <span className={styles.profileValue}>
-                        {user.school || "Cavite State University Imus Campus"}
-                      </span>
-                    </div>
-
-                    <div className={styles.profileField}>
-                      <span className={styles.profileLabel}>Signature:</span>
-                      <span className={styles.signatureText}>
-                        {user.signature || user.username || "Meiko"}
-                      </span>
-                    </div>
-
-                    <div className={styles.profileButtonWrap}>
-                      <button
-                        className={styles.editBtn}
-                        onClick={() => navigate("/edit-profile")}
-                      >
-                        Edit Profile
-                      </button>
-                    </div>
+                  <div className={styles.profileButtonWrap}>
+                    <button
+                      className={styles.editBtn}
+                      onClick={() => navigate("/edit-profile")}
+                    >
+                      Edit Profile
+                    </button>
                   </div>
                 </div>
               </div>
+            </div>
 
             <div className={styles.decksSection}>
               <h2>My Decks</h2>
@@ -339,6 +421,42 @@ function UserProfile() {
                 )}
               </div>
             </div>
+
+            <div className={styles.archiveSection}>
+                <h2>Archive</h2>
+
+                <div className={styles.decksGrid}>
+                  {myDecks.length === 0 ? (
+                    <p className={styles.emptyText}>No archived decks yet</p>
+                  ) : (
+                    myDecks.map((deck, index) => (
+                      <Link
+                        key={`archive-${deck.id}`}
+                        to={`/deck/${deck.id}`}
+                        className={styles.deckBox}
+                      >
+                        <div
+                          className={`${styles.deckPreview} ${
+                            index % 4 === 0
+                              ? styles.previewBlue
+                              : index % 4 === 1
+                              ? styles.previewPink
+                              : index % 4 === 2
+                              ? styles.previewViolet
+                              : styles.previewRed
+                          }`}
+                        ></div>
+
+                        <div className={styles.deckText}>
+                          <strong>{deck.title}</strong>
+                          <p>{deck.card_count ?? 0} cards</p>
+                        </div>
+                      </Link>
+                    ))
+                  )}
+                </div>
+              </div>
+
           </main>
         </div>
       </div>
