@@ -18,6 +18,9 @@ function Homepage() {
   const [deckDescription, setDeckDescription] = useState("");
   const [deckVisibility, setDeckVisibility] = useState("private");
 
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const notificationCount = 0; // change later if you have real data
+
   const [user, setUser] = useState({
     username: "",
     year_level: "",
@@ -148,6 +151,18 @@ function Homepage() {
     }
   };
 
+useEffect(() => {
+  const handler = (e) => {
+    const inside = e.target.closest(`.${styles.notificationWrapper}`);
+
+    if (!inside) {
+      setNotificationOpen(false);
+    }
+  };
+
+  window.addEventListener("click", handler);
+  return () => window.removeEventListener("click", handler);
+}, []);
   return (
     <div
       className={`${styles.container} ${
@@ -293,9 +308,35 @@ function Homepage() {
             <i className="bx bx-search"></i>
           </form>
 
-          <button className={styles.notificationBtn}>
-            <i className="bx bx-bell"></i>
-          </button>
+          <div className={styles.notificationWrapper}>
+  <button
+    className={styles.notificationBtn}
+    onClick={(e) => {
+      e.stopPropagation();
+      setNotificationOpen((prev) => !prev);
+    }}
+  >
+    <i className="bx bx-bell"></i>
+
+    {notificationCount > 0 && (
+      <span className={styles.notificationBadge}>
+        {notificationCount}
+      </span>
+    )}
+  </button>
+
+  <div
+    className={`${styles.notificationDropdown} ${
+      notificationOpen ? styles.show : ""
+    }`}
+  >
+    <h4>Notifications</h4>
+
+    <div className={styles.emptyNotification}>
+      <p>You don’t have any new notifications</p>
+    </div>
+  </div>
+</div>
         </header>
 
         <main className={styles.mainContent}>
