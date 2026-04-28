@@ -25,6 +25,7 @@
 .swal2-container {
   z-index: 99999 !important;
 }
+/* ===== SIDEBAR  ===== */
 
 .container.sidebarCollapsed .sidebar {
   width: 60px;
@@ -47,6 +48,7 @@
   width: 60px;
 }
 
+/* LOGO */
 .logo {
   display: flex;
   justify-content: center;
@@ -71,7 +73,10 @@
   transition: all 0.3s ease;
   margin: 0;
 }
-
+.sidebar.collapsed .logo {
+  justify-content: center;
+  align-items: center;
+}
 .sidebar.collapsed .logoExpanded {
   display: none;
 }
@@ -80,134 +85,106 @@
   display: block;
 }
 
+/* TOGGLE */
 .sidebarToggle {
   display: flex;
   justify-content: flex-end;
   padding: 0 10px;
   cursor: pointer;
-  transition: all 0.3s ease;
 }
 
 .sidebar.collapsed .sidebarToggle {
   justify-content: center;
-  padding: 0;
 }
 
-.sidebarToggle i {
-  font-size: 24px;
-  color: #959494;
-}
-
+/* MENU */
 .menu,
-.myDecksNav,
-.logout {
+.myDecksNav {
   display: flex;
   flex-direction: column;
 }
 
-.sidebarList {
+.sidebarList,
+.sectionList {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
 .sidebarListItem {
-  margin-left: 10px;
-}
-
-.sidebarList i {
-  width: 25px;
-  height: 25px;
-  font-size: 22px;
-  margin-left: 15px;
-  margin-right: 10px;
-  opacity: 0.3;
-  color: black;
-  transition: all 0.3s ease;
+  padding: 0 10px;
 }
 
 .menuItem {
   display: flex;
   align-items: center;
-  text-decoration: none;
-  color: #000;
-  padding: 8px;
-  margin: 5px 0;
+  padding: 10px;
   border-radius: 20px 0 0 20px;
-  transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+  color: black;
+  transition: 0.2s;
 }
 
 .menuItem:hover {
   background: white;
-  margin-left: 15px;
+  transform: translateX(5px);
 }
 
 .menuItem.active {
-  background: rgb(243, 243, 243);
-}
-
-.sidebar.collapsed .menuText {
-  display: none;
-}
-
-.myDecks,
-.myDecksTitle {
-  font-size: 17px;
-  margin: 0.3rem 0 0 15px;
-}
-
-.logout {
-  margin-bottom: 20px;
-}
-
-.logoutLink {
-  display: flex;
-  align-items: center;
-  background: none;
-  border: none;
-  color: #000;
-  padding: 8px;
-  margin: 5px 0;
-  border-radius: 20px 0 0 20px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: inherit;
-  width: 100%;
-  text-align: left;
-  transition: all 0.3s ease;
-}
-
-.logoutLink:hover {
   background: white;
+}
+
+/* ICON */
+.sidebarList i {
+  font-size: 20px;
+  margin-right: 10px;
+  opacity: 0.5;
+}
+
+.menuItem:hover i,
+.menuItem.active i {
+  opacity: 1;
+}
+
+/* TEXT */
+.menuText {
+  white-space: nowrap;
+}
+
+/* DIVIDER */
+.divider {
+  height: 1px;
+  background: white;
+  margin: 10px;
+}
+
+/* SECTION (MY DECKS / COURSES) */
+.sectionBlock {
+  margin-top: 10px;
+}
+
+.sectionTitle {
+  font-size: 16px;
   margin-left: 15px;
 }
 
-.sidebar.collapsed i {
-  margin-left: 0;
-  justify-content: center;
-  width: 100%;
-  display: flex;
-  font-size: 1.5rem;
-}
-
-.sidebar.collapsed .logout .logoutLink {
-  justify-content: center;
-  padding: 10px 0;
-  margin-left: 0;
-}
-
-.sidebar.collapsed .sidebarList span {
-  display: none;
-}
-
-.divider {
+.sectionDivider {
   height: 1px;
-  background-color: white;
-  margin: 0 10px;
+  background: white;
+  margin: 8px 10px;
 }
 
-.sidebar.collapsed .myDecks,
-.sidebar.collapsed .myDecksTitle {
+.sidebarEmptyText {
+  font-size: 14px;
+  opacity: 0.6;
+  padding-left: 20px;
+}
+
+/* COLLAPSED MODE */
+.sidebar.collapsed .menuText,
+.sidebar.collapsed .sectionTitle,
+.sidebar.collapsed .sidebarEmptyText {
   display: none;
 }
 
@@ -221,7 +198,7 @@
 }
 
 .sidebarCollapsed .mainArea {
-  margin-left: 90px;
+  margin-left: 60px;
 }
 
 .gridContainer {
@@ -348,7 +325,103 @@
 .show {
   display: block;
 }
+/*====notification ===*/
+.notificationWrapper {
+  position: relative;
+}
 
+.notificationBtn {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border: none;
+  background: transparent;   /* changed from grey to none */
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  margin-right: 10px;
+  margin-top: 5px;
+}
+
+.notificationBtn:hover {
+  background: transparent;   /* no hover grey bg */
+  transform: translateY(-1px);
+}
+
+.notificationBtn i {
+  font-size: 25px;
+  color: #626262;
+}
+
+.notificationBadge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #e74c3c;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+.notificationDropdown {
+  position: absolute;
+  top: 52px;
+  right: 0;
+  width: 280px;
+  max-width: calc(100vw - 20px);
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  border-radius: 16px;
+  padding: 12px;
+  z-index: 99999;
+
+  display: none;
+}
+
+.notificationDropdown.show {
+  display: block;
+}
+
+.notificationDropdown h4 {
+  margin: 0 0 10px;
+  font-size: 17px;
+  color: #2f2f2f;
+}
+
+.notificationItem {
+  padding: 10px;
+  border-radius: 12px;
+}
+
+.notificationItem:hover {
+  background: #f5f5f5;
+}
+
+.notificationItem p {
+  margin: 0;
+  font-size: 14px;
+  color: #222;
+}
+
+.notificationItem span {
+  font-size: 12px;
+  color: #888;
+}
+.emptyNotification {
+  padding: 20px;
+  text-align: center;
+  color: #777;
+  font-size: 14px;
+}
+/*main*/
 .main {
     grid-area: main;
     display: flex;

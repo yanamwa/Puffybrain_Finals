@@ -18,6 +18,9 @@ function EditProfile() {
   const [myDecks, setMyDecks] = useState([]);
   const [courses, setCourses] = useState([]);
 
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const notificationCount = 0; // change this later when you have real data
+
   const [user, setUser] = useState({
     username: "",
     email: "",
@@ -110,11 +113,13 @@ function EditProfile() {
   useEffect(() => {
     const handler = (e) => {
       const insideDropdown = e.target.closest(
-        `.${styles.dropdownBtn}, .${styles.dropdownContent}`
-      );
+  `.${styles.deckMenu}, .${styles.deckMenuBtn}, .${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}`
+);
 
       if (!insideDropdown) {
-        setDropdownOpen(false);
+        setDropdownOpen(null);
+        setProfileDropdownOpen(false);
+        setNotificationOpen(false);
       }
     };
 
@@ -385,6 +390,39 @@ function EditProfile() {
             </form>
 
             <div className={styles.profileWrapper}>
+
+              <div className={styles.notificationWrapper}>
+                                <button
+                                  type="button"
+                                  className={styles.notificationBtn}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setNotificationOpen((prev) => !prev);
+                                    setProfileDropdownOpen(false);
+                                    setDropdownOpen(null);
+                                  }}
+                                >
+                                  <i className="bx bx-bell"></i>
+                                  {notificationCount > 0 && (
+                                      <span className={styles.notificationBadge}>
+                                        {notificationCount}
+                                      </span>
+                                    )}
+                                </button>
+              
+                                <div
+                                  className={`${styles.notificationDropdown} ${
+                                    notificationOpen ? styles.show : ""
+                                  }`}
+                                >
+                                  <h4>Notifications</h4>
+              
+                                  <div className={styles.emptyNotification}>
+                                    <p>You don’t have any new notifications</p>
+                                  </div>
+                                </div>
+                              </div>
+
               <div className={styles.dpContainer}>
                 <img
                   src={user.profile_image}
