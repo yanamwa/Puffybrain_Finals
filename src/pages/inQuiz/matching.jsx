@@ -1,25 +1,69 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import styles from "./matching.module.css";
 
 export default function MatchingType() {
+  const navigate = useNavigate();
+  const { lessonId } = useParams();
+
+  const [lesson, setLesson] = useState(null);
   const [firstCard, setFirstCard] = useState(null);
+  const [matchedIds, setMatchedIds] = useState([]);
   const [lock, setLock] = useState(false);
-  const [progressCurrent, setProgressCurrent] = useState(20);
 
-  const leftCards = [
-    { id: 1, text: "The function that runs only once at the beginning of an Arduino program." },
-    { id: 2, text: "What is the most commonly used Arduino board for beginners?" },
-    { id: 3, text: "Which pin on the Arduino is used for ground connection?" },
-  ];
+  useEffect(() => {
+    fetch(`http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setLesson(data);
+      })
+      .catch((err) => console.error("Error loading lesson:", err));
+  }, [lessonId]);
 
-  const rightCards = [
-    { id: 1, text: "setup()" },
-    { id: 2, text: "Arduino Uno" },
-    { id: 3, text: "GND" },
-  ];
+  const matchingPairs = useMemo(() => {
+    if (!lesson?.quiz_contents) return [];
+
+    try {
+      const parsed = JSON.parse(lesson.quiz_contents);
+
+      if (!Array.isArray(parsed)) return [];
+
+      return parsed.map((quiz, index) => ({
+        id: index + 1,
+        question: quiz.question || "No question available.",
+        answer:
+          quiz.correct_answer ||
+          quiz.correctAnswer ||
+          quiz.answer ||
+          "No answer available."
+      }));
+    } catch (error) {
+      console.error("Invalid quiz JSON:", error);
+      return [];
+    }
+  }, [lesson]);
+
+  const leftCards = matchingPairs.map((item) => ({
+    id: item.id,
+    text: item.question
+  }));
+
+  const rightCards = useMemo(() => {
+    return matchingPairs
+      .map((item) => ({
+        id: item.id,
+        text: item.answer
+      }))
+      .sort(() => Math.random() - 0.5);
+  }, [matchingPairs]);
+
+  const progressCurrent =
+    matchingPairs.length > 0
+      ? Math.round((matchedIds.length / matchingPairs.length) * 100)
+      : 0;
 
   const handleCardClick = (card, side) => {
-    if (lock || card.matched) return;
+    if (lock || matchedIds.includes(card.id)) return;
 
     if (!firstCard) {
       setFirstCard({ ...card, side });
@@ -28,58 +72,68 @@ export default function MatchingType() {
 
     if (firstCard.side === side) return;
 
-    const first = firstCard;
-    if (first.id === card.id) {
-      // correct match
-      first.matched = true;
-      card.matched = true;
-      setTimeout(() => {
-        markMatched(first, card);
-      }, 500);
+    if (firstCard.id === card.id) {
+      setMatchedIds((prev) => {
+        const updated = [...prev, card.id];
+
+        if (updated.length === matchingPairs.length) {
+          localStorage.setItem(
+            "matchingQuizScore",
+            JSON.stringify({
+              lessonId: Number(lessonId),
+              score: updated.length,
+              total: matchingPairs.length
+            })
+          );
+
+          setTimeout(() => {
+            navigate(`/review/${lessonId}`);
+          }, 800);
+        }
+
+        return updated;
+      });
+
+      setFirstCard(null);
     } else {
-      // wrong match
       setLock(true);
+
       setTimeout(() => {
         setFirstCard(null);
         setLock(false);
       }, 700);
     }
-    setFirstCard(null);
   };
 
-  const markMatched = (card1, card2) => {
-    const matchedPairs = document.querySelectorAll(`.${styles.matched}`).length / 2;
-    let progress = 0;
-    if (matchedPairs === 0) progress = 33;
-    if (matchedPairs === 1) progress = 66;
-    if (matchedPairs === 2) progress = 100;
-    setProgressCurrent(progress);
+  if (!lesson) {
+    return <div className={styles.wrapper}>Loading matching quiz...</div>;
+  }
 
-    const totalCards = leftCards.length + rightCards.length;
-    const matchedCards = document.querySelectorAll(`.${styles.matched}`).length;
-
-    if (matchedCards === totalCards) {
-      const score = matchedCards / 2;
-      localStorage.setItem("quizScore", score);
-      setTimeout(() => {
-        window.location.href = "../matching-type/your score.html";
-      }, 800);
-    }
-  };
+  if (matchingPairs.length === 0) {
+    return (
+      <div className={styles.wrapper}>
+        <div className={styles.paperBackground}>
+          <h1>No matching quiz available.</h1>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.wrapper}>
       <div className={styles.paperBackground}>
         <header className={styles.siteHeader}>
           <h1 className={styles.courseTitle}>
-            APPLICATION DEVELOPMENT AND EMERGING TECHNOLOGIES
+            {lesson.title || "Matching Quiz"}
           </h1>
+
           <div className={styles.progressContainer}>
             <div
               className={styles.progressBar}
               style={{ width: `${progressCurrent}%` }}
             ></div>
           </div>
+
           <h2 className={styles.pageTitle}>Matching Type</h2>
         </header>
 
@@ -92,7 +146,12 @@ export default function MatchingType() {
                     <td>
                       <div
                         className={`${styles.card} ${
-                          card.matched ? styles.matched : ""
+                          matchedIds.includes(card.id) ? styles.matched : ""
+                        } ${
+                          firstCard?.id === card.id &&
+                          firstCard?.side === "left"
+                            ? styles.selected
+                            : ""
                         }`}
                         onClick={() => handleCardClick(card, "left")}
                       >
@@ -111,7 +170,12 @@ export default function MatchingType() {
                     <td>
                       <div
                         className={`${styles.card} ${
-                          card.matched ? styles.matched : ""
+                          matchedIds.includes(card.id) ? styles.matched : ""
+                        } ${
+                          firstCard?.id === card.id &&
+                          firstCard?.side === "right"
+                            ? styles.selected
+                            : ""
                         }`}
                         onClick={() => handleCardClick(card, "right")}
                       >

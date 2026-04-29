@@ -23,52 +23,82 @@ function LearningModule() {
   });
 
   useEffect(() => {
-    fetch(`http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`)
-      .then((res) => res.json())
-      .then((data) => {
+    const loadLessonAndProgress = async () => {
+      try {
+        const lessonRes = await fetch(
+          `http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`
+        );
+
+        const data = await lessonRes.json();
         setLesson(data);
 
-        let parsedQuizzes = [];
-        try {
-          parsedQuizzes = JSON.parse(data.quiz_contents || "[]");
-        } catch (e) {
-          console.error("Invalid quiz JSON", e);
-          parsedQuizzes = [];
+        let lessonSlides = [];
+
+        if (data.lesson_content) {
+          lessonSlides = data.lesson_content
+            .split("---")
+            .map((slide) => slide.trim())
+            .filter((slide) => slide.length > 0);
         }
 
-        fetch(
-          `http://localhost/puffybrain/getLessonProgress.php?user_id=1&lesson_id=${lessonId}`
-        )
-          .then((res) => res.json())
-          .then((progressData) => {
-            if (progressData.success) {
-              setProgress({
-                ...progressData.progress,
-                total_cards: parsedQuizzes.length,
-                studied_cards: Number(progressData.progress.studied_cards) || 0,
-                progress_percent: Number(progressData.progress.progress_percent) || 0,
-                last_viewed_card: Number(progressData.progress.last_viewed_card) || 0
-              });
-            } else {
-              setProgress({
-                total_cards: parsedQuizzes.length,
-                studied_cards: 0,
-                progress_percent: 0,
-                last_viewed_card: 0
-              });
+        let quizSlides = [];
+
+        if (data.quiz_contents) {
+          try {
+            quizSlides = JSON.parse(data.quiz_contents);
+
+            if (!Array.isArray(quizSlides)) {
+              quizSlides = [];
             }
-          })
-          .catch((err) => {
-            console.error("Error loading progress:", err);
-            setProgress({
-              total_cards: parsedQuizzes.length,
-              studied_cards: 0,
-              progress_percent: 0,
-              last_viewed_card: 0
-            });
+          } catch (error) {
+            console.error("Invalid quiz JSON:", error);
+            quizSlides = [];
+          }
+        }
+
+        const totalSlides = lessonSlides.length + quizSlides.length;
+
+        const progressRes = await fetch(
+          `http://localhost/puffybrain/getLessonProgress.php?user_id=1&lesson_id=${lessonId}`
+        );
+
+        const progressData = await progressRes.json();
+
+        console.log("LESSON DATA:", data);
+        console.log("PROGRESS DATA:", progressData);
+        console.log("TOTAL LESSON SLIDES:", lessonSlides.length);
+        console.log("TOTAL QUIZ SLIDES:", quizSlides.length);
+        console.log("TOTAL ALL SLIDES:", totalSlides);
+
+        const realProgress = progressData?.progress || progressData;
+
+        if (realProgress && realProgress.total_cards !== undefined) {
+          const studiedCards = Number(realProgress.studied_cards) || 0;
+          const lastViewedCard = Number(realProgress.last_viewed_card) || 0;
+
+          const computedPercent =
+            totalSlides > 0 ? (studiedCards / totalSlides) * 100 : 0;
+
+          setProgress({
+            total_cards: totalSlides,
+            studied_cards: Math.min(studiedCards, totalSlides),
+            progress_percent: Math.min(computedPercent, 100),
+            last_viewed_card: lastViewedCard
           });
-      })
-      .catch((err) => console.error("Error loading lesson:", err));
+        } else {
+          setProgress({
+            total_cards: totalSlides,
+            studied_cards: 0,
+            progress_percent: 0,
+            last_viewed_card: 0
+          });
+        }
+      } catch (err) {
+        console.error("Error loading lesson/progress:", err);
+      }
+    };
+
+    loadLessonAndProgress();
   }, [lessonId]);
 
   const handleLogout = () => {
@@ -85,63 +115,63 @@ function LearningModule() {
     });
   };
 
+  const handleShare = async () => {
+    const lessonLink = `${window.location.origin}/learning/${lessonId}`;
+
+    try {
+      await navigator.clipboard.writeText(lessonLink);
+
+      Swal.fire({
+        icon: "success",
+        title: "Link copied!",
+        text: "Lesson link copied to clipboard.",
+        timer: 1500,
+        showConfirmButton: false
+      });
+    } catch (error) {
+      console.error("Failed to copy link:", error);
+
+      Swal.fire({
+        icon: "error",
+        title: "Copy failed",
+        text: "Unable to copy the link."
+      });
+    }
+  };
+
   let quizzes = [];
 
   if (lesson?.quiz_contents) {
     try {
       quizzes = JSON.parse(lesson.quiz_contents);
+
+      if (!Array.isArray(quizzes)) {
+        quizzes = [];
+      }
     } catch (e) {
       console.error("Invalid quiz JSON", e);
       quizzes = [];
     }
   }
 
-  const memorizedCards = quizzes.slice(0, progress.studied_cards);
-  const notMemorizedCards = quizzes.slice(progress.studied_cards);
+  const savedQuizResults = JSON.parse(
+    localStorage.getItem("lessonQuizResults")
+  );
 
-  const handleStudy = async () => {
-    const totalCards = quizzes.length;
+  const correctQuestions =
+    savedQuizResults?.lessonId === Number(lessonId)
+      ? savedQuizResults.answers.filter((item) => item.isCorrect)
+      : [];
 
-    const nextStudiedCards =
-      progress.studied_cards + 1 > totalCards
-        ? totalCards
-        : progress.studied_cards + 1;
+  const memorizedCards = correctQuestions;
 
-    const nextLastViewedCard = nextStudiedCards;
+  const notMemorizedCards = quizzes.filter(
+    (quiz) =>
+      !correctQuestions.some((item) => item.question === quiz.question)
+  );
 
-    try {
-      const res = await fetch("http://localhost/puffybrain/saveLessonProgress.php", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          user_id: 1,
-          lesson_id: Number(lessonId),
-          total_cards: totalCards,
-          studied_cards: nextStudiedCards,
-          last_viewed_card: nextLastViewedCard
-        })
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        const newPercent =
-          totalCards > 0 ? (nextStudiedCards / totalCards) * 100 : 0;
-
-        setProgress({
-          total_cards: totalCards,
-          studied_cards: nextStudiedCards,
-          progress_percent: newPercent,
-          last_viewed_card: nextLastViewedCard
-        });
-
-      navigate(`/introduction/${lessonId}`);    
-  }
-    } catch (error) {
-      console.error("Error saving progress:", error);
-    }
+  const handleStudy = () => {
+    navigate(`/introduction/${lessonId}`);
   };
 
   if (!lesson) {
@@ -149,8 +179,14 @@ function LearningModule() {
   }
 
   return (
-    <div className={`${styles.container} ${isCollapsed ? styles.sidebarCollapsed : ""}`}>
-      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
+    <div
+      className={`${styles.container} ${
+        isCollapsed ? styles.sidebarCollapsed : ""
+      }`}
+    >
+      <aside
+        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
+      >
         <div>
           <div
             className={styles.sidebarToggle}
@@ -160,8 +196,16 @@ function LearningModule() {
           </div>
 
           <div className={styles.logo}>
-            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
-            <img className={styles.logoCollapsed} src="/images/logo_solo.png" alt="Logo" />
+            <img
+              className={styles.logoExpanded}
+              src="/images/logo1.png"
+              alt="Logo"
+            />
+            <img
+              className={styles.logoCollapsed}
+              src="/images/logo_solo.png"
+              alt="Logo"
+            />
           </div>
 
           <div className={styles.divider}></div>
@@ -267,13 +311,18 @@ function LearningModule() {
 
                 <div className={styles.innercourse}>
                   <div className={styles.innerhead}>
-                    <h1>
-                      {lesson.title}
-                      <i
-                        className="bx bx-share-alt"
-                        style={{ marginLeft: "330px", cursor: "pointer", fontSize: "20px" }}
-                      />
-                    </h1>
+                    <div className={styles.titleRow}>
+                      <h1 className={styles.lessonTitle}>{lesson.title}</h1>
+
+                      <button
+                        type="button"
+                        className={styles.shareBtn}
+                        onClick={handleShare}
+                        title="Copy lesson link"
+                      >
+                        <i className="bx bx-share-alt"></i>
+                      </button>
+                    </div>
 
                     <div className={styles.cardCount}>
                       {quizzes.length} Cards
@@ -314,6 +363,10 @@ function LearningModule() {
                   <div className={styles.progressPercent}>
                     {Math.round(progress.progress_percent)}%
                   </div>
+
+                  <p className={styles.progressDetails}>
+                    {progress.studied_cards}/{progress.total_cards} completed
+                  </p>
                 </div>
               </div>
             </div>
@@ -338,30 +391,36 @@ function LearningModule() {
                   </div>
                 </div>
 
-                          {openModes && (
-                    <QuizModesModal
-                      lessonId={lessonId}
-                      onClose={() => setOpenModes(false)}
-                    />
-                  )}
+                {openModes && (
+                  <QuizModesModal
+                    lessonId={lessonId}
+                    onClose={() => setOpenModes(false)}
+                  />
+                )}
 
                 <div className={styles.innercardHead}>
                   <button
-                    className={`${styles.tabBtn} ${activeTab === "tab1" ? styles.activeTab : ""}`}
+                    className={`${styles.tabBtn} ${
+                      activeTab === "tab1" ? styles.activeTab : ""
+                    }`}
                     onClick={() => setActiveTab("tab1")}
                   >
                     All Cards
                   </button>
 
                   <button
-                    className={`${styles.tabBtn} ${activeTab === "tab2" ? styles.activeTab : ""}`}
+                    className={`${styles.tabBtn} ${
+                      activeTab === "tab2" ? styles.activeTab : ""
+                    }`}
                     onClick={() => setActiveTab("tab2")}
                   >
                     Not Memorized
                   </button>
 
                   <button
-                    className={`${styles.tabBtn} ${activeTab === "tab3" ? styles.activeTab : ""}`}
+                    className={`${styles.tabBtn} ${
+                      activeTab === "tab3" ? styles.activeTab : ""
+                    }`}
                     onClick={() => setActiveTab("tab3")}
                   >
                     Memorized
@@ -378,8 +437,6 @@ function LearningModule() {
                           quizzes.map((quiz, index) => (
                             <div key={index} className={styles.box}>
                               <p className={styles.question}>{quiz.question}</p>
-                              <hr className={styles.separator} />
-                              <p className={styles.answer}>{quiz.answer}</p>
                             </div>
                           ))
                         )}
@@ -394,8 +451,6 @@ function LearningModule() {
                           notMemorizedCards.map((quiz, index) => (
                             <div key={index} className={styles.box}>
                               <p className={styles.question}>{quiz.question}</p>
-                              <hr className={styles.separator} />
-                              <p className={styles.answer}>{quiz.answer}</p>
                             </div>
                           ))
                         )}
@@ -410,8 +465,6 @@ function LearningModule() {
                           memorizedCards.map((quiz, index) => (
                             <div key={index} className={styles.box}>
                               <p className={styles.question}>{quiz.question}</p>
-                              <hr className={styles.separator} />
-                              <p className={styles.answer}>{quiz.answer}</p>
                             </div>
                           ))
                         )}

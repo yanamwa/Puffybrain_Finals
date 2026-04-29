@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -68,20 +68,10 @@ function parseDeckCards(raw) {
   return cards;
 }
 
-function serializeQuizItems(items) {
-  return JSON.stringify(
-    items
-      .map((item) => ({
-        question: String(item.question || "").trim(),
-        answer: String(item.answer || "").trim(),
-      }))
-      .filter((item) => item.question || item.answer)
-  );
-}
-
 export default function ModuleManagement() {
+  const navigate = useNavigate();
   const API_URL = "http://localhost/puffybrain/adminLearningModule.php";
-  const AI_API_URL = "http://localhost/puffybrain/generateQuizAI.php";
+
 
   const menuItems = [
     {
@@ -97,6 +87,16 @@ export default function ModuleManagement() {
     {
       label: "Module Management",
       path: "/admin/modules",
+      icon: <Users size={20} />,
+    },
+    {
+      label: "Decks Management",
+      path: "/admin/decks",
+      icon: <BookOpen size={20} />,
+    },
+    {
+      label: "Modes Management",
+      path: "/admin/modes",
       icon: <BookOpen size={20} />,
     },
   ];
@@ -109,27 +109,6 @@ export default function ModuleManagement() {
 
   const [viewOpen, setViewOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
-
-  const [addOpen, setAddOpen] = useState(false);
-  const [newTitle, setNewTitle] = useState("");
-  const [newDesc, setNewDesc] = useState("");
-  const [newSubject, setNewSubject] = useState("");
-  const [newLearningObjectives, setNewLearningObjectives] = useState("");
-  const [newLessonContent, setNewLessonContent] = useState("");
-  const [newStatus, setNewStatus] = useState("Draft");
-  const [newQuizItems, setNewQuizItems] = useState([]);
-  const [generatingNewQuiz, setGeneratingNewQuiz] = useState(false);
-
-  const [editOpen, setEditOpen] = useState(false);
-  const [editId, setEditId] = useState(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editDesc, setEditDesc] = useState("");
-  const [editSubject, setEditSubject] = useState("");
-  const [editLearningObjectives, setEditLearningObjectives] = useState("");
-  const [editLessonContent, setEditLessonContent] = useState("");
-  const [editStatus, setEditStatus] = useState("inactive");
-  const [editQuizItems, setEditQuizItems] = useState([]);
-  const [generatingEditQuiz, setGeneratingEditQuiz] = useState(false);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -172,7 +151,7 @@ export default function ModuleManagement() {
             id: m.id,
             title: m.title,
             date: m.created_at ?? formatToday(),
-            status: String(m.status).toLowerCase(),
+            status: String(m.status || "").toLowerCase(),
             module_description: m.description ?? "",
             subject: m.subject ?? "",
             learningObjectives: m.learning_objectives ?? "",
@@ -193,263 +172,6 @@ export default function ModuleManagement() {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleGenerateQuizForNew = async () => {
-    if (!newLearningObjectives.trim() && !newLessonContent.trim()) {
-      await Swal.fire({
-        icon: "warning",
-        title: "Missing Content",
-        text: "Please enter learning objectives or lesson content first.",
-      });
-      return;
-    }
-
-    setGeneratingNewQuiz(true);
-
-    try {
-      const res = await fetch(AI_API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          learning_objectives: newLearningObjectives,
-          lesson_content: newLessonContent,
-        }),
-      });
-
-      const data = await res.json();
-      console.log("AI GENERATE NEW RESPONSE:", data);
-
-      if (data.success && Array.isArray(data.quiz)) {
-        setNewQuizItems(
-          data.quiz.map((item, index) => ({
-            id: index + 1,
-            question: String(item.question || "").trim(),
-            answer: String(item.answer || "").trim(),
-          }))
-        );
-
-        await Swal.fire({
-          icon: "success",
-          title: "Quiz Generated",
-          text: "AI generated quiz items successfully.",
-        });
-      } else {
-        await Swal.fire({
-          icon: "error",
-          title: "Generation Failed",
-          text: `${data.message || "Could not generate quiz."}${
-            data.http_code ? `\nHTTP Code: ${data.http_code}` : ""
-          }${
-            data.debug
-              ? `\nDebug: ${
-                  typeof data.debug === "string"
-                    ? data.debug
-                    : JSON.stringify(data.debug, null, 2)
-                }`
-              : ""
-          }`,
-        });
-      }
-    } catch (err) {
-      console.error("AI GENERATE NEW ERROR:", err);
-      await Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: `Something went wrong while generating quiz.\n${
-          err.message || err
-        }`,
-      });
-    } finally {
-      setGeneratingNewQuiz(false);
-    }
-  };
-
-  const handleGenerateQuizForEdit = async () => {
-    if (!editLearningObjectives.trim() && !editLessonContent.trim()) {
-      await Swal.fire({
-        icon: "warning",
-        title: "Missing Content",
-        text: "Please enter learning objectives or lesson content first.",
-      });
-      return;
-    }
-
-    setGeneratingEditQuiz(true);
-
-    try {
-      const res = await fetch(AI_API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          learning_objectives: editLearningObjectives,
-          lesson_content: editLessonContent,
-        }),
-      });
-
-      const data = await res.json();
-      console.log("AI GENERATE EDIT RESPONSE:", data);
-
-      if (data.success && Array.isArray(data.quiz)) {
-        setEditQuizItems(
-          data.quiz.map((item, index) => ({
-            id: index + 1,
-            question: String(item.question || "").trim(),
-            answer: String(item.answer || "").trim(),
-          }))
-        );
-
-        await Swal.fire({
-          icon: "success",
-          title: "Quiz Generated",
-          text: "AI generated quiz items successfully.",
-        });
-      } else {
-        await Swal.fire({
-          icon: "error",
-          title: "Generation Failed",
-          text: `${data.message || "Could not generate quiz."}${
-            data.http_code ? `\nHTTP Code: ${data.http_code}` : ""
-          }${
-            data.debug
-              ? `\nDebug: ${
-                  typeof data.debug === "string"
-                    ? data.debug
-                    : JSON.stringify(data.debug, null, 2)
-                }`
-              : ""
-          }`,
-        });
-      }
-    } catch (err) {
-      console.error("AI GENERATE EDIT ERROR:", err);
-      await Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: `Something went wrong while generating quiz.\n${
-          err.message || err
-        }`,
-      });
-    } finally {
-      setGeneratingEditQuiz(false);
-    }
-  };
-
-  const handleAddModule = async () => {
-    if (!newTitle.trim()) {
-      await Swal.fire({
-        icon: "warning",
-        title: "Missing Title",
-        text: "Module title is required.",
-      });
-      return;
-    }
-
-    try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: newTitle,
-          description: newDesc,
-          subject: newSubject,
-          learning_objectives: newLearningObjectives,
-          lesson_content: newLessonContent,
-          status: newStatus,
-          quiz_contents: serializeQuizItems(newQuizItems),
-        }),
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        closeAdd();
-        await fetchModules();
-        await Swal.fire({
-          icon: "success",
-          title: "Added!",
-          text: "Module added successfully.",
-        });
-      } else {
-        await Swal.fire({
-          icon: "error",
-          title: "Add Failed",
-          text: data.message || "Failed to add module.",
-        });
-      }
-    } catch (err) {
-      console.error(err);
-      await Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Error adding module.",
-      });
-    }
-  };
-
-  const saveEdit = async () => {
-    if (!editId) return;
-
-    if (!editTitle.trim()) {
-      await Swal.fire({
-        icon: "warning",
-        title: "Missing Title",
-        text: "Module title is required.",
-      });
-      return;
-    }
-
-    const payload = {
-      action: "update",
-      id: editId,
-      title: editTitle,
-      description: editDesc,
-      subject: editSubject,
-      learning_objectives: editLearningObjectives,
-      lesson_content: editLessonContent,
-      status: editStatus,
-      quiz_contents: serializeQuizItems(editQuizItems),
-    };
-
-    console.log("SAVE EDIT PAYLOAD:", payload);
-
-    try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-      console.log("SAVE EDIT RESPONSE:", data);
-
-      if (data.success) {
-        closeEdit();
-        await fetchModules();
-        await Swal.fire({
-          icon: "success",
-          title: "Updated!",
-          text: "Module updated successfully.",
-        });
-      } else {
-        await Swal.fire({
-          icon: "error",
-          title: "Update Failed",
-          text: data.message || "Update failed.",
-        });
-      }
-    } catch (err) {
-      console.error(err);
-      await Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Error updating module.",
-      });
     }
   };
 
@@ -508,38 +230,6 @@ export default function ModuleManagement() {
     closeDelete();
   };
 
-  const addNewQuizItem = () => {
-    setNewQuizItems((prev) => [...prev, { question: "", answer: "" }]);
-  };
-
-  const updateNewQuizItem = (index, field, value) => {
-    setNewQuizItems((prev) =>
-      prev.map((item, i) =>
-        i === index ? { ...item, [field]: value } : item
-      )
-    );
-  };
-
-  const removeNewQuizItem = (index) => {
-    setNewQuizItems((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const addEditQuizItem = () => {
-    setEditQuizItems((prev) => [...prev, { question: "", answer: "" }]);
-  };
-
-  const updateEditQuizItem = (index, field, value) => {
-    setEditQuizItems((prev) =>
-      prev.map((item, i) =>
-        i === index ? { ...item, [field]: value } : item
-      )
-    );
-  };
-
-  const removeEditQuizItem = (index) => {
-    setEditQuizItems((prev) => prev.filter((_, i) => i !== index));
-  };
-
   useEffect(() => {
     if (fetchedOnce.current) return;
     fetchedOnce.current = true;
@@ -582,11 +272,6 @@ export default function ModuleManagement() {
     [selectedModule]
   );
 
-  const editTarget = useMemo(
-    () => modules.find((m) => m.id === editId) || null,
-    [modules, editId]
-  );
-
   const openView = (mod) => {
     setSelectedId(mod.id);
     setViewOpen(true);
@@ -597,42 +282,12 @@ export default function ModuleManagement() {
     setSelectedId(null);
   };
 
-  const openAdd = () => setAddOpen(true);
-
-  const closeAdd = () => {
-    setAddOpen(false);
-    setNewTitle("");
-    setNewDesc("");
-    setNewSubject("");
-    setNewLearningObjectives("");
-    setNewLessonContent("");
-    setNewStatus("Draft");
-    setNewQuizItems([]);
+  const openAdd = () => {
+    navigate("/admin/modules/new");
   };
 
   const openEdit = (mod) => {
-    console.log("OPEN EDIT MODULE:", mod);
-    setEditId(mod.id);
-    setEditTitle(mod.title || "");
-    setEditDesc(mod.module_description || "");
-    setEditSubject(mod.subject || "");
-    setEditLearningObjectives(mod.learningObjectives || "");
-    setEditLessonContent(mod.lessonContent || "");
-    setEditStatus(mod.status || "inactive");
-    setEditQuizItems(parseDeckCards(mod.quizModule));
-    setEditOpen(true);
-  };
-
-  const closeEdit = () => {
-    setEditOpen(false);
-    setEditId(null);
-    setEditTitle("");
-    setEditDesc("");
-    setEditSubject("");
-    setEditLearningObjectives("");
-    setEditLessonContent("");
-    setEditStatus("inactive");
-    setEditQuizItems([]);
+    navigate(`/admin/modules/edit/${mod.id}`);
   };
 
   return (
@@ -963,361 +618,6 @@ export default function ModuleManagement() {
             </div>
 
             <div className={styles.textViewBody}>{textViewContent}</div>
-          </div>
-        </div>
-      )}
-
-      {addOpen && (
-        <div className={styles.popupOverlay} onClick={closeAdd}>
-          <div
-            className={styles.popupModal}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className={styles.popupHeader}>
-              <h2 className={styles.popupTitle}>Add Module</h2>
-              <button
-                type="button"
-                className={styles.popupClose}
-                onClick={closeAdd}
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className={styles.popupBody}>
-              <div className={styles.popupInfoGrid}>
-                <div className={styles.popupField}>
-                  <label className={styles.popupLabel}>Module Title</label>
-                  <input
-                    className={styles.popupInput}
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                    placeholder="Enter module title"
-                  />
-                </div>
-
-                <div className={styles.popupField}>
-                  <label className={styles.popupLabel}>Status</label>
-                  <select
-                    className={styles.popupSelect}
-                    value={newStatus}
-                    onChange={(e) => setNewStatus(e.target.value)}
-                  >
-                    <option value="Draft">Draft</option>
-                    <option value="Publish">Publish</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className={styles.popupSection}>
-                <label className={styles.popupLabel}>Module Description</label>
-                <textarea
-                  className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
-                  value={newDesc}
-                  onChange={(e) => setNewDesc(e.target.value)}
-                  placeholder="Enter module description"
-                />
-              </div>
-
-              <div className={styles.popupSection}>
-                <label className={styles.popupLabel}>Subject</label>
-                <input
-                  className={styles.popupInput}
-                  value={newSubject}
-                  onChange={(e) => setNewSubject(e.target.value)}
-                  placeholder="Enter subject/course"
-                />
-              </div>
-
-              <div className={styles.popupSection}>
-                <label className={styles.popupLabel}>Learning Objectives</label>
-                <textarea
-                  className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
-                  value={newLearningObjectives}
-                  onChange={(e) => setNewLearningObjectives(e.target.value)}
-                  placeholder="Enter learning objectives here..."
-                />
-              </div>
-
-              <div className={styles.popupSection}>
-                <label className={styles.popupLabel}>Lessons</label>
-                <textarea
-                  className={`${styles.popupTextarea} ${styles.popupLargeBox}`}
-                  value={newLessonContent}
-                  onChange={(e) => setNewLessonContent(e.target.value)}
-                  placeholder="Enter lesson content here..."
-                />
-              </div>
-
-              <div className={styles.popupSection}>
-                <div className={styles.popupSectionRow}>
-                  <label className={styles.popupLabel}>Quiz Module</label>
-
-                  <div style={{ display: "flex", gap: "10px" }}>
-                    <button
-                      type="button"
-                      className={styles.popupAddBtn}
-                      onClick={handleGenerateQuizForNew}
-                      disabled={generatingNewQuiz}
-                    >
-                      {generatingNewQuiz ? "Generating..." : "AI Generate"}
-                    </button>
-
-                    <button
-                      type="button"
-                      className={styles.popupAddBtn}
-                      onClick={addNewQuizItem}
-                    >
-                      Add +
-                    </button>
-                  </div>
-                </div>
-
-                {newQuizItems.length === 0 ? (
-                  <div className={styles.popupEmptyQuiz}>
-                    No quiz items yet.
-                  </div>
-                ) : (
-                  newQuizItems.map((item, index) => (
-                    <div key={index} className={styles.popupQuizCard}>
-                      <div className={styles.popupQuizCardTop}>
-                        <span className={styles.popupQuizCardTitle}>
-                          Item {index + 1}
-                        </span>
-                        <button
-                          type="button"
-                          className={styles.popupRemoveBtn}
-                          onClick={() => removeNewQuizItem(index)}
-                        >
-                          Remove
-                        </button>
-                      </div>
-
-                      <input
-                        className={styles.popupInput}
-                        value={item.question}
-                        onChange={(e) =>
-                          updateNewQuizItem(index, "question", e.target.value)
-                        }
-                        placeholder="Question"
-                      />
-
-                      <textarea
-                        className={`${styles.popupTextarea} ${styles.popupAnswerBox}`}
-                        value={item.answer}
-                        onChange={(e) =>
-                          updateNewQuizItem(index, "answer", e.target.value)
-                        }
-                        placeholder="Answer"
-                      />
-                    </div>
-                  ))
-                )}
-              </div>
-
-              <div className={styles.popupActions}>
-                <button
-                  className={styles.popupCancelBtn}
-                  type="button"
-                  onClick={closeAdd}
-                >
-                  Cancel
-                </button>
-                <button
-                  className={styles.popupSaveBtn}
-                  type="button"
-                  onClick={handleAddModule}
-                >
-                  Save
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {editOpen && editTarget && (
-        <div className={styles.popupOverlay} onClick={closeEdit}>
-          <div
-            className={styles.popupModal}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className={styles.popupHeader}>
-              <h2 className={styles.popupTitle}>Quiz Details:</h2>
-              <button
-                type="button"
-                className={styles.popupClose}
-                onClick={closeEdit}
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className={styles.popupBody}>
-              <div className={styles.popupInfoGrid}>
-                <div className={styles.popupField}>
-                  <label className={styles.popupLabel}>Module ID</label>
-                  <input
-                    className={styles.popupInput}
-                    value={editTarget.id}
-                    disabled
-                  />
-                </div>
-
-                <div className={styles.popupField}>
-                  <label className={styles.popupLabel}>Module Title</label>
-                  <input
-                    className={styles.popupInput}
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                  />
-                </div>
-
-                <div className={styles.popupField}>
-                  <label className={styles.popupLabel}>Date Created</label>
-                  <input
-                    className={styles.popupInput}
-                    value={editTarget.date}
-                    disabled
-                  />
-                </div>
-
-                <div className={styles.popupField}>
-                  <label className={styles.popupLabel}>Status</label>
-                  <select
-                    className={styles.popupSelect}
-                    value={editStatus}
-                    onChange={(e) => setEditStatus(e.target.value)}
-                  >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className={styles.popupSection}>
-                <label className={styles.popupLabel}>Module Description</label>
-                <textarea
-                  className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
-                  value={editDesc}
-                  onChange={(e) => setEditDesc(e.target.value)}
-                  placeholder="Enter module description"
-                />
-              </div>
-
-              <div className={styles.popupSection}>
-                <label className={styles.popupLabel}>Subject</label>
-                <input
-                  className={styles.popupInput}
-                  value={editSubject}
-                  onChange={(e) => setEditSubject(e.target.value)}
-                  placeholder="Enter subject/course"
-                />
-              </div>
-
-              <div className={styles.popupSection}>
-                <label className={styles.popupLabel}>Learning Objectives</label>
-                <textarea
-                  className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
-                  value={editLearningObjectives}
-                  onChange={(e) => setEditLearningObjectives(e.target.value)}
-                  placeholder="Enter learning objectives here..."
-                />
-              </div>
-
-              <div className={styles.popupSection}>
-                <label className={styles.popupLabel}>Lessons</label>
-                <textarea
-                  className={`${styles.popupTextarea} ${styles.popupLargeBox}`}
-                  value={editLessonContent}
-                  onChange={(e) => setEditLessonContent(e.target.value)}
-                  placeholder="Enter lesson content here..."
-                />
-              </div>
-
-              <div className={styles.popupSection}>
-                <div className={styles.popupSectionRow}>
-                  <label className={styles.popupLabel}>Quiz Module</label>
-
-                  <div style={{ display: "flex", gap: "10px" }}>
-                    <button
-                      type="button"
-                      className={styles.popupAddBtn}
-                      onClick={handleGenerateQuizForEdit}
-                      disabled={generatingEditQuiz}
-                    >
-                      {generatingEditQuiz ? "Generating..." : "AI Generate"}
-                    </button>
-
-                    <button
-                      type="button"
-                      className={styles.popupAddBtn}
-                      onClick={addEditQuizItem}
-                    >
-                      Add +
-                    </button>
-                  </div>
-                </div>
-
-                {editQuizItems.length === 0 ? (
-                  <div className={styles.popupEmptyQuiz}>
-                    No quiz items yet.
-                  </div>
-                ) : (
-                  editQuizItems.map((item, index) => (
-                    <div key={index} className={styles.popupQuizCard}>
-                      <div className={styles.popupQuizCardTop}>
-                        <span className={styles.popupQuizCardTitle}>
-                          Item {index + 1}
-                        </span>
-                        <button
-                          type="button"
-                          className={styles.popupRemoveBtn}
-                          onClick={() => removeEditQuizItem(index)}
-                        >
-                          Remove
-                        </button>
-                      </div>
-
-                      <input
-                        className={styles.popupInput}
-                        value={item.question}
-                        onChange={(e) =>
-                          updateEditQuizItem(index, "question", e.target.value)
-                        }
-                        placeholder="Question"
-                      />
-
-                      <textarea
-                        className={`${styles.popupTextarea} ${styles.popupAnswerBox}`}
-                        value={item.answer}
-                        onChange={(e) =>
-                          updateEditQuizItem(index, "answer", e.target.value)
-                        }
-                        placeholder="Answer"
-                      />
-                    </div>
-                  ))
-                )}
-              </div>
-
-              <div className={styles.popupActions}>
-                <button
-                  className={styles.popupCancelBtn}
-                  type="button"
-                  onClick={closeEdit}
-                >
-                  Cancel
-                </button>
-                <button
-                  className={styles.popupSaveBtn}
-                  type="button"
-                  onClick={saveEdit}
-                >
-                  Save
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       )}

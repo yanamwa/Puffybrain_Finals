@@ -47,6 +47,7 @@ export default function Result() {
     window.location.href = "../User Decks/modess.html";
   };
 
+  
   return (
     <div className={styles.wrapper}>
 

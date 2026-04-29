@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import styles from "./user.module.css";
-import "boxicons/css/boxicons.min.css";
+import styles from "./decksM.module.css";
 
 import {
   LayoutDashboard,
@@ -14,33 +13,31 @@ import {
   Settings,
 } from "lucide-react";
 
-export default function UserManagement() {
+export default function DeckManagement() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedDeck, setSelectedDeck] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const [users, setUsers] = useState([]);
+  const [decks, setDecks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const dropdownRef = useRef(null);
-  const usersPerPage = 5;
+  const decksPerPage = 5;
 
-  const formatUserId = (user) => {
-    const date = user.STDDateCreated ? new Date(user.STDDateCreated) : new Date();
+  const formatDeckId = (deck) => {
+    return `DECK${String(deck.deck_id).padStart(4, "0")}`;
+  };
 
-    const mm = String(date.getMonth() + 1).padStart(2, "0");
-    const yyyy = date.getFullYear();
-    const dd = String(date.getDate()).padStart(2, "0");
-
-    const encrypted = (Number(user.id) * 92837)
-      .toString(16)
-      .toUpperCase()
-      .substring(0, 4);
-
-    return `STD${mm}${yyyy}${dd}${encrypted}`;
+  const formatDate = (dateValue) => {
+    if (!dateValue) return "No date";
+    return new Date(dateValue).toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    });
   };
 
   const menuItems = [
@@ -52,33 +49,28 @@ export default function UserManagement() {
   ];
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchDecks = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        const response = await fetch("http://localhost/puffybrain/getUsers.php");
-
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-
+        const response = await fetch("http://localhost/puffybrain/getDecks.php");
         const data = await response.json();
 
         if (data.success) {
-          setUsers(data.users || []);
+          setDecks(data.decks || []);
         } else {
-          setError(data.message || "Failed to fetch users.");
+          setError(data.message || "Failed to fetch decks.");
         }
       } catch (err) {
-        console.error("Fetch error:", err);
-        setError("Server error. Check getUsers.php.");
+        console.error(err);
+        setError("Server error. Check getDecks.php.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUsers();
+    fetchDecks();
   }, []);
 
   useEffect(() => {
@@ -96,31 +88,30 @@ export default function UserManagement() {
     setCurrentPage(1);
   }, [searchQuery, sortBy]);
 
-  const filteredUsers = users.filter((user) => {
+  const filteredDecks = decks.filter((deck) => {
     const q = searchQuery.toLowerCase();
 
     return (
-      String(user.id || "").includes(q) ||
-      String(user.username || "").toLowerCase().includes(q) ||
-      String(user.email || "").toLowerCase().includes(q)
+      String(deck.deck_id || "").includes(q) ||
+      String(deck.title || "").toLowerCase().includes(q) ||
+      String(deck.username || "").toLowerCase().includes(q) ||
+      String(deck.visibility || "").toLowerCase().includes(q) ||
+      String(deck.status || "").toLowerCase().includes(q)
     );
   });
 
-  const sortedUsers = [...filteredUsers].sort((a, b) => {
-    if (sortBy === "newest") return Number(b.id) - Number(a.id);
-    if (sortBy === "oldest") return Number(a.id) - Number(b.id);
-    if (sortBy === "username") {
-      return String(a.username || "").localeCompare(String(b.username || ""));
-    }
-    if (sortBy === "email") {
-      return String(a.email || "").localeCompare(String(b.email || ""));
-    }
+  const sortedDecks = [...filteredDecks].sort((a, b) => {
+    if (sortBy === "newest") return new Date(b.created_at) - new Date(a.created_at);
+    if (sortBy === "oldest") return new Date(a.created_at) - new Date(b.created_at);
+    if (sortBy === "user") return String(a.username || "").localeCompare(String(b.username || ""));
+    if (sortBy === "title") return String(a.title || "").localeCompare(String(b.title || ""));
+    if (sortBy === "status") return String(a.status || "").localeCompare(String(b.status || ""));
     return 0;
   });
 
-  const totalPages = Math.ceil(sortedUsers.length / usersPerPage);
-  const startIndex = (currentPage - 1) * usersPerPage;
-  const currentUsers = sortedUsers.slice(startIndex, startIndex + usersPerPage);
+  const totalPages = Math.ceil(sortedDecks.length / decksPerPage);
+  const startIndex = (currentPage - 1) * decksPerPage;
+  const currentDecks = sortedDecks.slice(startIndex, startIndex + decksPerPage);
 
   return (
     <div className={styles.gridContainer}>
@@ -157,7 +148,7 @@ export default function UserManagement() {
           <Search size={18} />
           <input
             type="text"
-            placeholder="Search users"
+            placeholder="Search decks"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -195,49 +186,78 @@ export default function UserManagement() {
 
       <main className={styles.main}>
         <div className={styles.pageTop}>
-          <h1 className={styles.pageTitle}>User Management</h1>
+          <h1 className={styles.pageTitle}>Decks Management</h1>
 
           <div className={styles.sortBox}>
             <label>Sort by:</label>
             <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-              <option value="newest">Newest User</option>
-              <option value="oldest">Oldest User</option>
-              <option value="username">Username A-Z</option>
-              <option value="email">Email A-Z</option>
+              <option value="newest">Newest Deck</option>
+              <option value="oldest">Oldest Deck</option>
+              <option value="user">User A-Z</option>
+              <option value="title">Title A-Z</option>
+              <option value="status">Status A-Z</option>
             </select>
           </div>
         </div>
 
         <div className={styles.tableCard}>
           <div className={styles.tableHeader}>
-            <div>User ID</div>
-            <div>Username</div>
-            <div>Email</div>
-            <div>Action</div>
+            <div>Deck ID</div>
+            <div>User Made</div>
+            <div>Title</div>
+            <div>Date Created</div>
+            <div>Visibility</div>
+            <div>Status</div>
+            <div>View</div>
           </div>
 
           <div className={styles.tableContent}>
-            {loading && <div className={styles.message}>Loading users...</div>}
+            {loading && <div className={styles.message}>Loading decks...</div>}
 
             {!loading && error && (
               <div className={styles.errorMessage}>{error}</div>
             )}
 
-            {!loading && !error && currentUsers.length === 0 && (
-              <div className={styles.message}>No users found.</div>
+            {!loading && !error && currentDecks.length === 0 && (
+              <div className={styles.message}>No decks found.</div>
             )}
 
             {!loading &&
               !error &&
-              currentUsers.map((user) => (
-                <div className={styles.row} key={user.id}>
-                  <div className={styles.userId}>{formatUserId(user)}</div>
-                  <div>{user.username || "No username"}</div>
-                  <div>{user.email || "No email found"}</div>
+              currentDecks.map((deck) => (
+                <div className={styles.row} key={deck.deck_id}>
+                  <div className={styles.userId}>{formatDeckId(deck)}</div>
+                  <div>@{deck.username || "Unknown"}</div>
+                  <div>{deck.title || "No title"}</div>
+                  <div>{formatDate(deck.created_at)}</div>
+
+                  <div>
+                    <span
+                      className={`${styles.badge} ${
+                        String(deck.visibility).toLowerCase() === "private"
+                          ? styles.privateBadge
+                          : styles.publicBadge
+                      }`}
+                    >
+                      {deck.visibility || "Public"}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span
+                      className={`${styles.badge} ${
+                        deck.status === "Archived"
+                          ? styles.archivedBadge
+                          : styles.activeBadge
+                      }`}
+                    >
+                      {deck.status || "Active"}
+                    </span>
+                  </div>
 
                   <button
                     className={styles.viewBtn}
-                    onClick={() => setSelectedUser(user)}
+                    onClick={() => setSelectedDeck(deck)}
                   >
                     View
                   </button>
@@ -279,32 +299,30 @@ export default function UserManagement() {
         )}
       </main>
 
-      {selectedUser && (
+      {selectedDeck && (
         <div
           className={styles.modalOverlay}
-          onClick={() => setSelectedUser(null)}
+          onClick={() => setSelectedDeck(null)}
         >
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              User Profile
+              Deck Details
               <span
                 className={styles.close}
-                onClick={() => setSelectedUser(null)}
+                onClick={() => setSelectedDeck(null)}
               >
                 ×
               </span>
             </div>
 
             <div className={styles.modalBody}>
-              <p>
-                <strong>ID:</strong> {formatUserId(selectedUser)}
-              </p>
-              <p>
-                <strong>Username:</strong> {selectedUser.username}
-              </p>
-              <p>
-                <strong>Email:</strong> {selectedUser.email || "No email found"}
-              </p>
+              <p><strong>Deck ID:</strong> {formatDeckId(selectedDeck)}</p>
+              <p><strong>User Made:</strong> @{selectedDeck.username || "Unknown"}</p>
+              <p><strong>Title:</strong> {selectedDeck.title || "No title"}</p>
+              <p><strong>Description:</strong> {selectedDeck.description || "No description"}</p>
+              <p><strong>Date Created:</strong> {formatDate(selectedDeck.created_at)}</p>
+              <p><strong>Visibility:</strong> {selectedDeck.visibility || "Public"}</p>
+              <p><strong>Status:</strong> {selectedDeck.status || "Active"}</p>
             </div>
           </div>
         </div>

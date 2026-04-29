@@ -1,0 +1,201 @@
+.wrapper {
+  box-sizing: border-box;
+  font-family: "Jersey 15", sans-serif;
+  min-height: 100vh;
+
+  background-image: url("/images/background_notebook.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  text-align: center;
+  padding: 10px 20px;
+}
+
+/* ===================== */
+/* SCORE SECTION */
+/* ===================== */
+
+.scoreSection h1 {
+  font-size: 30px;
+}
+
+.subtitle {
+  font-size: 14px;
+  margin-top: 0;
+}
+
+/* ===================== */
+/* BUTTONS */
+/* ===================== */
+
+.resultButtons {
+  margin: 20px 0 30px;
+}
+
+.resultButtons button {
+  padding: 8px 22px;
+  border-radius: 25px;
+  border: none;
+  margin: 0 10px;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.resultButtons button:hover {
+  transform: translateY(-2px);
+}
+
+.retry {
+  background: #e6b7ff;
+  box-shadow: 2px 4px 0 #c8a8e9;
+}
+
+.home {
+  background: #fff;
+  border: 1px solid #aaa;
+  box-shadow: 2px 4px 0 #ddd;
+}
+
+.lesson {
+  background: #ffe6a7;
+  box-shadow: 2px 4px 0 #d7b96f;
+}
+
+/* ===================== */
+/* FEEDBACK BOX */
+/* ===================== */
+
+.feedbackBox {
+  max-width: 600px;
+  margin: 15px auto 20px;
+  background: #fff4cc;
+  border: 2px solid #e6c76b;
+  border-radius: 20px;
+  padding: 15px 20px;
+  box-shadow: 3px 5px 0 #d8c07a;
+}
+
+.feedbackBox h2 {
+  font-size: 20px;
+  margin: 0 0 8px;
+}
+
+.feedbackBox p {
+  font-size: 14px;
+  margin: 5px 0;
+}
+
+.percentage {
+  font-weight: bold;
+}
+
+/* ===================== */
+/* SUMMARY CARDS */
+/* ===================== */
+
+.summaryCards {
+  max-width: 700px;
+  margin: 15px auto;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.summaryCard {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 15px;
+  box-shadow: 3px 5px 0 #d6d6d6;
+}
+
+.summaryCard h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.summaryCard p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* ===================== */
+/* REVIEW SECTION */
+/* ===================== */
+
+.reviewWrapper {
+  max-width: 900px;
+  margin: auto;
+  border-radius: 30px;
+  overflow: hidden;
+  background: #fff;
+  min-height: 300px; /* FIXED: removed fixed height issue */
+}
+
+.reviewHeader {
+  background: #e6c9ff;
+  padding: 18px;
+  font-size: 18px;
+}
+
+.reviewList {
+  padding: 25px;
+}
+
+/* REVIEW ITEMS */
+
+.reviewItem {
+  background: #f6f6f6;
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 18px;
+}
+
+.reviewQuestion {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 6px;
+}
+
+.reviewAnswer {
+  font-size: 15px;
+}
+
+.reviewDivider {
+  margin: 8px 0;
+}
+
+/* ===================== */
+/* TEXT STATES */
+/* ===================== */
+
+.correctText {
+  color: #1f9d55;
+  font-weight: bold;
+}
+
+.wrongText {
+  color: #d64545;
+  font-weight: bold;
+}
+
+.noAnswers {
+  font-size: 15px;
+  color: #777;
+  padding: 30px;
+}
+
+/* ===================== */
+/* RESPONSIVE */
+/* ===================== */
+
+@media (max-width: 768px) {
+  .summaryCards {
+    grid-template-columns: 1fr;
+  }
+
+  .resultButtons button {
+    margin: 5px;
+    display: inline-block;
+  }
+}

@@ -1,74 +1,105 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import styles from "./realFlashcards.module.css";
 
 export default function Flashcards() {
-  const flashcards = [
-    {
-      question: "What does JVM stand for?",
-      answer: "Java Virtual Machine",
-    },
-    {
-      question: "What is inheritance in Java?",
-      answer:
-        "Inheritance allows one class to inherit fields and methods from another using the extends keyword.",
-    },
-    {
-      question: "What is a package in Java?",
-      answer: "A package is a collection of related classes and interfaces.",
-    },
-  ];
+  const navigate = useNavigate();
+  const { lessonId } = useParams();
 
+  const [lesson, setLesson] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [userResults, setUserResults] = useState([]);
   const [flipped, setFlipped] = useState(false);
 
+  useEffect(() => {
+    fetch(`http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`)
+      .then((res) => res.json())
+      .then((data) => setLesson(data))
+      .catch((err) => console.error("Error loading lesson:", err));
+  }, [lessonId]);
+
+  const flashcards = useMemo(() => {
+    if (!lesson?.quiz_contents) return [];
+
+    try {
+      const parsed = JSON.parse(lesson.quiz_contents);
+
+      if (!Array.isArray(parsed)) return [];
+
+      return parsed.map((item) => ({
+        question: item.question || "No question available.",
+        answer:
+          item.correct_answer ||
+          item.correctAnswer ||
+          item.answer ||
+          "No answer available.",
+        explanation: item.explanation || ""
+      }));
+    } catch (error) {
+      console.error("Invalid quiz JSON:", error);
+      return [];
+    }
+  }, [lesson]);
+
   const currentCard = flashcards[currentIndex];
 
   const loadNextCard = (difficulty) => {
-    const isCorrect = difficulty === "easy" || difficulty === "good";
-    if (isCorrect) setScore((prev) => prev + 1);
+    if (!currentCard) return;
 
-    setUserResults((prev) => [
-      ...prev,
-      {
-        question: currentCard.question,
-        answer: currentCard.answer,
-        correct: isCorrect,
-      },
-    ]);
+    const isCorrect = difficulty === "easy" || difficulty === "good";
+
+    const newResult = {
+      question: currentCard.question,
+      userAnswer: difficulty,
+      correctAnswer: currentCard.answer,
+      explanation: currentCard.explanation || currentCard.answer,
+      isCorrect
+    };
+
+    const updatedResults = [...userResults, newResult];
+    const updatedScore = score + (isCorrect ? 1 : 0);
+
+    setUserResults(updatedResults);
+    setScore(updatedScore);
 
     if (currentIndex < flashcards.length - 1) {
       setCurrentIndex((prev) => prev + 1);
       setFlipped(false);
     } else {
-      finishQuiz();
+      localStorage.setItem(
+        "lessonQuizResults",
+        JSON.stringify({
+          lessonId: Number(lessonId),
+          score: updatedScore,
+          total: flashcards.length,
+          answers: updatedResults
+        })
+      );
+
+      navigate(`/review/${lessonId}`);
     }
   };
 
-  const finishQuiz = () => {
-    localStorage.setItem(
-      "flashcardResults",
-      JSON.stringify({
-        score,
-        total: flashcards.length,
-        answers: userResults,
-      })
-    );
+  if (!lesson) {
+    return <div className={styles.container}>Loading flashcards...</div>;
+  }
 
-    window.location.href = "/flash_result"; // adjust route as needed
-  };
+  if (flashcards.length === 0) {
+    return <div className={styles.container}>No flashcards available.</div>;
+  }
 
   return (
     <div className={styles.container}>
-      {/* TOP INFO */}
       <div className={styles.flashcardInfo}>
-        <h2 className={styles.deckTitle}>Introduction to Programming</h2>
+        <h2 className={styles.deckTitle}>{lesson.title}</h2>
 
         <div className={styles.progressBar}>
           <div
             className={styles.progressFill}
-            style={{ width: `${((currentIndex + 1) / flashcards.length) * 100}%` }}
+            style={{
+              width: `${((currentIndex + 1) / flashcards.length) * 100}%`
+            }}
           ></div>
         </div>
 
@@ -77,36 +108,32 @@ export default function Flashcards() {
         </p>
       </div>
 
-      {/* FLASHCARD */}
       <div className={styles.flashcardWrapper}>
         <div className={styles.tab}>
           <span className={flipped ? "" : styles.active}>Question</span>
           <span onClick={() => setFlipped((prev) => !prev)}>Flip</span>
         </div>
 
-        <div
-          className={`${styles.flashcard} ${flipped ? styles.flipped : ""}`}
-        >
+        <div className={`${styles.flashcard} ${flipped ? styles.flipped : ""}`}>
           <div className={styles.flashcardInner}>
-            {/* FRONT */}
             <div className={`${styles.flashcardFace} ${styles.front}`}>
               <p>{currentCard.question}</p>
             </div>
 
-            {/* BACK */}
             <div className={`${styles.flashcardFace} ${styles.back}`}>
               <p>{currentCard.answer}</p>
             </div>
           </div>
 
-          {/* DIFFICULTY BUTTONS */}
           <div className={styles.difficulty}>
             <button className={styles.easy} onClick={() => loadNextCard("easy")}>
               Easy
             </button>
+
             <button className={styles.good} onClick={() => loadNextCard("good")}>
               Good
             </button>
+
             <button className={styles.hard} onClick={() => loadNextCard("hard")}>
               Hard
             </button>

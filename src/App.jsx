@@ -42,14 +42,18 @@ import UserDecks from "./pages/decks/userDecks";
 import Introduction from "./pages/Learning_Module/Introduction";
 import LearningModule from "./pages/Learning_Module/LearningModule";
 import Lesson from "./pages/Learning_Module/Lesson";
+import LessonResult from "./pages/Learning_Module/LessonResult";
 
 /* Admin */
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ModuleManagement from "./pages/admin/modulemanagement";
 import ModuleForm from "./pages/admin/ModuleForm";
+import AddModule from "./pages/admin/AddModule";
+import EditModule from "./pages/admin/EditModule";
 import UserManagement from "./pages/admin/UserManagement";
 import ModesManagement from "./pages/admin/Modesmangement";
+import DecksManagement from "./pages/admin/DecksManagement";
 
 /* Learning */
 import FlashcardsTutorial from "./pages/quizzes/flashcards-tutorial";
@@ -109,7 +113,8 @@ export default function App() {
       <Route path="/learning/:lessonId" element={<LearningModule />} />
       <Route path="/introduction/:lessonId" element={<Introduction />} />
       <Route path="/lesson/:lessonId" element={<Lesson />} />
-
+      <Route path="/review/:lessonId" element={<LessonResult />} />
+      
       {/* ADMIN */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
@@ -117,8 +122,10 @@ export default function App() {
       <Route path="/admin/modes" element={<ModesManagement />} />
 
       <Route path="/admin/modules" element={<ModuleManagement />} />
-      <Route path="/admin/modules/new" element={<ModuleForm mode="add" />} />
-      <Route path="/admin/modules/edit/:id" element={<ModuleForm mode="edit" />} />
+      <Route path="/admin/modules/new" element={<AddModule />} />
+      <Route path="/admin/modules/edit/:id" element={<EditModule />} />
+
+      <Route path="/admin/decks" element={<DecksManagement />} />
 
       {/* LEARNING */}
       <Route path="/module-management" element={<ModuleManagement />} />
@@ -136,8 +143,8 @@ export default function App() {
       <Route path="/survival/:lessonId" element={<Survival />} />
 
       {/* RESULTS */}
-      <Route path="/result" element={<Result />} />
-
+      <Route path="/review" element={<Result />} />
+      
       {/* NAVIGATION */}
       <Route path="/FAQ" element={<FAQ />} />
 
