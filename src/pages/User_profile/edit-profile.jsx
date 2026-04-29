@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import "boxicons/css/boxicons.min.css";
 import styles from "./edit-profile.module.css";
 
@@ -13,10 +13,14 @@ function EditProfile() {
 
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const [myDecks, setMyDecks] = useState([]);
+  const [courses, setCourses] = useState([]);
+
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const notificationCount = 0; // change this later when you have real data
+
   const [user, setUser] = useState({
     username: "",
     email: "",
@@ -44,13 +48,26 @@ function EditProfile() {
       const res = await fetch("http://localhost/puffybrain/userDecks.php", {
         credentials: "include",
       });
-      const data = await res.json();
 
-      if (data.success) {
-        setMyDecks(data.decks);
-      }
+      const data = await res.json();
+      setMyDecks(data.success ? data.decks || [] : []);
     } catch (err) {
       console.error("Failed to fetch user decks:", err);
+      setMyDecks([]);
+    }
+  };
+
+  const fetchAddedCourses = async () => {
+    try {
+      const res = await fetch("http://localhost/puffybrain/getMyCourses.php", {
+        credentials: "include",
+      });
+
+      const data = await res.json();
+      setCourses(data.success ? data.courses || [] : []);
+    } catch (err) {
+      console.error("Fetch courses error:", err);
+      setCourses([]);
     }
   };
 
@@ -59,17 +76,25 @@ function EditProfile() {
       const res = await fetch("http://localhost/puffybrain/getUser.php", {
         credentials: "include",
       });
+
       const data = await res.json();
 
       if (data.success) {
         const loadedUser = {
-          username: data.user.username || "",
-          email: data.user.email || "",
-          year_level: data.user.year_level || "",
-          school: data.user.school || "",
-          signature: data.user.signature || data.user.username || "",
+          username: data.user?.username || data.username || "",
+          email: data.user?.email || data.email || "",
+          year_level: data.user?.year_level || data.year_level || "",
+          school: data.user?.school || data.school || "",
+          signature:
+            data.user?.signature ||
+            data.signature ||
+            data.user?.username ||
+            data.username ||
+            "",
           profile_image:
-            data.user.profile_image || "/images/temporary profile.jpg",
+            data.user?.profile_image ||
+            data.profile_image ||
+            "/images/temporary profile.jpg",
         };
 
         setUser(loadedUser);
@@ -79,6 +104,44 @@ function EditProfile() {
     }
   };
 
+  useEffect(() => {
+    fetchUserDecks();
+    fetchAddedCourses();
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    const handler = (e) => {
+      const insideDropdown = e.target.closest(
+  `.${styles.deckMenu}, .${styles.deckMenuBtn}, .${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}`
+);
+
+      if (!insideDropdown) {
+        setDropdownOpen(null);
+        setProfileDropdownOpen(false);
+        setNotificationOpen(false);
+      }
+    };
+
+    window.addEventListener("click", handler);
+    return () => window.removeEventListener("click", handler);
+  }, []);
+
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") {
+        setIsEditModalOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, []);
+
+  const openCourse = (courseId) => {
+    navigate(`/learning/${courseId}`);
+  };
+
   const handleLogout = () => {
     const confirmed = window.confirm("Are you sure you want to logout?");
     if (confirmed) navigate("/login");
@@ -86,6 +149,7 @@ function EditProfile() {
 
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
+
     setPasswordForm((prev) => ({
       ...prev,
       [name]: value,
@@ -126,6 +190,7 @@ function EditProfile() {
       school: "",
       profile_image: "",
     });
+
     setIsEditModalOpen(true);
   };
 
@@ -135,6 +200,7 @@ function EditProfile() {
 
   const handleEditInputChange = (e) => {
     const { name, value } = e.target;
+
     setEditForm((prev) => ({
       ...prev,
       [name]: value,
@@ -169,32 +235,6 @@ function EditProfile() {
     alert("Profile updated. Connect this to your backend save API next.");
   };
 
-  useEffect(() => {
-    fetchUserDecks();
-    fetchUser();
-  }, []);
-
-  useEffect(() => {
-    const handler = (e) => {
-      const insideDropdown = e.target.closest?.(`.${styles.dropdown}`);
-      if (!insideDropdown) setDropdownOpen(false);
-    };
-
-    window.addEventListener("click", handler);
-    return () => window.removeEventListener("click", handler);
-  }, []);
-
-  useEffect(() => {
-    const handleEsc = (e) => {
-      if (e.key === "Escape") {
-        setIsEditModalOpen(false);
-      }
-    };
-
-    window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
-  }, []);
-
   return (
     <div
       className={`${styles.container} ${
@@ -226,37 +266,56 @@ function EditProfile() {
           </div>
 
           <div className={styles.divider}></div>
-
           <p className={styles.myDecksTitle}>Menu</p>
 
           <nav className={styles.menu}>
             <ul className={styles.sidebarList}>
               <li className={styles.sidebarListItem}>
-                <Link to="/homepage" className={styles.menuItem}>
+                <NavLink
+                  to="/homepage"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
                   <i className="bx bx-home"></i>
                   <span className={styles.menuText}>Home</span>
-                </Link>
+                </NavLink>
               </li>
 
               <li className={styles.sidebarListItem}>
-                <Link to="/mydecks" className={styles.menuItem}>
+                <NavLink
+                  to="/Mydecks"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
                   <i className="bx bx-book"></i>
                   <span className={styles.menuText}>Decks</span>
-                </Link>
+                </NavLink>
               </li>
 
               <li className={styles.sidebarListItem}>
-                <Link to="/mycourse" className={styles.menuItem}>
+                <NavLink
+                  to="/mycourse"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
                   <i className="bx bx-book"></i>
                   <span className={styles.menuText}>My Course</span>
-                </Link>
+                </NavLink>
               </li>
 
               <li className={styles.sidebarListItem}>
-                <Link to="/public-decks" className={styles.menuItem}>
+                <NavLink
+                  to="/public-decks"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
                   <i className="bx bx-folder"></i>
                   <span className={styles.menuText}>Public Decks</span>
-                </Link>
+                </NavLink>
               </li>
             </ul>
           </nav>
@@ -264,34 +323,53 @@ function EditProfile() {
           <div className={styles.divider}></div>
 
           <div className={styles.myDecksNav}>
-            <p className={styles.myDecks}>My Decks</p>
+            <div className={styles.sectionBlock}>
+              <p className={styles.sectionTitle}>My Decks</p>
 
-            <ul className={styles.sidebarList}>
-              {myDecks.length === 0 ? (
-                <li className={styles.sidebarListItem}>
-                  <span className={styles.menuText} style={{ opacity: 0.6 }}>
+              <ul className={styles.sectionList}>
+                {myDecks.length === 0 ? (
+                  <li className={styles.sidebarEmptyText}>
                     Don't have decks yet
-                  </span>
-                </li>
-              ) : (
-                myDecks.map((deck) => (
-                  <li key={deck.id} className={styles.sidebarListItem}>
-                    <Link to={`/deck/${deck.id}`} className={styles.menuItem}>
-                      <i className="bx bx-book"></i>
-                      <span className={styles.menuText}>{deck.title}</span>
-                    </Link>
                   </li>
-                ))
-              )}
-            </ul>
-          </div>
-        </div>
+                ) : (
+                  myDecks.slice(0, 3).map((deck) => (
+                    <li key={deck.id} className={styles.sidebarListItem}>
+                      <Link to={`/deck/${deck.id}`} className={styles.menuItem}>
+                        <i className="bx bx-book"></i>
+                        <span className={styles.menuText}>{deck.title}</span>
+                      </Link>
+                    </li>
+                  ))
+                )}
+              </ul>
+            </div>
 
-        <div className={styles.logout}>
-          <button className={styles.logoutLink} onClick={handleLogout}>
-            <i className="bx bx-log-out"></i>
-            <span className={styles.menuText}>Logout</span>
-          </button>
+            <div className={styles.sectionBlock}>
+              <div className={styles.sectionDivider}></div>
+              <p className={styles.sectionTitle}>My Courses</p>
+
+              <ul className={styles.sectionList}>
+                {courses.length === 0 ? (
+                  <li className={styles.sidebarEmptyText}>
+                    No courses added yet
+                  </li>
+                ) : (
+                  courses.slice(0, 3).map((course) => (
+                    <li key={course.id} className={styles.sidebarListItem}>
+                      <button
+                        type="button"
+                        onClick={() => openCourse(course.id)}
+                        className={styles.menuItem}
+                      >
+                        <i className="bx bx-book"></i>
+                        <span className={styles.menuText}>{course.title}</span>
+                      </button>
+                    </li>
+                  ))
+                )}
+              </ul>
+            </div>
+          </div>
         </div>
       </aside>
 
@@ -304,14 +382,47 @@ function EditProfile() {
             >
               <input
                 type="text"
-                placeholder="Search your decks"
+                placeholder="Search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
-              <i className="bx bx-search"></i>
+              <i className="bx bx-search" />
             </form>
 
             <div className={styles.profileWrapper}>
+
+              <div className={styles.notificationWrapper}>
+                                <button
+                                  type="button"
+                                  className={styles.notificationBtn}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setNotificationOpen((prev) => !prev);
+                                    setProfileDropdownOpen(false);
+                                    setDropdownOpen(null);
+                                  }}
+                                >
+                                  <i className="bx bx-bell"></i>
+                                  {notificationCount > 0 && (
+                                      <span className={styles.notificationBadge}>
+                                        {notificationCount}
+                                      </span>
+                                    )}
+                                </button>
+              
+                                <div
+                                  className={`${styles.notificationDropdown} ${
+                                    notificationOpen ? styles.show : ""
+                                  }`}
+                                >
+                                  <h4>Notifications</h4>
+              
+                                  <div className={styles.emptyNotification}>
+                                    <p>You don’t have any new notifications</p>
+                                  </div>
+                                </div>
+                              </div>
+
               <div className={styles.dpContainer}>
                 <img
                   src={user.profile_image}
@@ -330,10 +441,10 @@ function EditProfile() {
                   className={styles.dropdownBtn}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setDropdownOpen((v) => !v);
+                    setDropdownOpen(!dropdownOpen);
                   }}
                 >
-                  <i className="bx bx-chevron-down"></i>
+                  <i className="bx bx-chevron-down" />
                 </button>
 
                 <div
@@ -341,22 +452,18 @@ function EditProfile() {
                     dropdownOpen ? styles.show : ""
                   }`}
                 >
-                  <Link to="/edit-profile">
-                    <i className="bx bx-cog"></i>
+                  <NavLink to="/edit-profile">
+                    <i className="bx bx-cog" />
                     <span>Settings</span>
-                  </Link>
+                  </NavLink>
 
-                  <Link to="/how-it-works">
-                    <i className="bx bx-help-circle"></i>
+                  <NavLink to="/faq">
+                    <i className="bx bx-help-circle" />
                     <span>FAQs</span>
-                  </Link>
+                  </NavLink>
 
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className={styles.dropdownLogout}
-                  >
-                    <i className="bx bx-log-out"></i>
+                  <button type="button" onClick={handleLogout}>
+                    <i className="bx bx-log-out" />
                     <span>Logout</span>
                   </button>
                 </div>
@@ -411,7 +518,11 @@ function EditProfile() {
                           <div className={styles.profileForm}>
                             <div className={styles.formGroup}>
                               <label>Username</label>
-                              <input type="text" value={user.username} readOnly />
+                              <input
+                                type="text"
+                                value={user.username}
+                                readOnly
+                              />
                             </div>
 
                             <div className={styles.formGroup}>
@@ -493,7 +604,9 @@ function EditProfile() {
                               <label>Confirm New Password</label>
                               <div className={styles.passwordInputWrap}>
                                 <input
-                                  type={showConfirmPassword ? "text" : "password"}
+                                  type={
+                                    showConfirmPassword ? "text" : "password"
+                                  }
                                   name="confirmPassword"
                                   placeholder="Confirm new password"
                                   value={passwordForm.confirmPassword}
@@ -641,6 +754,7 @@ function EditProfile() {
                           >
                             Cancel
                           </button>
+
                           <button
                             type="submit"
                             className={styles.saveChangesBtn}
@@ -664,6 +778,7 @@ function EditProfile() {
                               <span>Upload Photo</span>
                             </>
                           )}
+
                           <input
                             type="file"
                             accept="image/*"

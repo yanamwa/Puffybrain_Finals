@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import styles from "./Homepage.module.css";
@@ -8,9 +8,6 @@ import TodoList from "./TodoList";
 function Homepage() {
   const navigate = useNavigate();
 
-  /* -----------------------------
-     STATE
-  ----------------------------- */
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
 
@@ -21,42 +18,44 @@ function Homepage() {
   const [deckDescription, setDeckDescription] = useState("");
   const [deckVisibility, setDeckVisibility] = useState("private");
 
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const notificationCount = 0; // change later if you have real data
+
   const [user, setUser] = useState({
     username: "",
     year_level: "",
   });
 
-  /* -----------------------------
-     LOGOUT
-  ----------------------------- */
   const handleLogout = () => {
     const confirmed = window.confirm("Are you sure you want to logout?");
     if (confirmed) navigate("/login");
   };
 
-  /* -----------------------------
-     FETCH USER DECKS
-  ----------------------------- */
   const fetchUserDecks = async () => {
     try {
       const res = await fetch("http://localhost/puffybrain/userDecks.php", {
         credentials: "include",
       });
+
       const data = await res.json();
-      if (data.success) setMyDecks(data.decks);
+
+      if (data.success) {
+        setMyDecks(data.decks || []);
+      } else {
+        setMyDecks([]);
+      }
     } catch (err) {
       console.error("Error fetching decks:", err);
+      setMyDecks([]);
     }
   };
 
-  /* -----------------------------
-     FETCH USER
-  ----------------------------- */
   const fetchUser = async () => {
     try {
       const res = await fetch("http://localhost/puffybrain/getUser.php", {
         credentials: "include",
       });
+
       const data = await res.json();
 
       if (data.success) {
@@ -67,9 +66,6 @@ function Homepage() {
     }
   };
 
-  /* -----------------------------
-     FETCH COURSES
-  ----------------------------- */
   const fetchCourses = async () => {
     try {
       const res = await fetch("http://localhost/puffybrain/getMyCourses.php", {
@@ -77,7 +73,6 @@ function Homepage() {
       });
 
       const data = await res.json();
-      console.log("HOMEPAGE COURSES:", data);
 
       if (data.success) {
         setCourses(data.courses || []);
@@ -90,9 +85,6 @@ function Homepage() {
     }
   };
 
-  /* -----------------------------
-     OPEN COURSE
-  ----------------------------- */
   const openCourse = (courseId) => {
     navigate(`/learning/${courseId}`);
   };
@@ -103,9 +95,6 @@ function Homepage() {
     fetchCourses();
   }, []);
 
-  /* -----------------------------
-     ADD DECK
-  ----------------------------- */
   const handleAddDeck = async () => {
     if (!deckTitle.trim()) {
       Swal.fire({
@@ -153,6 +142,7 @@ function Homepage() {
       }
     } catch (err) {
       console.error("Error creating deck:", err);
+
       Swal.fire({
         icon: "error",
         title: "Server Error",
@@ -161,6 +151,18 @@ function Homepage() {
     }
   };
 
+useEffect(() => {
+  const handler = (e) => {
+    const inside = e.target.closest(`.${styles.notificationWrapper}`);
+
+    if (!inside) {
+      setNotificationOpen(false);
+    }
+  };
+
+  window.addEventListener("click", handler);
+  return () => window.removeEventListener("click", handler);
+}, []);
   return (
     <div
       className={`${styles.container} ${
@@ -197,34 +199,51 @@ function Homepage() {
           <nav className={styles.menu}>
             <ul className={styles.sidebarList}>
               <li className={styles.sidebarListItem}>
-                <Link
+                <NavLink
                   to="/homepage"
-                  className={`${styles.menuItem} ${styles.active}`}
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
                 >
                   <i className="bx bx-home"></i>
                   <span className={styles.menuText}>Home</span>
-                </Link>
+                </NavLink>
               </li>
 
               <li className={styles.sidebarListItem}>
-                <Link to="/Mydecks" className={styles.menuItem}>
+                <NavLink
+                  to="/Mydecks"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
                   <i className="bx bx-book"></i>
                   <span className={styles.menuText}>Decks</span>
-                </Link>
+                </NavLink>
               </li>
 
               <li className={styles.sidebarListItem}>
-                <Link to="/mycourse" className={styles.menuItem}>
+                <NavLink
+                  to="/mycourse"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
                   <i className="bx bx-book"></i>
                   <span className={styles.menuText}>My Course</span>
-                </Link>
+                </NavLink>
               </li>
 
               <li className={styles.sidebarListItem}>
-                <Link to="/public-decks" className={styles.menuItem}>
+                <NavLink
+                  to="/public-decks"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
                   <i className="bx bx-folder"></i>
                   <span className={styles.menuText}>Public Decks</span>
-                </Link>
+                </NavLink>
               </li>
             </ul>
           </nav>
@@ -237,9 +256,11 @@ function Homepage() {
 
               <ul className={styles.sectionList}>
                 {myDecks.length === 0 ? (
-                  <li className={styles.emptyText}>Don't have decks yet</li>
+                  <li className={styles.sidebarEmptyText}>
+                    Don't have decks yet
+                  </li>
                 ) : (
-                  myDecks.map((deck) => (
+                  myDecks.slice(0, 3).map((deck) => (
                     <li key={deck.id} className={styles.sidebarListItem}>
                       <Link to={`/deck/${deck.id}`} className={styles.menuItem}>
                         <i className="bx bx-book"></i>
@@ -257,7 +278,9 @@ function Homepage() {
 
               <ul className={styles.sectionList}>
                 {courses.length === 0 ? (
-                  <li className={styles.emptyText}>No courses added yet</li>
+                  <li className={styles.sidebarEmptyText}>
+                    No courses added yet
+                  </li>
                 ) : (
                   courses.slice(0, 3).map((course) => (
                     <li key={course.id} className={styles.sidebarListItem}>
@@ -265,13 +288,6 @@ function Homepage() {
                         type="button"
                         onClick={() => openCourse(course.id)}
                         className={styles.menuItem}
-                        style={{
-                          background: "transparent",
-                          border: "none",
-                          width: "100%",
-                          textAlign: "left",
-                          cursor: "pointer",
-                        }}
                       >
                         <i className="bx bx-book"></i>
                         <span className={styles.menuText}>{course.title}</span>
@@ -283,24 +299,44 @@ function Homepage() {
             </div>
           </div>
         </div>
-
-        <div className={styles.logout}>
-          <button className={styles.logoutLink} onClick={handleLogout}>
-            <i className="bx bx-log-out"></i>
-            <span className={styles.menuText}>Logout</span>
-          </button>
-        </div>
       </aside>
 
       <div className={styles.mainArea}>
         <header className={styles.header}>
-          <form className={styles.searchBar}>
+          <form className={styles.searchBar} onSubmit={(e) => e.preventDefault()}>
             <input type="text" placeholder="Search your deck title" />
             <i className="bx bx-search"></i>
           </form>
-          <button className={styles.notificationBtn}>
-            <i className="bx bx-bell"></i>
-          </button>
+
+          <div className={styles.notificationWrapper}>
+  <button
+    className={styles.notificationBtn}
+    onClick={(e) => {
+      e.stopPropagation();
+      setNotificationOpen((prev) => !prev);
+    }}
+  >
+    <i className="bx bx-bell"></i>
+
+    {notificationCount > 0 && (
+      <span className={styles.notificationBadge}>
+        {notificationCount}
+      </span>
+    )}
+  </button>
+
+  <div
+    className={`${styles.notificationDropdown} ${
+      notificationOpen ? styles.show : ""
+    }`}
+  >
+    <h4>Notifications</h4>
+
+    <div className={styles.emptyNotification}>
+      <p>You don’t have any new notifications</p>
+    </div>
+  </div>
+</div>
         </header>
 
         <main className={styles.mainContent}>
@@ -312,6 +348,7 @@ function Homepage() {
 
           <div className={styles.progress}>
             <h3>Continue Progress</h3>
+
             <div className={styles.decksArea}>
               <div className={styles.decksGrid}>
                 {courses.length === 0 ? (
@@ -325,10 +362,7 @@ function Homepage() {
                         ? Number(rawProgress)
                         : 0;
 
-                    const safeProgress = Math.max(
-                      0,
-                      Math.min(progress, 100)
-                    );
+                    const safeProgress = Math.max(0, Math.min(progress, 100));
 
                     const radius = 18;
                     const circumference = 2 * Math.PI * radius;
@@ -392,6 +426,7 @@ function Homepage() {
           <div className={styles.deckProgress}>
             <div className={styles.sectionHeader}>
               <h3>My Decks</h3>
+
               <div className={styles.sectionButtons}>
                 <button
                   className={styles.btnAdd}
@@ -486,6 +521,7 @@ function Homepage() {
 
                 <div className={styles.formGroup}>
                   <label className={styles.deckinfo}>Visibility</label>
+
                   <div className={styles.radioGroup}>
                     <label className={styles.pubpriv}>
                       <input
@@ -513,13 +549,44 @@ function Homepage() {
 
                 <div className={styles.formGroup}>
                   <label className={styles.deckinfo}>Deck Color</label>
+
                   <div className={styles.colorOptions}>
-                    <input type="radio" name="deckcolor" value="#C8BBD0" />
-                    <input type="radio" name="deckcolor" value="#E0BBD4" />
-                    <input type="radio" name="deckcolor" value="#C3C7F3" />
-                    <input type="radio" name="deckcolor" value="#90F897" />
-                    <input type="radio" name="deckcolor" value="#CF8686" />
-                    <input type="radio" name="deckcolor" value="#EECB99" />
+                    <input
+                      className={styles.colorOption1}
+                      type="radio"
+                      name="deckcolor"
+                      value="#C8BBD0"
+                    />
+                    <input
+                      className={styles.colorOption2}
+                      type="radio"
+                      name="deckcolor"
+                      value="#E0BBD4"
+                    />
+                    <input
+                      className={styles.colorOption3}
+                      type="radio"
+                      name="deckcolor"
+                      value="#C3C7F3"
+                    />
+                    <input
+                      className={styles.colorOption4}
+                      type="radio"
+                      name="deckcolor"
+                      value="#90F897"
+                    />
+                    <input
+                      className={styles.colorOption5}
+                      type="radio"
+                      name="deckcolor"
+                      value="#CF8686"
+                    />
+                    <input
+                      className={styles.colorOption6}
+                      type="radio"
+                      name="deckcolor"
+                      value="#EECB99"
+                    />
                   </div>
                 </div>
 
@@ -533,6 +600,7 @@ function Homepage() {
                   >
                     Cancel
                   </button>
+
                   <button type="submit" className={styles.popaddBtn}>
                     Add
                   </button>
@@ -550,7 +618,7 @@ function Homepage() {
           <p className={styles.profileRole}>
             {user.year_level || "Rather not say"}
           </p>
-          <Link to="/setting-profile/user_profile" className={styles.profileBtn}>
+          <Link to="/user-profile" className={styles.profileBtn}>
             Profile
           </Link>
         </div>
@@ -559,7 +627,7 @@ function Homepage() {
         <TodoList />
 
         <Link
-          to="/setting-profile/setting-profile"
+          to="/edit-profile"
           className={styles.settingsFooter}
         >
           ⚙ Settings

@@ -14,10 +14,10 @@
 }
 
 .container {
-    display: flex;
-    min-height: 100vh;
-    background: #f5f5f5;
-    transition: all 0.3s ease;
+  display: flex;
+  min-height: 100vh;
+  background: #f5f5f5;
+  transition: all 0.3s ease;
 }
 
 .swal2-container {
@@ -32,20 +32,10 @@
   max-width: 1400px;
 }
 
+/* ===== SIDEBAR ===== */
+
 .container.sidebarCollapsed .sidebar {
   width: 60px;
-}
-
-.progress,
-.deckProgress {
-  width: 100%;
-  background-color: #eeeeee;
-  border-radius: 15px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
 }
 
 .sidebar {
@@ -59,6 +49,7 @@
   padding-top: 10px;
   transition: width 0.3s ease;
   z-index: 1000;
+  overflow: hidden;
 }
 
 .sidebar.collapsed {
@@ -83,8 +74,8 @@
 
 .logoCollapsed {
   display: none;
-  width: 90px;
-  height: 90px;
+  width: 48px;
+  height: 48px;
   object-fit: contain;
   transition: all 0.3s ease;
   margin: 0;
@@ -116,20 +107,19 @@
   color: #959494;
 }
 
-.myDecks,
 .myDecksTitle {
   font-size: 17px;
   margin: 0.3rem 0 0 15px;
 }
 
 .menu,
-.myDecksNav,
-.logout {
+.myDecksNav {
   display: flex;
   flex-direction: column;
 }
 
-.sidebarList {
+.sidebarList,
+.sectionList {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -138,17 +128,6 @@
 .sidebarListItem {
   margin: 0;
   padding: 0 8px 0 10px;
-}
-
-.sidebarList i {
-  width: 22px;
-  min-width: 22px;
-  font-size: 20px;
-  margin-left: 14px;
-  margin-right: 10px;
-  opacity: 0.3;
-  color: black;
-  transition: all 0.3s ease;
 }
 
 .menuItem {
@@ -166,20 +145,32 @@
   text-align: left;
   cursor: pointer;
   transition: background 0.25s ease, transform 0.25s ease;
+  font-family: inherit;
+  font-size: inherit;
 }
 
-.menuItem:hover {
+.menuItem:hover,
+.menuItem.active,
+.active {
   background: #ffffff;
   transform: translateX(6px);
 }
 
-.menuItem.active {
-  background: #ffffff;
-  transform: translateX(6px);
+.sidebarList i,
+.sectionList i {
+  width: 22px;
+  min-width: 22px;
+  font-size: 20px;
+  margin-left: 14px;
+  margin-right: 10px;
+  opacity: 0.3;
+  color: black;
+  transition: all 0.3s ease;
 }
 
 .menuItem:hover i,
-.menuItem.active i {
+.menuItem.active i,
+.active i {
   opacity: 1;
 }
 
@@ -188,46 +179,6 @@
   line-height: 1.2;
   white-space: normal;
   word-break: break-word;
-  right: 40px;
-}
-
-.logoutLink {
-  display: flex;
-  align-items: center;
-  width: calc(100% - 18px);
-  box-sizing: border-box;
-  background: transparent;
-  border: none;
-  color: #000;
-  padding: 10px 14px;
-  margin: 4px 8px 0 10px;
-  border-radius: 999px 0 0 999px;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.25s ease, transform 0.25s ease;
-}
-
-.logoutLink:hover {
-  background: #ffffff;
-  transform: translateX(6px);
-}
-
-.sidebar.collapsed i {
-  margin-left: 0;
-  justify-content: center;
-  width: 100%;
-  display: flex;
-  font-size: 1.5rem;
-}
-
-.sidebar.collapsed .logout .logoutLink {
-  justify-content: center;
-  padding: 10px 0;
-  margin-left: 0;
-}
-
-.sidebar.collapsed .sidebarList span {
-  display: none;
 }
 
 .divider {
@@ -236,10 +187,68 @@
   margin: 0 10px;
 }
 
-.sidebar.collapsed .myDecks,
-.sidebar.collapsed .myDecksTitle {
+.sectionBlock {
+  margin-top: 10px;
+}
+
+.sectionTitle {
+  font-size: 17px;
+  margin: 10px 0 5px 15px;
+  font-weight: 500;
+}
+
+.sectionDivider {
+  height: 1px;
+  background-color: white;
+  margin: 8px 10px;
+}
+
+.sidebarEmptyText {
+  opacity: 0.6;
+  padding-left: 20px;
+  font-size: 14px;
+  color: #333;
+}
+
+.sidebar.collapsed .myDecksTitle,
+.sidebar.collapsed .sectionTitle,
+.sidebar.collapsed .sidebarEmptyText,
+.sidebar.collapsed .menuText,
+.sidebar.collapsed .sidebarList span,
+.sidebar.collapsed .sectionList span {
   display: none;
 }
+
+.sidebar.collapsed .sidebarListItem {
+  padding: 0;
+}
+
+.sidebar.collapsed .menuItem {
+  justify-content: center;
+  padding: 10px 0;
+  margin: 4px 0;
+  border-radius: 0;
+  transform: none;
+}
+
+.sidebar.collapsed .menuItem:hover,
+.sidebar.collapsed .menuItem.active,
+.sidebar.collapsed .active {
+  background: #ffffff;
+  transform: none;
+}
+
+.sidebar.collapsed .sidebarList i,
+.sidebar.collapsed .sectionList i {
+  margin: 0;
+  width: 100%;
+  min-width: 100%;
+  display: flex;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+/* ===== HEADER ===== */
 
 .header {
   position: fixed;
@@ -314,6 +323,77 @@
   font-size: 24px;
   color: #555;
 }
+/* ===== NOTIFICATION ===== */
+
+.notificationWrapper {
+  position: relative;
+}
+
+.notificationBtn {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.notificationBtn i {
+  font-size: 24px;
+  color: #555;
+}
+
+.notificationBadge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #e74c3c;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+
+.notificationDropdown {
+  position: fixed;
+  top: 80px;      
+  right: 290px;  
+  
+  width: 260px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  border-radius: 16px;
+  padding: 12px;
+  z-index: 99999;
+
+  display: none;
+}
+
+.notificationDropdown.show {
+  display: block;
+}
+
+.notificationDropdown h4 {
+  margin: 0 0 10px;
+  font-size: 16px;
+}
+
+.emptyNotification {
+  padding: 20px;
+  text-align: center;
+  color: #777;
+  font-size: 14px;
+}
+/* ===== RIGHT SIDEBAR ===== */
 
 .rightSidebar {
   position: fixed;
@@ -346,9 +426,8 @@
 }
 
 .profileName {
-  margin: 0;
+  margin: 0 0 5px;
   font-size: 20px;
-  margin-bottom: 5px;
 }
 
 .profileRole {
@@ -389,12 +468,14 @@
   transform: translateX(4px);
 }
 
+/* ===== MAIN PAGE ===== */
+
 .mainArea {
   display: flex;
   flex-direction: column;
   flex: 1;
   margin-left: 220px;
-  margin-right: 0px;
+  margin-right: 0;
   transition: margin-left 0.3s ease;
   margin-top: 50px;
 }
@@ -404,10 +485,11 @@
 }
 
 .mainContent {
-    padding: 100px 0px 40px 40px;
-    width: 100%;
-    background: #f5f5f5;
-    flex: 1;
+  padding: 90px 30px 40px;
+  width: 100%;
+  background: #f5f5f5;
+  flex: 1;
+  max-width: 1400px;
 }
 
 .centerBox {
@@ -609,6 +691,8 @@
   max-width: 1000px;
 }
 
+/* ===== POPUP ===== */
+
 .popupOverlay {
   position: fixed;
   inset: 0;
@@ -711,12 +795,29 @@
   transition: 0.2s ease;
 }
 
-.colorOption1 { background: #C8BBD0; }
-.colorOption2 { background: #E0BBD4; }
-.colorOption3 { background: #C3C7F3; }
-.colorOption4 { background: #90F897; }
-.colorOption5 { background: #CF8686; }
-.colorOption6 { background: #EECB99; }
+.colorOption1 {
+  background: #C8BBD0;
+}
+
+.colorOption2 {
+  background: #E0BBD4;
+}
+
+.colorOption3 {
+  background: #C3C7F3;
+}
+
+.colorOption4 {
+  background: #90F897;
+}
+
+.colorOption5 {
+  background: #CF8686;
+}
+
+.colorOption6 {
+  background: #EECB99;
+}
 
 .colorOptions input[type="radio"]:checked {
   border: 3px solid #333;
@@ -774,129 +875,7 @@
   box-shadow: 3px 3px #000;
 }
 
-@media (max-width: 1199px) {
-  .rightSidebar {
-    display: none;
-  }
-
-  .header {
-    width: calc(100% - 220px);
-  }
-
-  .sidebarCollapsed .header {
-    width: calc(100% - 60px);
-  }
-
-  .mainArea {
-    margin-right: 0;
-  }
-}
-
-@media (max-width: 768px) {
-  .sidebar {
-    position: absolute;
-    left: -220px;
-  }
-}
-
-@media (max-width: 1200px) {
-  .dashboardGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .decksGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1600px) {
-  .centerBox h1 {
-    font-size: 70px;
-  }
-
-  .centerBox p {
-    font-size: 32px;
-  }
-
-  .deckCard {
-    height: 250px;
-  }
-}
-
-/* Base (normal desktops) */
-.mainContent {
-  max-width: 1400px;
-  padding: 90px 30px 40px;
-}
-
-/* Large desktops (120% feel) */
-@media (min-width: 1600px) {
-  .mainContent {
-    max-width: 1700px;
-    padding: 110px 50px 60px;
-  }
-
-  .deckCard {
-    height: 260px;
-  }
-
-  .deckTitle {
-    font-size: 18px;
-  }
-
-  .deckCount {
-    font-size: 14px;
-  }
-
-  .centerBox h1 {
-    font-size: 72px;
-  }
-
-  .centerBox p {
-    font-size: 34px;
-  }
-}
-
-/* SECTION WRAPPER */
-.sectionBlock {
-  margin-top: 10px;
-}
-
-/* TITLE */
-.sectionTitle {
-  font-size: 17px;
-  margin: 10px 0 5px 15px;
-  font-weight: 500;
-}
-
-/* DIVIDER LINE */
-.sectionDivider {
-  height: 1px;
-  background-color: white;
-  margin: 8px 10px;
-}
-
-/* LIST SAME STYLE */
-.sectionList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-/* EMPTY TEXT */
-.emptyText {
-  opacity: 0.6;
-  padding-left: 20px;
-  font-size: 14px;
-}
-/* FIX: make buttons behave like menu items */
-.menuItem {
-  width: 100%;
-  background: transparent;
-  border: none;
-  text-align: left;
-  cursor: pointer;
-}
+/* ===== COURSE PROGRESS ===== */
 
 .courseProgressWrap {
   display: flex;
@@ -935,4 +914,78 @@
   font-size: 13px;
   color: #555;
   font-weight: 500;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 1199px) {
+  .rightSidebar {
+    display: none;
+  }
+
+  .header {
+    width: calc(100% - 220px);
+  }
+
+  .sidebarCollapsed .header {
+    width: calc(100% - 60px);
+  }
+
+  .mainArea {
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 1200px) {
+  .dashboardGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .decksGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 60px;
+  }
+
+  .sidebar .menuText,
+  .sidebar .myDecksTitle,
+  .sidebar .sectionTitle,
+  .sidebar .sidebarEmptyText {
+    display: none;
+  }
+
+  .mainArea {
+    margin-left: 60px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .mainContent {
+    max-width: 1700px;
+    padding: 110px 50px 60px;
+  }
+
+  .centerBox h1 {
+    font-size: 72px;
+  }
+
+  .centerBox p {
+    font-size: 34px;
+  }
+
+  .deckCard {
+    height: 260px;
+  }
+
+  .deckTitle {
+    font-size: 18px;
+  }
+
+  .deckCount {
+    font-size: 14px;
+  }
 }

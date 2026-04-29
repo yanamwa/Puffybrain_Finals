@@ -14,6 +14,7 @@ export default function Mydecks() {
   const [addPopupOpen, setAddPopupOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+
   const [deckTitle, setDeckTitle] = useState("");
   const [deckDesc, setDeckDesc] = useState("");
   const [visibility, setVisibility] = useState("");
@@ -21,15 +22,21 @@ export default function Mydecks() {
   const [selectedFilter, setSelectedFilter] = useState("");
 
   const [decks, setDecks] = useState([]);
-
-  /* SIDEBAR FIXES */
   const [myDecks, setMyDecks] = useState([]);
   const [courses, setCourses] = useState([]);
+
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const notificationCount = 0; // change this later when you have real data
 
   const [user, setUser] = useState({
     username: "",
     year_level: "",
   });
+
+  const handleLogout = () => {
+    const confirmed = window.confirm("Are you sure you want to logout?");
+    if (confirmed) navigate("/login");
+  };
 
   const fetchUserDecks = async () => {
     try {
@@ -38,15 +45,13 @@ export default function Mydecks() {
       });
 
       const data = await res.json();
-      console.log("USER DECKS RESPONSE:", data);
+      const colors = ["blue", "pink", "violet", "red"];
 
       if (data.success) {
         setMyDecks(data.decks || []);
 
-        const colors = ["blue", "pink", "violet", "red"];
-
         setDecks(
-          data.decks.map((deck, index) => ({
+          (data.decks || []).map((deck, index) => ({
             id: deck.id,
             title: deck.title,
             description: deck.description || "",
@@ -66,7 +71,6 @@ export default function Mydecks() {
     }
   };
 
-  /* SIDEBAR FIXES */
   const fetchCourses = async () => {
     try {
       const res = await fetch("http://localhost/puffybrain/getMyCourses.php", {
@@ -74,7 +78,6 @@ export default function Mydecks() {
       });
 
       const data = await res.json();
-      console.log("COURSES RESPONSE:", data);
 
       if (data.success) {
         setCourses(data.courses || []);
@@ -99,14 +102,7 @@ export default function Mydecks() {
         setUser(data.user);
       }
     } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleLogout = () => {
-    const confirmed = window.confirm("Are you sure you want to logout?");
-    if (confirmed) {
-      navigate("/login");
+      console.error("fetchUser error:", err);
     }
   };
 
@@ -119,23 +115,19 @@ export default function Mydecks() {
   useEffect(() => {
     const handler = (e) => {
       const insideDropdown = e.target.closest(
-        `.${styles.deckMenu}, .${styles.deckMenuBtn}, .${styles.dropdownBtn}, .${styles.dropdownContent}`
-      );
+  `.${styles.deckMenu}, .${styles.deckMenuBtn}, .${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}`
+);
 
       if (!insideDropdown) {
         setDropdownOpen(null);
         setProfileDropdownOpen(false);
+        setNotificationOpen(false);
       }
     };
 
     window.addEventListener("click", handler);
     return () => window.removeEventListener("click", handler);
-  }, [
-    styles.deckMenu,
-    styles.deckMenuBtn,
-    styles.dropdownBtn,
-    styles.dropdownContent,
-  ]);
+  }, []);
 
   const filteredDecks = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -149,7 +141,6 @@ export default function Mydecks() {
     navigate(`/deck/${deckId}`);
   };
 
-  /* SIDEBAR FIX */
   const openCourse = (courseId) => {
     navigate(`/learning/${courseId}`);
   };
@@ -248,6 +239,7 @@ export default function Mydecks() {
 
       const res = await fetch("http://localhost/puffybrain/updateDeck.php", {
         method: "POST",
+        credentials: "include",
         body: formData,
       });
 
@@ -441,7 +433,9 @@ export default function Mydecks() {
 
               <ul className={styles.sectionList}>
                 {myDecks.length === 0 ? (
-                  <li className={styles.emptyText}>Don't have decks yet</li>
+                  <li className={styles.sidebarEmptyText}>
+                    Don't have decks yet
+                  </li>
                 ) : (
                   myDecks.slice(0, 3).map((deck) => (
                     <li key={deck.id} className={styles.sidebarListItem}>
@@ -461,7 +455,9 @@ export default function Mydecks() {
 
               <ul className={styles.sectionList}>
                 {courses.length === 0 ? (
-                  <li className={styles.emptyText}>No courses added yet</li>
+                  <li className={styles.sidebarEmptyText}>
+                    No courses added yet
+                  </li>
                 ) : (
                   courses.slice(0, 3).map((course) => (
                     <li key={course.id} className={styles.sidebarListItem}>
@@ -469,13 +465,6 @@ export default function Mydecks() {
                         type="button"
                         onClick={() => openCourse(course.id)}
                         className={styles.menuItem}
-                        style={{
-                          background: "transparent",
-                          border: "none",
-                          width: "100%",
-                          textAlign: "left",
-                          cursor: "pointer",
-                        }}
                       >
                         <i className="bx bx-book"></i>
                         <span className={styles.menuText}>{course.title}</span>
@@ -488,12 +477,6 @@ export default function Mydecks() {
           </div>
         </div>
 
-        <div className={styles.logout}>
-          <button className={styles.logoutLink} onClick={handleLogout}>
-            <i className="bx bx-log-out"></i>
-            <span className={styles.menuText}>Logout</span>
-          </button>
-        </div>
       </aside>
 
       <div className={styles.mainArea}>
@@ -513,6 +496,39 @@ export default function Mydecks() {
             </form>
 
             <div className={styles.profileWrapper}>
+
+              <div className={styles.notificationWrapper}>
+                  <button
+                    type="button"
+                    className={styles.notificationBtn}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setNotificationOpen((prev) => !prev);
+                      setProfileDropdownOpen(false);
+                      setDropdownOpen(null);
+                    }}
+                  >
+                    <i className="bx bx-bell"></i>
+                    {notificationCount > 0 && (
+                        <span className={styles.notificationBadge}>
+                          {notificationCount}
+                        </span>
+                      )}
+                  </button>
+
+                  <div
+                    className={`${styles.notificationDropdown} ${
+                      notificationOpen ? styles.show : ""
+                    }`}
+                  >
+                    <h4>Notifications</h4>
+
+                    <div className={styles.emptyNotification}>
+                      <p>You don’t have any new notifications</p>
+                    </div>
+                  </div>
+                </div>
+
               <div className={styles.dpContainer}>
                 <img
                   src="/images/temporary profile.jpg"
@@ -542,20 +558,20 @@ export default function Mydecks() {
                     profileDropdownOpen ? styles.show : ""
                   }`}
                 >
-                  <NavLink to="/user-profile">
+                  <NavLink to="/edit-profile">
                     <i className="bx bx-cog" />
                     <span>Settings</span>
                   </NavLink>
 
-                  <NavLink to="/how-it-works">
+                  <NavLink to="/faq">
                     <i className="bx bx-help-circle" />
                     <span>FAQs</span>
                   </NavLink>
 
-                  <NavLink to="/login">
+                  <button type="button" onClick={handleLogout}>
                     <i className="bx bx-log-out" />
                     <span>Logout</span>
-                  </NavLink>
+                  </button>
                 </div>
               </div>
             </div>
@@ -590,29 +606,29 @@ export default function Mydecks() {
               </div>
 
               <div className={styles.deckArea}>
-            {decks.length === 0 ? (
-              <div className={styles.emptyState}>
-                <img
-                  src="/images/cute1.png"
-                  alt="No decks"
-                  className={styles.emptyImg}
-                />
-                <p className={styles.emptyText}>
-                  You haven’t created any decks yet.
-                </p>
-              </div>
-            ) : filteredDecks.length === 0 ? (
-              <div className={styles.emptyState}>
-                <img
-                  src="/images/cute1.png"
-                  alt="No results"
-                  className={styles.emptyImg}
-                />
-                <p className={styles.emptyText}>
-                  No decks match your search.
-                </p>
-              </div>
-            ) : (
+                {decks.length === 0 ? (
+                  <div className={styles.emptyState}>
+                    <img
+                      src="/images/cute1.png"
+                      alt="No decks"
+                      className={styles.emptyImg}
+                    />
+                    <p className={styles.emptyText}>
+                      You haven’t created any decks yet.
+                    </p>
+                  </div>
+                ) : filteredDecks.length === 0 ? (
+                  <div className={styles.emptyState}>
+                    <img
+                      src="/images/cute1.png"
+                      alt="No results"
+                      className={styles.emptyImg}
+                    />
+                    <p className={styles.emptyText}>
+                      No decks match your search.
+                    </p>
+                  </div>
+                ) : (
                   filteredDecks.map((d) => (
                     <article
                       key={d.id}

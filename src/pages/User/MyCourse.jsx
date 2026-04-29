@@ -10,6 +10,11 @@ export default function MyCourse() {
   const [search, setSearch] = useState("");
   const [courses, setCourses] = useState([]);
   const [myDecks, setMyDecks] = useState([]);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const notificationCount = 0; // change this later when you have real data
+
   const [user, setUser] = useState({
     username: "",
     year_level: "",
@@ -22,15 +27,9 @@ export default function MyCourse() {
       });
 
       const data = await res.json();
-      console.log("COURSES:", data);
-
-      if (data.success) {
-        setCourses(data.courses || []);
-      } else {
-        setCourses([]);
-      }
+      setCourses(data.success ? data.courses || [] : []);
     } catch (err) {
-      console.error("Fetch error:", err);
+      console.error("Fetch courses error:", err);
       setCourses([]);
     }
   };
@@ -42,15 +41,9 @@ export default function MyCourse() {
       });
 
       const data = await res.json();
-      console.log("MY DECKS:", data);
-
-      if (data.success) {
-        setMyDecks(data.decks || []);
-      } else {
-        setMyDecks([]);
-      }
+      setMyDecks(data.success ? data.decks || [] : []);
     } catch (err) {
-      console.error("Deck fetch error:", err);
+      console.error("Fetch decks error:", err);
       setMyDecks([]);
     }
   };
@@ -70,7 +63,7 @@ export default function MyCourse() {
         });
       }
     } catch (err) {
-      console.error("User fetch error:", err);
+      console.error("Fetch user error:", err);
     }
   };
 
@@ -80,9 +73,29 @@ export default function MyCourse() {
     fetchUser();
   }, []);
 
+ useEffect(() => {
+    const handler = (e) => {
+      const insideDropdown = e.target.closest(
+  `.${styles.deckMenu}, .${styles.deckMenuBtn}, .${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}`
+);
+
+      if (!insideDropdown) {
+        setDropdownOpen(null);
+        setProfileDropdownOpen(false);
+        setNotificationOpen(false);
+      }
+    };
+
+    window.addEventListener("click", handler);
+    return () => window.removeEventListener("click", handler);
+  }, []);
+
   const filteredCourses = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return courses.filter((c) => (c.title || "").toLowerCase().includes(q));
+
+    return courses.filter((course) =>
+      (course.title || "").toLowerCase().includes(q)
+    );
   }, [courses, search]);
 
   const openCourse = (courseId) => {
@@ -90,7 +103,8 @@ export default function MyCourse() {
   };
 
   const handleLogout = () => {
-    navigate("/login");
+    const confirmed = window.confirm("Are you sure you want to logout?");
+    if (confirmed) navigate("/login");
   };
 
   return (
@@ -186,7 +200,9 @@ export default function MyCourse() {
 
               <ul className={styles.sectionList}>
                 {myDecks.length === 0 ? (
-                  <li className={styles.emptyText}>Don't have decks yet</li>
+                  <li className={styles.sidebarEmptyText}>
+                    Don't have decks yet
+                  </li>
                 ) : (
                   myDecks.slice(0, 3).map((deck) => (
                     <li key={deck.id} className={styles.sidebarListItem}>
@@ -206,7 +222,9 @@ export default function MyCourse() {
 
               <ul className={styles.sectionList}>
                 {courses.length === 0 ? (
-                  <li className={styles.emptyText}>No courses added yet</li>
+                  <li className={styles.sidebarEmptyText}>
+                    No courses added yet
+                  </li>
                 ) : (
                   courses.slice(0, 3).map((course) => (
                     <li key={course.id} className={styles.sidebarListItem}>
@@ -214,13 +232,6 @@ export default function MyCourse() {
                         type="button"
                         onClick={() => openCourse(course.id)}
                         className={styles.menuItem}
-                        style={{
-                          background: "transparent",
-                          border: "none",
-                          width: "100%",
-                          textAlign: "left",
-                          cursor: "pointer",
-                        }}
                       >
                         <i className="bx bx-book"></i>
                         <span className={styles.menuText}>{course.title}</span>
@@ -232,34 +243,103 @@ export default function MyCourse() {
             </div>
           </div>
         </div>
-
-        <div className={styles.logout}>
-          <button className={styles.logoutLink} onClick={handleLogout}>
-            <i className="bx bx-log-out"></i>
-            <span className={styles.menuText}>Logout</span>
-          </button>
-        </div>
       </aside>
 
       <div className={styles.mainArea}>
         <div className={styles.gridContainer}>
           <div className={styles.headerContainer}>
-            <form className={styles.searchBar}>
+            <form
+              className={styles.searchBar}
+              onSubmit={(e) => e.preventDefault()}
+            >
               <input
                 type="text"
                 placeholder="Search your courses"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
+              <i className="bx bx-search" />
             </form>
 
             <div className={styles.profileWrapper}>
-              <img
-                src="/images/temporary profile.jpg"
-                className={styles.profilePic}
-                alt=""
-              />
-              <p>{user.username}</p>
+
+               <div className={styles.notificationWrapper}>
+                                <button
+                                  type="button"
+                                  className={styles.notificationBtn}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setNotificationOpen((prev) => !prev);
+                                    setProfileDropdownOpen(false);
+                                    setDropdownOpen(null);
+                                  }}
+                                >
+                                  <i className="bx bx-bell"></i>
+                                  {notificationCount > 0 && (
+                                      <span className={styles.notificationBadge}>
+                                        {notificationCount}
+                                      </span>
+                                    )}
+                                </button>
+              
+                                <div
+                                  className={`${styles.notificationDropdown} ${
+                                    notificationOpen ? styles.show : ""
+                                  }`}
+                                >
+                                  <h4>Notifications</h4>
+              
+                                  <div className={styles.emptyNotification}>
+                                    <p>You don’t have any new notifications</p>
+                                  </div>
+                                </div>
+                              </div>
+                              
+              <div className={styles.dpContainer}>
+                <img
+                  src="/images/temporary profile.jpg"
+                  alt="Profile"
+                  className={styles.profilePic}
+                />
+              </div>
+
+              <div className={styles.userInfo}>
+                <p>{user.username}</p>
+              </div>
+
+              <div className={styles.dropdown}>
+                <button
+                  type="button"
+                  className={styles.dropdownBtn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setProfileDropdownOpen(!profileDropdownOpen);
+                  }}
+                >
+                  <i className="bx bx-chevron-down" />
+                </button>
+
+                <div
+                  className={`${styles.dropdownContent} ${
+                    profileDropdownOpen ? styles.show : ""
+                  }`}
+                >
+                  <NavLink to="/edit-profile">
+                    <i className="bx bx-cog" />
+                    <span>Settings</span>
+                  </NavLink>
+
+                  <NavLink to="/faq">
+                    <i className="bx bx-help-circle" />
+                    <span>FAQs</span>
+                  </NavLink>
+
+                  <button type="button" onClick={handleLogout}>
+                    <i className="bx bx-log-out" />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -273,15 +353,22 @@ export default function MyCourse() {
 
               <div className={styles.deckArea}>
                 {filteredCourses.length === 0 ? (
-                  <p className={styles.emptyText}>
-                    {search
-                      ? "No courses match your search."
-                      : "You haven't added any courses yet."}
-                  </p>
+                  <div className={styles.emptyState}>
+                    <img
+                      src="/images/cute1.png"
+                      alt="No courses"
+                      className={styles.emptyImg}
+                    />
+
+                    <p className={styles.emptyText}>
+                      {search
+                        ? "No courses match your search."
+                        : "You haven't added any courses yet."}
+                    </p>
+                  </div>
                 ) : (
                   filteredCourses.map((course, index) => {
                     const rawProgress = course.progress ?? course.completion;
-
                     const progress =
                       rawProgress !== undefined && rawProgress !== null
                         ? Number(rawProgress)
@@ -311,7 +398,7 @@ export default function MyCourse() {
 
                         <div className={styles.deckBody}>
                           <p className={styles.courseLabel}>COURSE</p>
-                          <h4>{course.title}</h4>
+                          <h4>{course.title || "Untitled Course"}</h4>
 
                           <div className={styles.progressWrap}>
                             <div className={styles.progressRing}>
