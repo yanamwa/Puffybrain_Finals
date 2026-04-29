@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { NavLink, useNavigate, useParams } from "react-router-dom";
+import { Link, NavLink, useNavigate, useParams } from "react-router-dom";
 import QuizModesModal from "../../components/QuizModesModal";
 import styles from "./userDecks.module.css";
 import Swal from "sweetalert2";
@@ -197,7 +197,6 @@ export default function UserDecks() {
 
       if (!insideDropdown) {
         setDropdownOpen(null);
-        setProfileDropdownOpen(false);
         setNotificationOpen(false);
       }
     };

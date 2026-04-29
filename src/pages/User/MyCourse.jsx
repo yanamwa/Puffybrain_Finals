@@ -15,6 +15,9 @@ export default function MyCourse() {
   const [notificationOpen, setNotificationOpen] = useState(false);
   const notificationCount = 0; // change this later when you have real data
 
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState("");
+
   const [user, setUser] = useState({
     username: "",
     year_level: "",
@@ -80,7 +83,6 @@ export default function MyCourse() {
 );
 
       if (!insideDropdown) {
-        setDropdownOpen(null);
         setProfileDropdownOpen(false);
         setNotificationOpen(false);
       }
@@ -90,13 +92,23 @@ export default function MyCourse() {
     return () => window.removeEventListener("click", handler);
   }, []);
 
-  const filteredCourses = useMemo(() => {
-    const q = search.trim().toLowerCase();
+const filteredCourses = useMemo(() => {
+  const q = search.trim().toLowerCase();
 
-    return courses.filter((course) =>
+  return courses
+    .filter((course) =>
       (course.title || "").toLowerCase().includes(q)
-    );
-  }, [courses, search]);
+    )
+    .filter((course) => {
+      if (!selectedFilter) return true;
+
+      // adjust based on your DB field
+      if (selectedFilter === "private") return course.visibility === "private";
+      if (selectedFilter === "shared") return course.visibility === "public";
+
+      return true;
+    });
+}, [courses, search, selectedFilter]);
 
   const openCourse = (courseId) => {
     navigate(`/learning/${courseId}`);
@@ -351,6 +363,16 @@ export default function MyCourse() {
                 <h1>My Courses</h1>
               </div>
 
+              <div className={styles.filterRow}>
+                  <button
+                    type="button"
+                    className={styles.filterPill}
+                    onClick={() => setFilterOpen(true)}
+                  >
+                    Filter
+                  </button>
+                </div>
+
               <div className={styles.deckArea}>
                 {filteredCourses.length === 0 ? (
                   <div className={styles.emptyState}>
@@ -437,6 +459,58 @@ export default function MyCourse() {
           </main>
         </div>
       </div>
+      {filterOpen && (
+  <div className={styles.overlay} onClick={() => setFilterOpen(false)}>
+    <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <h2 className={styles.modalTitle}>Filter</h2>
+
+      <div className={styles.radioCol}>
+        <label className={styles.radioLabel}>
+          <input
+            type="radio"
+            name="courseType"
+            value="private"
+            checked={selectedFilter === "private"}
+            onChange={(e) => setSelectedFilter(e.target.value)}
+          />
+          Private
+        </label>
+
+        <label className={styles.radioLabel}>
+          <input
+            type="radio"
+            name="courseType"
+            value="shared"
+            checked={selectedFilter === "shared"}
+            onChange={(e) => setSelectedFilter(e.target.value)}
+          />
+          Shared
+        </label>
+      </div>
+
+      <div className={styles.modalActions}>
+        <button
+          type="button"
+          className={styles.cancelBtn}
+          onClick={() => {
+            setSelectedFilter("");
+            setFilterOpen(false);
+          }}
+        >
+          Reset
+        </button>
+
+        <button
+          type="button"
+          className={styles.confirmBtn}
+          onClick={() => setFilterOpen(false)}
+        >
+          Apply
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }

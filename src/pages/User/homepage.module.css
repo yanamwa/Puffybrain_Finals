@@ -690,7 +690,20 @@
 .container.sidebarCollapsed .deckProgress {
   max-width: 1000px;
 }
+.myDecksArea {
+  width: 100%;
+}
 
+.myDecksGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  width: 100%;
+}
+
+.myDecksGrid .deckCard {
+  height: 130px;
+}
 /* ===== POPUP ===== */
 
 .popupOverlay {

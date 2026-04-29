@@ -19,6 +19,11 @@ function PublicDecks() {
   const [notificationOpen, setNotificationOpen] = useState(false);
   const notificationCount = 0; // change this later when you have real data
 
+  const [courseFilterOpen, setCourseFilterOpen] = useState(false);
+  const [deckFilterOpen, setDeckFilterOpen] = useState(false);
+  const [selectedCourseFilter, setSelectedCourseFilter] = useState("");
+  const [selectedDeckFilter, setSelectedDeckFilter] = useState("");
+
   const [user, setUser] = useState({
     username: "",
     year_level: "",
@@ -217,20 +222,30 @@ function PublicDecks() {
   };
 
   const filteredLessons = useMemo(() => {
-    const q = search.trim().toLowerCase();
+  const q = search.trim().toLowerCase();
 
-    return lessons.filter((lesson) =>
-      (lesson.title || "").toLowerCase().includes(q)
-    );
-  }, [lessons, search]);
+  return lessons
+    .filter((lesson) => (lesson.title || "").toLowerCase().includes(q))
+    .filter((lesson) => {
+      if (!selectedCourseFilter) return true;
+      if (selectedCourseFilter === "withDescription") return !!lesson.description;
+      if (selectedCourseFilter === "noDescription") return !lesson.description;
+      return true;
+    });
+}, [lessons, search, selectedCourseFilter]);
 
   const filteredPublicDecks = useMemo(() => {
-    const q = search.trim().toLowerCase();
+  const q = search.trim().toLowerCase();
 
-    return publicDecks.filter((deck) =>
-      (deck.title || "").toLowerCase().includes(q)
-    );
-  }, [publicDecks, search]);
+  return publicDecks
+    .filter((deck) => (deck.title || "").toLowerCase().includes(q))
+    .filter((deck) => {
+      if (!selectedDeckFilter) return true;
+      if (selectedDeckFilter === "withDescription") return !!deck.description;
+      if (selectedDeckFilter === "noDescription") return !deck.description;
+      return true;
+    });
+}, [publicDecks, search, selectedDeckFilter]);
 
   return (
     <div
@@ -475,6 +490,13 @@ function PublicDecks() {
               <div className={styles.innercourse}>
                 <div className={styles.innerhead}>
                   <h1>All Courses</h1>
+                  <button
+                    type="button"
+                    className={styles.filterPill}
+                    onClick={() => setCourseFilterOpen(true)}
+                  >
+                    Filter
+                  </button>
                 </div>
 
                 <div className={styles.lessons}>
@@ -529,6 +551,13 @@ function PublicDecks() {
               <div className={styles.innercourse}>
                 <div className={styles.innerhead}>
                   <h1>Public Decks</h1>
+                  <button
+                    type="button"
+                    className={styles.filterPill}
+                    onClick={() => setDeckFilterOpen(true)}
+                  >
+                    Filter
+                  </button>
                 </div>
 
                 <div className={styles.deckGrid}>
@@ -566,6 +595,111 @@ function PublicDecks() {
           </main>
         </div>
       </div>
+      {courseFilterOpen && (
+  <div className={styles.overlay} onClick={() => setCourseFilterOpen(false)}>
+    <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <h2 className={styles.modalTitle}>Filter Courses</h2>
+
+      <div className={styles.radioCol}>
+        <label className={styles.radioLabel}>
+          <input
+            type="radio"
+            name="courseFilter"
+            value="withDescription"
+            checked={selectedCourseFilter === "withDescription"}
+            onChange={(e) => setSelectedCourseFilter(e.target.value)}
+          />
+          With Description
+        </label>
+
+        <label className={styles.radioLabel}>
+          <input
+            type="radio"
+            name="courseFilter"
+            value="noDescription"
+            checked={selectedCourseFilter === "noDescription"}
+            onChange={(e) => setSelectedCourseFilter(e.target.value)}
+          />
+          No Description
+        </label>
+      </div>
+
+      <div className={styles.modalActions}>
+        <button
+          type="button"
+          className={styles.cancelBtn}
+          onClick={() => {
+            setSelectedCourseFilter("");
+            setCourseFilterOpen(false);
+          }}
+        >
+          Reset
+        </button>
+
+        <button
+          type="button"
+          className={styles.confirmBtn}
+          onClick={() => setCourseFilterOpen(false)}
+        >
+          Apply
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+{deckFilterOpen && (
+  <div className={styles.overlay} onClick={() => setDeckFilterOpen(false)}>
+    <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <h2 className={styles.modalTitle}>Filter Decks</h2>
+
+      <div className={styles.radioCol}>
+        <label className={styles.radioLabel}>
+          <input
+            type="radio"
+            name="deckFilter"
+            value="withDescription"
+            checked={selectedDeckFilter === "withDescription"}
+            onChange={(e) => setSelectedDeckFilter(e.target.value)}
+          />
+          With Description
+        </label>
+
+        <label className={styles.radioLabel}>
+          <input
+            type="radio"
+            name="deckFilter"
+            value="noDescription"
+            checked={selectedDeckFilter === "noDescription"}
+            onChange={(e) => setSelectedDeckFilter(e.target.value)}
+          />
+          No Description
+        </label>
+      </div>
+
+      <div className={styles.modalActions}>
+        <button
+          type="button"
+          className={styles.cancelBtn}
+          onClick={() => {
+            setSelectedDeckFilter("");
+            setDeckFilterOpen(false);
+          }}
+        >
+          Reset
+        </button>
+
+        <button
+          type="button"
+          className={styles.confirmBtn}
+          onClick={() => setDeckFilterOpen(false)}
+        >
+          Apply
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }

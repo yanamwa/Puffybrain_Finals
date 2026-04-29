@@ -617,7 +617,7 @@
 
 .deckCard {
   width: 250px;
-  height: 210px;
+  height: 180px;
   display: flex;
   flex-direction: column;
   background: #fff;
@@ -635,10 +635,11 @@
 }
 
 .deckCardInner {
-  background: #fff;
-  border-radius: 18px;
-  overflow: hidden;
-  height: 100%;
+  background: transparent;
+  overflow: visible;
+  height: 100%;        
+  display: flex;
+  flex-direction: column;
 }
 
 .deckTop {
@@ -646,9 +647,9 @@
   position: relative;
   border-top-left-radius: 18px;
   border-top-right-radius: 18px;
-  overflow: hidden;
+  overflow: visible;
+  flex: 0 0 100px;
 }
-
 .deckTop::before {
   content: "";
   position: absolute;
@@ -668,7 +669,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #fff;
+  background: #dadada;
   border: none;
   display: flex;
   align-items: center;
@@ -697,17 +698,16 @@
 
 .deckMenu {
   position: absolute;
-  top: 46px;
+  top: 45px;
   right: 10px;
   min-width: 160px;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
   padding: 8px 0;
-  z-index: 9999;
+  z-index: 99999;
   animation: fadeIn 0.15s ease;
 }
-
 .deckMenu button {
   width: 100%;
   border: none;

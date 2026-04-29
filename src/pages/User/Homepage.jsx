@@ -444,8 +444,8 @@ useEffect(() => {
               </div>
             </div>
 
-            <div className={styles.decksArea}>
-              <div className={styles.decksGrid}>
+            <div className={styles.myDecksArea}>
+              <div className={styles.myDecksGrid}>
                 {myDecks.length === 0 ? (
                   <p style={{ opacity: 0.6 }}>Don’t have decks yet</p>
                 ) : (

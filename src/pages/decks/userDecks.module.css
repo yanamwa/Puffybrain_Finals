@@ -25,7 +25,7 @@
 .swal2-container {
   z-index: 99999 !important;
 }
-/* ===== SIDEBAR  ===== */
+/* ===== SIDEBAR ===== */
 
 .container.sidebarCollapsed .sidebar {
   width: 60px;
@@ -42,13 +42,13 @@
   padding-top: 10px;
   transition: width 0.3s ease;
   z-index: 1000;
+  overflow: hidden;
 }
 
 .sidebar.collapsed {
   width: 60px;
 }
 
-/* LOGO */
 .logo {
   display: flex;
   justify-content: center;
@@ -67,16 +67,13 @@
 
 .logoCollapsed {
   display: none;
-  width: 90px;
-  height: 90px;
+  width: 48px;
+  height: 48px;
   object-fit: contain;
   transition: all 0.3s ease;
   margin: 0;
 }
-.sidebar.collapsed .logo {
-  justify-content: center;
-  align-items: center;
-}
+
 .sidebar.collapsed .logoExpanded {
   display: none;
 }
@@ -85,19 +82,29 @@
   display: block;
 }
 
-/* TOGGLE */
 .sidebarToggle {
   display: flex;
   justify-content: flex-end;
   padding: 0 10px;
   cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .sidebar.collapsed .sidebarToggle {
   justify-content: center;
+  padding: 0;
 }
 
-/* MENU */
+.sidebarToggle i {
+  font-size: 24px;
+  color: #959494;
+}
+
+.myDecksTitle {
+  font-size: 17px;
+  margin: 0.3rem 0 0 15px;
+}
+
 .menu,
 .myDecksNav {
   display: flex;
@@ -112,80 +119,126 @@
 }
 
 .sidebarListItem {
-  padding: 0 10px;
+  margin: 0;
+  padding: 0 8px 0 10px;
 }
 
 .menuItem {
   display: flex;
   align-items: center;
-  padding: 10px;
-  border-radius: 20px 0 0 20px;
-  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
   text-decoration: none;
-  color: black;
-  transition: 0.2s;
+  color: #000;
+  background: transparent;
+  border: none;
+  padding: 10px 14px;
+  margin: 4px 0;
+  border-radius: 999px 0 0 999px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.25s ease;
+  font-family: inherit;
+  font-size: inherit;
 }
 
-.menuItem:hover {
-  background: white;
-  transform: translateX(5px);
+.menuItem:hover,
+.menuItem.active,
+.active {
+  background: #ffffff;
+  transform: translateX(6px);
 }
 
-.menuItem.active {
-  background: white;
-}
-
-/* ICON */
-.sidebarList i {
+.sidebarList i,
+.sectionList i {
+  width: 22px;
+  min-width: 22px;
   font-size: 20px;
+  margin-left: 14px;
   margin-right: 10px;
-  opacity: 0.5;
+  opacity: 0.3;
+  color: black;
+  transition: all 0.3s ease;
 }
 
 .menuItem:hover i,
-.menuItem.active i {
+.menuItem.active i,
+.active i {
   opacity: 1;
 }
 
-/* TEXT */
 .menuText {
-  white-space: nowrap;
+  display: inline-block;
+  line-height: 1.2;
+  white-space: normal;
+  word-break: break-word;
 }
 
-/* DIVIDER */
 .divider {
   height: 1px;
-  background: white;
-  margin: 10px;
+  background-color: white;
+  margin: 0 10px;
 }
 
-/* SECTION (MY DECKS / COURSES) */
 .sectionBlock {
   margin-top: 10px;
 }
 
 .sectionTitle {
-  font-size: 16px;
-  margin-left: 15px;
+  font-size: 17px;
+  margin: 10px 0 5px 15px;
+  font-weight: 500;
 }
 
 .sectionDivider {
   height: 1px;
-  background: white;
+  background-color: white;
   margin: 8px 10px;
 }
 
 .sidebarEmptyText {
-  font-size: 14px;
   opacity: 0.6;
   padding-left: 20px;
+  font-size: 14px;
+  color: #333;
 }
 
-/* COLLAPSED MODE */
-.sidebar.collapsed .menuText,
+.sidebar.collapsed .myDecksTitle,
 .sidebar.collapsed .sectionTitle,
-.sidebar.collapsed .sidebarEmptyText {
+.sidebar.collapsed .sidebarEmptyText,
+.sidebar.collapsed .menuText,
+.sidebar.collapsed .sidebarList span,
+.sidebar.collapsed .sectionList span {
   display: none;
+}
+
+.sidebar.collapsed .sidebarListItem {
+  padding: 0;
+}
+
+.sidebar.collapsed .menuItem {
+  justify-content: center;
+  padding: 10px 0;
+  margin: 4px 0;
+  border-radius: 0;
+  transform: none;
+}
+
+.sidebar.collapsed .menuItem:hover,
+.sidebar.collapsed .menuItem.active,
+.sidebar.collapsed .active {
+  background: #ffffff;
+  transform: none;
+}
+
+.sidebar.collapsed .sidebarList i,
+.sidebar.collapsed .sectionList i {
+  margin: 0;
+  width: 100%;
+  min-width: 100%;
+  display: flex;
+  justify-content: center;
+  font-size: 1.5rem;
 }
 
 .mainArea {
@@ -193,12 +246,14 @@
   flex-direction: column;
   flex: 1;
   margin-left: 220px;
-  margin-right: 0px;
+  margin-right: 0;
   transition: margin-left 0.3s ease;
+  width: calc(100% - 220px);
 }
 
 .sidebarCollapsed .mainArea {
   margin-left: 60px;
+  width: calc(100% - 60px);
 }
 
 .gridContainer {
