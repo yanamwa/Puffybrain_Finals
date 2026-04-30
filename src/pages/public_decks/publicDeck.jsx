@@ -25,9 +25,10 @@ function PublicDecks() {
   const [selectedDeckFilter, setSelectedDeckFilter] = useState("");
 
   const [user, setUser] = useState({
-    username: "",
-    year_level: "",
-  });
+  username: "",
+  year_level: "",
+  profile_image: "/images/temporary profile.jpg",
+});
 
   const handleLogout = () => {
     Swal.fire({
@@ -45,20 +46,25 @@ function PublicDecks() {
   };
 
   const fetchUser = async () => {
-    try {
-      const res = await fetch("http://localhost/puffybrain/getUser.php", {
-        credentials: "include",
+  try {
+    const res = await fetch("http://localhost/puffybrain/getUser.php", {
+      credentials: "include",
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setUser({
+        username: data.user?.username || "",
+        year_level: data.user?.year_level || "",
+        profile_image:
+          data.user?.profile_image || "/images/temporary profile.jpg",
       });
-
-      const data = await res.json();
-
-      if (data.success) {
-        setUser(data.user);
-      }
-    } catch (err) {
-      console.error("Error fetching user:", err);
     }
-  };
+  } catch (err) {
+    console.error("Fetch user error:", err);
+  }
+};
 
   const fetchUserDecks = async () => {
     try {
@@ -437,7 +443,7 @@ function PublicDecks() {
 
               <div className={styles.dpContainer}>
                 <img
-                  src="/images/temporary profile.jpg"
+                  src={user.profile_image || "/images/temporary profile.jpg"}
                   alt="Profile"
                   className={styles.profilePic}
                 />

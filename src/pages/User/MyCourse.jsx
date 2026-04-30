@@ -19,9 +19,10 @@ export default function MyCourse() {
   const [selectedFilter, setSelectedFilter] = useState("");
 
   const [user, setUser] = useState({
-    username: "",
-    year_level: "",
-  });
+  username: "",
+  year_level: "",
+  profile_image: "/images/temporary profile.jpg",
+});
 
   const fetchAddedCourses = async () => {
     try {
@@ -52,23 +53,25 @@ export default function MyCourse() {
   };
 
   const fetchUser = async () => {
-    try {
-      const res = await fetch("http://localhost/puffybrain/getUser.php", {
-        credentials: "include",
+  try {
+    const res = await fetch("http://localhost/puffybrain/getUser.php", {
+      credentials: "include",
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setUser({
+        username: data.user?.username || "",
+        year_level: data.user?.year_level || "",
+        profile_image:
+          data.user?.profile_image || "/images/temporary profile.jpg",
       });
-
-      const data = await res.json();
-
-      if (data.success) {
-        setUser({
-          username: data.user?.username || data.username || "",
-          year_level: data.user?.year_level || data.year_level || "",
-        });
-      }
-    } catch (err) {
-      console.error("Fetch user error:", err);
     }
-  };
+  } catch (err) {
+    console.error("Fetch user error:", err);
+  }
+};
 
   useEffect(() => {
     fetchAddedCourses();
@@ -308,12 +311,12 @@ const filteredCourses = useMemo(() => {
                               </div>
                               
               <div className={styles.dpContainer}>
-                <img
-                  src="/images/temporary profile.jpg"
-                  alt="Profile"
-                  className={styles.profilePic}
-                />
-              </div>
+                  <img
+                    src={user.profile_image || "/images/temporary profile.jpg"}
+                    alt="Profile"
+                    className={styles.profilePic}
+                  />
+                </div>
 
               <div className={styles.userInfo}>
                 <p>{user.username}</p>

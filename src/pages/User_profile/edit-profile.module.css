@@ -986,7 +986,62 @@
   color: #111;
   box-shadow: 0 4px 0 #ba9ddd;
 }
+/*change pass checklist*/
 
+.passwordBox {
+  margin-top: 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #f8f8fb;
+  border: 1px solid #e0e0e0;
+  width: 485px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+
+.passwordChecklist {
+  font-size: 13px;
+}
+
+.passwordChecklist p {
+  margin: 4px 0;
+}
+
+/* colors */
+.valid {
+  color: #2e7d32;
+}
+
+.invalid {
+  color: #c62828;
+}
+.confirmBox {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #f8f8fb;
+  border: 1px solid #e0e0e0;
+    width: 490px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+/* strength label */
+.validationMessage {
+  margin-top: 5px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* strength colors */
+.success {
+  color: #2e7d32;
+}
+
+.warning {
+  color: #f57c00;
+}
+
+.error {
+  color: #c62828;
+}
 /* RESPONSIVE */
 
 @media (max-width: 1100px) {

@@ -29,9 +29,10 @@ export default function Mydecks() {
   const notificationCount = 0; // change this later when you have real data
 
   const [user, setUser] = useState({
-    username: "",
-    year_level: "",
-  });
+  username: "",
+  year_level: "",
+  profile_image: "/images/temporary profile.jpg",
+});
 
   const handleLogout = () => {
     const confirmed = window.confirm("Are you sure you want to logout?");
@@ -91,20 +92,25 @@ export default function Mydecks() {
   };
 
   const fetchUser = async () => {
-    try {
-      const res = await fetch("http://localhost/puffybrain/getUser.php", {
-        credentials: "include",
+  try {
+    const res = await fetch("http://localhost/puffybrain/getUser.php", {
+      credentials: "include",
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setUser({
+        username: data.user?.username || "",
+        year_level: data.user?.year_level || "",
+        profile_image:
+          data.user?.profile_image || "/images/temporary profile.jpg",
       });
-
-      const data = await res.json();
-
-      if (data.success) {
-        setUser(data.user);
-      }
-    } catch (err) {
-      console.error("fetchUser error:", err);
     }
-  };
+  } catch (err) {
+    console.error("fetchUser error:", err);
+  }
+};
 
   useEffect(() => {
     fetchUserDecks();
@@ -531,7 +537,7 @@ export default function Mydecks() {
 
               <div className={styles.dpContainer}>
                 <img
-                  src="/images/temporary profile.jpg"
+                  src={user.profile_image || "/images/temporary profile.jpg"}
                   alt="Profile"
                   className={styles.profilePic}
                 />
