@@ -678,17 +678,19 @@ export default function UserDecks() {
                               </div>
 
 
-              <div className={styles.dpContainer}>
-                <img
-                  src={user.profile_image || "/images/temporary profile.jpg"}
-                  alt="Profile"
-                  className={styles.profilePic}
-                />
-              </div>
+              <Link to="/user-profile" className={styles.profileLink}>
+                <div className={styles.dpContainer}>
+                  <img
+                    src={user.profile_image || "/images/temporary profile.jpg"}
+                    alt="Profile"
+                    className={styles.profilePic}
+                  />
+                </div>
 
-              <div className={styles.userInfo}>
-                <p>{user.username}</p>
-              </div>
+                <div className={styles.userInfo}>
+                  <p>{user.username}</p>
+                </div>
+              </Link>
 
               <div className={styles.dropdown}>
                 <button
