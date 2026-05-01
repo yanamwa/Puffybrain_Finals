@@ -532,6 +532,13 @@
   color: #777;
   font-size: 14px;
 }
+.profileLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+}
 /* ===== PAGE CONTENT ===== */
 
 .main {

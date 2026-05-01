@@ -31,9 +31,10 @@ export default function UserDecks() {
   const notificationCount = 0; // change this later when you have real data
 
   const [user, setUser] = useState({
-    username: "",
-    year_level: "",
-  });
+  username: "",
+  year_level: "",
+  profile_image: "/images/temporary profile.jpg",
+});
 
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
@@ -156,22 +157,25 @@ export default function UserDecks() {
   };
 
   const fetchUser = async () => {
-    try {
-      const res = await fetch("http://localhost/puffybrain/getUser.php", {
-        credentials: "include",
+  try {
+    const res = await fetch("http://localhost/puffybrain/getUser.php", {
+      credentials: "include",
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setUser({
+        username: data.user?.username || "",
+        year_level: data.user?.year_level || "",
+        profile_image:
+          data.user?.profile_image || "/images/temporary profile.jpg",
       });
-
-      const data = await res.json();
-
-      if (data.success) {
-        setUser(data.user);
-      } else {
-        console.error("Failed to fetch user:", data.message);
-      }
-    } catch (err) {
-      console.error("fetchUser error:", err);
     }
-  };
+  } catch (err) {
+    console.error("Fetch user error:", err);
+  }
+};
 
   /* =========================
      USE EFFECTS
@@ -674,17 +678,19 @@ export default function UserDecks() {
                               </div>
 
 
-              <div className={styles.dpContainer}>
-                <img
-                  src="/images/temporary profile.jpg"
-                  alt="Profile"
-                  className={styles.profilePic}
-                />
-              </div>
+              <Link to="/user-profile" className={styles.profileLink}>
+                <div className={styles.dpContainer}>
+                  <img
+                    src={user.profile_image || "/images/temporary profile.jpg"}
+                    alt="Profile"
+                    className={styles.profilePic}
+                  />
+                </div>
 
-              <div className={styles.userInfo}>
-                <p>{user.username}</p>
-              </div>
+                <div className={styles.userInfo}>
+                  <p>{user.username}</p>
+                </div>
+              </Link>
 
               <div className={styles.dropdown}>
                 <button

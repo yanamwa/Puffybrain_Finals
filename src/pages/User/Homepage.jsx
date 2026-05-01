@@ -22,9 +22,10 @@ function Homepage() {
   const notificationCount = 0; // change later if you have real data
 
   const [user, setUser] = useState({
-    username: "",
-    year_level: "",
-  });
+  username: "",
+  year_level: "",
+  profile_image: "/images/temporary profile.jpg",
+});
 
   const handleLogout = () => {
     const confirmed = window.confirm("Are you sure you want to logout?");
@@ -51,20 +52,25 @@ function Homepage() {
   };
 
   const fetchUser = async () => {
-    try {
-      const res = await fetch("http://localhost/puffybrain/getUser.php", {
-        credentials: "include",
+  try {
+    const res = await fetch("http://localhost/puffybrain/getUser.php", {
+      credentials: "include",
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setUser({
+        username: data.user?.username || "",
+        year_level: data.user?.year_level || "",
+        profile_image:
+          data.user?.profile_image || "/images/temporary profile.jpg",
       });
-
-      const data = await res.json();
-
-      if (data.success) {
-        setUser(data.user);
-      }
-    } catch (err) {
-      console.error("Error fetching user:", err);
     }
-  };
+  } catch (err) {
+    console.error("fetchUser error:", err);
+  }
+};
 
   const fetchCourses = async () => {
     try {
@@ -613,7 +619,13 @@ useEffect(() => {
 
       <aside className={styles.rightSidebar}>
         <div className={styles.profileSection}>
-          <div className={styles.profileAvatar}></div>
+          <div className={styles.profileAvatar}>
+            <img
+              src={user.profile_image || "/images/temporary profile.jpg"}
+              alt="Profile"
+              className={styles.profileAvatarImg}
+            />
+          </div>
           <h3 className={styles.profileName}>{user.username}</h3>
           <p className={styles.profileRole}>
             {user.year_level || "Rather not say"}
@@ -626,12 +638,17 @@ useEffect(() => {
         <Calendar />
         <TodoList />
 
-        <Link
-          to="/edit-profile"
-          className={styles.settingsFooter}
-        >
-          ⚙ Settings
-        </Link>
+        <div className={styles.settingsContainer}>
+          <Link to="/edit-profile" className={styles.settingsFooter}>
+              <i className="bx bx-cog"></i>
+              <span>Settings</span>
+            </Link>
+
+            <button onClick={handleLogout} className={styles.logoutBtn}>
+              <i className="bx bx-log-out"></i>
+              <span>Logout</span>
+            </button>
+        </div>
       </aside>
     </div>
   );

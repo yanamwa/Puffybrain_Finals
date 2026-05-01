@@ -468,6 +468,65 @@
   transform: translateX(4px);
 }
 
+.profileAvatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.profileAvatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.settingsContainer {
+  margin-top: auto; /* pushes it to the bottom */
+  margin-bottom: 30px;
+
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.settingsFooter,
+.logoutBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+
+  font-size: 17px;
+  font-family: inherit;
+  color: #555;
+
+  cursor: pointer;
+  text-decoration: none;
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  transition: 0.2s;
+  line-height: 1; 
+}
+
+.settingsFooter:hover{
+  color: #000;
+  transform: translateY(-1px);
+}
+
+.logoutBtn:hover {
+  color: #ed0000;
+  transform: translateY(-1px);
+}
+
+.settingsFooter span,
+.logoutBtn span {
+  display: flex;
+  align-items: center;
+}
 /* ===== MAIN PAGE ===== */
 
 .mainArea {

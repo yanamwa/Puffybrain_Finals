@@ -17,11 +17,12 @@ function UserProfile() {
   const notificationCount = 0; // change this later when you have real data
 
   const [user, setUser] = useState({
-    username: "",
-    year_level: "",
-    school: "",
-    signature: "",
-  });
+  username: "",
+  year_level: "",
+  school: "",
+  signature: "",
+  profile_image: "/images/temporary profile.jpg",
+});
 
   const fetchUserDecks = async () => {
     try {
@@ -83,6 +84,10 @@ function UserProfile() {
             data.user?.username ||
             data.username ||
             "",
+            profile_image:
+              data.user?.profile_image ||
+              data.profile_image ||
+              "/images/temporary profile.jpg",
         });
       }
     } catch (err) {
@@ -312,10 +317,10 @@ function UserProfile() {
                               
               <div className={styles.dpContainer}>
                 <img
-                  src="/images/temporary profile.jpg"
-                  alt="Profile"
-                  className={styles.profilePic}
-                />
+                    src={user.profile_image}
+                    alt="Profile"
+                    className={styles.profilePic}
+                  />
               </div>
 
               <div className={styles.userInfo}>
@@ -363,11 +368,12 @@ function UserProfile() {
               <div className={styles.idPhotoBox}>
                 <div className={styles.idPhotoFrame}>
                   <img
-                    src="/images/temporary profile.jpg"
+                    src={user.profile_image}
                     alt="Profile"
                     className={styles.idPhoto}
                   />
                 </div>
+
                 <div className={styles.idBarcode}></div>
               </div>
 

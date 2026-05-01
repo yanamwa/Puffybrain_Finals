@@ -21,6 +21,8 @@ function EditProfile() {
   const [notificationOpen, setNotificationOpen] = useState(false);
   const notificationCount = 0; // change this later when you have real data
 
+  const [selectedImageFile, setSelectedImageFile] = useState(null);
+
   const [user, setUser] = useState({
     username: "",
     email: "",
@@ -118,7 +120,6 @@ function EditProfile() {
 
       if (!insideDropdown) {
         setDropdownOpen(null);
-        setProfileDropdownOpen(false);
         setNotificationOpen(false);
       }
     };
@@ -156,21 +157,82 @@ function EditProfile() {
     }));
   };
 
-  const handleChangePassword = (e) => {
-    e.preventDefault();
+  const newPassword = passwordForm.newPassword;
 
-    if (!passwordForm.newPassword || !passwordForm.confirmPassword) {
-      alert("Please fill in both password fields.");
-      return;
+const hasLength = newPassword.length >= 12;
+const hasUpper = /[A-Z]/.test(newPassword);
+const hasLower = /[a-z]/.test(newPassword);
+const hasNumber = /[0-9]/.test(newPassword);
+const hasSymbol = /[^A-Za-z0-9]/.test(newPassword);
+
+const isPasswordValid =
+  hasLength && hasUpper && hasLower && hasNumber && hasSymbol;
+
+const passwordsMatch =
+  passwordForm.newPassword === passwordForm.confirmPassword;
+
+const getPasswordStrength = (password) => {
+  let strength = 0;
+
+  if (password.length >= 12) strength++;
+  if (/[A-Z]/.test(password)) strength++;
+  if (/[a-z]/.test(password)) strength++;
+  if (/[0-9]/.test(password)) strength++;
+  if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+  if (strength <= 2) return "weak";
+  if (strength === 3 || strength === 4) return "medium";
+  return "strong";
+};
+
+const passwordStrength = getPasswordStrength(newPassword);
+
+  const handleChangePassword = async (e) => {
+  e.preventDefault();
+
+  if (!isPasswordValid) {
+  alert("Password must meet all security requirements.");
+  return;
+}
+
+  if (!passwordForm.newPassword || !passwordForm.confirmPassword) {
+    alert("Please fill in both password fields.");
+    return;
+  }
+
+  if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+    alert("Passwords do not match.");
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost/puffybrain/changePassword.php", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        newPassword: passwordForm.newPassword,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      alert("Password changed successfully!");
+      setPasswordForm({
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } else {
+      alert(data.message || "Failed to change password.");
     }
-
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      alert("Passwords do not match.");
-      return;
-    }
-
-    alert("Change password functionality can be connected to your backend.");
-  };
+  } catch (err) {
+    console.error("Change password error:", err);
+    alert("Server error while changing password.");
+  }
+};
 
   const handleDeleteAccount = () => {
     const confirmed = window.confirm(
@@ -183,16 +245,16 @@ function EditProfile() {
   };
 
   const openEditModal = () => {
-    setEditForm({
-      username: "",
-      email: "",
-      year_level: "",
-      school: "",
-      profile_image: "",
-    });
+  setEditForm({
+    username: "",
+    email: "",
+    year_level: "",
+    school: "",
+    profile_image: "",
+  });
 
-    setIsEditModalOpen(true);
-  };
+  setIsEditModalOpen(true);
+};
 
   const closeEditModal = () => {
     setIsEditModalOpen(false);
@@ -208,32 +270,54 @@ function EditProfile() {
   };
 
   const handlePhotoChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const file = e.target.files?.[0];
+  if (!file) return;
 
-    const previewUrl = URL.createObjectURL(file);
+  setSelectedImageFile(file);
 
-    setEditForm((prev) => ({
-      ...prev,
-      profile_image: previewUrl,
-    }));
-  };
+  const previewUrl = URL.createObjectURL(file);
 
-  const handleSaveProfile = (e) => {
-    e.preventDefault();
+  setEditForm((prev) => ({
+    ...prev,
+    profile_image: previewUrl,
+  }));
+};
 
-    setUser((prev) => ({
-      ...prev,
-      username: editForm.username,
-      email: editForm.email,
-      year_level: editForm.year_level,
-      school: editForm.school,
-      profile_image: editForm.profile_image || prev.profile_image,
-    }));
+  const handleSaveProfile = async (e) => {
+  e.preventDefault();
 
-    setIsEditModalOpen(false);
-    alert("Profile updated. Connect this to your backend save API next.");
-  };
+  const formData = new FormData();
+  formData.append("username", editForm.username);
+  formData.append("email", editForm.email);
+  formData.append("school", editForm.school);
+  formData.append("year_level", editForm.year_level);
+
+  if (selectedImageFile) {
+    formData.append("profile_image", selectedImageFile);
+  }
+
+  try {
+    const res = await fetch("http://localhost/puffybrain/updateUser.php", {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      await fetchUser();
+      setSelectedImageFile(null);
+      setIsEditModalOpen(false);
+      alert("Profile updated successfully!");
+    } else {
+      alert(data.message || "Failed to update profile.");
+    }
+  } catch (err) {
+    console.error("Update profile error:", err);
+    alert("Server error while updating profile.");
+  }
+};
 
   return (
     <div
@@ -598,6 +682,45 @@ function EditProfile() {
                                   ></i>
                                 </button>
                               </div>
+                              {passwordForm.newPassword.length > 0 && (
+                                <div className={styles.passwordBox}>
+                                  <div className={styles.passwordChecklist}>
+                                    <p className={hasLength ? styles.valid : styles.invalid}>
+                                      {hasLength ? "✓" : "✗"} At least 12 characters
+                                    </p>
+
+                                    <p className={hasUpper ? styles.valid : styles.invalid}>
+                                      {hasUpper ? "✓" : "✗"} Has uppercase letter
+                                    </p>
+
+                                    <p className={hasLower ? styles.valid : styles.invalid}>
+                                      {hasLower ? "✓" : "✗"} Has lowercase letter
+                                    </p>
+
+                                    <p className={hasNumber ? styles.valid : styles.invalid}>
+                                      {hasNumber ? "✓" : "✗"} Has number
+                                    </p>
+
+                                    <p className={hasSymbol ? styles.valid : styles.invalid}>
+                                      {hasSymbol ? "✓" : "✗"} Has special character
+                                    </p>
+                                  </div>
+
+                                  <div
+                                    className={`${styles.validationMessage} ${
+                                      passwordStrength === "strong"
+                                        ? styles.success
+                                        : passwordStrength === "medium"
+                                        ? styles.warning
+                                        : styles.error
+                                    }`}
+                                  >
+                                    {passwordStrength === "weak" && "Weak password"}
+                                    {passwordStrength === "medium" && "Medium strength password"}
+                                    {passwordStrength === "strong" && "✓ Strong password"}
+                                  </div>
+                                </div>
+                              )}
                             </div>
 
                             <div className={styles.passwordGroup}>
@@ -628,6 +751,19 @@ function EditProfile() {
                                   ></i>
                                 </button>
                               </div>
+                              {passwordForm.confirmPassword.length > 0 && (
+                                <div className={styles.confirmBox}>
+                                  <div
+                                    className={`${styles.validationMessage} ${
+                                      passwordsMatch ? styles.success : styles.error
+                                    }`}
+                                  >
+                                    {passwordsMatch
+                                      ? "✓ Passwords match"
+                                      : "Passwords do not match"}
+                                  </div>
+                                </div>
+                              )}
                             </div>
 
                             <button
@@ -707,7 +843,7 @@ function EditProfile() {
                           <input
                             type="text"
                             name="username"
-                            value={editForm.username}
+                            value={editForm.username || ""}
                             onChange={handleEditInputChange}
                             placeholder="Enter your username"
                           />
@@ -718,7 +854,7 @@ function EditProfile() {
                           <input
                             type="email"
                             name="email"
-                            value={editForm.email}
+                            value={editForm.email || ""}
                             onChange={handleEditInputChange}
                             placeholder="Enter your email address"
                           />
@@ -729,7 +865,7 @@ function EditProfile() {
                           <input
                             type="text"
                             name="school"
-                            value={editForm.school}
+                            value={editForm.school || ""}
                             onChange={handleEditInputChange}
                             placeholder="Enter your school name"
                           />
@@ -740,7 +876,7 @@ function EditProfile() {
                           <input
                             type="text"
                             name="year_level"
-                            value={editForm.year_level}
+                            value={editForm.year_level || ""}
                             onChange={handleEditInputChange}
                             placeholder="Enter your year level"
                           />
