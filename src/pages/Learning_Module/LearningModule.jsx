@@ -16,6 +16,7 @@ function LearningModule() {
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("tab1");
   const [openModes, setOpenModes] = useState(false);
+  const [showQuiz, setShowQuiz] = useState(false);
   const [search, setSearch] = useState("");
 
   const [myDecks, setMyDecks] = useState([]);
@@ -83,6 +84,15 @@ function LearningModule() {
     fetchUser();
     fetchUserDecks();
     fetchCourses();
+  }, []);
+
+  useEffect(() => {
+    const shouldStartQuiz = localStorage.getItem("startQuizMode");
+
+    if (shouldStartQuiz === "true") {
+      setShowQuiz(true);
+      localStorage.removeItem("startQuizMode");
+    }
   }, []);
 
   useEffect(() => {
@@ -544,10 +554,6 @@ function LearningModule() {
                     <div className={styles.progressPercent}>
                       {Math.round(progress.progress_percent)}%
                     </div>
-
-                    <p className={styles.progressDetails}>
-                      {progress.studied_cards}/{progress.total_cards} completed
-                    </p>
                   </div>
                 </div>
               </div>
@@ -637,19 +643,27 @@ function LearningModule() {
                       </div>
                     )}
 
-                    {activeTab === "tab3" && (
-                      <div className={styles.tabBoxes}>
-                        {memorizedCards.length === 0 ? (
-                          <p>No memorized cards yet.</p>
-                        ) : (
-                          memorizedCards.map((quiz, index) => (
-                            <div key={index} className={styles.box}>
-                              <p className={styles.question}>{quiz.question}</p>
-                            </div>
-                          ))
-                        )}
+                {activeTab === "tab3" && (
+                  <div className={styles.tabBoxes}>
+                    {memorizedCards.length === 0 ? (
+                      <div className={styles.emptyState}>
+                        <img
+                          src="/images/cute1.png"
+                          alt="No memorized cards"
+                          className={styles.emptyImage}
+                        />
+                        <p>No memorized cards yet.</p>
                       </div>
+                    ) : (
+                      memorizedCards.map((quiz, index) => (
+                        <div key={index} className={styles.box}>
+                          <p className={styles.question}>{quiz.question}</p>
+                        </div>
+                      ))
                     )}
+                  </div>
+                )}
+                                
                   </div>
                 </div>
               </div>

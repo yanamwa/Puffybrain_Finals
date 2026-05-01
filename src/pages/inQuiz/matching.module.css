@@ -123,3 +123,28 @@ td {
 .wrong {
   background: var(--red-match) !important;
 }
+
+.wrongShake {
+  background-color: #ffb3b3 !important;
+  border: 2px solid #e53935 !important;
+  color: #7a0000 !important;
+  animation: wrongShake 0.35s ease;
+}
+
+@keyframes wrongShake {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-6px);
+  }
+  50% {
+    transform: translateX(6px);
+  }
+  75% {
+    transform: translateX(-4px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}

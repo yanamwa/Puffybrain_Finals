@@ -9,14 +9,12 @@ export default function MatchingType() {
   const [lesson, setLesson] = useState(null);
   const [firstCard, setFirstCard] = useState(null);
   const [matchedIds, setMatchedIds] = useState([]);
-  const [lock, setLock] = useState(false);
+  const [wrongPair, setWrongPair] = useState([]);
 
   useEffect(() => {
     fetch(`http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`)
       .then((res) => res.json())
-      .then((data) => {
-        setLesson(data);
-      })
+      .then((data) => setLesson(data))
       .catch((err) => console.error("Error loading lesson:", err));
   }, [lessonId]);
 
@@ -25,7 +23,6 @@ export default function MatchingType() {
 
     try {
       const parsed = JSON.parse(lesson.quiz_contents);
-
       if (!Array.isArray(parsed)) return [];
 
       return parsed.map((quiz, index) => ({
@@ -35,7 +32,7 @@ export default function MatchingType() {
           quiz.correct_answer ||
           quiz.correctAnswer ||
           quiz.answer ||
-          "No answer available."
+          "No answer available.",
       }));
     } catch (error) {
       console.error("Invalid quiz JSON:", error);
@@ -45,14 +42,14 @@ export default function MatchingType() {
 
   const leftCards = matchingPairs.map((item) => ({
     id: item.id,
-    text: item.question
+    text: item.question,
   }));
 
   const rightCards = useMemo(() => {
     return matchingPairs
       .map((item) => ({
         id: item.id,
-        text: item.answer
+        text: item.answer,
       }))
       .sort(() => Math.random() - 0.5);
   }, [matchingPairs]);
@@ -62,15 +59,21 @@ export default function MatchingType() {
       ? Math.round((matchedIds.length / matchingPairs.length) * 100)
       : 0;
 
+  const isWrongCard = (card, side) =>
+    wrongPair.some((item) => item.id === card.id && item.side === side);
+
   const handleCardClick = (card, side) => {
-    if (lock || matchedIds.includes(card.id)) return;
+    if (matchedIds.includes(card.id)) return;
 
     if (!firstCard) {
       setFirstCard({ ...card, side });
       return;
     }
 
-    if (firstCard.side === side) return;
+    if (firstCard.side === side) {
+      setFirstCard({ ...card, side });
+      return;
+    }
 
     if (firstCard.id === card.id) {
       setMatchedIds((prev) => {
@@ -82,7 +85,7 @@ export default function MatchingType() {
             JSON.stringify({
               lessonId: Number(lessonId),
               score: updated.length,
-              total: matchingPairs.length
+              total: matchingPairs.length,
             })
           );
 
@@ -96,12 +99,12 @@ export default function MatchingType() {
 
       setFirstCard(null);
     } else {
-      setLock(true);
+      setWrongPair([firstCard, { ...card, side }]);
 
       setTimeout(() => {
-        setFirstCard(null);
-        setLock(false);
-      }, 700);
+        setWrongPair([]);
+         setFirstCard(null);
+      }, 500);
     }
   };
 
@@ -152,6 +155,8 @@ export default function MatchingType() {
                           firstCard?.side === "left"
                             ? styles.selected
                             : ""
+                        } ${
+                          isWrongCard(card, "left") ? styles.wrongShake : ""
                         }`}
                         onClick={() => handleCardClick(card, "left")}
                       >
@@ -176,6 +181,8 @@ export default function MatchingType() {
                           firstCard?.side === "right"
                             ? styles.selected
                             : ""
+                        } ${
+                          isWrongCard(card, "right") ? styles.wrongShake : ""
                         }`}
                         onClick={() => handleCardClick(card, "right")}
                       >

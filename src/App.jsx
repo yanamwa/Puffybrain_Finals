@@ -128,12 +128,12 @@ export default function App() {
       <Route path="/admin/decks" element={<DecksManagement />} />
 
       {/* LEARNING */}
-      <Route path="/module-management" element={<ModuleManagement />} />
-      <Route path="/flashcards-tutorial" element={<FlashcardsTutorial />} />
-      <Route path="/QandA-tutorial" element={<QandATutorial />} />
-      <Route path="/multipleChoice-tutorial" element={<MultipleChoice />} />
-      <Route path="/Matching-tutorial" element={<MatchingTutorial />} />
-      <Route path="/Survival-tutorial" element={<SurvivalTutorial />} />
+      <Route path="/module-management/:lessonId " element={<ModuleManagement />} />
+      <Route path="/flashcards-tutorial/:lessonId" element={<FlashcardsTutorial />} />     
+      <Route path="/multipleChoice-tutorial/:lessonId" element={<MultipleChoice />} />
+      <Route path="/Matching-tutorial/:lessonId" element={<MatchingTutorial />} />
+      <Route path="/Survival-tutorial/:lessonId" element={<SurvivalTutorial />} />
+      <Route path="/QandA-tutorial/:lessonId" element={<QandATutorial />} />
 
       {/* QUIZ */}
       <Route path="/flashcard/:lessonId" element={<Flashcards />} />

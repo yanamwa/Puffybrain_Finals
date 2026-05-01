@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import styles from "../quizzes/QandA-tutorial.module.css"; // note .module.css
+import styles from "../quizzes/QandA-tutorial.module.css";
+import { useNavigate, useParams } from "react-router-dom";
 
 const slidesData = [
   { question: 'What is the primary purpose of a "Router" in a home network?' },
@@ -13,6 +14,8 @@ const colors = [
 ];
 
 export default function QandATutorial() {
+  const navigate = useNavigate();        
+  const { lessonId } = useParams();      
   const [currentSlide, setCurrentSlide] = useState(0);
   const [colorIndex, setColorIndex] = useState(0);
   const inputRef = useRef(null);
@@ -33,20 +36,23 @@ export default function QandATutorial() {
     return () => clearInterval(interval);
   }, []);
 
-  // Input color flashing
   useEffect(() => {
     if (!inputRef.current) return;
+
     const flash = setInterval(() => {
       const color = colors[colorIndex];
       inputRef.current.style.backgroundColor = color.bg;
       inputRef.current.style.borderColor = color.border;
+
       setColorIndex((prev) => (prev + 1) % colors.length);
     }, 1900);
+
     return () => clearInterval(flash);
   }, [currentSlide]);
 
   return (
     <div className={styles.container}>
+      
       {/* HEADER */}
       <div className={styles.headerBox}>
         <div className={styles.headerTop}>
@@ -62,7 +68,7 @@ export default function QandATutorial() {
 
         <button
           className={styles.startBtn}
-          onClick={() => (window.location.href = "/TypingQuiz")}
+          onClick={() => navigate(`/qna/${lessonId}`)}
         >
           Start
         </button>
@@ -71,24 +77,36 @@ export default function QandATutorial() {
       {/* SLIDESHOW */}
       <div className={styles.slideshowBox}>
         {slidesData.map((slide, i) => (
-          <div key={i} className={`${styles.slide} ${currentSlide === i ? styles.active : ""}`}>
+          <div
+            key={i}
+            className={`${styles.slide} ${
+              currentSlide === i ? styles.active : ""
+            }`}
+          >
             <p className={styles.question}>{slide.question}</p>
+
             <input
               type="text"
               className={styles.placeholder}
               placeholder="Type your answer and press Enter"
               autoComplete="off"
-              onKeyDown={handleEnter}
+              disabled
               ref={currentSlide === i ? inputRef : null}
             />
+
             <p className={styles.result}></p>
           </div>
         ))}
 
-        {/* Dots */}
+        {/* DOTS */}
         <div className={styles.dots}>
           {slidesData.map((_, i) => (
-            <span key={i} className={`${styles.dot} ${currentSlide === i ? styles.active : ""}`}></span>
+            <span
+              key={i}
+              className={`${styles.dot} ${
+                currentSlide === i ? styles.active : ""
+              }`}
+            ></span>
           ))}
         </div>
       </div>

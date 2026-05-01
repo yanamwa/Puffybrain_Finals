@@ -1,45 +1,115 @@
 .wrapper {
   box-sizing: border-box;
-  font-family: "Jersey 15", sans-serif;
   min-height: 100vh;
-
   background-image: url("/images/background_notebook.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-
   text-align: center;
-  padding: 10px 20px;
+  padding: 10px 20px 40px;
+  color: var(--font-color);
 }
 
-/* ===================== */
 /* SCORE SECTION */
-/* ===================== */
 
-.scoreSection h1 {
+.scoreSection {
+  max-width: 900px;
+  margin: 0 auto 25px;
+}
+
+.feedbackBox {
+  max-width: 650px;
+  margin: 0 auto 20px;
+  background: #fff4cc;
+  border: 2px solid #e6c76b;
+  border-radius: 22px;
+  padding: 15px 20px 22px;
+  box-shadow: 4px 5px 0 #d8c07a;
+  overflow: hidden;
+}
+
+.scoreHeader {
+  background: #e6c76b;
+  padding: 22px 15px;
+  margin: -15px -20px 0;
+}
+
+.scoreHeader h1 {
+  margin: 0;
+  font-size: 38px;
+  color: #04853c;
+  font-weight: normal;
+}
+
+.feedbackBox h2 {
+  font-size: 24px;
+  margin: 8px 0 6px;
+  color: var(--font-color);
+  font-weight: normal;
+}
+
+.feedbackBox p {
+  padding: 5px;
+  margin: 5px 0;
+}
+
+.percentage {
+  font-weight: normal;
+  font-size: 23px;
+  color:  #1f9d55;
+}
+
+.attempts {
   font-size: 30px;
+  font-weight: normal;
+  color: var(--font-color);
 }
 
-.subtitle {
-  font-size: 14px;
-  margin-top: 0;
+/* SUMMARY CARDS */
+
+.summaryCards {
+  max-width: 750px;
+  margin: 18px auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
 }
 
-/* ===================== */
-/* BUTTONS */
-/* ===================== */
+.summaryCard {
+  border-radius: 18px;
+  padding: 18px;
+  background:  #e9e2e2;
+  border: 1px solid #2f2f2f9a;
+  box-shadow: 2px 4px 0 #ababab;
+  color: white;
+}
+
+.summaryCard h3 {
+  margin: 0 0 10px;
+  font-size: 17px;
+  color: hsl(0, 66%, 43%);
+  font-weight: normal;
+}
+
+.summaryCard p {
+  margin: 0;
+  font-size: 16px;
+  color: var(--font-color);
+}
 
 .resultButtons {
   margin: 20px 0 30px;
 }
 
 .resultButtons button {
-  padding: 8px 22px;
+  padding: 8px 24px;
   border-radius: 25px;
-  border: none;
-  margin: 0 10px;
+  margin: 0 8px;
   cursor: pointer;
   transition: transform 0.1s ease;
+  font-family: inherit;
+  font-size: 18px;
+  color: var(--font-color);
 }
 
 .resultButtons button:hover {
@@ -48,101 +118,46 @@
 
 .retry {
   background: #e6b7ff;
+  border: 1px solid #a380c5;
   box-shadow: 2px 4px 0 #c8a8e9;
-}
-
-.home {
-  background: #fff;
-  border: 1px solid #aaa;
-  box-shadow: 2px 4px 0 #ddd;
 }
 
 .lesson {
   background: #ffe6a7;
+  border: 1px solid #99771a;
   box-shadow: 2px 4px 0 #d7b96f;
 }
 
-/* ===================== */
-/* FEEDBACK BOX */
-/* ===================== */
-
-.feedbackBox {
-  max-width: 600px;
-  margin: 15px auto 20px;
-  background: #fff4cc;
-  border: 2px solid #e6c76b;
-  border-radius: 20px;
-  padding: 15px 20px;
-  box-shadow: 3px 5px 0 #d8c07a;
+.home {
+  background: #e5e5e5;
+  border: 1px solid #2f2f2f9a;
+  box-shadow: 2px 4px 0 #ababab;
 }
 
-.feedbackBox h2 {
-  font-size: 20px;
-  margin: 0 0 8px;
-}
-
-.feedbackBox p {
-  font-size: 14px;
-  margin: 5px 0;
-}
-
-.percentage {
-  font-weight: bold;
-}
-
-/* ===================== */
-/* SUMMARY CARDS */
-/* ===================== */
-
-.summaryCards {
-  max-width: 700px;
-  margin: 15px auto;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
-}
-
-.summaryCard {
-  background: #ffffff;
-  border-radius: 18px;
-  padding: 15px;
-  box-shadow: 3px 5px 0 #d6d6d6;
-}
-
-.summaryCard h3 {
-  margin: 0 0 8px;
-  font-size: 16px;
-}
-
-.summaryCard p {
-  margin: 0;
-  font-size: 14px;
-}
-
-/* ===================== */
 /* REVIEW SECTION */
-/* ===================== */
 
 .reviewWrapper {
   max-width: 900px;
-  margin: auto;
+  margin: 25px auto;
   border-radius: 30px;
   overflow: hidden;
   background: #fff;
-  min-height: 300px; /* FIXED: removed fixed height issue */
+  min-height: 250px;
+  border: 1px solid #2f2f2f9a;
 }
 
 .reviewHeader {
-  background: #e6c9ff;
+  background: #5a5a5a;
   padding: 18px;
-  font-size: 18px;
+  font-size: 20px;
+  color: white;
+  font-weight: normal;
+  border: 1px solid #2f2f2f9a;
 }
 
 .reviewList {
   padding: 25px;
 }
-
-/* REVIEW ITEMS */
 
 .reviewItem {
   background: #f6f6f6;
@@ -152,50 +167,76 @@
 }
 
 .reviewQuestion {
-  font-size: 14px;
-  color: #555;
+  font-size: 20px;
+  color: var(--font-color);
   margin-bottom: 6px;
+  font-weight: normal;
 }
 
 .reviewAnswer {
-  font-size: 15px;
+  font-size: 18px;
+  color: var(--font-color);
+  font-weight: normal;
+}
+
+.reviewAnswer p {
+  margin: 8px 0;
 }
 
 .reviewDivider {
   margin: 8px 0;
 }
 
-/* ===================== */
 /* TEXT STATES */
-/* ===================== */
 
 .correctText {
   color: #1f9d55;
-  font-weight: bold;
+  font-weight: normal;
 }
 
 .wrongText {
   color: #d64545;
-  font-weight: bold;
+  font-weight: normal;
 }
 
 .noAnswers {
-  font-size: 15px;
-  color: #777;
+  font-size: 18px;
+  color: var(--font-color);
   padding: 30px;
 }
 
-/* ===================== */
+.weaknessItem {
+  margin-bottom: 16px;
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 18px;
+  color: var(--font-color);
+  padding: 10px;
+}
+
+.explanationText {
+  margin-top: 6px;
+  font-size: 18px;
+  line-height: 1.5;
+  color: #b61329;
+  font-style: normal;
+  font-weight: normal;
+  padding: 10px;
+}
+
 /* RESPONSIVE */
-/* ===================== */
 
 @media (max-width: 768px) {
   .summaryCards {
     grid-template-columns: 1fr;
   }
 
+  .scoreHeader h1 {
+    font-size: 30px;
+  }
+
   .resultButtons button {
-    margin: 5px;
+    margin: 6px;
     display: inline-block;
   }
 }

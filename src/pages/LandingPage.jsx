@@ -43,7 +43,7 @@ function LandingPage() {
             </nav>
 
             <div className={styles.navActions}>
-              <a href="/login"
+              <a href="/signup"
                 className={styles.startBtn}
                 style={{ textDecoration: 'none', display: 'inline-block' }}>
                 Start Learning
@@ -61,7 +61,7 @@ function LandingPage() {
 
               <p className={styles.sub}>Let's Puff Up Those Brain Cells!</p>
 
-              <a href="/signup">
+              <a href="/login">
                 <button className={styles.pressStart}>Press to Start</button>
               </a>
             </div>

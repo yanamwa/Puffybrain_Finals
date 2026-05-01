@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import styles from "./flashcards-tutorial.module.css";
+import { useNavigate, useParams } from "react-router-dom";
+
 
 export default function FlashcardsTutorial() {
   const [flipped, setFlipped] = useState(false);
@@ -9,6 +11,9 @@ export default function FlashcardsTutorial() {
     setFlipped(!flipped);
     setTabLabel(!flipped ? "Answer" : "Question");
   };
+
+  const navigate = useNavigate();
+  const { lessonId } = useParams();
 
   return (
     <div className={styles.flashcardsApp}>
@@ -24,9 +29,12 @@ export default function FlashcardsTutorial() {
             Review facts and test your memory in a fun, quick, and easy way —
             perfect for learning on the go!
           </p>
-          <a href="../Flashcard/flashcard.html">
-            <button className={styles.startBtn}>Start</button>
-          </a>
+           <button
+              className={styles.startBtn}
+              onClick={() => navigate(`/flashcard/${lessonId}`)}
+            >
+              Start
+            </button>
         </div>
       </div>
 

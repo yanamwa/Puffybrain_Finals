@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import styles from "./matching-tutorial.module.css";
 
-function MatchingType() {
+export default function MatchingType() {
+  const navigate = useNavigate();
+  const { lessonId } = useParams();
+
   const [slideIndex, setSlideIndex] = useState(0);
 
   /* AUTO SLIDE */
@@ -32,7 +36,6 @@ function MatchingType() {
     <div className={styles.pageWrapper}>
       <div className={styles.paperBackground}>
         <div className={styles.container}>
-
           {/* HEADER */}
           <div className={styles.quizAppContainer}>
             <div className={styles.quizHeader}>
@@ -47,7 +50,7 @@ function MatchingType() {
 
               <button
                 className={styles.startButton}
-                onClick={() => (window.location.href = "application dep.html")}
+                onClick={() => navigate(`/matching-type/${lessonId}`)}
               >
                 Start
               </button>
@@ -56,7 +59,6 @@ function MatchingType() {
 
           {/* SLIDES */}
           <div className={styles.slideshowBox}>
-
             {[0, 1, 2].map((slide) => (
               <div
                 key={slide}
@@ -65,7 +67,6 @@ function MatchingType() {
                 }`}
               >
                 <div className={styles.quizContent}>
-
                   {/* LEFT COLUMN */}
                   <div className={styles.leftColumn}>
                     <div
@@ -109,7 +110,6 @@ function MatchingType() {
                       Hardware, Software, Data, People, and Processes.
                     </div>
                   </div>
-
                 </div>
               </div>
             ))}
@@ -125,12 +125,9 @@ function MatchingType() {
                 ></span>
               ))}
             </div>
-
           </div>
         </div>
       </div>
     </div>
   );
 }
-
-export default MatchingType;
