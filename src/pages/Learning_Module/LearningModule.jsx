@@ -579,10 +579,12 @@ function LearningModule() {
                   </div>
 
                   {openModes && (
-                    <QuizModesModal
-                      lessonId={lessonId}
-                      onClose={() => setOpenModes(false)}
-                    />
+                 <QuizModesModal
+                    source="lesson"
+                    lessonId={lessonId}
+                    quizzes={quizzes}
+                    onClose={() => setOpenModes(false)}
+                  />
                   )}
 
                   <div className={styles.innercardHead}>

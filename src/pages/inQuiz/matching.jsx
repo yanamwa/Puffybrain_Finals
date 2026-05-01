@@ -4,7 +4,10 @@ import styles from "./matching.module.css";
 
 export default function MatchingType() {
   const navigate = useNavigate();
-  const { lessonId } = useParams();
+  const { lessonId, deckId } = useParams();
+
+  const isLessonMode = Boolean(lessonId);
+  const isDeckMode = Boolean(deckId);
 
   const [lesson, setLesson] = useState(null);
   const [firstCard, setFirstCard] = useState(null);
@@ -12,30 +15,65 @@ export default function MatchingType() {
   const [wrongPair, setWrongPair] = useState([]);
 
   useEffect(() => {
-    fetch(`http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`)
+    const endpoint = isLessonMode
+      ? `http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`
+      : `http://localhost/puffybrain/getDeckById.php?id=${deckId}`;
+
+    fetch(endpoint)
       .then((res) => res.json())
-      .then((data) => setLesson(data))
-      .catch((err) => console.error("Error loading lesson:", err));
-  }, [lessonId]);
+      .then((data) => {
+        console.log("LOADED MATCHING DATA:", data);
+        setLesson(data);
+      })
+      .catch((err) => console.error("Error loading quiz:", err));
+  }, [lessonId, deckId, isLessonMode]);
 
   const matchingPairs = useMemo(() => {
-    if (!lesson?.quiz_contents) return [];
+    if (!lesson) return [];
+
+    const rawQuiz =
+      lesson.quiz_contents ||
+      lesson.quiz_content ||
+      lesson.quiz ||
+      lesson.questions ||
+      lesson.cards ||
+      lesson.flashcards ||
+      lesson.deck_cards ||
+      lesson.items;
+
+    if (!rawQuiz) return [];
 
     try {
-      const parsed = JSON.parse(lesson.quiz_contents);
+      const parsed = typeof rawQuiz === "string" ? JSON.parse(rawQuiz) : rawQuiz;
+
       if (!Array.isArray(parsed)) return [];
 
-      return parsed.map((quiz, index) => ({
-        id: index + 1,
-        question: quiz.question || "No question available.",
-        answer:
-          quiz.correct_answer ||
-          quiz.correctAnswer ||
-          quiz.answer ||
-          "No answer available.",
-      }));
+      return parsed
+        .map((quiz, index) => ({
+          id: index + 1,
+          question:
+            quiz.question ||
+            quiz.term ||
+            quiz.front ||
+            quiz.prompt ||
+            quiz.title ||
+            "No question available.",
+          answer:
+            quiz.correct_answer ||
+            quiz.correctAnswer ||
+            quiz.answer ||
+            quiz.definition ||
+            quiz.back ||
+            quiz.description ||
+            "No answer available.",
+        }))
+        .filter(
+          (item) =>
+            item.question !== "No question available." &&
+            item.answer !== "No answer available."
+        );
     } catch (error) {
-      console.error("Invalid quiz JSON:", error);
+      console.error("Invalid quiz/card JSON:", error);
       return [];
     }
   }, [lesson]);
@@ -46,7 +84,7 @@ export default function MatchingType() {
   }));
 
   const rightCards = useMemo(() => {
-    return matchingPairs
+    return [...matchingPairs]
       .map((item) => ({
         id: item.id,
         text: item.answer,
@@ -83,14 +121,20 @@ export default function MatchingType() {
           localStorage.setItem(
             "matchingQuizScore",
             JSON.stringify({
-              lessonId: Number(lessonId),
+              type: isLessonMode ? "lesson" : "deck",
+              lessonId: isLessonMode ? Number(lessonId) : null,
+              deckId: isDeckMode ? Number(deckId) : null,
               score: updated.length,
               total: matchingPairs.length,
             })
           );
 
           setTimeout(() => {
-            navigate(`/review/${lessonId}`);
+            if (isLessonMode) {
+              navigate(`/review/${lessonId}`);
+            } else {
+              navigate(`/deck-review/${deckId}`);
+            }
           }, 800);
         }
 
@@ -103,7 +147,7 @@ export default function MatchingType() {
 
       setTimeout(() => {
         setWrongPair([]);
-         setFirstCard(null);
+        setFirstCard(null);
       }, 500);
     }
   };
@@ -117,6 +161,7 @@ export default function MatchingType() {
       <div className={styles.wrapper}>
         <div className={styles.paperBackground}>
           <h1>No matching quiz available.</h1>
+          <p>Check the console: LOADED MATCHING DATA</p>
         </div>
       </div>
     );
@@ -127,7 +172,7 @@ export default function MatchingType() {
       <div className={styles.paperBackground}>
         <header className={styles.siteHeader}>
           <h1 className={styles.courseTitle}>
-            {lesson.title || "Matching Quiz"}
+            {lesson.title || lesson.deck_title || "Matching Quiz"}
           </h1>
 
           <div className={styles.progressContainer}>
@@ -137,7 +182,9 @@ export default function MatchingType() {
             ></div>
           </div>
 
-          <h2 className={styles.pageTitle}>Matching Type</h2>
+          <h2 className={styles.pageTitle}>
+            {isLessonMode ? "Lesson Matching Type" : "Deck Matching Type"}
+          </h2>
         </header>
 
         <main className={styles.quizAppContainer}>
@@ -145,7 +192,7 @@ export default function MatchingType() {
             <table>
               <tbody>
                 {leftCards.map((card) => (
-                  <tr key={card.id}>
+                  <tr key={`left-${card.id}`}>
                     <td>
                       <div
                         className={`${styles.card} ${
@@ -171,7 +218,7 @@ export default function MatchingType() {
             <table>
               <tbody>
                 {rightCards.map((card) => (
-                  <tr key={card.id}>
+                  <tr key={`right-${card.id}`}>
                     <td>
                       <div
                         className={`${styles.card} ${

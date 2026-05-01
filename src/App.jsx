@@ -48,7 +48,6 @@ import LessonResult from "./pages/Learning_Module/LessonResult";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ModuleManagement from "./pages/admin/modulemanagement";
-import ModuleForm from "./pages/admin/ModuleForm";
 import AddModule from "./pages/admin/AddModule";
 import EditModule from "./pages/admin/EditModule";
 import UserManagement from "./pages/admin/UserManagement";
@@ -75,11 +74,12 @@ import Result from "./pages/quizResults/results";
 export default function App() {
   return (
     <Routes>
-      {/* LANDING PAGES */}
+
+      {/* LANDING */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/about" element={<Aboutus />} />
 
-      {/* USER ACCOUNTS */}
+      {/* USER ACCOUNT */}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/otp" element={<Otp />} />
@@ -90,7 +90,7 @@ export default function App() {
       <Route path="/change-username" element={<ChangeUsername />} />
       <Route path="/edit-profile" element={<EditProfile />} />
 
-      {/* USER INTRODUCTION */}
+      {/* INTRO */}
       <Route path="/welcome" element={<Welcome />} />
       <Route path="/how-it-works" element={<HowItWorks />} />
       <Route path="/school" element={<School />} />
@@ -109,47 +109,73 @@ export default function App() {
       <Route path="/deckpage" element={<DeckPage />} />
       <Route path="/deck/:deckId" element={<UserDecks />} />
 
-      {/* LEARNING FLOW */}
+      {/* LEARNING */}
       <Route path="/learning/:lessonId" element={<LearningModule />} />
       <Route path="/introduction/:lessonId" element={<Introduction />} />
       <Route path="/lesson/:lessonId" element={<Lesson />} />
       <Route path="/review/:lessonId" element={<LessonResult />} />
-      
+
       {/* ADMIN */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
       <Route path="/admin/users" element={<UserManagement />} />
       <Route path="/admin/modes" element={<ModesManagement />} />
-
       <Route path="/admin/modules" element={<ModuleManagement />} />
       <Route path="/admin/modules/new" element={<AddModule />} />
       <Route path="/admin/modules/edit/:id" element={<EditModule />} />
-
       <Route path="/admin/decks" element={<DecksManagement />} />
 
-      {/* LEARNING */}
-      <Route path="/module-management/:lessonId " element={<ModuleManagement />} />
-      <Route path="/flashcards-tutorial/:lessonId" element={<FlashcardsTutorial />} />     
+      {/* TUTORIAL */}
+      <Route path="/flashcards-tutorial/:lessonId" element={<FlashcardsTutorial />} />
       <Route path="/multipleChoice-tutorial/:lessonId" element={<MultipleChoice />} />
       <Route path="/Matching-tutorial/:lessonId" element={<MatchingTutorial />} />
       <Route path="/Survival-tutorial/:lessonId" element={<SurvivalTutorial />} />
       <Route path="/QandA-tutorial/:lessonId" element={<QandATutorial />} />
 
-      {/* QUIZ */}
-      <Route path="/flashcard/:lessonId" element={<Flashcards />} />
-      <Route path="/matching-type/:lessonId" element={<MatchingType />} />
-      <Route path="/multiple-choice/:lessonId" element={<Multiple />} />
-      <Route path="/qna/:lessonId" element={<QandA />} />
-      <Route path="/survival/:lessonId" element={<Survival />} />
+      {/* TUTORIAL — LESSON */}
+      <Route path="/flashcards-tutorial/lesson/:lessonId" element={<FlashcardsTutorial />} />
+      <Route path="/multipleChoice-tutorial/lesson/:lessonId" element={<MultipleChoice />} />
+      <Route path="/Matching-tutorial/lesson/:lessonId" element={<MatchingTutorial />} />
+      <Route path="/Survival-tutorial/lesson/:lessonId" element={<SurvivalTutorial />} />
+      <Route path="/QandA-tutorial/lesson/:lessonId" element={<QandATutorial />} />
+
+      {/* TUTORIAL — DECK */}
+      <Route path="/flashcards-tutorial/deck/:deckId" element={<FlashcardsTutorial />} />
+      <Route path="/multipleChoice-tutorial/deck/:deckId" element={<MultipleChoice />} />
+      <Route path="/Matching-tutorial/deck/:deckId" element={<MatchingTutorial />} />
+      <Route path="/Survival-tutorial/deck/:deckId" element={<SurvivalTutorial />} />
+      <Route path="/QandA-tutorial/deck/:deckId" element={<QandATutorial />} />
+      
+    {/* TUTORIAL — DECK */}
+      <Route path="/flashcard/deck/:deckId" element={<Flashcards />} />
+      <Route path="/matching-type/deck/:deckId" element={<MatchingType />} />
+      <Route path="/multiple-choice/deck/:deckId" element={<Multiple />} />
+      <Route path="/qna/deck/:deckId" element={<QandA />} />
+      <Route path="/survival/deck/:deckId" element={<Survival />} />
+
+      {/* QUIZ — LESSON */}
+      <Route path="/flashcard/lesson/:lessonId" element={<Flashcards />} />
+      <Route path="/matching-type/lesson/:lessonId" element={<MatchingType />} />
+      <Route path="/multiple-choice/lesson/:lessonId" element={<Multiple />} />
+      <Route path="/qna/lesson/:lessonId" element={<QandA />} />
+      <Route path="/survival/lesson/:lessonId" element={<Survival />} />
+
+      {/* QUIZ — DECK */}
+      <Route path="/flashcard/deck/:deckId" element={<Flashcards />} />
+      <Route path="/matching-type/deck/:deckId" element={<MatchingType />} />
+      <Route path="/multiple-choice/deck/:deckId" element={<Multiple />} />
+      <Route path="/qna/deck/:deckId" element={<QandA />} />
+      <Route path="/survival/deck/:deckId" element={<Survival />} />
 
       {/* RESULTS */}
       <Route path="/review" element={<Result />} />
-      
-      {/* NAVIGATION */}
+
+      {/* NAV */}
       <Route path="/FAQ" element={<FAQ />} />
 
       {/* FALLBACK */}
       <Route path="*" element={<h1>Page not found</h1>} />
+
     </Routes>
   );
 }

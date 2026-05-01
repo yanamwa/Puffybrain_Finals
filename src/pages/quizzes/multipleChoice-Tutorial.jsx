@@ -25,8 +25,7 @@ const slidesData = [
 
 export default function MultipleChoiceTutorial() {
   const navigate = useNavigate();
-  const { lessonId } = useParams();
-
+  const { lessonId, deckId } = useParams();
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
@@ -53,12 +52,22 @@ export default function MultipleChoiceTutorial() {
           </p>
         </div>
 
-        <button
-          className={styles.startBtn}
-          onClick={() => navigate(`/multiple-choice/${lessonId}`)}
-        >
-          Start
-        </button>
+              <button
+            className={styles.startBtn}
+            onClick={() => {
+              if (deckId) {
+                navigate(`/multiple-choice/deck/${deckId}`);
+                return;
+              }
+
+              if (lessonId) {
+                navigate(`/multiple-choice/lesson/${lessonId}`);
+                return;
+              }
+            }}
+          >
+            Start
+          </button>
       </div>
 
       {/* SLIDESHOW */}

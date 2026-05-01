@@ -4,9 +4,15 @@ import styles from "./qanda.module.css";
 
 export default function QandA() {
   const navigate = useNavigate();
-  const { lessonId } = useParams();
+  const { lessonId, deckId } = useParams();
+
+  const isLessonMode = Boolean(lessonId);
+  const isDeckMode = Boolean(deckId);
 
   const [lesson, setLesson] = useState(null);
+  const [deckCards, setDeckCards] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const [current, setCurrent] = useState(0);
   const [score, setScore] = useState(0);
   const [inputValue, setInputValue] = useState("");
@@ -16,53 +22,82 @@ export default function QandA() {
   const inputRef = useRef(null);
 
   useEffect(() => {
-    fetch(`http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`)
-      .then((res) => res.json())
-      .then((data) => setLesson(data))
-      .catch((err) => console.error("Error loading lesson:", err));
-  }, [lessonId]);
+    const loadData = async () => {
+      setLoading(true);
+
+      try {
+        if (isLessonMode) {
+          const res = await fetch(
+            `http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`
+          );
+          const data = await res.json();
+          setLesson(data);
+        }
+
+        if (isDeckMode) {
+          const res = await fetch(
+            `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`
+          );
+          const data = await res.json();
+          setDeckCards(data.success ? data.cards || [] : []);
+        }
+      } catch (err) {
+        console.error("Error loading Q&A:", err);
+        setLesson(null);
+        setDeckCards([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [lessonId, deckId, isLessonMode, isDeckMode]);
 
   const questions = useMemo(() => {
-    if (!lesson?.quiz_contents) return [];
+    if (isLessonMode && lesson?.quiz_contents) {
+      try {
+        const parsed = JSON.parse(lesson.quiz_contents);
+        if (!Array.isArray(parsed)) return [];
 
-    try {
-      const parsed = JSON.parse(lesson.quiz_contents);
-      if (!Array.isArray(parsed)) return [];
+        return parsed.map((item) => {
+          const correctAnswer =
+            item.correct_answer || item.correctAnswer || item.answer || "";
 
-      return parsed.map((item) => {
-        const correctAnswer =
-          item.correct_answer ||
-          item.correctAnswer ||
-          item.answer ||
-          "";
-
-        return {
-          q: item.question || "No question available.",
-          correctAnswer,
-          explanation: item.explanation || correctAnswer,
-        };
-      });
-    } catch (error) {
-      console.error("Invalid quiz JSON:", error);
-      return [];
+          return {
+            q: item.question || "No question available.",
+            correctAnswer,
+            explanation: item.explanation || correctAnswer,
+          };
+        });
+      } catch (error) {
+        console.error("Invalid quiz JSON:", error);
+        return [];
+      }
     }
-  }, [lesson]);
+
+    if (isDeckMode) {
+      return deckCards.map((card) => ({
+        q: card.question || "No question available.",
+        correctAnswer: card.answer || "",
+        explanation: card.answer || "",
+      }));
+    }
+
+    return [];
+  }, [lesson, deckCards, isLessonMode, isDeckMode]);
 
   useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
+    if (inputRef.current) inputRef.current.focus();
   }, [current]);
 
-  const cleanAnswer = (text) => {
-    return String(text)
+  const cleanAnswer = (text) =>
+    String(text)
       .toLowerCase()
       .replace(/^[a-d]\.\s*/i, "")
       .replace(/^the\s+/i, "")
       .replace(/[^\w\s]/g, "")
       .replace(/\s+/g, " ")
       .trim();
-  };
 
   async function checkAnswer() {
     if (!questions[current]) return;
@@ -70,9 +105,7 @@ export default function QandA() {
     try {
       const res = await fetch("http://localhost/puffybrain/checkQandA.php", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           question: questions[current].q,
           userAnswer: inputValue,
@@ -82,15 +115,10 @@ export default function QandA() {
       });
 
       const data = await res.json();
-      console.log("AI CHECK RESULT:", data);
 
       const userClean = cleanAnswer(inputValue);
       const correctClean = cleanAnswer(questions[current].correctAnswer);
-
-      // 🔒 STRICT fallback (ONLY exact match)
       const localCorrect = userClean === correctClean;
-
-      // 🤖 Gemini decides meaning
       const isCorrect = data.success ? data.isCorrect : localCorrect;
 
       const newResult = {
@@ -114,10 +142,8 @@ export default function QandA() {
     } catch (error) {
       console.error("Gemini check error:", error);
 
-      // fallback if Gemini fails completely
       const userClean = cleanAnswer(inputValue);
       const correctClean = cleanAnswer(questions[current].correctAnswer);
-
       const localCorrect = userClean === correctClean;
 
       const newResult = {
@@ -146,28 +172,31 @@ export default function QandA() {
       setCurrent((prev) => prev + 1);
       setInputValue("");
       setStatus("");
-    } else {
-      localStorage.setItem(
-        "lessonQuizResults",
-        JSON.stringify({
-          lessonId: Number(lessonId),
-          score: updatedScore,
-          total: questions.length,
-          answers: updatedResults,
-        })
-      );
-
-      navigate(`/review/${lessonId}`);
+      return;
     }
-  }
 
+    localStorage.setItem(
+      "lessonQuizResults",
+      JSON.stringify({
+        source: isDeckMode ? "deck" : "lesson",
+        deckId: deckId ? Number(deckId) : null,
+        lessonId: lessonId ? Number(lessonId) : null,
+        score: updatedScore,
+        total: questions.length,
+        answers: updatedResults,
+      })
+    );
+
+navigate(`/review/${lessonId || "deck"}`);
+  }
+  
   function handleKeyDown(e) {
     if (e.key === "Enter" && inputValue.trim() !== "") {
       checkAnswer();
     }
   }
 
-  if (!lesson) {
+  if (loading) {
     return <div className={styles.wrapper}>Loading Q&A...</div>;
   }
 
@@ -180,7 +209,9 @@ export default function QandA() {
   return (
     <div className={styles.wrapper}>
       <div className={styles.header}>
-        <h1 className={styles.title}>{lesson.title}</h1>
+        <h1 className={styles.title}>
+          {isLessonMode ? lesson?.title || "Lesson Q&A" : "Deck Q&A"}
+        </h1>
 
         <div className={styles.counter}>
           Question {current + 1} of {questions.length}

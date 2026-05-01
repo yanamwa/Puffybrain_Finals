@@ -100,8 +100,6 @@
 .removeImg:hover {
   background: #ff5c5c;
 }
-
-/* Attach */
 .attachBtn {
   width: 100%;
   margin: 10px 0 20px;
@@ -111,8 +109,24 @@
   background: transparent;
   cursor: pointer;
   font-size: 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
+.fileInput {
+  display: none;
+}
+
+:global(.swal2-container) {
+  z-index: 999999 !important;
+}
+
+.overlay {
+  z-index: 9999;
+}
 /* Divider */
 .divider {
   border-top: 1px solid #ddd;
@@ -161,4 +175,45 @@
     transform: scale(1);
     opacity: 1;
   }
+}
+
+.overlay {
+  z-index: 9999;
+}
+
+.swalAbove {
+  z-index: 99999 !important;
+}
+
+.uploadedFile {
+  margin-top: -10px;
+  margin-bottom: 15px;
+  padding: 8px 12px;
+  background: #ffffff;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: #333;
+}
+
+.uploadedFile span {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.uploadedFile i {
+  color: #6fbf73;
+  font-size: 18px;
+}
+
+.uploadedFile button {
+  border: none;
+  background: #ff9aa2;
+  border-radius: 12px;
+  padding: 4px 10px;
+  cursor: pointer;
 }

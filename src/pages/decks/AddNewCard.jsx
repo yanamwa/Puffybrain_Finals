@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import Swal from "sweetalert2";
 import styles from "./Addnewcard.module.css";
 
 export default function AddNewCard({ deckId, onCardAdded }) {
@@ -9,25 +10,27 @@ export default function AddNewCard({ deckId, onCardAdded }) {
   const [answer, setAnswer] = useState("");
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
-
+  const [imageName, setImageName] = useState(""); 
   const fileRef = useRef(null);
 
-  const handleImageChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+const handleImageChange = (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
 
-    setImage(file);
+  setImage(file);
+  setImageName(file.name);
+  setPreview(URL.createObjectURL(file));
+};
 
-    const reader = new FileReader();
-    reader.onload = () => setPreview(reader.result);
-    reader.readAsDataURL(file);
-  };
+const removeImage = () => {
+  setImage(null);
+  setPreview("");
+  setImageName("");
 
-  const removeImage = () => {
-    setPreview(null);
-    setImage(null);
-    if (fileRef.current) fileRef.current.value = "";
-  };
+  if (imageInputRef.current) {
+    imageInputRef.current.value = "";
+  }
+};
 
   const resetForm = () => {
     setQuestion("");
@@ -39,12 +42,22 @@ export default function AddNewCard({ deckId, onCardAdded }) {
 
   const handleAdd = async () => {
     if (!deckId) {
-      alert("Missing deck ID");
+      Swal.fire({
+        title: "Missing deck",
+        text: "Deck ID is missing.",
+        icon: "error",
+        customClass: { container: styles.swalAbove },
+      });
       return;
     }
 
     if (!question.trim() || !answer.trim()) {
-      alert("Question and answer are required");
+      Swal.fire({
+        title: "Missing fields",
+        text: "Question and answer are required.",
+        icon: "warning",
+        customClass: { container: styles.swalAbove },
+      });
       return;
     }
 
@@ -53,8 +66,8 @@ export default function AddNewCard({ deckId, onCardAdded }) {
 
       const formData = new FormData();
       formData.append("deckId", deckId);
-      formData.append("question", question);
-      formData.append("answer", answer);
+      formData.append("question", question.trim());
+      formData.append("answer", answer.trim());
 
       if (image) {
         formData.append("image", image);
@@ -76,11 +89,22 @@ export default function AddNewCard({ deckId, onCardAdded }) {
 
         setTimeout(() => setSuccess(false), 2000);
       } else {
-        alert(data.message || "Failed to add card");
+        Swal.fire({
+          title: "Failed",
+          text: data.message || "Failed to add card.",
+          icon: "error",
+          customClass: { container: styles.swalAbove },
+        });
       }
     } catch (error) {
       console.error("Add card error:", error);
-      alert("Something went wrong while adding the card");
+
+      Swal.fire({
+        title: "Server Error",
+        text: "Something went wrong while adding the card.",
+        icon: "error",
+        customClass: { container: styles.swalAbove },
+      });
     } finally {
       setLoading(false);
     }
@@ -132,21 +156,27 @@ export default function AddNewCard({ deckId, onCardAdded }) {
               </div>
             )}
 
-            <button
-              type="button"
-              className={styles.attachBtn}
-              onClick={() => fileRef.current?.click()}
-            >
-              Attach image
-            </button>
+           <label className={styles["attach-img"]}>
+              <i className="bx bx-image"></i> Attach image
 
-            <input
-              type="file"
-              ref={fileRef}
-              hidden
-              accept="image/*"
-              onChange={handleImageChange}
-            />
+              <input
+                type="file"
+                ref={imageInputRef}
+                className={styles.fileInput}
+                accept="image/*"
+                onChange={handleImageChange}
+              />
+            </label>
+
+            {imageName && (
+              <div className={styles.uploadedFile}>
+                <i className="bx bx-check-circle"></i>
+                <span>{imageName}</span>
+                <button type="button" onClick={removeImage}>
+                  Remove
+                </button>
+              </div>
+            )}
 
             <hr className={styles.divider} />
 
@@ -158,6 +188,7 @@ export default function AddNewCard({ deckId, onCardAdded }) {
               >
                 Cancel
               </button>
+
               <button
                 className={styles.addBtn}
                 onClick={handleAdd}

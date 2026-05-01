@@ -5,15 +5,9 @@ import styles from "./userDecks.module.css";
 import Swal from "sweetalert2";
 
 export default function UserDecks() {
-  /* =========================
-     NAVIGATION / PARAMS
-  ========================= */
   const navigate = useNavigate();
   const { deckId } = useParams();
 
-  /* =========================
-     STATE
-  ========================= */
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showAddCard, setShowAddCard] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -24,33 +18,26 @@ export default function UserDecks() {
   const [deck, setDeck] = useState(null);
   const [myDecks, setMyDecks] = useState([]);
   const [cards, setCards] = useState([]);
-
   const [courses, setCourses] = useState([]);
 
   const [notificationOpen, setNotificationOpen] = useState(false);
-  const notificationCount = 0; // change this later when you have real data
+  const notificationCount = 0;
+  
 
   const [user, setUser] = useState({
-  username: "",
-  year_level: "",
-  profile_image: "/images/temporary profile.jpg",
-});
+    username: "",
+    year_level: "",
+    profile_image: "/images/temporary profile.jpg",
+  });
 
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState("");
-
   const [editingCardId, setEditingCardId] = useState(null);
-
-  /* =========================
-     REFS
-  ========================= */
+  const [imageName, setImageName] = useState("");
   const imageInputRef = useRef(null);
 
-  /* =========================
-     IMAGE HANDLERS
-  ========================= */
   const handleImageAttach = () => {
     imageInputRef.current?.click();
   };
@@ -60,21 +47,20 @@ export default function UserDecks() {
     if (!file) return;
 
     setImage(file);
+    setImageName(file.name);
     setPreview(URL.createObjectURL(file));
   };
 
   const removeImage = () => {
     setImage(null);
     setPreview("");
+    setImageName("");
 
     if (imageInputRef.current) {
       imageInputRef.current.value = "";
     }
   };
 
-  /* =========================
-     HELPERS
-  ========================= */
   const resetCardForm = () => {
     setQuestion("");
     setAnswer("");
@@ -93,11 +79,9 @@ export default function UserDecks() {
   };
 
   const openCourse = (courseId) => {
-  navigate(`/learning/${courseId}`);
-};
-  /* =========================
-     FETCH FUNCTIONS (API)
-  ========================= */
+    navigate(`/learning/${courseId}`);
+  };
+
   const fetchDeck = async () => {
     try {
       const res = await fetch(
@@ -127,7 +111,7 @@ export default function UserDecks() {
       console.log("Cards response:", data);
 
       if (data.success) {
-        setCards(data.cards);
+        setCards(data.cards || []);
       } else {
         console.error("Failed to fetch cards:", data.message);
         setCards([]);
@@ -147,7 +131,7 @@ export default function UserDecks() {
       const data = await res.json();
 
       if (data.success) {
-        setMyDecks(data.decks);
+        setMyDecks(data.decks || []);
       } else {
         console.error("Failed to fetch user decks:", data.message);
       }
@@ -156,30 +140,46 @@ export default function UserDecks() {
     }
   };
 
-  const fetchUser = async () => {
-  try {
-    const res = await fetch("http://localhost/puffybrain/getUser.php", {
-      credentials: "include",
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      setUser({
-        username: data.user?.username || "",
-        year_level: data.user?.year_level || "",
-        profile_image:
-          data.user?.profile_image || "/images/temporary profile.jpg",
+  const fetchCourses = async () => {
+    try {
+      const res = await fetch("http://localhost/puffybrain/getMyCourses.php", {
+        credentials: "include",
       });
-    }
-  } catch (err) {
-    console.error("Fetch user error:", err);
-  }
-};
 
-  /* =========================
-     USE EFFECTS
-  ========================= */
+      const data = await res.json();
+
+      if (data.success) {
+        setCourses(data.courses || []);
+      } else {
+        setCourses([]);
+      }
+    } catch (err) {
+      console.error("fetchCourses error:", err);
+      setCourses([]);
+    }
+  };
+
+  const fetchUser = async () => {
+    try {
+      const res = await fetch("http://localhost/puffybrain/getUser.php", {
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setUser({
+          username: data.user?.username || "",
+          year_level: data.user?.year_level || "",
+          profile_image:
+            data.user?.profile_image || "/images/temporary profile.jpg",
+        });
+      }
+    } catch (err) {
+      console.error("Fetch user error:", err);
+    }
+  };
+
   useEffect(() => {
     if (!deckId) {
       console.error("deckId is missing from route params");
@@ -196,11 +196,11 @@ export default function UserDecks() {
   useEffect(() => {
     const handler = (e) => {
       const insideDropdown = e.target.closest(
-  `.${styles.deckMenu}, .${styles.deckMenuBtn}, .${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}`
-);
+        `.${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}`
+      );
 
       if (!insideDropdown) {
-        setDropdownOpen(null);
+        setDropdownOpen(false);
         setNotificationOpen(false);
       }
     };
@@ -211,15 +211,12 @@ export default function UserDecks() {
 
   useEffect(() => {
     return () => {
-      if (preview) {
+      if (preview && preview.startsWith("blob:")) {
         URL.revokeObjectURL(preview);
       }
     };
   }, [preview]);
 
-  /* =========================
-     UI CONTROLS
-  ========================= */
   const openAddCard = () => {
     resetCardForm();
     setShowAddCard(true);
@@ -230,19 +227,10 @@ export default function UserDecks() {
     resetCardForm();
   };
 
-  const handleLogout = () => {
-    if (window.confirm("Are you sure you want to logout?")) {
-      navigate("/login");
-    }
-  };
-
   const openDeck = (id) => {
     navigate(`/deck/${id}`);
   };
 
-  /* =========================
-     CARD CRUD
-  ========================= */
   const handleAddCard = async () => {
     if (!deckId) {
       Swal.fire({
@@ -342,6 +330,7 @@ export default function UserDecks() {
     try {
       const formData = new FormData();
       formData.append("cardId", cardId);
+      formData.append("deckId", deckId);
 
       const res = await fetch("http://localhost/puffybrain/deleteCard.php", {
         method: "POST",
@@ -349,9 +338,10 @@ export default function UserDecks() {
       });
 
       const data = await res.json();
+      console.log("DELETE CARD RESPONSE:", data);
 
       if (data.success) {
-        setCards((prev) => prev.filter((card) => card.id !== cardId));
+        await fetchCards();
 
         Swal.fire({
           title: "Deleted!",
@@ -439,7 +429,7 @@ export default function UserDecks() {
   const handleEditCard = (card) => {
     setQuestion(card.question || "");
     setAnswer(card.answer || "");
-    setEditingCardId(card.id);
+    setEditingCardId(card.cardId);
     setShowAddCard(true);
 
     if (card.image) {
@@ -451,9 +441,6 @@ export default function UserDecks() {
     setImage(null);
   };
 
-  /* =========================
-     FILTERED CARDS
-  ========================= */
   const filteredCards = cards.filter((card) => {
     if (activeTab === "All Cards") return true;
 
@@ -468,215 +455,173 @@ export default function UserDecks() {
     return true;
   });
 
-/* =========================
-     sidebar
-  ========================= */
-  const fetchCourses = async () => {
-  try {
-    const res = await fetch("http://localhost/puffybrain/getMyCourses.php", {
-      credentials: "include",
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      setCourses(data.courses || []);
-    } else {
-      setCourses([]);
-    }
-  } catch (err) {
-    console.error("fetchCourses error:", err);
-    setCourses([]);
-  }
-};
-
   return (
     <div
       className={`${styles.container} ${
         isCollapsed ? styles.sidebarCollapsed : ""
       }`}
     >
-      <aside
-            className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
+      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
+        <div>
+          <div
+            className={styles.sidebarToggle}
+            onClick={() => setIsCollapsed(!isCollapsed)}
           >
-            <div>
-              <div
-                className={styles.sidebarToggle}
-                onClick={() => setIsCollapsed(!isCollapsed)}
-              >
-                <i className="bx bx-sidebar"></i>
-              </div>
+            <i className="bx bx-sidebar"></i>
+          </div>
 
-              <div className={styles.logo}>
-                <img
-                  className={styles.logoExpanded}
-                  src="/images/logo1.png"
-                  alt="Logo"
-                />
-                <img
-                  className={styles.logoCollapsed}
-                  src="/images/logo_solo.png"
-                  alt="Logo"
-                />
-              </div>
+          <div className={styles.logo}>
+            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
+            <img className={styles.logoCollapsed} src="/images/logo_solo.png" alt="Logo" />
+          </div>
 
-              <div className={styles.divider}></div>
-              <p className={styles.myDecksTitle}>Menu</p>
+          <div className={styles.divider}></div>
+          <p className={styles.myDecksTitle}>Menu</p>
 
-              <nav className={styles.menu}>
-                <ul className={styles.sidebarList}>
-                  <li className={styles.sidebarListItem}>
-                    <NavLink
-                      to="/homepage"
-                      className={({ isActive }) =>
-                        `${styles.menuItem} ${isActive ? styles.active : ""}`
-                      }
-                    >
-                      <i className="bx bx-home"></i>
-                      <span className={styles.menuText}>Home</span>
-                    </NavLink>
-                  </li>
+          <nav className={styles.menu}>
+            <ul className={styles.sidebarList}>
+              <li className={styles.sidebarListItem}>
+                <NavLink
+                  to="/homepage"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
+                  <i className="bx bx-home"></i>
+                  <span className={styles.menuText}>Home</span>
+                </NavLink>
+              </li>
 
-                  <li className={styles.sidebarListItem}>
-                    <NavLink
-                      to="/Mydecks"
-                      className={({ isActive }) =>
-                        `${styles.menuItem} ${isActive ? styles.active : ""}`
-                      }
-                    >
-                      <i className="bx bx-book"></i>
-                      <span className={styles.menuText}>Decks</span>
-                    </NavLink>
-                  </li>
+              <li className={styles.sidebarListItem}>
+                <NavLink
+                  to="/Mydecks"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
+                  <i className="bx bx-book"></i>
+                  <span className={styles.menuText}>Decks</span>
+                </NavLink>
+              </li>
 
-                  <li className={styles.sidebarListItem}>
-                    <NavLink
-                      to="/mycourse"
-                      className={({ isActive }) =>
-                        `${styles.menuItem} ${isActive ? styles.active : ""}`
-                      }
-                    >
-                      <i className="bx bx-book"></i>
-                      <span className={styles.menuText}>My Course</span>
-                    </NavLink>
-                  </li>
+              <li className={styles.sidebarListItem}>
+                <NavLink
+                  to="/mycourse"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
+                  <i className="bx bx-book"></i>
+                  <span className={styles.menuText}>My Course</span>
+                </NavLink>
+              </li>
 
-                  <li className={styles.sidebarListItem}>
-                    <NavLink
-                      to="/public-decks"
-                      className={({ isActive }) =>
-                        `${styles.menuItem} ${isActive ? styles.active : ""}`
-                      }
-                    >
-                      <i className="bx bx-folder"></i>
-                      <span className={styles.menuText}>Public Decks</span>
-                    </NavLink>
-                  </li>
-                </ul>
-              </nav>
+              <li className={styles.sidebarListItem}>
+                <NavLink
+                  to="/public-decks"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
+                  <i className="bx bx-folder"></i>
+                  <span className={styles.menuText}>Public Decks</span>
+                </NavLink>
+              </li>
+            </ul>
+          </nav>
 
-              <div className={styles.divider}></div>
+          <div className={styles.divider}></div>
 
-              <div className={styles.myDecksNav}>
-                <div className={styles.sectionBlock}>
-                  <p className={styles.sectionTitle}>My Decks</p>
+          <div className={styles.myDecksNav}>
+            <div className={styles.sectionBlock}>
+              <p className={styles.sectionTitle}>My Decks</p>
 
-                  <ul className={styles.sectionList}>
-                    {myDecks.length === 0 ? (
-                      <li className={styles.sidebarEmptyText}>
-                        Don't have decks yet
-                      </li>
-                    ) : (
-                      myDecks.slice(0, 3).map((deckItem) => (
-                        <li key={deckItem.id} className={styles.sidebarListItem}>
-                          <button
-                            type="button"
-                            onClick={() => openDeck(deckItem.id)}
-                            className={styles.menuItem}
-                          >
-                            <i className="bx bx-book"></i>
-                            <span className={styles.menuText}>{deckItem.title}</span>
-                          </button>
-                        </li>
-                      ))
-                    )}
-                  </ul>
-                </div>
-
-                <div className={styles.sectionBlock}>
-                  <div className={styles.sectionDivider}></div>
-                  <p className={styles.sectionTitle}>My Courses</p>
-
-                  <ul className={styles.sectionList}>
-                    {courses.length === 0 ? (
-                      <li className={styles.sidebarEmptyText}>
-                        No courses added yet
-                      </li>
-                    ) : (
-                      courses.slice(0, 3).map((course) => (
-                        <li key={course.id} className={styles.sidebarListItem}>
-                          <button
-                            type="button"
-                            onClick={() => openCourse(course.id)}
-                            className={styles.menuItem}
-                          >
-                            <i className="bx bx-book"></i>
-                            <span className={styles.menuText}>{course.title}</span>
-                          </button>
-                        </li>
-                      ))
-                    )}
-                  </ul>
-                </div>
-              </div>
+              <ul className={styles.sectionList}>
+                {myDecks.length === 0 ? (
+                  <li className={styles.sidebarEmptyText}>Don't have decks yet</li>
+                ) : (
+                  myDecks.slice(0, 3).map((deckItem) => (
+                    <li key={deckItem.id} className={styles.sidebarListItem}>
+                      <button
+                        type="button"
+                        onClick={() => openDeck(deckItem.id)}
+                        className={styles.menuItem}
+                      >
+                        <i className="bx bx-book"></i>
+                        <span className={styles.menuText}>{deckItem.title}</span>
+                      </button>
+                    </li>
+                  ))
+                )}
+              </ul>
             </div>
-          </aside>
+
+            <div className={styles.sectionBlock}>
+              <div className={styles.sectionDivider}></div>
+              <p className={styles.sectionTitle}>My Courses</p>
+
+              <ul className={styles.sectionList}>
+                {courses.length === 0 ? (
+                  <li className={styles.sidebarEmptyText}>No courses added yet</li>
+                ) : (
+                  courses.slice(0, 3).map((course) => (
+                    <li key={course.id} className={styles.sidebarListItem}>
+                      <button
+                        type="button"
+                        onClick={() => openCourse(course.id)}
+                        className={styles.menuItem}
+                      >
+                        <i className="bx bx-book"></i>
+                        <span className={styles.menuText}>{course.title}</span>
+                      </button>
+                    </li>
+                  ))
+                )}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </aside>
 
       <div className={styles.mainArea}>
         <div className={styles.gridContainer}>
           <div className={styles.headerContainer}>
-            <form
-              className={styles.searchBar}
-              onSubmit={(e) => e.preventDefault()}
-            >
+            <form className={styles.searchBar} onSubmit={(e) => e.preventDefault()}>
               <input type="text" placeholder="Search your decks" />
               <i className="bx bx-search" />
             </form>
 
             <div className={styles.profileWrapper}>
+              <div className={styles.notificationWrapper}>
+                <button
+                  type="button"
+                  className={styles.notificationBtn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setNotificationOpen((prev) => !prev);
+                    setDropdownOpen(false);
+                  }}
+                >
+                  <i className="bx bx-bell"></i>
+                  {notificationCount > 0 && (
+                    <span className={styles.notificationBadge}>
+                      {notificationCount}
+                    </span>
+                  )}
+                </button>
 
-               <div className={styles.notificationWrapper}>
-                                <button
-                                  type="button"
-                                  className={styles.notificationBtn}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setNotificationOpen((prev) => !prev);
-                                    setProfileDropdownOpen(false);
-                                    setDropdownOpen(null);
-                                  }}
-                                >
-                                  <i className="bx bx-bell"></i>
-                                  {notificationCount > 0 && (
-                                      <span className={styles.notificationBadge}>
-                                        {notificationCount}
-                                      </span>
-                                    )}
-                                </button>
-              
-                                <div
-                                  className={`${styles.notificationDropdown} ${
-                                    notificationOpen ? styles.show : ""
-                                  }`}
-                                >
-                                  <h4>Notifications</h4>
-              
-                                  <div className={styles.emptyNotification}>
-                                    <p>You don’t have any new notifications</p>
-                                  </div>
-                                </div>
-                              </div>
+                <div
+                  className={`${styles.notificationDropdown} ${
+                    notificationOpen ? styles.show : ""
+                  }`}
+                >
+                  <h4>Notifications</h4>
 
+                  <div className={styles.emptyNotification}>
+                    <p>You don’t have any new notifications</p>
+                  </div>
+                </div>
+              </div>
 
               <Link to="/user-profile" className={styles.profileLink}>
                 <div className={styles.dpContainer}>
@@ -699,6 +644,7 @@ export default function UserDecks() {
                   onClick={(e) => {
                     e.stopPropagation();
                     setDropdownOpen((v) => !v);
+                    setNotificationOpen(false);
                   }}
                 >
                   <i className="bx bx-chevron-down" />
@@ -735,19 +681,10 @@ export default function UserDecks() {
               <div className={styles["deck-info"]}>
                 {deck ? (
                   <>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "10px",
-                      }}
-                    >
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                       <h3>{deck.title}</h3>
 
-                      <button
-                        onClick={handleEditDeck}
-                        className={styles.deckEditBtn}
-                      >
+                      <button onClick={handleEditDeck} className={styles.deckEditBtn}>
                         <i className="bx bx-edit"></i>
                         Edit
                       </button>
@@ -788,10 +725,8 @@ export default function UserDecks() {
                 <button className={styles["add-cards"]} onClick={openAddCard}>
                   Add Cards
                 </button>
-                <button
-                  className={styles.practice}
-                  onClick={() => setShowModes(true)}
-                >
+
+                <button className={styles.practice} onClick={() => setShowModes(true)}>
                   Practice
                 </button>
               </div>
@@ -809,7 +744,7 @@ export default function UserDecks() {
               </div>
 
               {filteredCards.length === 0 ? (
-                <div className={styles["empty-wrapper"]}>
+                <div className={styles.emptyState}>
                   <img
                     src="/images/cute1.png"
                     className={styles["empty-img"]}
@@ -820,7 +755,7 @@ export default function UserDecks() {
               ) : (
                 <div className={styles.cardsList}>
                   {filteredCards.map((card) => (
-                    <div key={card.id} className={styles.cards}>
+                    <div key={card.cardId} className={styles.cards}>
                       <div className={styles.cardHeader}>
                         <button
                           className={styles.editBtn}
@@ -832,7 +767,7 @@ export default function UserDecks() {
 
                         <button
                           className={styles.deleteBtn}
-                          onClick={() => handleDeleteCard(card.id)}
+                          onClick={() => handleDeleteCard(card.cardId)}
                         >
                           <i className="bx bx-trash"></i>
                           <span>Delete</span>
@@ -906,23 +841,28 @@ export default function UserDecks() {
               </div>
             )}
 
-            <button
-              type="button"
-              className={styles["attach-img"]}
-              onClick={handleImageAttach}
-            >
-              <i className="bx bx-image"></i> Attach image
-            </button>
+                  {!imageName && (
+          <label className={styles["attach-img"]}>
+            <i className="bx bx-image"></i> Attach image
 
             <input
               type="file"
-              hidden
               ref={imageInputRef}
+              className={styles.fileInput}
               accept="image/*"
               onChange={handleImageChange}
             />
+          </label>
+        )}
 
-            <hr />
+          {imageName && (
+            <div className={styles.uploadedFile}>
+              <i className="bx bx-check-circle"></i>
+              <span>{imageName}</span>
+          
+            </div>
+          )}  
+           <hr />  
 
             <div className={styles["modal-actions"]}>
               <button onClick={closeAddCard}>Cancel</button>
@@ -943,7 +883,14 @@ export default function UserDecks() {
         </div>
       )}
 
-      {showModes && <QuizModesModal onClose={() => setShowModes(false)} />}
+    {showModes && (
+  <QuizModesModal
+    source="deck"
+    deckId={deckId}
+    cards={cards}
+    onClose={() => setShowModes(false)}
+  />
+)} 
     </div>
   );
 }

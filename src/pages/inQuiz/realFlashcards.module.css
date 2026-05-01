@@ -108,15 +108,18 @@
 
 .flashcardFace {
   position: absolute;
-  width: 89%;
-  height: 70%;
+  width: 100%;
+  height: 100%;
   padding: 50px;
   border-radius: 20px;
   backface-visibility: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-image: url('../images/notebook line.png');
+
+  background-image: url('../images/notebook-line.png');
+  background-size: 100% 40px;   /* THIS creates the lines */
+  background-repeat: repeat-y;  /* THIS repeats them */
 }
 
 .back {

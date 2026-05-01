@@ -4,7 +4,7 @@ import styles from "./matching-tutorial.module.css";
 
 export default function MatchingType() {
   const navigate = useNavigate();
-  const { lessonId } = useParams();
+  const { lessonId, deckId } = useParams();
 
   const [slideIndex, setSlideIndex] = useState(0);
 
@@ -48,12 +48,22 @@ export default function MatchingType() {
                 correctly, it's a fun way to test your memory and logic!
               </p>
 
-              <button
-                className={styles.startButton}
-                onClick={() => navigate(`/matching-type/${lessonId}`)}
-              >
-                Start
-              </button>
+                    <button
+              className={styles.startButton}
+              onClick={() => {
+                if (deckId) {
+                  navigate(`/matching-type/deck/${deckId}`);
+                  return;
+                }
+
+                if (lessonId) {
+                  navigate(`/matching-type/lesson/${lessonId}`);
+                  return;
+                }
+              }}
+            >
+              Start
+            </button>
             </div>
           </div>
 

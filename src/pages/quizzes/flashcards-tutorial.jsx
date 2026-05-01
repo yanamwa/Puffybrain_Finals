@@ -13,7 +13,7 @@ export default function FlashcardsTutorial() {
   };
 
   const navigate = useNavigate();
-  const { lessonId } = useParams();
+  const { lessonId, deckId } = useParams();
 
   return (
     <div className={styles.flashcardsApp}>
@@ -31,8 +31,14 @@ export default function FlashcardsTutorial() {
           </p>
            <button
               className={styles.startBtn}
-              onClick={() => navigate(`/flashcard/${lessonId}`)}
-            >
+              onClick={() => {
+                if (lessonId) {
+                  navigate(`/flashcard/lesson/${lessonId}`);
+                } else if (deckId) {
+                  navigate(`/flashcard/deck/${deckId}`);
+                }
+              }}
+              >
               Start
             </button>
         </div>

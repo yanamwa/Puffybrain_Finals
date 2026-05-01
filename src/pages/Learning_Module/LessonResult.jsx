@@ -14,6 +14,10 @@ export default function LessonResult() {
 
   const [attempts, setAttempts] = useState(1);
 
+  // 🔥 NEW: detect source (lesson or deck)
+  const [source, setSource] = useState("lesson");
+  const [deckId, setDeckId] = useState(null);
+
   useEffect(() => {
     const savedResults = JSON.parse(localStorage.getItem("lessonQuizResults"));
 
@@ -23,6 +27,10 @@ export default function LessonResult() {
         total: savedResults.total || 0,
         answers: savedResults.answers || [],
       });
+
+      // 🔥 detect source
+      setSource(savedResults.source || "lesson");
+      setDeckId(savedResults.deckId || null);
     }
 
     const attemptKey = `lessonQuizAttempts_${lessonId || "default"}`;
@@ -33,6 +41,7 @@ export default function LessonResult() {
     setAttempts(newAttempts);
   }, [lessonId]);
 
+  // 🔒 anti-copy
   useEffect(() => {
     const blockKeys = (e) => {
       const key = e.key.toLowerCase();
@@ -79,43 +88,72 @@ export default function LessonResult() {
     feedbackTitle = "Excellent Performance!";
     feedbackMessage =
       "You mastered this lesson and showed strong understanding of the topic.";
-    masteryLevel = "Advanced Mastery";
-    recommendation = "You can continue to the next lesson or try a harder quiz.";
+    masteryLevel = "Outstanding (A)";
+    recommendation =
+      "You can continue to the next lesson or try a more challenging quiz.";
 
-  } else if (percentage >= 70) {
-    feedbackTitle = "Good Job!";
+} else if (percentage >= 80) {
+    feedbackTitle = "Very Good!";
     feedbackMessage =
-      "You understood most of the lesson, but there are still a few areas to review.";
-    masteryLevel = "Good Mastery";
-    recommendation = "Review the missed questions before moving on.";
+      "You understood the lesson very well with only minor mistakes.";
+    masteryLevel = "Very Satisfactory (B+)";
+    recommendation =
+      "Review small mistakes and proceed to the next lesson.";
 
-  } else if (percentage >= 50) {
-    feedbackTitle = "Keep Practicing!";
-    feedbackMessage =
-      "You have some understanding, but you need more practice to strengthen your learning.";
-    masteryLevel = "Developing Mastery";
-    recommendation = "Study the lesson again, then retry the quiz.";
+} else if (percentage >= 70) {
+  feedbackTitle = "Good Job!";
+  feedbackMessage =
+    "You understood most of the lesson, but there are still areas to improve.";
+  masteryLevel = "Satisfactory (B)";
+  recommendation =
+    "Review the missed questions before moving on.";
 
-  } else {
-    feedbackTitle = "Needs Review";
-    feedbackMessage =
-      "You may need to study the lesson again before trying another quiz.";
-    masteryLevel = "Beginning Mastery";
-    recommendation = "Go back to the lesson and focus on the difficult parts.";
-  }
+} else if (percentage >= 60) {
+  feedbackTitle = "Fair";
+  feedbackMessage =
+    "You have a basic understanding, but need more practice.";
+  masteryLevel = "Developing (C)";
+  recommendation =
+    "Study again and retake the quiz.";
 
-    const retryQuiz = () => {
-      localStorage.removeItem("lessonQuizResults");
+} else if (percentage >= 50) {
+  feedbackTitle = "Needs Improvement";
+  feedbackMessage =
+    "You are starting to understand, but more effort is needed.";
+  masteryLevel = "Beginning (D)";
+  recommendation =
+    "Review the lesson carefully before retrying.";
+
+} else {
+  feedbackTitle = "Needs Review";
+  feedbackMessage =
+    "You need to revisit the lesson and build your understanding.";
+  masteryLevel = "Below Basic (F)";
+  recommendation =
+    "Go back to the lesson and focus on key concepts.";
+}
+
+  const retryQuiz = () => {
+    localStorage.removeItem("lessonQuizResults");
+
+    if (source === "deck") {
+      navigate(`/deck/${deckId}`);
+    } else {
       localStorage.setItem("startQuizMode", "true");
       navigate(`/learning/${lessonId}`);
-    };
+    }
+  };
 
   const goHome = () => {
     navigate("/homepage");
   };
 
-  const goBackToLesson = () => {
-    navigate(`/lesson/${lessonId}`);
+  const goBack = () => {
+    if (source === "deck") {
+      navigate(`/deck/${deckId}`);
+    } else {
+      navigate(`/lesson/${lessonId}`);
+    }
   };
 
   return (
@@ -155,8 +193,8 @@ export default function LessonResult() {
           Practice?
         </button>
 
-        <button className={styles.lesson} onClick={goBackToLesson}>
-          Review Lesson
+        <button className={styles.lesson} onClick={goBack}>
+          {source === "deck" ? "Back to Deck" : "Review Lesson"}
         </button>
 
         <button className={styles.home} onClick={goHome}>

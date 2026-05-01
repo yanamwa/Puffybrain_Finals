@@ -1,31 +1,61 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ModeCard from "./ModeCard";
 import styles from "./QuizModesModal.module.css";
 
-export default function QuizModesModal({ onClose, lessonId }) {
+export default function QuizModesModal({
+  source,
+  deckId,
+  lessonId,
+  cards = [],
+  quizzes = [],
+  onClose,
+}) {
   const [modes, setModes] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchModes();
   }, []);
 
+  const isDeck = source === "deck";
+  const isLesson = source === "lesson";
+
+  const handleStartPractice = (mode) => {
+    if (!mode.route) {
+      console.error("Mode route is missing:", mode);
+      return;
+    }
+
+    if (isDeck) {
+      localStorage.setItem("practiceSource", "deck");
+      localStorage.setItem("practiceDeckId", deckId);
+
+      navigate(`${mode.route}/deck/${deckId}`);
+      return;
+    }
+
+    if (isLesson) {
+      localStorage.setItem("practiceSource", "lesson");
+      localStorage.setItem("practiceLessonId", lessonId);
+
+      navigate(`${mode.route}/lesson/${lessonId}`);
+    }
+  };
+
   const fetchModes = async () => {
     try {
       const res = await fetch("http://localhost/puffybrain/getModes.php");
 
-      if (!res.ok) {
-        throw new Error("Failed to fetch");
-      }
+      if (!res.ok) throw new Error("Failed to fetch");
 
       const data = await res.json();
-
-      console.log("Modes API response:", data);
 
       if (data.success && Array.isArray(data.modes)) {
         setModes(data.modes);
       } else {
-        console.warn("No modes found or wrong format");
         setModes([]);
       }
     } catch (error) {
@@ -44,10 +74,7 @@ export default function QuizModesModal({ onClose, lessonId }) {
       >
         <div className={styles.modalHeader}>
           <h2 className={styles.modalTitle}>Choose Quiz Type</h2>
-          <button
-            className={styles.closeModal}
-            onClick={onClose}
-          >
+          <button className={styles.closeModal} onClick={onClose}>
             &times;
           </button>
         </div>
@@ -65,8 +92,7 @@ export default function QuizModesModal({ onClose, lessonId }) {
                   title={mode.title}
                   img={`http://localhost/puffybrain/images/${mode.image}`}
                   desc={mode.description}
-                  link={mode.route}
-                  lessonId={lessonId}
+                  onClick={() => handleStartPractice(mode)}
                 />
               ))
             )}

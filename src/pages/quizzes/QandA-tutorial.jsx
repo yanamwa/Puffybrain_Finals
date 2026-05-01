@@ -15,7 +15,7 @@ const colors = [
 
 export default function QandATutorial() {
   const navigate = useNavigate();        
-  const { lessonId } = useParams();      
+  const { lessonId, deckId } = useParams();  
   const [currentSlide, setCurrentSlide] = useState(0);
   const [colorIndex, setColorIndex] = useState(0);
   const inputRef = useRef(null);
@@ -66,9 +66,19 @@ export default function QandATutorial() {
           </p>
         </div>
 
-        <button
+       <button
           className={styles.startBtn}
-          onClick={() => navigate(`/qna/${lessonId}`)}
+          onClick={() => {
+            if (lessonId) {
+              navigate(`/qna/lesson/${lessonId}`);
+              return;
+            }
+
+            if (deckId) {
+              navigate(`/qna/deck/${deckId}`);
+              return;
+            }
+          }}
         >
           Start
         </button>
