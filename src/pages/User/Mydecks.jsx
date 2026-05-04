@@ -396,7 +396,7 @@ export default function Mydecks() {
                     `${styles.menuItem} ${isActive ? styles.active : ""}`
                   }
                 >
-                  <i className="bx bx-book"></i>
+                  <i className="bx bx-collection"></i>
                   <span className={styles.menuText}>Decks</span>
                 </NavLink>
               </li>
@@ -408,7 +408,7 @@ export default function Mydecks() {
                     `${styles.menuItem} ${isActive ? styles.active : ""}`
                   }
                 >
-                  <i className="bx bx-book"></i>
+                  <i className="bx bx-book-open"></i>
                   <span className={styles.menuText}>My Course</span>
                 </NavLink>
               </li>
@@ -420,7 +420,7 @@ export default function Mydecks() {
                     `${styles.menuItem} ${isActive ? styles.active : ""}`
                   }
                 >
-                  <i className="bx bx-folder"></i>
+                  <i className="bx bx-world"></i>
                   <span className={styles.menuText}>Public Decks</span>
                 </NavLink>
               </li>
@@ -442,7 +442,7 @@ export default function Mydecks() {
                   myDecks.slice(0, 3).map((deck) => (
                     <li key={deck.id} className={styles.sidebarListItem}>
                       <Link to={`/deck/${deck.id}`} className={styles.menuItem}>
-                        <i className="bx bx-book"></i>
+                        <i className="bx bx-collection"></i>
                         <span className={styles.menuText}>{deck.title}</span>
                       </Link>
                     </li>
@@ -468,7 +468,7 @@ export default function Mydecks() {
                         onClick={() => openCourse(course.id)}
                         className={styles.menuItem}
                       >
-                        <i className="bx bx-book"></i>
+                        <i className="bx bx-book-open"></i>
                         <span className={styles.menuText}>{course.title}</span>
                       </button>
                     </li>
