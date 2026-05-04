@@ -1061,3 +1061,200 @@
     font-size: 14px;
   }
 }
+
+/* ===== PHONE RESPONSIVE: 390 x 844 ===== */
+@media (max-width: 430px) {
+  .container {
+    display: block;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .sidebar {
+    width: 60px !important;
+  }
+
+  .sidebar .logoExpanded,
+  .sidebar .menuText,
+  .sidebar .myDecksTitle,
+  .sidebar .sectionTitle,
+  .sidebar .sidebarEmptyText {
+    display: none !important;
+  }
+
+  .sidebar .logoCollapsed {
+    display: block !important;
+    width: 45px;
+    height: 45px;
+  }
+
+  .sidebarListItem {
+    padding: 0 !important;
+  }
+
+  .menuItem {
+    justify-content: center;
+    padding: 12px 0 !important;
+    border-radius: 0 !important;
+    transform: none !important;
+  }
+
+  .sidebarList i,
+  .sectionList i {
+    margin: 0 !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    display: flex;
+    justify-content: center;
+  }
+
+  .rightSidebar {
+    display: none !important;
+  }
+
+  .mainArea,
+  .sidebarCollapsed .mainArea {
+    margin-left: 60px !important;
+    margin-top: 0;
+    width: calc(100% - 60px);
+  }
+
+  .header,
+  .sidebarCollapsed .header {
+    left: 60px !important;
+    width: calc(100% - 60px) !important;
+    height: 60px;
+    padding: 0 10px;
+  }
+
+  .searchBar {
+    margin-left: 0;
+    margin-right: 8px;
+    height: 34px;
+    max-width: none;
+  }
+
+  .searchBar input {
+    padding: 0 8px;
+    font-size: 13px;
+  }
+
+  .notificationBtn {
+    margin-right: 0 !important;
+    width: 36px;
+    height: 36px;
+  }
+
+  .notificationDropdown {
+    position: fixed;
+    top: 65px;
+    right: 10px;
+    width: 250px;
+  }
+
+  .mainContent {
+    padding: 80px 12px 30px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .centerBox {
+    height: auto;
+    min-height: 120px;
+    padding: 18px;
+    margin-top: 0;
+    overflow: hidden;
+  }
+
+  .centerBox h1 {
+    font-size: 28px;
+    margin-left: 0;
+    line-height: 1.1;
+    position: relative;
+    z-index: 2;
+  }
+
+  .centerBox p {
+    font-size: 16px;
+    margin-left: 0;
+    position: relative;
+    z-index: 2;
+  }
+
+  .centerBox .sideImage {
+    right: -75px;
+    top: -20px;
+    height: 210px;
+    opacity: 0.45;
+  }
+
+  .progress,
+  .deckProgress {
+    margin-top: 22px;
+    padding: 15px;
+    gap: 14px;
+  }
+
+  .progress h3,
+  .deckProgress h3 {
+    font-size: 22px;
+  }
+
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .sectionButtons {
+    width: 100%;
+    gap: 8px;
+  }
+
+  .btnAdd,
+  .btnShow {
+    flex: 1;
+    padding: 9px 10px;
+    font-size: 14px;
+  }
+
+  .decksGrid,
+  .myDecksGrid {
+    grid-template-columns: 1fr !important;
+    gap: 14px;
+  }
+
+  .deckCard,
+  .myDecksGrid .deckCard {
+    height: 150px;
+  }
+
+  .cardTop {
+    height: 60px;
+  }
+
+  .deckTitle {
+    font-size: 15px;
+  }
+
+  .popupContainer {
+    width: calc(100% - 28px);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .subtitleForm {
+    padding: 16px;
+  }
+
+  .startsavContainer,
+  .startsaveContainer {
+    gap: 12px;
+  }
+
+  .cancelBtn,
+  .popaddBtn {
+    padding: 9px 20px;
+    font-size: 14px;
+  }
+}

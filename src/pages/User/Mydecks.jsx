@@ -10,9 +10,9 @@ export default function Mydecks() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [search, setSearch] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(null);
+  const [openFilterDropdown, setOpenFilterDropdown] = useState(null);
 
   const [addPopupOpen, setAddPopupOpen] = useState(false);
-  const [filterOpen, setFilterOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
   const [deckTitle, setDeckTitle] = useState("");
@@ -26,13 +26,13 @@ export default function Mydecks() {
   const [courses, setCourses] = useState([]);
 
   const [notificationOpen, setNotificationOpen] = useState(false);
-  const notificationCount = 0; // change this later when you have real data
+  const notificationCount = 0;
 
   const [user, setUser] = useState({
-  username: "",
-  year_level: "",
-  profile_image: "/images/temporary profile.jpg",
-});
+    username: "",
+    year_level: "",
+    profile_image: "/images/temporary profile.jpg",
+  });
 
   const handleLogout = () => {
     const confirmed = window.confirm("Are you sure you want to logout?");
@@ -79,12 +79,7 @@ export default function Mydecks() {
       });
 
       const data = await res.json();
-
-      if (data.success) {
-        setCourses(data.courses || []);
-      } else {
-        setCourses([]);
-      }
+      setCourses(data.success ? data.courses || [] : []);
     } catch (err) {
       console.error("fetchCourses error:", err);
       setCourses([]);
@@ -92,25 +87,25 @@ export default function Mydecks() {
   };
 
   const fetchUser = async () => {
-  try {
-    const res = await fetch("http://localhost/puffybrain/getUser.php", {
-      credentials: "include",
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      setUser({
-        username: data.user?.username || "",
-        year_level: data.user?.year_level || "",
-        profile_image:
-          data.user?.profile_image || "/images/temporary profile.jpg",
+    try {
+      const res = await fetch("http://localhost/puffybrain/getUser.php", {
+        credentials: "include",
       });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setUser({
+          username: data.user?.username || "",
+          year_level: data.user?.year_level || "",
+          profile_image:
+            data.user?.profile_image || "/images/temporary profile.jpg",
+        });
+      }
+    } catch (err) {
+      console.error("fetchUser error:", err);
     }
-  } catch (err) {
-    console.error("fetchUser error:", err);
-  }
-};
+  };
 
   useEffect(() => {
     fetchUserDecks();
@@ -121,13 +116,14 @@ export default function Mydecks() {
   useEffect(() => {
     const handler = (e) => {
       const insideDropdown = e.target.closest(
-  `.${styles.deckMenu}, .${styles.deckMenuBtn}, .${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}`
-);
+        `.${styles.deckMenu}, .${styles.deckMenuBtn}, .${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}, .${styles.customDropdown}`
+      );
 
       if (!insideDropdown) {
         setDropdownOpen(null);
         setProfileDropdownOpen(false);
         setNotificationOpen(false);
+        setOpenFilterDropdown(null);
       }
     };
 
@@ -482,7 +478,6 @@ export default function Mydecks() {
             </div>
           </div>
         </div>
-
       </aside>
 
       <div className={styles.mainArea}>
@@ -502,52 +497,52 @@ export default function Mydecks() {
             </form>
 
             <div className={styles.profileWrapper}>
-
               <div className={styles.notificationWrapper}>
-                  <button
-                    type="button"
-                    className={styles.notificationBtn}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setNotificationOpen((prev) => !prev);
-                      setProfileDropdownOpen(false);
-                      setDropdownOpen(null);
-                    }}
-                  >
-                    <i className="bx bx-bell"></i>
-                    {notificationCount > 0 && (
-                        <span className={styles.notificationBadge}>
-                          {notificationCount}
-                        </span>
-                      )}
-                  </button>
+                <button
+                  type="button"
+                  className={styles.notificationBtn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setNotificationOpen((prev) => !prev);
+                    setProfileDropdownOpen(false);
+                    setDropdownOpen(null);
+                    setOpenFilterDropdown(null);
+                  }}
+                >
+                  <i className="bx bx-bell"></i>
+                  {notificationCount > 0 && (
+                    <span className={styles.notificationBadge}>
+                      {notificationCount}
+                    </span>
+                  )}
+                </button>
 
-                  <div
-                    className={`${styles.notificationDropdown} ${
-                      notificationOpen ? styles.show : ""
-                    }`}
-                  >
-                    <h4>Notifications</h4>
+                <div
+                  className={`${styles.notificationDropdown} ${
+                    notificationOpen ? styles.show : ""
+                  }`}
+                >
+                  <h4>Notifications</h4>
 
-                    <div className={styles.emptyNotification}>
-                      <p>You don’t have any new notifications</p>
-                    </div>
+                  <div className={styles.emptyNotification}>
+                    <p>You don’t have any new notifications</p>
                   </div>
                 </div>
+              </div>
 
               <Link to="/user-profile" className={styles.profileLink}>
-                  <div className={styles.dpContainer}>
-                    <img
-                      src={user.profile_image || "/images/temporary profile.jpg"}
-                      alt="Profile"
-                      className={styles.profilePic}
-                    />
-                  </div>
+                <div className={styles.dpContainer}>
+                  <img
+                    src={user.profile_image || "/images/temporary profile.jpg"}
+                    alt="Profile"
+                    className={styles.profilePic}
+                  />
+                </div>
 
-                  <div className={styles.userInfo}>
-                    <p>{user.username}</p>
-                  </div>
-                </Link>
+                <div className={styles.userInfo}>
+                  <p>{user.username}</p>
+                </div>
+              </Link>
 
               <div className={styles.dropdown}>
                 <button
@@ -556,6 +551,7 @@ export default function Mydecks() {
                   onClick={(e) => {
                     e.stopPropagation();
                     setProfileDropdownOpen(!profileDropdownOpen);
+                    setOpenFilterDropdown(null);
                   }}
                 >
                   <i className="bx bx-chevron-down" />
@@ -588,8 +584,10 @@ export default function Mydecks() {
           <main className={styles.main}>
             <div className={styles.panel}>
               <div className={styles.purpleStrip} />
+
               <div className={styles.panelHeader}>
                 <h1>My Decks</h1>
+
                 <button
                   className={styles.addBtn}
                   type="button"
@@ -604,13 +602,65 @@ export default function Mydecks() {
               <div className={styles.purpleStrip} />
 
               <div className={styles.filterRow}>
-                <button
-                  type="button"
-                  className={styles.filterPill}
-                  onClick={() => setFilterOpen(true)}
-                >
-                  Filter
-                </button>
+                <div className={styles.filterGroup}>
+                  <div className={styles.customDropdown}>
+                    <button
+                      type="button"
+                      className={styles.customDropdownBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDropdownOpen(null);
+                        setOpenFilterDropdown(
+                          openFilterDropdown === "deckType" ? null : "deckType"
+                        );
+                      }}
+                    >
+                      <i className="bx bx-user"></i>
+                      <span>
+                        {selectedFilter === ""
+                          ? "All"
+                          : selectedFilter === "private"
+                          ? "Private"
+                          : "Shared"}
+                      </span>
+                      <i className="bx bx-chevron-down"></i>
+                    </button>
+
+                    {openFilterDropdown === "deckType" && (
+                      <div className={styles.customDropdownMenu}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedFilter("");
+                            setOpenFilterDropdown(null);
+                          }}
+                        >
+                          All
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedFilter("private");
+                            setOpenFilterDropdown(null);
+                          }}
+                        >
+                          Private
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedFilter("shared");
+                            setOpenFilterDropdown(null);
+                          }}
+                        >
+                          Shared
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div className={styles.deckArea}>
@@ -633,7 +683,7 @@ export default function Mydecks() {
                       className={styles.emptyImg}
                     />
                     <p className={styles.emptyText}>
-                      No decks match your search.
+                      No decks match your search or filter.
                     </p>
                   </div>
                 ) : (
@@ -654,6 +704,7 @@ export default function Mydecks() {
                             className={styles.deckMenuBtn}
                             onClick={(e) => {
                               e.stopPropagation();
+                              setOpenFilterDropdown(null);
                               setDropdownOpen((prev) =>
                                 prev === d.id ? null : d.id
                               );
@@ -796,67 +847,13 @@ export default function Mydecks() {
                   >
                     Cancel
                   </button>
+
                   <button
                     type="button"
                     className={styles.confirmBtn}
                     onClick={handleAddDeck}
                   >
                     Add
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {filterOpen && (
-            <div className={styles.overlay} onClick={() => setFilterOpen(false)}>
-              <div
-                className={styles.modal}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <h2 className={styles.modalTitle}>Filter</h2>
-
-                <div className={styles.radioCol}>
-                  <label className={styles.radioLabel}>
-                    <input
-                      type="radio"
-                      name="deckType"
-                      value="private"
-                      checked={selectedFilter === "private"}
-                      onChange={(e) => setSelectedFilter(e.target.value)}
-                    />
-                    Private
-                  </label>
-
-                  <label className={styles.radioLabel}>
-                    <input
-                      type="radio"
-                      name="deckType"
-                      value="shared"
-                      checked={selectedFilter === "shared"}
-                      onChange={(e) => setSelectedFilter(e.target.value)}
-                    />
-                    Shared
-                  </label>
-                </div>
-
-                <div className={styles.modalActions}>
-                  <button
-                    type="button"
-                    className={styles.cancelBtn}
-                    onClick={() => {
-                      setSelectedFilter("");
-                      setFilterOpen(false);
-                    }}
-                  >
-                    Reset
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.confirmBtn}
-                    onClick={() => setFilterOpen(false)}
-                  >
-                    Apply
                   </button>
                 </div>
               </div>

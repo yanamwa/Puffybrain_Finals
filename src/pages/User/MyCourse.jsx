@@ -15,8 +15,10 @@ export default function MyCourse() {
   const [notificationOpen, setNotificationOpen] = useState(false);
   const notificationCount = 0; // change this later when you have real data
 
-  const [filterOpen, setFilterOpen] = useState(false);
+  const [openFilterDropdown, setOpenFilterDropdown] = useState(null);
   const [selectedFilter, setSelectedFilter] = useState("");
+
+  const [filterOpen, setFilterOpen] = useState(false);
 
   const [user, setUser] = useState({
   username: "",
@@ -286,7 +288,6 @@ const filteredCourses = useMemo(() => {
                                     e.stopPropagation();
                                     setNotificationOpen((prev) => !prev);
                                     setProfileDropdownOpen(false);
-                                    setDropdownOpen(null);
                                   }}
                                 >
                                   <i className="bx bx-bell"></i>
@@ -366,17 +367,40 @@ const filteredCourses = useMemo(() => {
 
               <div className={styles.panelHeader}>
                 <h1>My Courses</h1>
-              </div>
 
-              <div className={styles.filterRow}>
-                  <button
-                    type="button"
-                    className={styles.filterPill}
-                    onClick={() => setFilterOpen(true)}
-                  >
-                    Filter
-                  </button>
+                <div className={styles.filterGroup}>
+                  <div className={styles.customDropdown}>
+                    <button
+                      type="button"
+                      className={styles.customDropdownBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenFilterDropdown(
+                          openFilterDropdown === "courseType" ? null : "courseType"
+                        );
+                      }}
+                    >
+                      <i className="bx bx-user"></i>
+                      <span>
+                        {selectedFilter === ""
+                          ? "All"
+                          : selectedFilter === "private"
+                          ? "Private"
+                          : "Shared"}
+                      </span>
+                      <i className="bx bx-chevron-down"></i>
+                    </button>
+
+                    {openFilterDropdown === "courseType" && (
+                      <div className={styles.customDropdownMenu}>
+                        <button onClick={() => setSelectedFilter("")}>All</button>
+                        <button onClick={() => setSelectedFilter("private")}>Private</button>
+                        <button onClick={() => setSelectedFilter("shared")}>Shared</button>
+                      </div>
+                    )}
+                  </div>
                 </div>
+              </div>
 
               <div className={styles.deckArea}>
                 {filteredCourses.length === 0 ? (
@@ -464,58 +488,7 @@ const filteredCourses = useMemo(() => {
           </main>
         </div>
       </div>
-      {filterOpen && (
-  <div className={styles.overlay} onClick={() => setFilterOpen(false)}>
-    <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-      <h2 className={styles.modalTitle}>Filter</h2>
-
-      <div className={styles.radioCol}>
-        <label className={styles.radioLabel}>
-          <input
-            type="radio"
-            name="courseType"
-            value="private"
-            checked={selectedFilter === "private"}
-            onChange={(e) => setSelectedFilter(e.target.value)}
-          />
-          Private
-        </label>
-
-        <label className={styles.radioLabel}>
-          <input
-            type="radio"
-            name="courseType"
-            value="shared"
-            checked={selectedFilter === "shared"}
-            onChange={(e) => setSelectedFilter(e.target.value)}
-          />
-          Shared
-        </label>
-      </div>
-
-      <div className={styles.modalActions}>
-        <button
-          type="button"
-          className={styles.cancelBtn}
-          onClick={() => {
-            setSelectedFilter("");
-            setFilterOpen(false);
-          }}
-        >
-          Reset
-        </button>
-
-        <button
-          type="button"
-          className={styles.confirmBtn}
-          onClick={() => setFilterOpen(false)}
-        >
-          Apply
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+      
     </div>
   );
 }

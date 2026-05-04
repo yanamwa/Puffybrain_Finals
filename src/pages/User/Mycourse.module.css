@@ -688,25 +688,73 @@
   color: #555;
   margin: 0;
 }
-/*filter*/
-.filterRow {
-  position: absolute;
-  top: 8px;
-  left: 26px;
-  height: 26px;
-  padding: 0 16px;
+/* filter */
+.panelHeader {
+  padding: 22px 28px;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  background: #efd9ff;
-  border-radius: 14px;
-  z-index: 2;
 }
 
-.filterPill {
-  border: none;
-  background: transparent;
+.filterGroup {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-left: auto;
+}
+
+.customDropdown {
+  position: relative;
+}
+
+.customDropdownBtn {
+  width: 110px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid #777;
+  border-radius: 999px;
+  background: #eeeeee;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
   cursor: pointer;
+}
+
+.customDropdownBtn i:first-child {
   font-size: 15px;
+}
+
+.customDropdownBtn i:last-child {
+  margin-left: auto;
+}
+
+.customDropdownMenu {
+  position: absolute;
+  top: 34px;
+  right: 0;
+  width: 130px;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+}
+
+.customDropdownMenu button {
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  background: white;
+  text-align: left;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.customDropdownMenu button:hover {
+  background: #f1f1f1;
 }
 
 /* MODAL (reuse from MyDecks) */

@@ -96,20 +96,20 @@ function LearningModule() {
   }, []);
 
   useEffect(() => {
-    const handler = (e) => {
-      const insideDropdown = e.target.closest(
-        `.${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}`
-      );
+  const handler = (e) => {
+    const insideDropdown = e.target.closest(
+      `.${styles.deckMenu}, .${styles.deckMenuBtn}, .${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}`
+    );
 
-      if (!insideDropdown) {
-        setProfileDropdownOpen(false);
-        setNotificationOpen(false);
-      }
-    };
+    if (!insideDropdown) {
+      setProfileDropdownOpen(false);
+      setNotificationOpen(false);
+    }
+  };
 
-    window.addEventListener("click", handler);
-    return () => window.removeEventListener("click", handler);
-  }, []);
+  window.addEventListener("click", handler);
+  return () => window.removeEventListener("click", handler);
+}, []);
 
   useEffect(() => {
     const loadLessonAndProgress = async () => {
@@ -445,17 +445,19 @@ function LearningModule() {
                 </div>
               </div>
 
-              <div className={styles.dpContainer}>
-                <img
-                  src="/images/temporary profile.jpg"
-                  alt="Profile"
-                  className={styles.profilePic}
-                />
-              </div>
+              <Link to="/user-profile" className={styles.profileLink}>
+                  <div className={styles.dpContainer}>
+                    <img
+                      src={user.profile_image || "/images/temporary profile.jpg"}
+                      alt="Profile"
+                      className={styles.profilePic}
+                    />
+                  </div>
 
-              <div className={styles.userInfo}>
-                <p>{user.username}</p>
-              </div>
+                  <div className={styles.userInfo}>
+                    <p>{user.username}</p>
+                  </div>
+                </Link>
 
               <div className={styles.dropdown}>
                 <button
@@ -491,6 +493,7 @@ function LearningModule() {
                   </button>
                 </div>
               </div>
+
             </div>
           </div>
 
@@ -617,57 +620,82 @@ function LearningModule() {
                   </div>
 
                   <div className={styles.cardContent}>
-                    {activeTab === "tab1" && (
-                      <div className={styles.tabBoxes}>
-                        {filteredQuizzes.length === 0 ? (
-                          <p>No quizzes available.</p>
-                        ) : (
-                          filteredQuizzes.map((quiz, index) => (
-                            <div key={index} className={styles.box}>
-                              <p className={styles.question}>{quiz.question}</p>
+                        {activeTab === "tab1" && (
+                          <div className={styles.tabBoxes}>
+                            {filteredQuizzes.length === 0 ? (
+                              <div className={styles.emptyState}>
+                                <img
+                                  src="/images/cute1.png"
+                                  alt="No cards"
+                                  className={styles.emptyImage}
+                                />
+                                <p>No cards available yet.</p>
+                              </div>
+                            ) : (
+                              filteredQuizzes.map((quiz, index) => (
+                                <div key={index} className={styles.box}>
+                                  <p className={styles.question}>{quiz.question}</p>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        )}
+
+                        {activeTab === "tab2" && (
+                            <div className={styles.tabBoxes}>
+                              {filteredQuizzes.length === 0 ? (
+                                // 🧊 Case 1: No cards exist at all
+                                <div className={styles.emptyState}>
+                                  <img
+                                    src="/images/cute1.png"
+                                    alt="No cards"
+                                    className={styles.emptyImage}
+                                  />
+                                  <p>No cards to memorize yet.</p>
+                                </div>
+                              ) : notMemorizedCards.length === 0 ? (
+                                // 🎉 Case 2: All cards memorized
+                                <div className={styles.emptyState}>
+                                  <img
+                                    src="/images/celeb.png"
+                                    alt="All memorized"
+                                    className={styles.emptyImage}
+                                  />
+                                  <p>Congratulation! You memorized all cards 🎉</p>
+                                </div>
+                              ) : (
+                                // 📚 Case 3: There are still cards to study
+                                notMemorizedCards.map((quiz, index) => (
+                                  <div key={index} className={styles.box}>
+                                    <p className={styles.question}>{quiz.question}</p>
+                                  </div>
+                                ))
+                              )}
                             </div>
-                          ))
+                          )}
+
+                        {activeTab === "tab3" && (
+                          <div className={styles.tabBoxes}>
+                            {memorizedCards.length === 0 ? (
+                              <div className={styles.emptyState}>
+                                <img
+                                  src="/images/cute1.png"
+                                  alt="No memorized cards"
+                                  className={styles.emptyImage}
+                                />
+                                <p>No memorized cards yet.</p>
+                              </div>
+                            ) : (
+                              memorizedCards.map((quiz, index) => (
+                                <div key={index} className={styles.box}>
+                                  <p className={styles.question}>{quiz.question}</p>
+                                </div>
+                              ))
+                            )}
+                          </div>
                         )}
                       </div>
-                    )}
-
-                    {activeTab === "tab2" && (
-                      <div className={styles.tabBoxes}>
-                        {notMemorizedCards.length === 0 ? (
-                          <p>All cards memorized 🎉</p>
-                        ) : (
-                          notMemorizedCards.map((quiz, index) => (
-                            <div key={index} className={styles.box}>
-                              <p className={styles.question}>{quiz.question}</p>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    )}
-
-                {activeTab === "tab3" && (
-                  <div className={styles.tabBoxes}>
-                    {memorizedCards.length === 0 ? (
-                      <div className={styles.emptyState}>
-                        <img
-                          src="/images/cute1.png"
-                          alt="No memorized cards"
-                          className={styles.emptyImage}
-                        />
-                        <p>No memorized cards yet.</p>
-                      </div>
-                    ) : (
-                      memorizedCards.map((quiz, index) => (
-                        <div key={index} className={styles.box}>
-                          <p className={styles.question}>{quiz.question}</p>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                )}
-                                
-                  </div>
-                </div>
+                                      </div>
               </div>
             </div>
           </main>

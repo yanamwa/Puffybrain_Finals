@@ -10,25 +10,37 @@ function PublicDecks() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [search, setSearch] = useState("");
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [notificationOpen, setNotificationOpen] = useState(false);
 
   const [lessons, setLessons] = useState([]);
   const [publicDecks, setPublicDecks] = useState([]);
   const [myDecks, setMyDecks] = useState([]);
   const [courses, setCourses] = useState([]);
 
-  const [notificationOpen, setNotificationOpen] = useState(false);
-  const notificationCount = 0; // change this later when you have real data
+  const [courseSort, setCourseSort] = useState("");
+  const [courseYear, setCourseYear] = useState("");
+  const [deckSort, setDeckSort] = useState("");
+  const [deckYear, setDeckYear] = useState("");
 
-  const [courseFilterOpen, setCourseFilterOpen] = useState(false);
-  const [deckFilterOpen, setDeckFilterOpen] = useState(false);
-  const [selectedCourseFilter, setSelectedCourseFilter] = useState("");
-  const [selectedDeckFilter, setSelectedDeckFilter] = useState("");
+  const [courseSortOpen, setCourseSortOpen] = useState(false);
+  const [courseYearOpen, setCourseYearOpen] = useState(false);
+  const [deckSortOpen, setDeckSortOpen] = useState(false);
+  const [deckYearOpen, setDeckYearOpen] = useState(false);
+
+  const notificationCount = 0;
 
   const [user, setUser] = useState({
-  username: "",
-  year_level: "",
-  profile_image: "/images/temporary profile.jpg",
-});
+    username: "",
+    year_level: "",
+    profile_image: "/images/temporary profile.jpg",
+  });
+
+  const closeAllFilterDropdowns = () => {
+    setCourseSortOpen(false);
+    setCourseYearOpen(false);
+    setDeckSortOpen(false);
+    setDeckYearOpen(false);
+  };
 
   const handleLogout = () => {
     Swal.fire({
@@ -46,25 +58,25 @@ function PublicDecks() {
   };
 
   const fetchUser = async () => {
-  try {
-    const res = await fetch("http://localhost/puffybrain/getUser.php", {
-      credentials: "include",
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      setUser({
-        username: data.user?.username || "",
-        year_level: data.user?.year_level || "",
-        profile_image:
-          data.user?.profile_image || "/images/temporary profile.jpg",
+    try {
+      const res = await fetch("http://localhost/puffybrain/getUser.php", {
+        credentials: "include",
       });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setUser({
+          username: data.user?.username || "",
+          year_level: data.user?.year_level || "",
+          profile_image:
+            data.user?.profile_image || "/images/temporary profile.jpg",
+        });
+      }
+    } catch (err) {
+      console.error("Fetch user error:", err);
     }
-  } catch (err) {
-    console.error("Fetch user error:", err);
-  }
-};
+  };
 
   const fetchUserDecks = async () => {
     try {
@@ -73,12 +85,7 @@ function PublicDecks() {
       });
 
       const data = await res.json();
-
-      if (data.success) {
-        setMyDecks(data.decks || []);
-      } else {
-        setMyDecks([]);
-      }
+      setMyDecks(data.success ? data.decks || [] : []);
     } catch (err) {
       console.error("Error fetching decks:", err);
       setMyDecks([]);
@@ -92,12 +99,7 @@ function PublicDecks() {
       });
 
       const data = await res.json();
-
-      if (data.success) {
-        setCourses(data.courses || []);
-      } else {
-        setCourses([]);
-      }
+      setCourses(data.success ? data.courses || [] : []);
     } catch (err) {
       console.error("Error fetching courses:", err);
       setCourses([]);
@@ -111,12 +113,7 @@ function PublicDecks() {
       });
 
       const data = await res.json();
-
-      if (Array.isArray(data)) {
-        setLessons(data);
-      } else {
-        setLessons([]);
-      }
+      setLessons(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Lessons fetch error:", err);
       setLessons([]);
@@ -133,7 +130,7 @@ function PublicDecks() {
 
       if (Array.isArray(data)) {
         setPublicDecks(data);
-      } else if (data?.decks && Array.isArray(data.decks)) {
+      } else if (Array.isArray(data?.decks)) {
         setPublicDecks(data.decks);
       } else {
         setPublicDecks([]);
@@ -155,13 +152,13 @@ function PublicDecks() {
   useEffect(() => {
     const handler = (e) => {
       const insideDropdown = e.target.closest(
-  `.${styles.deckMenu}, .${styles.deckMenuBtn}, .${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}`
-);
+        `.${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}, .${styles.customDropdown}`
+      );
 
       if (!insideDropdown) {
-        setDropdownOpen(null);
         setProfileDropdownOpen(false);
         setNotificationOpen(false);
+        closeAllFilterDropdowns();
       }
     };
 
@@ -228,30 +225,56 @@ function PublicDecks() {
   };
 
   const filteredLessons = useMemo(() => {
-  const q = search.trim().toLowerCase();
+    const q = search.trim().toLowerCase();
 
-  return lessons
-    .filter((lesson) => (lesson.title || "").toLowerCase().includes(q))
-    .filter((lesson) => {
-      if (!selectedCourseFilter) return true;
-      if (selectedCourseFilter === "withDescription") return !!lesson.description;
-      if (selectedCourseFilter === "noDescription") return !lesson.description;
-      return true;
-    });
-}, [lessons, search, selectedCourseFilter]);
+    let result = lessons
+      .filter((lesson) => (lesson.title || "").toLowerCase().includes(q))
+      .filter((lesson) => {
+        const year = lesson.level || lesson.year_level || "";
+
+        return courseYear
+          ? year.toLowerCase() === courseYear.toLowerCase()
+          : true;
+      });
+
+    if (courseSort === "az") {
+      result = [...result].sort((a, b) =>
+        (a.title || "").localeCompare(b.title || "")
+      );
+    }
+
+    if (courseSort === "recent") {
+      result = [...result].sort((a, b) => Number(b.id) - Number(a.id));
+    }
+
+    return result;
+  }, [lessons, search, courseSort, courseYear]);
 
   const filteredPublicDecks = useMemo(() => {
-  const q = search.trim().toLowerCase();
+    const q = search.trim().toLowerCase();
 
-  return publicDecks
-    .filter((deck) => (deck.title || "").toLowerCase().includes(q))
-    .filter((deck) => {
-      if (!selectedDeckFilter) return true;
-      if (selectedDeckFilter === "withDescription") return !!deck.description;
-      if (selectedDeckFilter === "noDescription") return !deck.description;
-      return true;
-    });
-}, [publicDecks, search, selectedDeckFilter]);
+    let result = publicDecks
+      .filter((deck) => (deck.title || "").toLowerCase().includes(q))
+      .filter((deck) => {
+        const year = deck.level || deck.year_level || "";
+
+        return deckYear
+          ? year.toLowerCase() === deckYear.toLowerCase()
+          : true;
+      });
+
+    if (deckSort === "az") {
+      result = [...result].sort((a, b) =>
+        (a.title || "").localeCompare(b.title || "")
+      );
+    }
+
+    if (deckSort === "recent") {
+      result = [...result].sort((a, b) => Number(b.id) - Number(a.id));
+    }
+
+    return result;
+  }, [publicDecks, search, deckSort, deckYear]);
 
   return (
     <div
@@ -408,38 +431,38 @@ function PublicDecks() {
             </form>
 
             <div className={styles.profileWrapper}>
-
               <div className={styles.notificationWrapper}>
-                                <button
-                                  type="button"
-                                  className={styles.notificationBtn}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setNotificationOpen((prev) => !prev);
-                                    setProfileDropdownOpen(false);
-                                    setDropdownOpen(null);
-                                  }}
-                                >
-                                  <i className="bx bx-bell"></i>
-                                  {notificationCount > 0 && (
-                                      <span className={styles.notificationBadge}>
-                                        {notificationCount}
-                                      </span>
-                                    )}
-                                </button>
-              
-                                <div
-                                  className={`${styles.notificationDropdown} ${
-                                    notificationOpen ? styles.show : ""
-                                  }`}
-                                >
-                                  <h4>Notifications</h4>
-              
-                                  <div className={styles.emptyNotification}>
-                                    <p>You don’t have any new notifications</p>
-                                  </div>
-                                </div>
-                              </div>
+                <button
+                  type="button"
+                  className={styles.notificationBtn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setNotificationOpen((prev) => !prev);
+                    setProfileDropdownOpen(false);
+                    closeAllFilterDropdowns();
+                  }}
+                >
+                  <i className="bx bx-bell"></i>
+
+                  {notificationCount > 0 && (
+                    <span className={styles.notificationBadge}>
+                      {notificationCount}
+                    </span>
+                  )}
+                </button>
+
+                <div
+                  className={`${styles.notificationDropdown} ${
+                    notificationOpen ? styles.show : ""
+                  }`}
+                >
+                  <h4>Notifications</h4>
+
+                  <div className={styles.emptyNotification}>
+                    <p>You don’t have any new notifications</p>
+                  </div>
+                </div>
+              </div>
 
               <Link to="/user-profile" className={styles.profileLink}>
                 <div className={styles.dpContainer}>
@@ -461,7 +484,9 @@ function PublicDecks() {
                   className={styles.dropdownBtn}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setProfileDropdownOpen(!profileDropdownOpen);
+                    setProfileDropdownOpen((prev) => !prev);
+                    setNotificationOpen(false);
+                    closeAllFilterDropdowns();
                   }}
                 >
                   <i className="bx bx-chevron-down" />
@@ -498,19 +523,126 @@ function PublicDecks() {
               <div className={styles.innercourse}>
                 <div className={styles.innerhead}>
                   <h1>All Courses</h1>
-                  <button
-                    type="button"
-                    className={styles.filterPill}
-                    onClick={() => setCourseFilterOpen(true)}
-                  >
-                    Filter
-                  </button>
+
+                  <div className={styles.filterGroup}>
+                    <div className={styles.customDropdown}>
+                      <button
+                        type="button"
+                        className={styles.customDropdownBtn}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCourseSortOpen((prev) => !prev);
+                          setCourseYearOpen(false);
+                          setDeckSortOpen(false);
+                          setDeckYearOpen(false);
+                        }}
+                      >
+                        <i className="bx bx-message-square-dots"></i>
+                        <span>
+                          {courseSort === "az"
+                            ? "A-Z"
+                            : courseSort === "recent"
+                            ? "Recently"
+                            : "Sort by"}
+                        </span>
+                        <i className="bx bx-chevron-down"></i>
+                      </button>
+
+                      {courseSortOpen && (
+                        <div className={styles.customDropdownMenu}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCourseSort("az");
+                              setCourseSortOpen(false);
+                            }}
+                          >
+                            A-Z
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCourseSort("recent");
+                              setCourseSortOpen(false);
+                            }}
+                          >
+                            Recently Added
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className={styles.customDropdown}>
+                      <button
+                        type="button"
+                        className={styles.customDropdownBtn}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCourseYearOpen((prev) => !prev);
+                          setCourseSortOpen(false);
+                          setDeckSortOpen(false);
+                          setDeckYearOpen(false);
+                        }}
+                      >
+                        <i className="bx bx-user"></i>
+                        <span>{courseYear || "Level"}</span>
+                        <i className="bx bx-chevron-down"></i>
+                      </button>
+
+                      {courseYearOpen && (
+                        <div className={styles.customDropdownMenu}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCourseYear("First Year");
+                              setCourseYearOpen(false);
+                            }}
+                          >
+                            First year
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCourseYear("Second Year");
+                              setCourseYearOpen(false);
+                            }}
+                          >
+                            Second year
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCourseYear("Third Year");
+                              setCourseYearOpen(false);
+                            }}
+                          >
+                            Third year
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCourseYear("Fourth Year");
+                              setCourseYearOpen(false);
+                            }}
+                          >
+                            Fourth year
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 <div className={styles.lessons}>
                   {filteredLessons.length === 0 ? (
                     <p className={styles.emptyMain}>
-                      {search ? "No courses match your search." : "No courses available."}
+                      {search
+                        ? "No courses match your search or filter."
+                        : "No courses available."}
                     </p>
                   ) : (
                     filteredLessons.map((lesson) => (
@@ -559,20 +691,125 @@ function PublicDecks() {
               <div className={styles.innercourse}>
                 <div className={styles.innerhead}>
                   <h1>Public Decks</h1>
-                  <button
-                    type="button"
-                    className={styles.filterPill}
-                    onClick={() => setDeckFilterOpen(true)}
-                  >
-                    Filter
-                  </button>
+
+                  <div className={styles.filterGroup}>
+                    <div className={styles.customDropdown}>
+                      <button
+                        type="button"
+                        className={styles.customDropdownBtn}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeckSortOpen((prev) => !prev);
+                          setDeckYearOpen(false);
+                          setCourseSortOpen(false);
+                          setCourseYearOpen(false);
+                        }}
+                      >
+                        <i className="bx bx-message-square-dots"></i>
+                        <span>
+                          {deckSort === "az"
+                            ? "A-Z"
+                            : deckSort === "recent"
+                            ? "Recently"
+                            : "Sort by"}
+                        </span>
+                        <i className="bx bx-chevron-down"></i>
+                      </button>
+
+                      {deckSortOpen && (
+                        <div className={styles.customDropdownMenu}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDeckSort("az");
+                              setDeckSortOpen(false);
+                            }}
+                          >
+                            A-Z
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDeckSort("recent");
+                              setDeckSortOpen(false);
+                            }}
+                          >
+                            Recently Added
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className={styles.customDropdown}>
+                      <button
+                        type="button"
+                        className={styles.customDropdownBtn}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeckYearOpen((prev) => !prev);
+                          setDeckSortOpen(false);
+                          setCourseSortOpen(false);
+                          setCourseYearOpen(false);
+                        }}
+                      >
+                        <i className="bx bx-user"></i>
+                        <span>{deckYear || "Level"}</span>
+                        <i className="bx bx-chevron-down"></i>
+                      </button>
+
+                      {deckYearOpen && (
+                        <div className={styles.customDropdownMenu}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDeckYear("First Year");
+                              setDeckYearOpen(false);
+                            }}
+                          >
+                            First year
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDeckYear("Second Year");
+                              setDeckYearOpen(false);
+                            }}
+                          >
+                            Second year
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDeckYear("Third Year");
+                              setDeckYearOpen(false);
+                            }}
+                          >
+                            Third year
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDeckYear("Fourth Year");
+                              setDeckYearOpen(false);
+                            }}
+                          >
+                            Fourth year
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 <div className={styles.deckGrid}>
                   {filteredPublicDecks.length === 0 ? (
                     <p className={styles.emptyMain}>
                       {search
-                        ? "No public decks match your search."
+                        ? "No public decks match your search or filter."
                         : "No public decks available."}
                     </p>
                   ) : (
@@ -590,6 +827,7 @@ function PublicDecks() {
 
                         <div className={styles.deckContent}>
                           <h3 className={styles.deckTitle}>{deck.title}</h3>
+
                           <p className={styles.deckCount}>
                             {deck.description || "No description"}
                           </p>
@@ -603,111 +841,6 @@ function PublicDecks() {
           </main>
         </div>
       </div>
-      {courseFilterOpen && (
-  <div className={styles.overlay} onClick={() => setCourseFilterOpen(false)}>
-    <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-      <h2 className={styles.modalTitle}>Filter Courses</h2>
-
-      <div className={styles.radioCol}>
-        <label className={styles.radioLabel}>
-          <input
-            type="radio"
-            name="courseFilter"
-            value="withDescription"
-            checked={selectedCourseFilter === "withDescription"}
-            onChange={(e) => setSelectedCourseFilter(e.target.value)}
-          />
-          With Description
-        </label>
-
-        <label className={styles.radioLabel}>
-          <input
-            type="radio"
-            name="courseFilter"
-            value="noDescription"
-            checked={selectedCourseFilter === "noDescription"}
-            onChange={(e) => setSelectedCourseFilter(e.target.value)}
-          />
-          No Description
-        </label>
-      </div>
-
-      <div className={styles.modalActions}>
-        <button
-          type="button"
-          className={styles.cancelBtn}
-          onClick={() => {
-            setSelectedCourseFilter("");
-            setCourseFilterOpen(false);
-          }}
-        >
-          Reset
-        </button>
-
-        <button
-          type="button"
-          className={styles.confirmBtn}
-          onClick={() => setCourseFilterOpen(false)}
-        >
-          Apply
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-{deckFilterOpen && (
-  <div className={styles.overlay} onClick={() => setDeckFilterOpen(false)}>
-    <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-      <h2 className={styles.modalTitle}>Filter Decks</h2>
-
-      <div className={styles.radioCol}>
-        <label className={styles.radioLabel}>
-          <input
-            type="radio"
-            name="deckFilter"
-            value="withDescription"
-            checked={selectedDeckFilter === "withDescription"}
-            onChange={(e) => setSelectedDeckFilter(e.target.value)}
-          />
-          With Description
-        </label>
-
-        <label className={styles.radioLabel}>
-          <input
-            type="radio"
-            name="deckFilter"
-            value="noDescription"
-            checked={selectedDeckFilter === "noDescription"}
-            onChange={(e) => setSelectedDeckFilter(e.target.value)}
-          />
-          No Description
-        </label>
-      </div>
-
-      <div className={styles.modalActions}>
-        <button
-          type="button"
-          className={styles.cancelBtn}
-          onClick={() => {
-            setSelectedDeckFilter("");
-            setDeckFilterOpen(false);
-          }}
-        >
-          Reset
-        </button>
-
-        <button
-          type="button"
-          className={styles.confirmBtn}
-          onClick={() => setDeckFilterOpen(false)}
-        >
-          Apply
-        </button>
-      </div>
-    </div>
-  </div>
-)}
     </div>
   );
 }
