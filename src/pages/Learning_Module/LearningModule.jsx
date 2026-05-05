@@ -178,19 +178,20 @@ function LearningModule() {
     loadLessonAndProgress();
   }, [lessonId]);
 
-  const handleLogout = () => {
-    Swal.fire({
-      title: "Logout?",
-      text: "Are you sure you want to logout?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, logout",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        navigate("/login");
-      }
-    });
-  };
+ const handleLogout = () => {
+     Swal.fire({
+       title: "Logout?",
+       text: "Are you sure you want to logout?",
+       icon: "warning",
+       showCancelButton: true,
+       confirmButtonText: "Yes",
+       confirmButtonColor: "#7b5cff",
+     }).then((result) => {
+       if (result.isConfirmed) {
+         navigate("/login");
+       }
+     });
+   };
 
   const handleShare = async () => {
     const lessonLink = `${window.location.origin}/learning/${lessonId}`;

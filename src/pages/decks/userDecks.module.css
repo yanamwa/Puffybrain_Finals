@@ -363,17 +363,27 @@
   z-index: 9999;
 }
 
-.dropdownContent a {
+.dropdownContent a,
+.dropdownContent button {
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
   padding: 10px 12px;
   border-radius: 10px;
   text-decoration: none;
   color: #000;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 15px;
+  text-align: left;
 }
 
-.dropdownContent a:hover {
+.dropdownContent a:hover,
+.dropdownContent button:hover {
   background: #f3f3f3;
 }
 

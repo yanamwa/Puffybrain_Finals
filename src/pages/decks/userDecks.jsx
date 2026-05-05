@@ -455,6 +455,21 @@ export default function UserDecks() {
     return true;
   });
 
+   const handleLogout = () => {
+       Swal.fire({
+         title: "Logout?",
+         text: "Are you sure you want to logout?",
+         icon: "warning",
+         showCancelButton: true,
+         confirmButtonText: "Yes",
+         confirmButtonColor: "#7b5cff",
+       }).then((result) => {
+         if (result.isConfirmed) {
+           navigate("/login");
+         }
+       });
+     };
+
   return (
     <div
       className={`${styles.container} ${
@@ -675,10 +690,14 @@ export default function UserDecks() {
                     <span>FAQs</span>
                   </NavLink>
 
-                  <NavLink to="/login">
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className={styles.menuItem}
+                  >
                     <i className="bx bx-log-out" />
-                    <span>Logout</span>
-                  </NavLink>
+                    <span className={styles.menuText}>  Logout</span>
+                  </button>
                 </div>
               </div>
             </div>

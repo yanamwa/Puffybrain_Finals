@@ -168,21 +168,19 @@ function EditProfile() {
   };
 
   const handleLogout = () => {
-  Swal.fire({
-    imageUrl: "/images/error.png",
-    imageWidth: 170,
-    imageHeight: 170,
-    title: "Logout?",
-    text: "Are you sure you want to logout?",
-    showCancelButton: true,
-    confirmButtonText: "Yes",
-    cancelButtonText: "Cancel",
-  }).then((result) => {
-    if (result.isConfirmed) {
-      navigate("/login");
-    }
-  });
-};
+      Swal.fire({
+        title: "Logout?",
+        text: "Are you sure you want to logout?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes",
+        confirmButtonColor: "#7b5cff",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate("/login");
+        }
+      });
+    };
 
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
