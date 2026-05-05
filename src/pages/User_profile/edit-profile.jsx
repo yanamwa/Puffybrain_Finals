@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import "boxicons/css/boxicons.min.css";
 import styles from "./edit-profile.module.css";
+import Swal from "sweetalert2";
 
 function EditProfile() {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ function EditProfile() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
 
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -30,6 +32,16 @@ function EditProfile() {
   const [selectedImageFile, setSelectedImageFile] = useState(null);
 
   const [isOtherSchool, setIsOtherSchool] = useState(false);
+
+  const showFeedback = (type, title, text) => {
+  Swal.fire({
+    imageUrl: type === "success" ? "/images/success.png" : "/images/error.png",
+    imageWidth: 170,
+    imageHeight: 170,
+    title,
+    text,
+  });
+};
 
 
 
@@ -51,7 +63,8 @@ function EditProfile() {
     profile_image: "",
   });
 
-  const [passwordForm, setPasswordForm] = useState({
+    const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
@@ -155,9 +168,21 @@ function EditProfile() {
   };
 
   const handleLogout = () => {
-    const confirmed = window.confirm("Are you sure you want to logout?");
-    if (confirmed) navigate("/login");
-  };
+  Swal.fire({
+    imageUrl: "/images/error.png",
+    imageWidth: 170,
+    imageHeight: 170,
+    title: "Logout?",
+    text: "Are you sure you want to logout?",
+    showCancelButton: true,
+    confirmButtonText: "Yes",
+    cancelButtonText: "Cancel",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      navigate("/login");
+    }
+  });
+};
 
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
@@ -202,17 +227,21 @@ const passwordStrength = getPasswordStrength(newPassword);
   e.preventDefault();
 
   if (!isPasswordValid) {
-  alert("Password must meet all security requirements.");
+  showFeedback("error", "Invalid Password", "Password must meet all security requirements.");
   return;
 }
 
-  if (!passwordForm.newPassword || !passwordForm.confirmPassword) {
-    alert("Please fill in both password fields.");
+    if (
+    !passwordForm.currentPassword ||
+    !passwordForm.newPassword ||
+    !passwordForm.confirmPassword
+  ) {
+    showFeedback("error", "Missing Fields", "Please fill in all password fields.");
     return;
   }
 
   if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-    alert("Passwords do not match.");
+    showFeedback("error", "Mismatch", "Passwords do not match.");
     return;
   }
 
@@ -224,36 +253,44 @@ const passwordStrength = getPasswordStrength(newPassword);
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        newPassword: passwordForm.newPassword,
-      }),
+      currentPassword: passwordForm.currentPassword,
+      newPassword: passwordForm.newPassword,
+    }),
     });
 
     const data = await res.json();
 
     if (data.success) {
-      alert("Password changed successfully!");
+      showFeedback("success", "Success", "Password changed successfully!");
       setPasswordForm({
-        newPassword: "",
-        confirmPassword: "",
-      });
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
     } else {
-      alert(data.message || "Failed to change password.");
+      showFeedback("error", "Failed", data.message || "Failed to change password.");
     }
   } catch (err) {
     console.error("Change password error:", err);
-    alert("Server error while changing password.");
+    showFeedback("error", "Server Error", "Server error while changing password.");
   }
 };
 
-  const handleDeleteAccount = () => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete your account? This action is irreversible."
-    );
-
-    if (confirmed) {
-      alert("Delete account functionality can be connected to your backend.");
-    }
-  };
+  const handleDeleteAccount = () => 
+    Swal.fire({
+  imageUrl: "/images/error.png",
+  imageWidth: 170,
+  imageHeight: 170,
+  title: "Delete Account?",
+  text: "This action is irreversible.",
+  showCancelButton: true,
+  confirmButtonText: "Yes, delete",
+  cancelButtonText: "Cancel",
+}).then((result) => {
+  if (result.isConfirmed) {
+    showFeedback("success", "Deleted", "Account deletion logic goes here.");
+  }
+});
 
   const openEditModal = () => {
   setEditForm({
@@ -322,7 +359,7 @@ const passwordStrength = getPasswordStrength(newPassword);
     try {
       data = JSON.parse(text);
     } catch {
-      alert("PHP did not return JSON. Check console.");
+      showFeedback("error", "Server Issue", "PHP did not return JSON.");
       return;
     }
 
@@ -331,11 +368,11 @@ const passwordStrength = getPasswordStrength(newPassword);
       setOtpCode(["", "", "", ""]);
       setShowOtpModal(true);
     } else {
-      alert(data.message || "Failed to send OTP.");
+      showFeedback("error", "OTP Failed", data.message || "Failed to send OTP.");
     }
   } catch (err) {
     console.error("Send OTP error:", err);
-    alert("Server error while sending OTP.");
+    showFeedback("error", "Server Error", "Server error while sending OTP.");
   }
 };
 
@@ -365,13 +402,13 @@ const saveProfileAfterOtp = async () => {
       setIsEditModalOpen(false);
       setShowOtpModal(false);
       setPendingSave(false);
-      alert("Profile updated successfully!");
+      showFeedback("success", "Success", "Profile updated successfully!");
     } else {
-      alert(data.message || "Failed to update profile.");
+      showFeedback("error", "Failed", data.message || "Failed to update profile.");
     }
   } catch (err) {
     console.error("Update profile error:", err);
-    alert("Server error while updating profile.");
+    showFeedback("error", "Server Error", "Server error while updating profile.");
   }
 };
   
@@ -379,7 +416,7 @@ const saveProfileAfterOtp = async () => {
   const otp = otpCode.join("");
 
   if (otp.length !== 4) {
-    alert("Please enter the 4-digit OTP.");
+    showFeedback("error", "Invalid OTP", "Please enter the 4-digit OTP.");
     return;
   }
 
@@ -401,11 +438,11 @@ const saveProfileAfterOtp = async () => {
     if (data.success) {
   await saveProfileAfterOtp();
 } else {
-      alert(data.message || "Invalid OTP.");
+      showFeedback("error", "Invalid OTP", data.message || "Invalid OTP.");
     }
   } catch (err) {
     console.error("Verify OTP error:", err);
-    alert("Server error while verifying OTP.");
+    showFeedback("error", "Server Error", "Server error while verifying OTP.");
   }
 };
 
@@ -447,13 +484,13 @@ const saveProfileAfterOtp = async () => {
       setIsEditModalOpen(false);
       setShowOtpModal(false);
       setPendingSave(false);
-      alert("Profile updated successfully!");
+      showFeedback("success", "Success", "Profile updated successfully!");
     } else {
-      alert(data.message || "Failed to update profile.");
+      showFeedback("error", "Failed", data.message || "Failed to update profile.");
     }
   } catch (err) {
     console.error("Update profile error:", err);
-    alert("Server error while updating profile.");
+    showFeedback("error", "Server Error", "Server error while updating profile.");
   }
 };
 
@@ -806,6 +843,30 @@ const handleOtpChange = (value, index) => {
                             className={styles.settingsBody}
                             onSubmit={handleChangePassword}
                           >
+
+                            <div className={styles.passwordGroup}>
+                                <label>Current Password</label>
+                                <div className={styles.passwordInputWrap}>
+                                  <input
+                                    type={showCurrentPassword ? "text" : "password"}
+                                    name="currentPassword"
+                                    placeholder="Enter current password"
+                                    value={passwordForm.currentPassword}
+                                    onChange={handlePasswordChange}
+                                  />
+                                  <button
+                                    type="button"
+                                    className={styles.eyeBtn}
+                                    onClick={() => setShowCurrentPassword((prev) => !prev)}
+                                  >
+                                    <i
+                                      className={`bx ${
+                                        showCurrentPassword ? "bx-hide" : "bx-show-alt"
+                                      }`}
+                                    ></i>
+                                  </button>
+                                </div>
+                              </div>
                             <div className={styles.passwordGroup}>
                               <label>New Password</label>
                               <div className={styles.passwordInputWrap}>
