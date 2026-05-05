@@ -15,6 +15,12 @@ function EditProfile() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpEmail, setOtpEmail] = useState("");
+  const [otpCode, setOtpCode] = useState(["", "", "", ""]);
+  const [pendingSave, setPendingSave] = useState(false);
+  const [resendingOtp, setResendingOtp] = useState(false);
+
   const [myDecks, setMyDecks] = useState([]);
   const [courses, setCourses] = useState([]);
 
@@ -22,6 +28,11 @@ function EditProfile() {
   const notificationCount = 0; // change this later when you have real data
 
   const [selectedImageFile, setSelectedImageFile] = useState(null);
+
+  const [isOtherSchool, setIsOtherSchool] = useState(false);
+
+
+
 
   const [user, setUser] = useState({
     username: "",
@@ -261,13 +272,23 @@ const passwordStrength = getPasswordStrength(newPassword);
   };
 
   const handleEditInputChange = (e) => {
-    const { name, value } = e.target;
+  const { name, value } = e.target;
 
-    setEditForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  if (name === "school") {
+    if (value === "Others") {
+      setIsOtherSchool(true);
+      setEditForm((prev) => ({ ...prev, school: "" }));
+      return;
+    } else {
+      setIsOtherSchool(false);
+    }
+  }
+
+  setEditForm((prev) => ({
+    ...prev,
+    [name]: value,
+  }));
+};
 
   const handlePhotoChange = (e) => {
   const file = e.target.files?.[0];
@@ -283,8 +304,123 @@ const passwordStrength = getPasswordStrength(newPassword);
   }));
 };
 
+  const sendEmailOtp = async (emailToVerify) => {
+  try {
+    const res = await fetch("http://localhost/puffybrain/send-change-email-otp.php", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: emailToVerify }),
+    });
+
+    const text = await res.text();
+    console.log("OTP RAW RESPONSE:", text);
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      alert("PHP did not return JSON. Check console.");
+      return;
+    }
+
+    if (data.success) {
+      setOtpEmail(emailToVerify);
+      setOtpCode(["", "", "", ""]);
+      setShowOtpModal(true);
+    } else {
+      alert(data.message || "Failed to send OTP.");
+    }
+  } catch (err) {
+    console.error("Send OTP error:", err);
+    alert("Server error while sending OTP.");
+  }
+};
+
+const saveProfileAfterOtp = async () => {
+  const formData = new FormData();
+  formData.append("username", editForm.username);
+  formData.append("email", editForm.email);
+  formData.append("school", editForm.school);
+  formData.append("year_level", editForm.year_level);
+
+  if (selectedImageFile) {
+    formData.append("profile_image", selectedImageFile);
+  }
+
+  try {
+    const res = await fetch("http://localhost/puffybrain/updateUser.php", {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      await fetchUser();
+      setSelectedImageFile(null);
+      setIsEditModalOpen(false);
+      setShowOtpModal(false);
+      setPendingSave(false);
+      alert("Profile updated successfully!");
+    } else {
+      alert(data.message || "Failed to update profile.");
+    }
+  } catch (err) {
+    console.error("Update profile error:", err);
+    alert("Server error while updating profile.");
+  }
+};
+  
+  const handleVerifyEmailOtp = async () => {
+  const otp = otpCode.join("");
+
+  if (otp.length !== 4) {
+    alert("Please enter the 4-digit OTP.");
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost/puffybrain/verify-change-email-otp.php",{
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: otpEmail,
+        otp,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+  await saveProfileAfterOtp();
+} else {
+      alert(data.message || "Invalid OTP.");
+    }
+  } catch (err) {
+    console.error("Verify OTP error:", err);
+    alert("Server error while verifying OTP.");
+  }
+};
+
   const handleSaveProfile = async (e) => {
   e.preventDefault();
+
+  const emailChanged =
+    editForm.email &&
+    editForm.email.trim() !== "" &&
+    editForm.email.trim() !== user.email;
+
+  if (emailChanged && !pendingSave) {
+    await sendEmailOtp(editForm.email.trim());
+    return;
+  }
 
   const formData = new FormData();
   formData.append("username", editForm.username);
@@ -309,6 +445,8 @@ const passwordStrength = getPasswordStrength(newPassword);
       await fetchUser();
       setSelectedImageFile(null);
       setIsEditModalOpen(false);
+      setShowOtpModal(false);
+      setPendingSave(false);
       alert("Profile updated successfully!");
     } else {
       alert(data.message || "Failed to update profile.");
@@ -319,6 +457,19 @@ const passwordStrength = getPasswordStrength(newPassword);
   }
 };
 
+const handleOtpChange = (value, index) => {
+  const cleanValue = value.replace(/[^0-9]/g, "");
+
+  const updatedOtp = [...otpCode];
+  updatedOtp[index] = cleanValue;
+  setOtpCode(updatedOtp);
+
+  if (cleanValue && index < 3) {
+    const nextInput = document.getElementById(`otp-${index + 1}`);
+    nextInput?.focus();
+  }
+};
+
   return (
     <div
       className={`${styles.container} ${
@@ -326,136 +477,136 @@ const passwordStrength = getPasswordStrength(newPassword);
       }`}
     >
       <aside
-        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
-      >
-        <div>
-          <div
-            className={styles.sidebarToggle}
-            onClick={() => setIsCollapsed(!isCollapsed)}
-          >
-            <i className="bx bx-sidebar"></i>
-          </div>
-
-          <div className={styles.logo}>
-            <img
-              className={styles.logoExpanded}
-              src="/images/logo1.png"
-              alt="Logo"
-            />
-            <img
-              className={styles.logoCollapsed}
-              src="/images/logo_solo.png"
-              alt="Logo"
-            />
-          </div>
-
-          <div className={styles.divider}></div>
-          <p className={styles.myDecksTitle}>Menu</p>
-
-          <nav className={styles.menu}>
-            <ul className={styles.sidebarList}>
-              <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/homepage"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
+              className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
+            >
+              <div>
+                <div
+                  className={styles.sidebarToggle}
+                  onClick={() => setIsCollapsed(!isCollapsed)}
                 >
-                  <i className="bx bx-home"></i>
-                  <span className={styles.menuText}>Home</span>
-                </NavLink>
-              </li>
-
-              <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/Mydecks"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-book"></i>
-                  <span className={styles.menuText}>Decks</span>
-                </NavLink>
-              </li>
-
-              <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/mycourse"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-book"></i>
-                  <span className={styles.menuText}>My Course</span>
-                </NavLink>
-              </li>
-
-              <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/public-decks"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-folder"></i>
-                  <span className={styles.menuText}>Public Decks</span>
-                </NavLink>
-              </li>
-            </ul>
-          </nav>
-
-          <div className={styles.divider}></div>
-
-          <div className={styles.myDecksNav}>
-            <div className={styles.sectionBlock}>
-              <p className={styles.sectionTitle}>My Decks</p>
-
-              <ul className={styles.sectionList}>
-                {myDecks.length === 0 ? (
-                  <li className={styles.sidebarEmptyText}>
-                    Don't have decks yet
-                  </li>
-                ) : (
-                  myDecks.slice(0, 3).map((deck) => (
-                    <li key={deck.id} className={styles.sidebarListItem}>
-                      <Link to={`/deck/${deck.id}`} className={styles.menuItem}>
-                        <i className="bx bx-book"></i>
-                        <span className={styles.menuText}>{deck.title}</span>
-                      </Link>
-                    </li>
-                  ))
-                )}
-              </ul>
-            </div>
-
-            <div className={styles.sectionBlock}>
-              <div className={styles.sectionDivider}></div>
-              <p className={styles.sectionTitle}>My Courses</p>
-
-              <ul className={styles.sectionList}>
-                {courses.length === 0 ? (
-                  <li className={styles.sidebarEmptyText}>
-                    No courses added yet
-                  </li>
-                ) : (
-                  courses.slice(0, 3).map((course) => (
-                    <li key={course.id} className={styles.sidebarListItem}>
-                      <button
-                        type="button"
-                        onClick={() => openCourse(course.id)}
-                        className={styles.menuItem}
+                  <i className="bx bx-sidebar"></i>
+                </div>
+      
+                <div className={styles.logo}>
+                  <img
+                    className={styles.logoExpanded}
+                    src="/images/logo1.png"
+                    alt="Logo"
+                  />
+                  <img
+                    className={styles.logoCollapsed}
+                    src="/images/logo_solo.png"
+                    alt="Logo"
+                  />
+                </div>
+      
+                <div className={styles.divider}></div>
+                <p className={styles.myDecksTitle}>Menu</p>
+      
+                <nav className={styles.menu}>
+                  <ul className={styles.sidebarList}>
+                    <li className={styles.sidebarListItem}>
+                      <NavLink
+                        to="/homepage"
+                        className={({ isActive }) =>
+                          `${styles.menuItem} ${isActive ? styles.active : ""}`
+                        }
                       >
-                        <i className="bx bx-book"></i>
-                        <span className={styles.menuText}>{course.title}</span>
-                      </button>
+                        <i className="bx bx-home"></i>
+                        <span className={styles.menuText}>Home</span>
+                      </NavLink>
                     </li>
-                  ))
-                )}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </aside>
+      
+                    <li className={styles.sidebarListItem}>
+                      <NavLink
+                        to="/Mydecks"
+                        className={({ isActive }) =>
+                          `${styles.menuItem} ${isActive ? styles.active : ""}`
+                        }
+                      >
+                        <i className="bx bx-collection"></i>
+                        <span className={styles.menuText}>Decks</span>
+                      </NavLink>
+                    </li>
+      
+                    <li className={styles.sidebarListItem}>
+                      <NavLink
+                        to="/mycourse"
+                        className={({ isActive }) =>
+                          `${styles.menuItem} ${isActive ? styles.active : ""}`
+                        }
+                      >
+                        <i className="bx bx-book-open"></i>
+                        <span className={styles.menuText}>My Course</span>
+                      </NavLink>
+                    </li>
+      
+                    <li className={styles.sidebarListItem}>
+                      <NavLink
+                        to="/public-decks"
+                        className={({ isActive }) =>
+                          `${styles.menuItem} ${isActive ? styles.active : ""}`
+                        }
+                      >
+                        <i className="bx bx-world"></i>
+                        <span className={styles.menuText}>Public Decks</span>
+                      </NavLink>
+                    </li>
+                  </ul>
+                </nav>
+      
+                <div className={styles.divider}></div>
+      
+                <div className={styles.myDecksNav}>
+                  <div className={styles.sectionBlock}>
+                    <p className={styles.sectionTitle}>My Decks</p>
+      
+                    <ul className={styles.sectionList}>
+                      {myDecks.length === 0 ? (
+                        <li className={styles.sidebarEmptyText}>
+                          Don't have decks yet
+                        </li>
+                      ) : (
+                        myDecks.slice(0, 3).map((deck) => (
+                          <li key={deck.id} className={styles.sidebarListItem}>
+                            <Link to={`/deck/${deck.id}`} className={styles.menuItem}>
+                              <i className="bx bx-collection"></i>
+                              <span className={styles.menuText}>{deck.title}</span>
+                            </Link>
+                          </li>
+                        ))
+                      )}
+                    </ul>
+                  </div>
+      
+                  <div className={styles.sectionBlock}>
+                    <div className={styles.sectionDivider}></div>
+                    <p className={styles.sectionTitle}>My Courses</p>
+      
+                    <ul className={styles.sectionList}>
+                      {courses.length === 0 ? (
+                        <li className={styles.sidebarEmptyText}>
+                          No courses added yet
+                        </li>
+                      ) : (
+                        courses.slice(0, 3).map((course) => (
+                          <li key={course.id} className={styles.sidebarListItem}>
+                            <button
+                              type="button"
+                              onClick={() => openCourse(course.id)}
+                              className={styles.menuItem}
+                            >
+                              <i className="bx bx-book-open"></i>
+                              <span className={styles.menuText}>{course.title}</span>
+                            </button>
+                          </li>
+                        ))
+                      )}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </aside>
 
       <div className={styles.mainArea}>
         <div className={styles.gridContainer}>
@@ -482,7 +633,6 @@ const passwordStrength = getPasswordStrength(newPassword);
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setNotificationOpen((prev) => !prev);
-                                    setProfileDropdownOpen(false);
                                     setDropdownOpen(null);
                                   }}
                                 >
@@ -861,26 +1011,75 @@ const passwordStrength = getPasswordStrength(newPassword);
                         </div>
 
                         <div className={styles.modalFormGroup}>
-                          <label>Name of School</label>
-                          <input
-                            type="text"
-                            name="school"
-                            value={editForm.school || ""}
-                            onChange={handleEditInputChange}
-                            placeholder="Enter your school name"
-                          />
+                              <label>Name of School</label>
+
+                              {!isOtherSchool ? (
+                                <select
+                                  name="school"
+                                  value={editForm.school || ""}
+                                  onChange={handleEditInputChange}
+                                >
+                                  <option value="">Rather not say</option>
+                                  <option>Cavite State University – Main Campus (Indang)</option>
+                                  <option>Cavite State University – Imus Campus</option>
+                                  <option>Cavite State University – Carmona Campus</option>
+                                  <option>Cavite State University – Bacoor City Campus</option>
+                                  <option>Cavite State University – Trece Martires City Campus</option>
+                                  <option>Cavite State University – Tanza Campus</option>
+                                  <option>Cavite State University – Silang Campus</option>
+                                  <option>Cavite State University – Naic Campus</option>
+                                  <option>Cavite State University – Rosario Campus</option>
+                                  <option>Cavite State University – General Trias City Campus</option>
+                                  <option>University of the Philippines System</option>
+                                  <option>Polytechnic University of the Philippines</option>
+                                  <option>De La Salle University</option>
+                                  <option>University of Santo Tomas</option>
+                                  <option value="Others">Others</option>
+                                </select>
+                              ) : (
+                                <input
+                                  type="text"
+                                  name="school"
+                                  value={editForm.school || ""}
+                                  onChange={handleEditInputChange}
+                                  placeholder="Enter your school"
+                                  autoFocus
+                                />
+                              )}
+                              {isOtherSchool && (
+                                <button
+                                type="button"
+                                onClick={() => setIsOtherSchool(false)}
+                                style={{
+                                  marginTop: "10px",
+                                  fontSize: "14px",
+                                  color: "#6f99e6",
+                                  background: "none",
+                                  border: "none",
+                                  padding: 0,
+                                  cursor: "pointer",
+                                  textDecoration: "none",
+                                }}
+                              >
+                                ← Back to list
+                              </button>
+                              )}
                         </div>
 
                         <div className={styles.modalFormGroup}>
-                          <label>Year Level</label>
-                          <input
-                            type="text"
-                            name="year_level"
-                            value={editForm.year_level || ""}
-                            onChange={handleEditInputChange}
-                            placeholder="Enter your year level"
-                          />
-                        </div>
+                                <label>Year Level</label>
+                                <select
+                                  name="year_level"
+                                  value={editForm.year_level || ""}
+                                  onChange={handleEditInputChange}
+                                >
+                                  <option value="">Select year level</option>
+                                  <option value="1st Year">1st Year</option>
+                                  <option value="2nd Year">2nd Year</option>
+                                  <option value="3rd Year">3rd Year</option>
+                                  <option value="4th Year">4th Year</option>
+                                </select>
+                              </div>
 
                         <div className={styles.modalActions}>
                           <button
@@ -934,6 +1133,82 @@ const passwordStrength = getPasswordStrength(newPassword);
                 </div>
               </div>
             )}
+            {showOtpModal && (
+                <div className={styles.modalOverlay}>
+                  <div
+                    className={styles.editModal}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <button
+                      type="button"
+                      className={styles.modalCloseBtn}
+                      onClick={() => {
+                        setShowOtpModal(false);
+                        setPendingSave(false);
+                      }}
+                    >
+                      <i className="bx bx-x"></i>
+                    </button>
+
+                    <div className={styles.modalCard}>
+                      <h2 className={styles.modalTitle}>Email Verification</h2>
+                      <div className={styles.modalDivider}></div>
+
+                      <p className={styles.verifySubtext}>
+                        Enter the 4-digit code sent to {otpEmail}
+                      </p>
+
+                      <div className={styles.otpWrapper}>
+                        {[0, 1, 2, 3].map((_, index) => (
+                          <input
+                            key={index}
+                            id={`otp-${index}`}
+                            type="text"
+                            maxLength={1}
+                            className={styles.otpInput}
+                            value={otpCode[index]}
+                            onChange={(e) => handleOtpChange(e.target.value, index)}
+                          />
+                        ))}
+                      </div>
+
+                      <div className={styles.modalActions}>
+                        <button
+                          type="button"
+                          className={styles.cancelBtn}
+                          onClick={() => {
+                            setShowOtpModal(false);
+                            setPendingSave(false);
+                          }}
+                        >
+                          Cancel
+                        </button>
+
+                        <button
+                          type="button"
+                          className={styles.verifyBtn}
+                          onClick={handleVerifyEmailOtp}
+                        >
+                          Verify Email
+                        </button>
+                      </div>
+
+                      <button
+                        type="button"
+                        className={styles.resendBtn}
+                        disabled={resendingOtp}
+                        onClick={async () => {
+                          setResendingOtp(true);
+                          await sendEmailOtp(otpEmail);
+                          setResendingOtp(false);
+                        }}
+                      >
+                        {resendingOtp ? "Sending..." : "Resend OTP"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
           </main>
         </div>
       </div>
