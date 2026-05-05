@@ -1,11 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import styles from "./decksM.module.css";
+import "boxicons/css/boxicons.min.css";
 
 import {
   LayoutDashboard,
   Users,
-  BookOpen,
+  Layers,
+  LibraryBig,
+  Gamepad2,
   LogOut,
   Search,
   User,
@@ -14,6 +17,7 @@ import {
 } from "lucide-react";
 
 export default function DeckManagement() {
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedDeck, setSelectedDeck] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -27,26 +31,47 @@ export default function DeckManagement() {
   const dropdownRef = useRef(null);
   const decksPerPage = 5;
 
+  const menuItems = [
+    {
+      label: "Dashboard",
+      path: "/admin/dashboard",
+      icon: <LayoutDashboard size={20} />,
+    },
+    {
+      label: "User Management",
+      path: "/admin/users",
+      icon: <Users size={20} />,
+    },
+    {
+      label: "Module Management",
+      path: "/admin/modules",
+      icon: <Layers size={20} />,
+    },
+    {
+      label: "Decks Management",
+      path: "/admin/decks",
+      icon: <LibraryBig size={20} />,
+    },
+    {
+      label: "Modes Management",
+      path: "/admin/modes",
+      icon: <Gamepad2 size={20} />,
+    },
+  ];
+
   const formatDeckId = (deck) => {
     return `DECK${String(deck.deck_id).padStart(4, "0")}`;
   };
 
   const formatDate = (dateValue) => {
     if (!dateValue) return "No date";
+
     return new Date(dateValue).toLocaleDateString("en-US", {
       month: "short",
       day: "2-digit",
       year: "numeric",
     });
   };
-
-  const menuItems = [
-    { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
-    { label: "User Management", path: "/admin/users", icon: <Users size={20} /> },
-    { label: "Module Management", path: "/admin/modules", icon: <Users size={20} /> },
-    { label: "Decks Management", path: "/admin/decks", icon: <BookOpen size={20} /> },
-    { label: "Modes Management", path: "/admin/modes", icon: <BookOpen size={20} /> },
-  ];
 
   useEffect(() => {
     const fetchDecks = async () => {
@@ -101,11 +126,26 @@ export default function DeckManagement() {
   });
 
   const sortedDecks = [...filteredDecks].sort((a, b) => {
-    if (sortBy === "newest") return new Date(b.created_at) - new Date(a.created_at);
-    if (sortBy === "oldest") return new Date(a.created_at) - new Date(b.created_at);
-    if (sortBy === "user") return String(a.username || "").localeCompare(String(b.username || ""));
-    if (sortBy === "title") return String(a.title || "").localeCompare(String(b.title || ""));
-    if (sortBy === "status") return String(a.status || "").localeCompare(String(b.status || ""));
+    if (sortBy === "newest") {
+      return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+    }
+
+    if (sortBy === "oldest") {
+      return new Date(a.created_at || 0) - new Date(b.created_at || 0);
+    }
+
+    if (sortBy === "user") {
+      return String(a.username || "").localeCompare(String(b.username || ""));
+    }
+
+    if (sortBy === "title") {
+      return String(a.title || "").localeCompare(String(b.title || ""));
+    }
+
+    if (sortBy === "status") {
+      return String(a.status || "").localeCompare(String(b.status || ""));
+    }
+
     return 0;
   });
 
@@ -115,31 +155,50 @@ export default function DeckManagement() {
 
   return (
     <div className={styles.gridContainer}>
-      <aside className={styles.sidebar}>
-        <div className={styles.logo}>
-          <img src="/images/logo1.png" alt="Logo" />
-        </div>
-
-        <div className={styles.menuLabel}>Menu</div>
-
-        {menuItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              `${styles.menuItem} ${isActive ? styles.active : ""}`
-            }
+      <aside
+        className={`${styles.sidebar} ${
+          isCollapsed ? styles.collapsed : ""
+        }`}
+      >
+        <div>
+          <div
+            className={styles.sidebarToggle}
+            onClick={() => setIsCollapsed(!isCollapsed)}
           >
-            {item.icon}
-            {item.label}
-          </NavLink>
-        ))}
+            <i className="bx bx-sidebar"></i>
+          </div>
 
-        <div className={styles.sidebarFooter}>
-          <button className={styles.logoutBtn}>
-            <LogOut size={20} />
-            Logout
-          </button>
+          <div className={styles.logo}>
+            <img
+              className={styles.logoExpanded}
+              src="/images/logo1.png"
+              alt="Logo"
+            />
+            <img
+              className={styles.logoCollapsed}
+              src="/images/logo_solo.png"
+              alt="Logo"
+            />
+          </div>
+
+          <div className={styles.divider}></div>
+
+          <p className={styles.menuLabel}>Menu</p>
+
+          <nav className={styles.menu}>
+            {menuItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `${styles.menuItem} ${isActive ? styles.active : ""}`
+                }
+              >
+                <span className={styles.menuIcon}>{item.icon}</span>
+                <span className={styles.menuText}>{item.label}</span>
+              </NavLink>
+            ))}
+          </nav>
         </div>
       </aside>
 
@@ -170,12 +229,12 @@ export default function DeckManagement() {
           </button>
 
           {dropdownOpen && (
-            <div className={`${styles.dropdownContent} ${styles.show}`}>
-              <button className={styles.dropdownItem}>
+            <div className={styles.dropdownContent}>
+              <button className={styles.dropdownItem} type="button">
                 <Settings size={16} />
                 Settings
               </button>
-              <button className={styles.dropdownItem}>
+              <button className={styles.dropdownItem} type="button">
                 <LogOut size={16} />
                 Logout
               </button>
@@ -234,7 +293,8 @@ export default function DeckManagement() {
                   <div>
                     <span
                       className={`${styles.badge} ${
-                        String(deck.visibility).toLowerCase() === "private"
+                        String(deck.visibility || "").toLowerCase() ===
+                        "private"
                           ? styles.privateBadge
                           : styles.publicBadge
                       }`}
@@ -246,7 +306,7 @@ export default function DeckManagement() {
                   <div>
                     <span
                       className={`${styles.badge} ${
-                        deck.status === "Archived"
+                        String(deck.status || "").toLowerCase() === "archived"
                           ? styles.archivedBadge
                           : styles.activeBadge
                       }`}
@@ -257,6 +317,7 @@ export default function DeckManagement() {
 
                   <button
                     className={styles.viewBtn}
+                    type="button"
                     onClick={() => setSelectedDeck(deck)}
                   >
                     View
@@ -270,26 +331,31 @@ export default function DeckManagement() {
           <div className={styles.pagination}>
             <button
               className={styles.pageBox}
+              type="button"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((p) => p - 1)}
             >
               Prev
             </button>
 
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                className={`${styles.pageBox} ${
-                  currentPage === page ? styles.activePage : ""
-                }`}
-                onClick={() => setCurrentPage(page)}
-              >
-                {page}
-              </button>
-            ))}
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+              (page) => (
+                <button
+                  key={page}
+                  type="button"
+                  className={`${styles.pageBox} ${
+                    currentPage === page ? styles.activePage : ""
+                  }`}
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </button>
+              )
+            )}
 
             <button
               className={styles.pageBox}
+              type="button"
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage((p) => p + 1)}
             >
@@ -316,13 +382,31 @@ export default function DeckManagement() {
             </div>
 
             <div className={styles.modalBody}>
-              <p><strong>Deck ID:</strong> {formatDeckId(selectedDeck)}</p>
-              <p><strong>User Made:</strong> @{selectedDeck.username || "Unknown"}</p>
-              <p><strong>Title:</strong> {selectedDeck.title || "No title"}</p>
-              <p><strong>Description:</strong> {selectedDeck.description || "No description"}</p>
-              <p><strong>Date Created:</strong> {formatDate(selectedDeck.created_at)}</p>
-              <p><strong>Visibility:</strong> {selectedDeck.visibility || "Public"}</p>
-              <p><strong>Status:</strong> {selectedDeck.status || "Active"}</p>
+              <p>
+                <strong>Deck ID:</strong> {formatDeckId(selectedDeck)}
+              </p>
+              <p>
+                <strong>User Made:</strong> @
+                {selectedDeck.username || "Unknown"}
+              </p>
+              <p>
+                <strong>Title:</strong> {selectedDeck.title || "No title"}
+              </p>
+              <p>
+                <strong>Description:</strong>{" "}
+                {selectedDeck.description || "No description"}
+              </p>
+              <p>
+                <strong>Date Created:</strong>{" "}
+                {formatDate(selectedDeck.created_at)}
+              </p>
+              <p>
+                <strong>Visibility:</strong>{" "}
+                {selectedDeck.visibility || "Public"}
+              </p>
+              <p>
+                <strong>Status:</strong> {selectedDeck.status || "Active"}
+              </p>
             </div>
           </div>
         </div>

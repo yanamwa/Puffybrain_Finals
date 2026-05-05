@@ -3,7 +3,9 @@ import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
-  BookOpen,
+  Layers,
+  LibraryBig,
+  Gamepad2,
   LogOut,
   Search,
   User,
@@ -11,7 +13,7 @@ import {
   Settings,
 } from "lucide-react";
 import Swal from "sweetalert2";
-
+import "boxicons/css/boxicons.min.css";
 import styles from "./modulemanage.module.css";
 
 function formatToday() {
@@ -72,34 +74,35 @@ export default function ModuleManagement() {
   const navigate = useNavigate();
   const API_URL = "http://localhost/puffybrain/adminLearningModule.php";
 
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const menuItems = [
-    {
-      label: "Dashboard",
-      path: "/admin/dashboard",
-      icon: <LayoutDashboard size={20} />,
-    },
-    {
-      label: "User Management",
-      path: "/admin/users",
-      icon: <Users size={20} />,
-    },
-    {
-      label: "Module Management",
-      path: "/admin/modules",
-      icon: <Users size={20} />,
-    },
-    {
-      label: "Decks Management",
-      path: "/admin/decks",
-      icon: <BookOpen size={20} />,
-    },
-    {
-      label: "Modes Management",
-      path: "/admin/modes",
-      icon: <BookOpen size={20} />,
-    },
-  ];
+const menuItems = [
+  {
+    label: "Dashboard",
+    path: "/admin/dashboard",
+    icon: <LayoutDashboard size={20} />,
+  },
+  {
+    label: "User Management",
+    path: "/admin/users",
+    icon: <Users size={20} />,
+  },
+  {
+    label: "Module Management",
+    path: "/admin/modules",
+    icon: <Layers size={20} />,
+  },
+  {
+    label: "Decks Management",
+    path: "/admin/decks",
+    icon: <LibraryBig size={20} />,
+  },
+  {
+    label: "Modes Management",
+    path: "/admin/modes",
+    icon: <Gamepad2 size={20} />,
+  },
+];
 
   const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -118,6 +121,7 @@ export default function ModuleManagement() {
   const [textViewOpen, setTextViewOpen] = useState(false);
   const [textViewTitle, setTextViewTitle] = useState("");
   const [textViewContent, setTextViewContent] = useState("");
+
 
   const dropdownRef = useRef(null);
   const fetchedOnce = useRef(false);
@@ -292,32 +296,50 @@ export default function ModuleManagement() {
 
   return (
     <div className={styles.layout}>
-      <aside className={styles.sidebar}>
-        <div className={styles.logo}>
-          <img src="/images/logo1.png" alt="Logo" />
-        </div>
+      <aside
+  className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
+>
+  <div>
+    <div
+      className={styles.sidebarToggle}
+      onClick={() => setIsCollapsed(!isCollapsed)}
+    >
+      <i className="bx bx-sidebar"></i>
+    </div>
 
-        <div className={styles.menuLabel}>Menu</div>
+    <div className={styles.logo}>
+      <img
+        className={styles.logoExpanded}
+        src="/images/logo1.png"
+        alt="Logo"
+      />
+      <img
+        className={styles.logoCollapsed}
+        src="/images/logo_solo.png"
+        alt="Logo"
+      />
+    </div>
 
-        {menuItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              `${styles.menuItem} ${isActive ? styles.active : ""}`
-            }
-          >
-            {item.icon}
-            {item.label}
-          </NavLink>
-        ))}
+    <div className={styles.divider}></div>
 
-        <div className={styles.sidebarFooter}>
-          <button className={styles.logoutBtn} type="button">
-            <LogOut size={20} /> Logout
-          </button>
-        </div>
-      </aside>
+    <p className={styles.menuLabel}>Menu</p>
+
+    <nav className={styles.menu}>
+      {menuItems.map((item) => (
+        <NavLink
+          key={item.path}
+          to={item.path}
+          className={({ isActive }) =>
+            `${styles.menuItem} ${isActive ? styles.active : ""}`
+          }
+        >
+          <span className={styles.menuIcon}>{item.icon}</span>
+          <span className={styles.menuText}>{item.label}</span>
+        </NavLink>
+      ))}
+    </nav>
+  </div>
+</aside>
 
       <header className={styles.headerContainer}>
         <div className={styles.searchBar}>

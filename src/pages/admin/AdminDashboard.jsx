@@ -3,15 +3,19 @@ import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
-  BookOpen,
+  Layers,
+  LibraryBig,
+  Gamepad2,
   LogOut,
   Search,
   User,
   ChevronDown,
   Settings,
+  BookOpen,
 } from "lucide-react";
 import { toast } from "sonner";
 import styles from "./dashboard.module.css";
+import "boxicons/css/boxicons.min.css";
 
 function easeOutCubic(t) {
   return 1 - Math.pow(1 - t, 3);
@@ -68,6 +72,8 @@ export default function AdminDashboard() {
   const [totalDecks, setTotalDecks] = useState(0);
 
   const dropdownRef = useRef(null);
+
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
     async function fetchDashboardData() {
@@ -136,61 +142,79 @@ export default function AdminDashboard() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const menuItems = [
-    {
-      label: "Dashboard",
-      path: "/admin/dashboard",
-      icon: <LayoutDashboard size={20} />,
-    },
-    {
-      label: "User Management",
-      path: "/admin/users",
-      icon: <Users size={20} />,
-    },
-    {
-      label: "Module Management",
-      path: "/admin/modules",
-      icon: <Users size={20} />,
-    },
-    {
-      label: "Decks Management",
-      path: "/admin/decks",
-      icon: <BookOpen size={20} />,
-    },
-    {
-      label: "Modes Management",
-      path: "/admin/modes",
-      icon: <BookOpen size={20} />,
-    },
-  ];
+const menuItems = [
+  {
+    label: "Dashboard",
+    path: "/admin/dashboard",
+    icon: <LayoutDashboard size={20} />,
+  },
+  {
+    label: "User Management",
+    path: "/admin/users",
+    icon: <Users size={20} />,
+  },
+  {
+    label: "Module Management",
+    path: "/admin/modules",
+    icon: <Layers size={20} />,
+  },
+  {
+    label: "Decks Management",
+    path: "/admin/decks",
+    icon: <LibraryBig size={20} />,
+  },
+  {
+    label: "Modes Management",
+    path: "/admin/modes",
+    icon: <Gamepad2 size={20} />,
+  },
+];
 
   return (
     <div className={styles.gridContainer}>
-     <aside className={styles.sidebar}>
-            <div className={styles.logo}>
-              <img src="/images/logo1.png" alt="Logo" />
+     <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
+            <div>
+              <div
+                className={styles.sidebarToggle}
+                onClick={() => setIsCollapsed(!isCollapsed)}
+              >
+                <i className="bx bx-sidebar"></i>
+              </div>
+
+              <div className={styles.logo}>
+                <img
+                  className={styles.logoExpanded}
+                  src="/images/logo1.png"
+                  alt="Logo"
+                />
+                <img
+                  className={styles.logoCollapsed}
+                  src="/images/logo_solo.png"
+                  alt="Logo"
+                />
+              </div>
+
+              <div className={styles.divider}></div>
+
+              <p className={styles.menuLabel}>Menu</p>
+
+              <nav className={styles.menu}>
+                {menuItems.map((item) => (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    className={({ isActive }) =>
+                      `${styles.menuItem} ${isActive ? styles.active : ""}`
+                    }
+                  >
+                    <span className={styles.menuIcon}>{item.icon}</span>
+                    <span className={styles.menuText}>{item.label}</span>
+                  </NavLink>
+                ))}
+              </nav>
             </div>
-        <div className={styles.menuLabel}>Menu</div>
 
-        {menuItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              `${styles.menuItem} ${isActive ? styles.active : ""}`
-            }
-          >
-            {item.icon}
-            {item.label}
-          </NavLink>
-        ))}
-
-        <div className={styles.sidebarFooter}>
-          <button className={styles.logoutBtn}>
-            <LogOut size={20} /> Logout
-          </button>
-        </div>
-      </aside>
+          </aside>
 
       <header className={styles.headerContainer}>
         <div className={styles.searchBar}>

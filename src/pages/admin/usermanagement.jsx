@@ -6,7 +6,9 @@ import "boxicons/css/boxicons.min.css";
 import {
   LayoutDashboard,
   Users,
-  BookOpen,
+  Layers,
+  LibraryBig,
+  Gamepad2,
   LogOut,
   Search,
   User,
@@ -15,6 +17,7 @@ import {
 } from "lucide-react";
 
 export default function UserManagement() {
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -28,8 +31,38 @@ export default function UserManagement() {
   const dropdownRef = useRef(null);
   const usersPerPage = 5;
 
+  const menuItems = [
+    {
+      label: "Dashboard",
+      path: "/admin/dashboard",
+      icon: <LayoutDashboard size={20} />,
+    },
+    {
+      label: "User Management",
+      path: "/admin/users",
+      icon: <Users size={20} />,
+    },
+    {
+      label: "Module Management",
+      path: "/admin/modules",
+      icon: <Layers size={20} />,
+    },
+    {
+      label: "Decks Management",
+      path: "/admin/decks",
+      icon: <LibraryBig size={20} />,
+    },
+    {
+      label: "Modes Management",
+      path: "/admin/modes",
+      icon: <Gamepad2 size={20} />,
+    },
+  ];
+
   const formatUserId = (user) => {
-    const date = user.STDDateCreated ? new Date(user.STDDateCreated) : new Date();
+    const date = user.STDDateCreated
+      ? new Date(user.STDDateCreated)
+      : new Date();
 
     const mm = String(date.getMonth() + 1).padStart(2, "0");
     const yyyy = date.getFullYear();
@@ -42,14 +75,6 @@ export default function UserManagement() {
 
     return `STD${mm}${yyyy}${dd}${encrypted}`;
   };
-
-  const menuItems = [
-    { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
-    { label: "User Management", path: "/admin/users", icon: <Users size={20} /> },
-    { label: "Module Management", path: "/admin/modules", icon: <Users size={20} /> },
-    { label: "Decks Management", path: "/admin/decks", icon: <BookOpen size={20} /> },
-    { label: "Modes Management", path: "/admin/modes", icon: <BookOpen size={20} /> },
-  ];
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -109,12 +134,15 @@ export default function UserManagement() {
   const sortedUsers = [...filteredUsers].sort((a, b) => {
     if (sortBy === "newest") return Number(b.id) - Number(a.id);
     if (sortBy === "oldest") return Number(a.id) - Number(b.id);
+
     if (sortBy === "username") {
       return String(a.username || "").localeCompare(String(b.username || ""));
     }
+
     if (sortBy === "email") {
       return String(a.email || "").localeCompare(String(b.email || ""));
     }
+
     return 0;
   });
 
@@ -124,31 +152,50 @@ export default function UserManagement() {
 
   return (
     <div className={styles.gridContainer}>
-      <aside className={styles.sidebar}>
-        <div className={styles.logo}>
-          <img src="/images/logo1.png" alt="Logo" />
-        </div>
-
-        <div className={styles.menuLabel}>Menu</div>
-
-        {menuItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              `${styles.menuItem} ${isActive ? styles.active : ""}`
-            }
+      <aside
+        className={`${styles.sidebar} ${
+          isCollapsed ? styles.collapsed : ""
+        }`}
+      >
+        <div>
+          <div
+            className={styles.sidebarToggle}
+            onClick={() => setIsCollapsed(!isCollapsed)}
           >
-            {item.icon}
-            {item.label}
-          </NavLink>
-        ))}
+            <i className="bx bx-sidebar"></i>
+          </div>
 
-        <div className={styles.sidebarFooter}>
-          <button className={styles.logoutBtn}>
-            <LogOut size={20} />
-            Logout
-          </button>
+          <div className={styles.logo}>
+            <img
+              className={styles.logoExpanded}
+              src="/images/logo1.png"
+              alt="Logo"
+            />
+            <img
+              className={styles.logoCollapsed}
+              src="/images/logo_solo.png"
+              alt="Logo"
+            />
+          </div>
+
+          <div className={styles.divider}></div>
+
+          <p className={styles.menuLabel}>Menu</p>
+
+          <nav className={styles.menu}>
+            {menuItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `${styles.menuItem} ${isActive ? styles.active : ""}`
+                }
+              >
+                <span className={styles.menuIcon}>{item.icon}</span>
+                <span className={styles.menuText}>{item.label}</span>
+              </NavLink>
+            ))}
+          </nav>
         </div>
       </aside>
 
@@ -179,7 +226,7 @@ export default function UserManagement() {
           </button>
 
           {dropdownOpen && (
-            <div className={`${styles.dropdownContent} ${styles.show}`}>
+            <div className={styles.dropdownContent}>
               <button className={styles.dropdownItem}>
                 <Settings size={16} />
                 Settings
@@ -256,17 +303,19 @@ export default function UserManagement() {
               Prev
             </button>
 
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                className={`${styles.pageBox} ${
-                  currentPage === page ? styles.activePage : ""
-                }`}
-                onClick={() => setCurrentPage(page)}
-              >
-                {page}
-              </button>
-            ))}
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+              (page) => (
+                <button
+                  key={page}
+                  className={`${styles.pageBox} ${
+                    currentPage === page ? styles.activePage : ""
+                  }`}
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </button>
+              )
+            )}
 
             <button
               className={styles.pageBox}
@@ -303,7 +352,8 @@ export default function UserManagement() {
                 <strong>Username:</strong> {selectedUser.username}
               </p>
               <p>
-                <strong>Email:</strong> {selectedUser.email || "No email found"}
+                <strong>Email:</strong>{" "}
+                {selectedUser.email || "No email found"}
               </p>
             </div>
           </div>
