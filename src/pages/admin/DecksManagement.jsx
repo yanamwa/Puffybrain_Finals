@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import styles from "./decksM.module.css";
 import "boxicons/css/boxicons.min.css";
@@ -12,13 +12,14 @@ import {
   LogOut,
   Search,
   User,
-  ChevronDown,
   Settings,
 } from "lucide-react";
 
 export default function DeckManagement() {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const notificationCount = 0;
+
   const [selectedDeck, setSelectedDeck] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
@@ -28,7 +29,6 @@ export default function DeckManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const dropdownRef = useRef(null);
   const decksPerPage = 5;
 
   const menuItems = [
@@ -99,17 +99,6 @@ export default function DeckManagement() {
   }, []);
 
   useEffect(() => {
-    function handleClickOutside(e) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, sortBy]);
 
@@ -155,12 +144,8 @@ export default function DeckManagement() {
 
   return (
     <div className={styles.gridContainer}>
-      <aside
-        className={`${styles.sidebar} ${
-          isCollapsed ? styles.collapsed : ""
-        }`}
-      >
-        <div>
+      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
+        <div className={styles.sidebarTop}>
           <div
             className={styles.sidebarToggle}
             onClick={() => setIsCollapsed(!isCollapsed)}
@@ -174,6 +159,7 @@ export default function DeckManagement() {
               src="/images/logo1.png"
               alt="Logo"
             />
+
             <img
               className={styles.logoCollapsed}
               src="/images/logo_solo.png"
@@ -186,6 +172,18 @@ export default function DeckManagement() {
           <p className={styles.menuLabel}>Menu</p>
 
           <nav className={styles.menu}>
+            <NavLink
+              to="/admin/profile"
+              className={({ isActive }) =>
+                `${styles.menuItem} ${isActive ? styles.active : ""}`
+              }
+            >
+              <span className={styles.menuIcon}>
+                <User size={20} />
+              </span>
+              <span className={styles.menuText}>Profile</span>
+            </NavLink>
+
             {menuItems.map((item) => (
               <NavLink
                 key={item.path}
@@ -200,46 +198,70 @@ export default function DeckManagement() {
             ))}
           </nav>
         </div>
+
+        <div className={styles.sidebarBottom}>
+          <NavLink
+            to="/admin/settings"
+            className={({ isActive }) =>
+              `${styles.menuItem} ${isActive ? styles.active : ""}`
+            }
+          >
+            <span className={styles.menuIcon}>
+              <Settings size={20} />
+            </span>
+            <span className={styles.menuText}>Settings</span>
+          </NavLink>
+
+          <button type="button" className={styles.menuItem}>
+            <span className={styles.menuIcon}>
+              <LogOut size={20} />
+            </span>
+            <span className={styles.menuText}>Logout</span>
+          </button>
+        </div>
       </aside>
 
       <header className={styles.headerContainer}>
         <div className={styles.searchBar}>
-          <Search size={18} />
+          <Search size={19} />
+
           <input
             type="text"
-            placeholder="Search decks"
+            placeholder="Search decks..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
-        <div className={styles.profileWrapper} ref={dropdownRef}>
-          <div className={styles.dpContainer}>
-            <User size={22} />
-          </div>
-
-          <span className={styles.profileName}>@admin</span>
-
+        <div className={styles.notificationWrapper}>
           <button
             type="button"
-            className={styles.dropdownBtn}
-            onClick={() => setDropdownOpen((prev) => !prev)}
+            className={styles.notificationBtn}
+            onClick={(e) => {
+              e.stopPropagation();
+              setNotificationOpen((prev) => !prev);
+            }}
           >
-            <ChevronDown size={16} />
+            <i className="bx bx-bell"></i>
+
+            {notificationCount > 0 && (
+              <span className={styles.notificationBadge}>
+                {notificationCount}
+              </span>
+            )}
           </button>
 
-          {dropdownOpen && (
-            <div className={styles.dropdownContent}>
-              <button className={styles.dropdownItem} type="button">
-                <Settings size={16} />
-                Settings
-              </button>
-              <button className={styles.dropdownItem} type="button">
-                <LogOut size={16} />
-                Logout
-              </button>
+          <div
+            className={`${styles.notificationDropdown} ${
+              notificationOpen ? styles.show : ""
+            }`}
+          >
+            <h4>Notifications</h4>
+
+            <div className={styles.emptyNotification}>
+              <p>You don’t have any new notifications</p>
             </div>
-          )}
+          </div>
         </div>
       </header>
 
@@ -249,6 +271,7 @@ export default function DeckManagement() {
 
           <div className={styles.sortBox}>
             <label>Sort by:</label>
+
             <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
               <option value="newest">Newest Deck</option>
               <option value="oldest">Oldest Deck</option>
@@ -338,20 +361,18 @@ export default function DeckManagement() {
               Prev
             </button>
 
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-              (page) => (
-                <button
-                  key={page}
-                  type="button"
-                  className={`${styles.pageBox} ${
-                    currentPage === page ? styles.activePage : ""
-                  }`}
-                  onClick={() => setCurrentPage(page)}
-                >
-                  {page}
-                </button>
-              )
-            )}
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                type="button"
+                className={`${styles.pageBox} ${
+                  currentPage === page ? styles.activePage : ""
+                }`}
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </button>
+            ))}
 
             <button
               className={styles.pageBox}
@@ -373,6 +394,7 @@ export default function DeckManagement() {
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               Deck Details
+
               <span
                 className={styles.close}
                 onClick={() => setSelectedDeck(null)}
@@ -385,25 +407,29 @@ export default function DeckManagement() {
               <p>
                 <strong>Deck ID:</strong> {formatDeckId(selectedDeck)}
               </p>
+
               <p>
-                <strong>User Made:</strong> @
-                {selectedDeck.username || "Unknown"}
+                <strong>User Made:</strong> @{selectedDeck.username || "Unknown"}
               </p>
+
               <p>
                 <strong>Title:</strong> {selectedDeck.title || "No title"}
               </p>
+
               <p>
                 <strong>Description:</strong>{" "}
                 {selectedDeck.description || "No description"}
               </p>
+
               <p>
                 <strong>Date Created:</strong>{" "}
                 {formatDate(selectedDeck.created_at)}
               </p>
+
               <p>
-                <strong>Visibility:</strong>{" "}
-                {selectedDeck.visibility || "Public"}
+                <strong>Visibility:</strong> {selectedDeck.visibility || "Public"}
               </p>
+
               <p>
                 <strong>Status:</strong> {selectedDeck.status || "Active"}
               </p>

@@ -362,9 +362,7 @@
   background: #f3f3f3;
 }
 
-.show {
-  display: block;
-}
+
 /*====notification ===*/
 .notificationWrapper {
   position: relative;
@@ -460,6 +458,9 @@
   text-align: center;
   color: #777;
   font-size: 14px;
+}
+.show {
+  display: block;
 }
 .profileLink {
   display: flex;
