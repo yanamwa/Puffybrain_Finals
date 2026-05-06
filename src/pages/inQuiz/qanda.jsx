@@ -43,8 +43,6 @@ export default function QandA() {
         }
       } catch (err) {
         console.error("Error loading Q&A:", err);
-        setLesson(null);
-        setDeckCards([]);
       } finally {
         setLoading(false);
       }
@@ -59,18 +57,13 @@ export default function QandA() {
         const parsed = JSON.parse(lesson.quiz_contents);
         if (!Array.isArray(parsed)) return [];
 
-        return parsed.map((item) => {
-          const correctAnswer =
-            item.correct_answer || item.correctAnswer || item.answer || "";
-
-          return {
-            q: item.question || "No question available.",
-            correctAnswer,
-            explanation: item.explanation || correctAnswer,
-          };
-        });
-      } catch (error) {
-        console.error("Invalid quiz JSON:", error);
+        return parsed.map((item) => ({
+          q: item.question || "No question available.",
+          correctAnswer:
+            item.correct_answer || item.correctAnswer || item.answer || "",
+          explanation: item.explanation || item.answer,
+        }));
+      } catch {
         return [];
       }
     }
@@ -91,83 +84,61 @@ export default function QandA() {
   }, [current]);
 
   const cleanAnswer = (text) =>
-    String(text)
-      .toLowerCase()
-      .replace(/^[a-d]\.\s*/i, "")
-      .replace(/^the\s+/i, "")
-      .replace(/[^\w\s]/g, "")
-      .replace(/\s+/g, " ")
-      .trim();
+    String(text).toLowerCase().replace(/[^\w\s]/g, "").trim();
+
+  // ✅ ADD THIS (SAVE TO DB)
+  async function saveQuizAttempt(finalScore) {
+    try {
+      await fetch("http://localhost/puffybrain/saveQuizAttempt.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          source: isDeckMode ? "deck" : "lesson",
+          lessonId: lessonId ? Number(lessonId) : null,
+          deckId: deckId ? Number(deckId) : null,
+          quizMode: "qna",
+          score: finalScore,
+          total: questions.length,
+          isTimedOut: false,
+        }),
+      });
+    } catch (error) {
+      console.error("Save attempt error:", error);
+    }
+  }
 
   async function checkAnswer() {
     if (!questions[current]) return;
 
-    try {
-      const res = await fetch("http://localhost/puffybrain/checkQandA.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          question: questions[current].q,
-          userAnswer: inputValue,
-          correctAnswer: questions[current].correctAnswer,
-          explanation: questions[current].explanation,
-        }),
-      });
+    const userClean = cleanAnswer(inputValue);
+    const correctClean = cleanAnswer(questions[current].correctAnswer);
 
-      const data = await res.json();
+    const isCorrect = userClean === correctClean;
 
-      const userClean = cleanAnswer(inputValue);
-      const correctClean = cleanAnswer(questions[current].correctAnswer);
-      const localCorrect = userClean === correctClean;
-      const isCorrect = data.success ? data.isCorrect : localCorrect;
+    const newResult = {
+      question: questions[current].q,
+      userAnswer: inputValue,
+      correctAnswer: questions[current].correctAnswer,
+      explanation: questions[current].explanation,
+      isCorrect,
+    };
 
-      const newResult = {
-        question: questions[current].q,
-        userAnswer: inputValue,
-        correctAnswer: questions[current].correctAnswer,
-        explanation: questions[current].explanation,
-        isCorrect,
-      };
+    const updatedResults = [...userResults, newResult];
+    const updatedScore = score + (isCorrect ? 1 : 0);
 
-      const updatedResults = [...userResults, newResult];
-      const updatedScore = score + (isCorrect ? 1 : 0);
+    setUserResults(updatedResults);
+    setScore(updatedScore);
+    setStatus(isCorrect ? styles.correct : styles.wrong);
 
-      setUserResults(updatedResults);
-      setScore(updatedScore);
-      setStatus(isCorrect ? styles.correct : styles.wrong);
-
-      setTimeout(() => {
-        nextQuestion(updatedScore, updatedResults);
-      }, 800);
-    } catch (error) {
-      console.error("Gemini check error:", error);
-
-      const userClean = cleanAnswer(inputValue);
-      const correctClean = cleanAnswer(questions[current].correctAnswer);
-      const localCorrect = userClean === correctClean;
-
-      const newResult = {
-        question: questions[current].q,
-        userAnswer: inputValue,
-        correctAnswer: questions[current].correctAnswer,
-        explanation: questions[current].explanation,
-        isCorrect: localCorrect,
-      };
-
-      const updatedResults = [...userResults, newResult];
-      const updatedScore = score + (localCorrect ? 1 : 0);
-
-      setUserResults(updatedResults);
-      setScore(updatedScore);
-      setStatus(localCorrect ? styles.correct : styles.wrong);
-
-      setTimeout(() => {
-        nextQuestion(updatedScore, updatedResults);
-      }, 800);
-    }
+    setTimeout(() => {
+      nextQuestion(updatedScore, updatedResults);
+    }, 800);
   }
 
-  function nextQuestion(updatedScore, updatedResults) {
+  async function nextQuestion(updatedScore, updatedResults) {
     if (current + 1 < questions.length) {
       setCurrent((prev) => prev + 1);
       setInputValue("");
@@ -175,10 +146,14 @@ export default function QandA() {
       return;
     }
 
+    // ✅ SAVE ATTEMPT FIRST
+    await saveQuizAttempt(updatedScore);
+
     localStorage.setItem(
       "lessonQuizResults",
       JSON.stringify({
         source: isDeckMode ? "deck" : "lesson",
+        quizMode: "qna",
         deckId: deckId ? Number(deckId) : null,
         lessonId: lessonId ? Number(lessonId) : null,
         score: updatedScore,
@@ -187,22 +162,18 @@ export default function QandA() {
       })
     );
 
-navigate(`/review/${lessonId || "deck"}`);
+    navigate(`/review/${lessonId || "deck"}`);
   }
-  
+
   function handleKeyDown(e) {
     if (e.key === "Enter" && inputValue.trim() !== "") {
       checkAnswer();
     }
   }
 
-  if (loading) {
-    return <div className={styles.wrapper}>Loading Q&A...</div>;
-  }
-
-  if (questions.length === 0) {
+  if (loading) return <div className={styles.wrapper}>Loading Q&A...</div>;
+  if (questions.length === 0)
     return <div className={styles.wrapper}>No Q&A questions available.</div>;
-  }
 
   const progressWidth = ((current + 1) / questions.length) * 100;
 

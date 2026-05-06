@@ -814,25 +814,32 @@ function PublicDecks() {
                     </p>
                   ) : (
                     filteredPublicDecks.map((deck, index) => (
-                      <div
-                        className={styles.deckBox}
-                        key={deck.id}
-                        onClick={() => navigate(`/deck/${deck.id}`)}
-                      >
-                        <div
-                          className={`${styles.deckHead} ${
-                            styles[`deckColor${(index % 6) + 1}`]
-                          }`}
-                        ></div>
+                <article
+                  key={deck.id}
+                  className={styles.deckCard}
+                  onClick={() => navigate(`/deck/${deck.id}`)}
+                >
+                  <div className={styles.deckCardInner}>
+                    <div
+                      className={styles.deckTop}
+                      style={{
+                        backgroundColor: [
+                          "#D7C9F7",
+                          "#B8F2D9",
+                          "#FFB7A5",
+                          "#B5A9FF",
+                          "#9EE7DD",
+                          "#F4A7C1",
+                        ][index % 6],
+                      }}
+                    ></div>
 
-                        <div className={styles.deckContent}>
-                          <h3 className={styles.deckTitle}>{deck.title}</h3>
-
-                          <p className={styles.deckCount}>
-                            {deck.description || "No description"}
-                          </p>
-                        </div>
-                      </div>
+                    <div className={styles.deckBody}>
+                      <h4>{deck.title}</h4>
+                      <span>{deck.description || "No description"}</span>
+                    </div>
+                  </div>
+                </article>
                     ))
                   )}
                 </div>

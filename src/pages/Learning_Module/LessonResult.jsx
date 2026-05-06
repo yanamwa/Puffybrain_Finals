@@ -12,11 +12,12 @@ export default function LessonResult() {
     answers: [],
   });
 
-  const [attempts, setAttempts] = useState(1);
-
-  // 🔥 NEW: detect source (lesson or deck)
+  const [attempts, setAttempts] = useState(0);
   const [source, setSource] = useState("lesson");
   const [deckId, setDeckId] = useState(null);
+
+  const [quizMode, setQuizMode] = useState("");
+  const [isTimedOut, setIsTimedOut] = useState(false);
 
   useEffect(() => {
     const savedResults = JSON.parse(localStorage.getItem("lessonQuizResults"));
@@ -28,20 +29,42 @@ export default function LessonResult() {
         answers: savedResults.answers || [],
       });
 
-      // 🔥 detect source
       setSource(savedResults.source || "lesson");
       setDeckId(savedResults.deckId || null);
+      setQuizMode(savedResults.quizMode || "");
+      setIsTimedOut(Boolean(savedResults.isTimedOut));
+
+      fetchAttempts(savedResults);
     }
-
-    const attemptKey = `lessonQuizAttempts_${lessonId || "default"}`;
-    const previousAttempts = Number(localStorage.getItem(attemptKey)) || 0;
-    const newAttempts = previousAttempts + 1;
-
-    localStorage.setItem(attemptKey, newAttempts);
-    setAttempts(newAttempts);
   }, [lessonId]);
 
-  // 🔒 anti-copy
+  const fetchAttempts = async (savedResults) => {
+    try {
+      const query = new URLSearchParams({
+        source: savedResults.source || "lesson",
+        lessonId: savedResults.lessonId || "",
+        deckId: savedResults.deckId || "",
+        quizMode: savedResults.quizMode || "",
+      });
+
+      const res = await fetch(
+        `http://localhost/puffybrain/getQuizAttempts.php?${query.toString()}`,
+        { credentials: "include" }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        setAttempts(data.attempts || 0);
+      } else {
+        setAttempts(0);
+      }
+    } catch (error) {
+      console.error("Fetch attempts error:", error);
+      setAttempts(0);
+    }
+  };
+
   useEffect(() => {
     const blockKeys = (e) => {
       const key = e.key.toLowerCase();
@@ -91,47 +114,45 @@ export default function LessonResult() {
     masteryLevel = "Outstanding (A)";
     recommendation =
       "You can continue to the next lesson or try a more challenging quiz.";
-
-} else if (percentage >= 80) {
+  } else if (percentage >= 80) {
     feedbackTitle = "Very Good!";
     feedbackMessage =
       "You understood the lesson very well with only minor mistakes.";
     masteryLevel = "Very Satisfactory (B+)";
+    recommendation = "Review small mistakes and proceed to the next lesson.";
+  } else if (percentage >= 70) {
+    feedbackTitle = "Good Job!";
+    feedbackMessage =
+      "You understood most of the lesson, but there are still areas to improve.";
+    masteryLevel = "Satisfactory (B)";
+    recommendation = "Review the missed questions before moving on.";
+  } else if (percentage >= 60) {
+    feedbackTitle = "Fair";
+    feedbackMessage = "You have a basic understanding, but need more practice.";
+    masteryLevel = "Developing (C)";
+    recommendation = "Study again and retake the quiz.";
+  } else if (percentage >= 50) {
+    feedbackTitle = "Needs Improvement";
+    feedbackMessage =
+      "You are starting to understand, but more effort is needed.";
+    masteryLevel = "Beginning (D)";
+    recommendation = "Review the lesson carefully before retrying.";
+  } else {
+    feedbackTitle = "Needs Review";
+    feedbackMessage =
+      "You need to revisit the lesson and build your understanding.";
+    masteryLevel = "Below Basic (F)";
+    recommendation = "Go back to the lesson and focus on key concepts.";
+  }
+
+  if (quizMode === "timed" && isTimedOut) {
+    feedbackTitle = "Time Ran Out";
+    feedbackMessage =
+      "The timer ended before you finished the quiz. Your score is based only on the questions you answered before time ran out.";
+    masteryLevel = "Incomplete";
     recommendation =
-      "Review small mistakes and proceed to the next lesson.";
-
-} else if (percentage >= 70) {
-  feedbackTitle = "Good Job!";
-  feedbackMessage =
-    "You understood most of the lesson, but there are still areas to improve.";
-  masteryLevel = "Satisfactory (B)";
-  recommendation =
-    "Review the missed questions before moving on.";
-
-} else if (percentage >= 60) {
-  feedbackTitle = "Fair";
-  feedbackMessage =
-    "You have a basic understanding, but need more practice.";
-  masteryLevel = "Developing (C)";
-  recommendation =
-    "Study again and retake the quiz.";
-
-} else if (percentage >= 50) {
-  feedbackTitle = "Needs Improvement";
-  feedbackMessage =
-    "You are starting to understand, but more effort is needed.";
-  masteryLevel = "Beginning (D)";
-  recommendation =
-    "Review the lesson carefully before retrying.";
-
-} else {
-  feedbackTitle = "Needs Review";
-  feedbackMessage =
-    "You need to revisit the lesson and build your understanding.";
-  masteryLevel = "Below Basic (F)";
-  recommendation =
-    "Go back to the lesson and focus on key concepts.";
-}
+      "Try again and manage your time better, or review the lesson before retrying.";
+  }
 
   const retryQuiz = () => {
     localStorage.removeItem("lessonQuizResults");
@@ -157,94 +178,156 @@ export default function LessonResult() {
   };
 
   return (
-  <div className={styles.wrapper}>
-    <div className={styles.scoreSection}>
-      <div className={styles.feedbackBox}>
-        <div className={styles.scoreHeader}>
-          <h1>
-            You Scored <span>{results.score}</span>/<span>{results.total}</span>
-          </h1>
-          
-        </div>
-        <p className={styles.percentage}>Score Percentage: {percentage}%</p>
-        <h2>{feedbackTitle}</h2>
-        <p>{feedbackMessage}</p>
-      </div>
+    <div className={styles.wrapper}>
+      <div className={styles.scoreSection}>
+        <div className={styles.feedbackBox}>
+          <div className={styles.scoreHeader}>
+            <h1>
+              You Scored <span>{results.score}</span>/
+              <span>{results.total}</span>
+            </h1>
+          </div>
 
-      <div className={styles.summaryCards}>
-        <div className={styles.summaryCard}>
-          <h3>Your Status:</h3>
-          <p>{masteryLevel}</p>
-        </div>
+          {quizMode !== "timed" && (
+            <p className={styles.percentage}>
+              Score Percentage: {percentage}%
+            </p>
+          )}
 
-        <div className={styles.summaryCard}>
-          <h3>Recommended Action</h3>
-          <p>{recommendation}</p>
+          <h2>{feedbackTitle}</h2>
+          <p>{feedbackMessage}</p>
         </div>
 
-        <div className={styles.summaryCard}>
-          <h3>Attempts</h3>
-          <p>{attempts}</p>
-        </div>
-      </div>
+        <div className={styles.summaryCards}>
+          <div className={styles.summaryCard}>
+            <h3>Your Status:</h3>
+            <p>{masteryLevel}</p>
+          </div>
 
-      <div className={styles.resultButtons}>
-        <button className={styles.retry} onClick={retryQuiz}>
-          Practice?
-        </button>
+          <div className={styles.summaryCard}>
+            <h3>Recommended Action</h3>
+            <p>{recommendation}</p>
+          </div>
 
-        <button className={styles.lesson} onClick={goBack}>
-          {source === "deck" ? "Back to Deck" : "Review Lesson"}
-        </button>
-
-        <button className={styles.home} onClick={goHome}>
-          Go Home
-        </button>
-      </div>
-    </div>
-
-    {/* Adaptive Feedback */}
-    <div className={styles.reviewWrapper}>
-      <div className={styles.reviewHeader}>Adaptive Feedback</div>
-
-      <div className={styles.reviewList}>
-        <div className={styles.reviewItem}>
-          <div className={styles.reviewQuestion}>Strengths</div>
-          <hr className={styles.reviewDivider} />
-
-          <div className={styles.reviewAnswer}>
-            {correctAnswers.length === 0 ? (
-              <p>No strong areas detected yet.</p>
-            ) : (
-              correctAnswers.map((item, index) => (
-                <p key={index}>
-                  ✅ {item.question || "Question not available"}
-                </p>
-              ))
-            )}
+          <div className={styles.summaryCard}>
+            <h3>Attempts</h3>
+            <p>{attempts}</p>
           </div>
         </div>
 
-        <div className={styles.reviewItem}>
-          <div className={styles.reviewQuestion}>Weaknesses</div>
-          <hr className={styles.reviewDivider} />
+        <div className={styles.resultButtons}>
+          <button className={styles.retry} onClick={retryQuiz}>
+            Practice?
+          </button>
 
-          <div className={styles.reviewAnswer}>
-            {wrongAnswers.length === 0 ? (
-              <p>No weak areas detected. Great job!</p>
-            ) : (
-              wrongAnswers.map((item, index) => {
-                const correctAnswer =
-                  item.correctAnswer ||
-                  item.answer ||
-                  "Correct answer not available";
+          <button className={styles.lesson} onClick={goBack}>
+            {source === "deck" ? "Back to Deck" : "Review Lesson"}
+          </button>
 
-                const explanation =
-                  item.explanation || "No explanation available.";
+          <button className={styles.home} onClick={goHome}>
+            Go Home
+          </button>
+        </div>
+      </div>
 
-                return (
-                  <div key={index} className={styles.weaknessItem}>
-                    <p>❌ {item.question || "Question not available"}</p>
+      <div className={styles.reviewWrapper}>
+        <div className={styles.reviewHeader}>Adaptive Feedback</div>
+
+        <div className={styles.reviewList}>
+          <div className={styles.reviewItem}>
+            <div className={styles.reviewQuestion}>Strengths</div>
+            <hr className={styles.reviewDivider} />
+
+            <div className={styles.reviewAnswer}>
+              {correctAnswers.length === 0 ? (
+                <p>No strong areas detected yet.</p>
+              ) : (
+                correctAnswers.map((item, index) => (
+                  <p key={index}>✅ {item.question || "Question not available"}</p>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className={styles.reviewItem}>
+            <div className={styles.reviewQuestion}>Weaknesses</div>
+            <hr className={styles.reviewDivider} />
+
+            <div className={styles.reviewAnswer}>
+              {wrongAnswers.length === 0 ? (
+                <p>No weak areas detected. Great job!</p>
+              ) : (
+                wrongAnswers.map((item, index) => {
+                  const correctAnswer =
+                    item.correctAnswer ||
+                    item.answer ||
+                    "Correct answer not available";
+
+                  const explanation =
+                    item.explanation || "No explanation available.";
+
+                  return (
+                    <div key={index} className={styles.weaknessItem}>
+                      <p>❌ {item.question || "Question not available"}</p>
+
+                      <p>
+                        Correct Answer:{" "}
+                        <span className={styles.correctText}>
+                          {correctAnswer}
+                        </span>
+                      </p>
+
+                      <p className={styles.explanationText}>
+                        Explanation: {explanation}
+                      </p>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.reviewWrapper}>
+        <div className={styles.reviewHeader}>Review the Answers</div>
+
+        <div className={styles.reviewList}>
+          {results.answers.length === 0 ? (
+            <p className={styles.noAnswers}>No answers recorded.</p>
+          ) : (
+            results.answers.map((item, index) => {
+              const question = item.question || "Question not available";
+
+              const userAnswer =
+                item.userAnswer || item.selectedAnswer || "No answer";
+
+              const correctAnswer =
+                item.correctAnswer ||
+                item.answer ||
+                "Correct answer not available";
+
+              const isCorrect =
+                item.isCorrect ??
+                String(userAnswer).trim().toLowerCase() ===
+                  String(correctAnswer).trim().toLowerCase();
+
+              return (
+                <div key={index} className={styles.reviewItem}>
+                  <div className={styles.reviewQuestion}>
+                    {index + 1}. {question}
+                  </div>
+
+                  <hr className={styles.reviewDivider} />
+
+                  <div className={styles.reviewAnswer}>
+                    <p
+                      className={
+                        isCorrect ? styles.correctText : styles.wrongText
+                      }
+                    >
+                      Your Answer: {userAnswer}
+                    </p>
 
                     <p>
                       Correct Answer:{" "}
@@ -252,73 +335,13 @@ export default function LessonResult() {
                         {correctAnswer}
                       </span>
                     </p>
-
-                    <p className={styles.explanationText}>
-                      Explanation: {explanation}
-                    </p>
                   </div>
-                );
-              })
-            )}
-          </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
     </div>
-
-    {/* Review Answers */}
-    <div className={styles.reviewWrapper}>
-      <div className={styles.reviewHeader}>Review the Answers</div>
-
-      <div className={styles.reviewList}>
-        {results.answers.length === 0 ? (
-          <p className={styles.noAnswers}>No answers recorded.</p>
-        ) : (
-          results.answers.map((item, index) => {
-            const question = item.question || "Question not available";
-
-            const userAnswer =
-              item.userAnswer || item.selectedAnswer || "No answer";
-
-            const correctAnswer =
-              item.correctAnswer ||
-              item.answer ||
-              "Correct answer not available";
-
-            const isCorrect =
-              item.isCorrect ??
-              String(userAnswer).trim().toLowerCase() ===
-                String(correctAnswer).trim().toLowerCase();
-
-            return (
-              <div key={index} className={styles.reviewItem}>
-                <div className={styles.reviewQuestion}>
-                  {index + 1}. {question}
-                </div>
-
-                <hr className={styles.reviewDivider} />
-
-                <div className={styles.reviewAnswer}>
-                  <p
-                    className={
-                      isCorrect ? styles.correctText : styles.wrongText
-                    }
-                  >
-                    Your Answer: {userAnswer}
-                  </p>
-
-                  <p>
-                    Correct Answer:{" "}
-                    <span className={styles.correctText}>
-                      {correctAnswer}
-                    </span>
-                  </p>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-    </div>
-  </div>
-);
+  );
 }

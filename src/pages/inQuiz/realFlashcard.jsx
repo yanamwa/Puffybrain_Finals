@@ -37,16 +37,10 @@ export default function Flashcards() {
           );
           const data = await res.json();
 
-          if (data.success) {
-            setDeckCards(data.cards || []);
-          } else {
-            setDeckCards([]);
-          }
+          setDeckCards(data.success ? data.cards || [] : []);
         }
       } catch (err) {
         console.error("Error loading flashcards:", err);
-        setDeckCards([]);
-        setLesson(null);
       } finally {
         setLoading(false);
       }
@@ -59,7 +53,6 @@ export default function Flashcards() {
     if (isLessonMode && lesson?.quiz_contents) {
       try {
         const parsed = JSON.parse(lesson.quiz_contents);
-
         if (!Array.isArray(parsed)) return [];
 
         return parsed.map((item) => ({
@@ -71,8 +64,7 @@ export default function Flashcards() {
             "No answer available.",
           explanation: item.explanation || "",
         }));
-      } catch (error) {
-        console.error("Invalid quiz JSON:", error);
+      } catch {
         return [];
       }
     }
@@ -90,7 +82,31 @@ export default function Flashcards() {
 
   const currentCard = flashcards[currentIndex];
 
-  const loadNextCard = (difficulty) => {
+  // ✅ ADD THIS (SAVE ATTEMPT)
+  async function saveQuizAttempt(finalScore) {
+    try {
+      await fetch("http://localhost/puffybrain/saveQuizAttempt.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          source: isDeckMode ? "deck" : "lesson",
+          lessonId: lessonId ? Number(lessonId) : null,
+          deckId: deckId ? Number(deckId) : null,
+          quizMode: "flashcard",
+          score: finalScore,
+          total: flashcards.length,
+          isTimedOut: false,
+        }),
+      });
+    } catch (error) {
+      console.error("Save flashcard attempt error:", error);
+    }
+  }
+
+  const loadNextCard = async (difficulty) => {
     if (!currentCard) return;
 
     const isCorrect = difficulty === "easy" || difficulty === "good";
@@ -115,19 +131,25 @@ export default function Flashcards() {
       return;
     }
 
-    const resultData = {
-      source: isDeckMode ? "deck" : "lesson",
-      deckId: deckId ? Number(deckId) : null,
-      lessonId: lessonId ? Number(lessonId) : null,
-      score: updatedScore,
-      total: flashcards.length,
-      answers: updatedResults,
-    };
+    // 🔥 SAVE ATTEMPT FIRST
+    await saveQuizAttempt(updatedScore);
 
-    localStorage.setItem("lessonQuizResults", JSON.stringify(resultData));
+    // 🔥 SAVE RESULT
+    localStorage.setItem(
+      "lessonQuizResults",
+      JSON.stringify({
+        source: isDeckMode ? "deck" : "lesson",
+        quizMode: "flashcard",
+        deckId: deckId ? Number(deckId) : null,
+        lessonId: lessonId ? Number(lessonId) : null,
+        score: updatedScore,
+        total: flashcards.length,
+        answers: updatedResults,
+      })
+    );
 
     navigate(`/review/${lessonId || "deck"}`);
-    }
+  };
 
   if (loading) {
     return <div className={styles.container}>Loading flashcards...</div>;
@@ -137,7 +159,7 @@ export default function Flashcards() {
     return <div className={styles.container}>No flashcards available.</div>;
   }
 
-    return (
+  return (
     <div className={styles.container}>
       <div className={styles.flashcardInfo}>
         <h2 className={styles.deckTitle}>
@@ -162,7 +184,7 @@ export default function Flashcards() {
 
       <div className={styles.flashcardWrapper}>
         <div className={styles.tab}>
-          <span className={flipped ? "" : styles.active}>Question</span>
+          <span className={!flipped ? styles.active : ""}>Question</span>
           <span onClick={() => setFlipped((prev) => !prev)}>Flip</span>
         </div>
 

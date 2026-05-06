@@ -92,8 +92,6 @@ export default function Quiz() {
           const cardsData = await cardsRes.json();
           const cards = cardsData.success ? cardsData.cards || [] : [];
 
-          console.log("CARDS FOR GEMINI:", cards);
-
           if (cards.length === 0) {
             setQuestions([]);
             return;
@@ -111,11 +109,8 @@ export default function Quiz() {
           );
 
           const geminiData = await geminiRes.json();
-          console.log("GEMINI RESPONSE:", geminiData);
 
           if (!geminiData.success || !Array.isArray(geminiData.questions)) {
-            console.warn("Gemini failed. Using fallback choices.");
-
             setTitle("Deck Quiz");
             setQuestions(makeFallbackQuestions(cards));
             return;
@@ -158,6 +153,30 @@ export default function Quiz() {
 
   const question = questions[current];
 
+  // ✅ SAVE ATTEMPT TO DB
+  async function saveQuizAttempt(finalScore) {
+    try {
+      await fetch("http://localhost/puffybrain/saveQuizAttempt.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          source: isDeckMode ? "deck" : "lesson",
+          lessonId: lessonId ? Number(lessonId) : null,
+          deckId: deckId ? Number(deckId) : null,
+          quizMode: "multiple",
+          score: finalScore,
+          total: questions.length,
+          isTimedOut: false,
+        }),
+      });
+    } catch (error) {
+      console.error("Save attempt error:", error);
+    }
+  }
+
   function handleAnswer(index) {
     if (locked || !question) return;
 
@@ -182,7 +201,7 @@ export default function Quiz() {
       setScore(newScore);
     }
 
-    setTimeout(() => {
+    setTimeout(async () => {
       if (current + 1 < questions.length) {
         setCurrent((prev) => prev + 1);
         setSelected(null);
@@ -190,10 +209,15 @@ export default function Quiz() {
         return;
       }
 
+      // 🔥 SAVE ATTEMPT FIRST
+      await saveQuizAttempt(newScore);
+
+      // 🔥 SAVE RESULT FOR RESULT PAGE
       localStorage.setItem(
         "lessonQuizResults",
         JSON.stringify({
           source: isDeckMode ? "deck" : "lesson",
+          quizMode: "multiple",
           deckId: deckId ? Number(deckId) : null,
           lessonId: lessonId ? Number(lessonId) : null,
           score: newScore,
@@ -213,10 +237,7 @@ export default function Quiz() {
   if (questions.length === 0) {
     return (
       <div className={styles.wrapper}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>Multiple Choice</h1>
-          <p className={styles.subtitle}>No quiz questions available.</p>
-        </div>
+        <h1>No quiz questions available.</h1>
       </div>
     );
   }

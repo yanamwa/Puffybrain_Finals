@@ -34,20 +34,27 @@ export default function Mydecks() {
     profile_image: "/images/temporary profile.jpg",
   });
 
+  const resetAddForm = () => {
+    setDeckTitle("");
+    setDeckDesc("");
+    setVisibility("");
+    setDeckColor("");
+  };
+
   const handleLogout = () => {
-      Swal.fire({
-        title: "Logout?",
-        text: "Are you sure you want to logout?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes",
-        confirmButtonColor: "#7b5cff",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          navigate("/login");
-        }
-      });
-    };
+    Swal.fire({
+      title: "Logout?",
+      text: "Are you sure you want to logout?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes",
+      confirmButtonColor: "#7b5cff",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        navigate("/login");
+      }
+    });
+  };
 
   const fetchUserDecks = async () => {
     try {
@@ -56,19 +63,20 @@ export default function Mydecks() {
       });
 
       const data = await res.json();
-      const colors = ["blue", "pink", "violet", "red"];
+      console.log("USER DECKS RESPONSE:", data);
 
       if (data.success) {
         setMyDecks(data.decks || []);
 
         setDecks(
-          (data.decks || []).map((deck, index) => ({
+          (data.decks || []).map((deck) => ({
             id: deck.id,
             title: deck.title,
             description: deck.description || "",
             cards: Number(deck.card_count) || 0,
             type: deck.visibility === "public" ? "shared" : "private",
-            colorClass: colors[index % colors.length],
+            visibility: deck.visibility,
+            deckColor: deck.deck_color || "#c9cdfa",
           }))
         );
       } else {
@@ -157,13 +165,6 @@ export default function Mydecks() {
     navigate(`/learning/${courseId}`);
   };
 
-  const resetAddForm = () => {
-    setDeckTitle("");
-    setDeckDesc("");
-    setVisibility("");
-    setDeckColor("");
-  };
-
   const handleAddDeck = async () => {
     if (!deckTitle.trim()) {
       Swal.fire({
@@ -175,14 +176,39 @@ export default function Mydecks() {
       return;
     }
 
+    if (!visibility) {
+      Swal.fire({
+        icon: "warning",
+        title: "Missing visibility",
+        text: "Please choose Public or Private.",
+        confirmButtonColor: "#7b5cff",
+      });
+      return;
+    }
+
+    if (!deckColor) {
+      Swal.fire({
+        icon: "warning",
+        title: "Missing color",
+        text: "Please choose a deck color.",
+        confirmButtonColor: "#7b5cff",
+      });
+      return;
+    }
+
     try {
       const formData = new FormData();
-      formData.append("title", deckTitle);
-      formData.append("description", deckDesc);
-      formData.append(
-        "visibility",
-        visibility === "private" ? "private" : "public"
-      );
+      formData.append("title", deckTitle.trim());
+      formData.append("description", deckDesc.trim());
+      formData.append("visibility", visibility);
+      formData.append("deck_color", deckColor);
+
+      console.log("ADDING DECK:", {
+        title: deckTitle.trim(),
+        description: deckDesc.trim(),
+        visibility,
+        deck_color: deckColor,
+      });
 
       const res = await fetch("http://localhost/puffybrain/userDecks.php", {
         method: "POST",
@@ -191,6 +217,7 @@ export default function Mydecks() {
       });
 
       const data = await res.json();
+      console.log("ADD DECK RESPONSE:", data);
 
       if (data.success) {
         setAddPopupOpen(false);
@@ -215,6 +242,8 @@ export default function Mydecks() {
         });
       }
     } catch (err) {
+      console.error("handleAddDeck error:", err);
+
       Swal.fire({
         icon: "error",
         title: "Server Error",
@@ -277,10 +306,8 @@ export default function Mydecks() {
       const formData = new FormData();
       formData.append("title", `${deck.title} (Copy)`);
       formData.append("description", deck.description || "");
-      formData.append(
-        "visibility",
-        deck.type === "private" ? "private" : "public"
-      );
+      formData.append("visibility", deck.visibility || "private");
+      formData.append("deck_color", deck.deckColor || "#c9cdfa");
 
       const res = await fetch("http://localhost/puffybrain/userDecks.php", {
         method: "POST",
@@ -299,6 +326,12 @@ export default function Mydecks() {
           timer: 1500,
           showConfirmButton: false,
         });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Duplicate failed",
+          text: data.message || "Something went wrong.",
+        });
       }
     } catch (err) {
       console.error("handleDuplicateDeck error:", err);
@@ -306,51 +339,51 @@ export default function Mydecks() {
   };
 
   const handleArchiveDeck = async (deck) => {
-    const result = await Swal.fire({
-      title: "Archive this deck?",
-      text: "You can restore it later.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Archive",
-      cancelButtonText: "Cancel",
+  const result = await Swal.fire({
+    title: "Archive this deck?",
+    text: "You can restore it later.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Archive",
+    cancelButtonText: "Cancel",
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    const res = await fetch("http://localhost/puffybrain/archiveDeck.php", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ deck_id: deck.id }),
     });
 
-    if (!result.isConfirmed) return;
+    const data = await res.json();
 
-    try {
-      const formData = new FormData();
-      formData.append("deckId", deck.id);
+    if (data.success) {
+      setDecks((prev) => prev.filter((d) => d.id !== deck.id));
+      setMyDecks((prev) => prev.filter((d) => d.id !== deck.id));
 
-      const res = await fetch("http://localhost/puffybrain/archiveDeck.php", {
-        method: "POST",
-        credentials: "include",
-        body: formData,
+      Swal.fire({
+        icon: "success",
+        title: "Archived!",
+        text: "The deck was archived.",
+        timer: 1500,
+        showConfirmButton: false,
       });
-
-      const data = await res.json();
-
-      if (data.success) {
-        setDecks((prev) => prev.filter((d) => d.id !== deck.id));
-        setMyDecks((prev) => prev.filter((d) => d.id !== deck.id));
-
-        Swal.fire({
-          icon: "success",
-          title: "Archived!",
-          text: "The deck was archived.",
-          timer: 1500,
-          showConfirmButton: false,
-        });
-      } else {
-        Swal.fire({
-          icon: "error",
-          title: "Archive failed",
-          text: data.message || "Something went wrong",
-        });
-      }
-    } catch (err) {
-      console.error("Archive error:", err);
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Archive failed",
+        text: data.message || "Something went wrong",
+      });
     }
-  };
+  } catch (err) {
+    console.error("Archive error:", err);
+  }
+};
 
   return (
     <div
@@ -672,7 +705,7 @@ export default function Mydecks() {
                   </div>
                 </div>
               </div>
-
+             <div className={styles.fullDivider}></div>
               <div className={styles.deckArea}>
                 {decks.length === 0 ? (
                   <div className={styles.emptyState}>
@@ -698,17 +731,17 @@ export default function Mydecks() {
                   </div>
                 ) : (
                   filteredDecks.map((d) => (
-                    <article
-                      key={d.id}
-                      className={`${styles.deckCard} ${
-                        styles[d.colorClass] || styles.blue
-                      }`}
-                    >
+                    <article key={d.id} className={styles.deckCard}>
                       <div
                         className={styles.deckCardInner}
                         onClick={() => openDeck(d.id)}
                       >
-                        <div className={styles.deckTop}>
+                        <div
+                          className={styles.deckTop}
+                          style={{
+                            backgroundColor: d.deckColor || "#c9cdfa",
+                          }}
+                        >
                           <button
                             type="button"
                             className={styles.deckMenuBtn}
@@ -776,7 +809,10 @@ export default function Mydecks() {
           {addPopupOpen && (
             <div
               className={styles.overlay}
-              onClick={() => setAddPopupOpen(false)}
+              onClick={() => {
+                setAddPopupOpen(false);
+                resetAddForm();
+              }}
             >
               <div
                 className={styles.modal}
@@ -826,19 +862,19 @@ export default function Mydecks() {
                 <label className={styles.label}>Choose Deck Color</label>
                 <div className={styles.colorRow}>
                   {[
-                    "#C8BBD0",
-                    "#33FF57",
-                    "#FF5733",
-                    "#6C5CE7",
-                    "#00B894",
-                    "#D63031",
+            "#D7C9F7", // soft purple
+            "#B8F2D9", // mint green
+            "#FFB7A5", // peach
+            "#B5A9FF", // lilac
+            "#9EE7DD", // aqua
+            "#F4A7C1", // pink
                   ].map((c) => (
                     <button
                       key={c}
                       type="button"
                       className={styles.colorDot}
                       style={{
-                        background: c,
+                        backgroundColor: c,
                         outline: deckColor === c ? "3px solid #111" : "none",
                       }}
                       onClick={() => setDeckColor(c)}

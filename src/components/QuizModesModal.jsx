@@ -16,34 +16,12 @@ export default function QuizModesModal({
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchModes();
-  }, []);
-
   const isDeck = source === "deck";
   const isLesson = source === "lesson";
 
-  const handleStartPractice = (mode) => {
-    if (!mode.route) {
-      console.error("Mode route is missing:", mode);
-      return;
-    }
-
-    if (isDeck) {
-      localStorage.setItem("practiceSource", "deck");
-      localStorage.setItem("practiceDeckId", deckId);
-
-      navigate(`${mode.route}/deck/${deckId}`);
-      return;
-    }
-
-    if (isLesson) {
-      localStorage.setItem("practiceSource", "lesson");
-      localStorage.setItem("practiceLessonId", lessonId);
-
-      navigate(`${mode.route}/lesson/${lessonId}`);
-    }
-  };
+  useEffect(() => {
+    fetchModes();
+  }, []);
 
   const fetchModes = async () => {
     try {
@@ -66,12 +44,74 @@ export default function QuizModesModal({
     }
   };
 
+  const getQuestionCount = () => {
+    if (isDeck) return cards.length;
+    if (isLesson) return quizzes.length;
+    return 0;
+  };
+
+  const calculateTimedQuizSeconds = () => {
+    const questionCount = getQuestionCount();
+
+    /*
+      You can change this later if you have difficulty from DB.
+      Example:
+      easy = 60 sec per question
+      medium = 90 sec per question
+      hard = 120 sec per question
+    */
+    const difficulty = "medium";
+
+    const secondsPerQuestion =
+      difficulty === "easy" ? 60 : difficulty === "hard" ? 120 : 90;
+
+    const totalSeconds = questionCount * secondsPerQuestion;
+
+    // minimum 2 minutes, maximum 30 minutes
+    const minSeconds = 120;
+    const maxSeconds = 1800;
+
+    return Math.min(Math.max(totalSeconds, minSeconds), maxSeconds);
+  };
+
+  const handleStartPractice = (mode) => {
+    if (!mode.route) {
+      console.error("Mode route is missing:", mode);
+      return;
+    }
+
+    const isTimedQuiz =
+      mode.title?.toLowerCase().includes("timed") ||
+      mode.route?.toLowerCase().includes("timedquiz");
+
+    if (isTimedQuiz) {
+      const timedQuizSeconds = calculateTimedQuizSeconds();
+      localStorage.setItem("timedQuizSeconds", String(timedQuizSeconds));
+    } else {
+      localStorage.removeItem("timedQuizSeconds");
+    }
+
+    if (isDeck) {
+      localStorage.setItem("practiceSource", "deck");
+      localStorage.setItem("practiceDeckId", deckId);
+      localStorage.setItem("practiceCards", JSON.stringify(cards));
+
+      navigate(`${mode.route}/deck/${deckId}`);
+      return;
+    }
+
+    if (isLesson) {
+      localStorage.setItem("practiceSource", "lesson");
+      localStorage.setItem("practiceLessonId", lessonId);
+      localStorage.setItem("practiceQuizzes", JSON.stringify(quizzes));
+
+      navigate(`${mode.route}/lesson/${lessonId}`);
+    }
+  };
+
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
-      <div
-        className={styles.modalBox}
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className={styles.modalBox} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h2 className={styles.modalTitle}>Choose Quiz Type</h2>
           <button className={styles.closeModal} onClick={onClose}>

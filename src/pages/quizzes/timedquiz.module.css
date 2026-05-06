@@ -1,0 +1,279 @@
+.page {
+  min-height: 100vh;
+  padding: 48px 20px;
+  background: repeating-linear-gradient(
+    to bottom,
+    #ffffff 0px,
+    #ffffff 22px,
+    #e8e8e8 23px,
+    #ffffff 24px
+  );
+  box-sizing: border-box;
+}
+
+.headerBox {
+  width: 70%;
+  margin: 0 auto 25px;
+  background: #ffffff;
+  border-radius: 35px;
+  overflow: hidden;
+  text-align: center;
+}
+
+.headerTop {
+  background: #e7c9f7;
+  padding: 18px;
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+}
+
+.subtitles {
+  padding: 14px 30px 6px;
+}
+
+.subtitle {
+  margin: 6px 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #111;
+}
+
+.startBtn {
+  margin: 8px 0 18px;
+  width: 82px;
+  height: 28px;
+  border: none;
+  border-radius: 18px;
+  background: #dfa0d8;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 4px 3px 0 #ead4ff;
+}
+
+.slideshowBox,
+.questionBox {
+  position: relative;
+  width: 62%;
+  margin: 0 auto 35px;
+  padding: 30px 45px 15px;
+  background: #f1f1f1;
+  border-radius: 55px;
+  box-sizing: border-box;
+}
+
+.timerBox {
+  position: absolute;
+  top: -17px;
+  right: 65px;
+  background: #f1f1f1;
+  padding: 5px 18px 8px;
+  border-radius: 22px;
+}
+
+.timer {
+  width: 95px;
+  height: 34px;
+  background: #ffffff;
+  border: 2px solid #cfd5ff;
+  border-radius: 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 16px;
+  font-weight: 700;
+  color: #222;
+
+  box-shadow: 3px 3px 0 #d6d5ff;
+  transition: all 0.25s ease;
+}
+
+.warningTimer {
+  border-color: #ffbf69;
+  background: #fff3d6;
+  box-shadow: 3px 3px 0 #ffd68a;
+}
+
+.dangerTimer {
+  border-color: #ff6b6b;
+  background: #ffe0e0;
+  color: #c91818;
+  box-shadow: 3px 3px 0 #ffaaaa;
+  animation: timerPulse 0.7s infinite;
+}
+
+@keyframes timerPulse {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.08);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.question {
+  width: 100%;
+  margin: 0 auto 22px;
+  padding: 18px 35px;
+  background: #ffffff;
+  border: 1.5px solid #69aee6;
+  border-radius: 9px;
+  box-sizing: border-box;
+  font-size: 15px;
+  color: #222;
+}
+
+.options,
+.previewOptions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.option {
+  width: 68%;
+  min-height: 31px;
+  border: 1px solid #ddd;
+  border-radius: 13px;
+  background: #ffffff;
+  font-size: 15px;
+  color: #222;
+  cursor: pointer;
+  box-shadow: 0 3px 4px rgba(0, 0, 0, 0.18);
+}
+
+.option:hover {
+  transform: translateY(-2px);
+}
+
+.correct {
+  background: #b7ffbd;
+}
+
+.wrong {
+  background: #ffb5b5;
+}
+
+.dots {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  margin: 0 5px;
+  display: inline-block;
+  border-radius: 50%;
+  background: #d8d8d8;
+}
+
+.activeDot {
+  background: #c79aea;
+}
+
+.quizHeader {
+  width: 70%;
+  margin: 45px auto 20px;
+  text-align: center;
+}
+
+.progressContainer {
+  width: 70%;
+  height: 12px;
+  margin: 15px auto;
+  background: #ddd;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.progressBar {
+  height: 100%;
+  background: #c79aea;
+  border-radius: 20px;
+  transition: width 0.3s ease;
+}
+
+.resultContainer {
+  width: 70%;
+  margin: 50px auto;
+  text-align: center;
+}
+
+.scoreContainer {
+  font-size: 36px;
+  font-weight: 700;
+}
+
+.buttonsContainer button {
+  margin: 15px 8px;
+  padding: 10px 24px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+}
+
+.tryAgain {
+  background: #dfa0d8;
+}
+
+.goHome {
+  background: #ffffff;
+  border: 1px solid #ccc;
+}
+
+.reviewItem {
+  margin: 18px;
+  padding: 16px;
+  background: #f1f1f1;
+  border-radius: 15px;
+}
+
+.reviewItem strong {
+  display: block;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 768px) {
+  .headerBox,
+  .quizHeader,
+  .resultContainer {
+    width: 92%;
+  }
+
+  .slideshowBox,
+  .questionBox {
+    width: 92%;
+    padding: 30px 22px 18px;
+    border-radius: 35px;
+  }
+
+  .timerBox {
+    right: 25px;
+  }
+
+  .option {
+    width: 90%;
+  }
+
+  .title {
+    font-size: 22px;
+  }
+
+  .question {
+    font-size: 14px;
+    padding: 16px;
+  }
+}

@@ -377,7 +377,6 @@ const filteredCourses = useMemo(() => {
 
               <div className={styles.panelHeader}>
                 <h1>My Courses</h1>
-
                 <div className={styles.filterGroup}>
                   <div className={styles.customDropdown}>
                     <button
@@ -411,6 +410,7 @@ const filteredCourses = useMemo(() => {
                   </div>
                 </div>
               </div>
+                                      <div className={styles.headerDivider}></div>
 
               <div className={styles.deckArea}>
                 {filteredCourses.length === 0 ? (

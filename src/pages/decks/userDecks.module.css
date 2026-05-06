@@ -574,13 +574,25 @@
     left: 0;
     width: 100%;
     height: 50px;
-    background: #f4b3b3;
     border-top-left-radius: 200px;
     border-top-right-radius: 200px;
     display: flex;
     justify-content: flex-end;
     align-items: center;
     padding-right: 40px;
+    background: var(--deck-color);
+}
+
+.cards-tabs span:hover {
+  color: #f4b3b3;
+}
+
+.cards-tabs .active-tab {
+  color: #f4b3b3;
+}
+
+.cards-tabs span::after {
+  background: #f4b3b3;
 }
 
 .add-cards,
@@ -850,11 +862,9 @@
   display: flex;
   flex-direction: column;
   gap: 15px;
-
-  height: 450px;        /* limit height */
-  overflow-y: auto;     /* enable vertical scroll */
-
-  padding-right: 5px;   /* prevents scrollbar overlap */
+  height: 450px;       
+  overflow-y: auto;     
+  padding-right: 5px;   
 }
 
 .cardsList::-webkit-scrollbar{
@@ -942,6 +952,91 @@ color:#ff4d4f;
   padding: 4px 10px;
   color: var(--font-color);
   margin-left: auto;
+}
+
+.creatorInfo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.creatorImg {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.creatorSimple {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.creatorLabel {
+  font-size: 14px;
+  color: #555;
+}
+
+.creatorBox {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.creatorLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.creatorUser {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.creatorImg {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.creatorName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.visitBtn {
+  border: none;
+  cursor: pointer;
+  border-radius: 20px;
+  font-size: 18px;
+  font-weight: normal;
+  transition: 0.3s;
+  font-family: 'Jersey 15', sans-serif;
+  box-shadow: 2px 2px #5a5a5a;
+  padding: 4px 10px;
+  color: var(--font-color);
+  border: 1px solid #5a5a5a;
+}
+
+.visitBtn:hover {
+  background: #dadada;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background: #555;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
 }
 
 .cardImage {
@@ -1068,4 +1163,9 @@ color:#ff4d4f;
 .uploadedFile i {
   color: #4caf50;
   font-size: 18px;
+}
+
+.practice:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

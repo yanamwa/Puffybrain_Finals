@@ -1,18 +1,3 @@
-:root {
-  --color-primary: #ebd3fa;
-  --color-secondary: #e3aadd;
-  --color-third: #c8a8e9;
-  --color-fourth: #a993d8;
-  --color-fifth: #c3c7f3;
-  --font-color: #2f2f2f;
-  --card-color1: #c8bbd0;
-  --card-color2: #e0bbd4;
-  --card-color3: #c3c7f3;
-  --card-color4: #90f897;
-  --card-color5: #cf8686;
-  --card-color6: #eecb99;
-}
-
 .container {
   display: flex;
   min-height: 100vh;
@@ -155,8 +140,9 @@
 
 .menuItem.active,
 .active {
-  background: #ffffff;
+  background: rgb(243, 243, 243);
   transform: translateX(6px);
+  margin-left: 30px;
 }
 
 .menuItem:hover i,
@@ -253,7 +239,7 @@
   align-items: center;
   justify-content: center;
   border: 2px solid #e6e6e6;
-  background: #fff;
+  background: rgb(243, 243, 243);
   position: sticky;
   top: 0;
   z-index: 500;
@@ -507,7 +493,7 @@
 }
 
 .panelHeader {
-  padding: 22px 28px;
+  padding: 22px 28px 14px; 
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -884,4 +870,18 @@
   .emptyImg {
     width: 160px;
   }
+}
+
+.fullDivider {
+  width: 100%;
+  height: 0.5px;
+  background: #d0d0d0;
+  margin-top: 6px;
+}
+
+.headerDivider {
+  width: 100%;
+  height: 2px;
+  background: #e2e2e2;
+  margin: 0;
 }

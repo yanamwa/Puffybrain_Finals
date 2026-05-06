@@ -1,18 +1,3 @@
-:root {
-  --color-primary: #EBD3FA;
-  --color-secondary: #E3AADD;
-  --color-third: #C8A8E9;
-  --color-fourth: #A993D8;
-  --color-fifth: #C3C7F3;
-  --font-color: #2F2F2F;
-  --card-color1: #C8BBD0;
-  --card-color2: #E0BBD4;
-  --card-color3: #C3C7F3;
-  --card-color4: #90F897;
-  --card-color5: #CF8686;
-  --card-color6: #EECB99;
-}
-
 .container {
   display: flex;
   min-height: 100vh;
@@ -23,8 +8,6 @@
 .swal2-container {
   z-index: 99999 !important;
 }
-
-/* ===== SIDEBAR SAME AS HOMEPAGE ===== */
 
 .container.sidebarCollapsed .sidebar {
   width: 60px;
@@ -160,8 +143,9 @@
 
 .menuItem.active,
 .active {
-  background: #ffffff;
+  background: rgb(243, 243, 243);
   transform: translateX(6px);
+  margin-left: 20px;  
 }
 
 .menuItem:hover i,
@@ -275,7 +259,6 @@
 }
 
 /* ===== MAIN LAYOUT ===== */
-
 .mainArea {
   display: flex;
   flex-direction: column;
@@ -306,7 +289,7 @@
   align-items: center;
   justify-content: center;
   border: 2px solid #E6E6E6;
-  background: #fff;
+  background: rgb(243, 243, 243);
   position: sticky;
   top: 0;
   z-index: 500;
@@ -446,7 +429,7 @@
   width: 42px;
   height: 42px;
   border: none;
-  background: transparent;   /* changed from grey to none */
+  background: transparent;   
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -457,7 +440,7 @@
 }
 
 .notificationBtn:hover {
-  background: transparent;   /* no hover grey bg */
+  background: transparent; 
   transform: translateY(-1px);
 }
 
@@ -549,11 +532,18 @@
 }
 
 .panel {
-  background: #fff;
+  background: #ffffff;
   border-radius: 22px;
   margin-bottom: 20px;
   position: relative;
   overflow: visible;
+}
+
+.fullDivider {
+  width: 100%;
+  height: 0.5px;
+  background: #d0d0d0;
+  margin-top: 6px;
 }
 
 .purpleStrip {
@@ -578,12 +568,16 @@
 .addBtn {
   padding: 7px 16px;
   border-radius: 18px;
-  border: 1px solid #2f2f2f;
-  font-size: 15px;
+  border: px solid #2f2f2f;
+  font-size: 18px;
   background: #e5e5e5;
-  box-shadow: 2px 4px 0 #ababab;
+  box-shadow: 2px 4px 0 #808080;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  font-family: inherit;
+  font-weight: normal;
+  color: var(--font-color);
+  font-style: normal;
 }
 
 .addBtn:hover {
@@ -628,11 +622,12 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: 20px;
   font-weight: 600;
   color: #444;
   cursor: pointer;
   transition: 0.2s ease;
+  font-family: inherit;
 }
 
 .customDropdownBtn:hover {
@@ -652,12 +647,13 @@
   top: 36px;
   right: 0;
   width: 130px;
-  background: #fff;
+  background: #eeeeee;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   z-index: 99999;
   animation: fadeIn 0.15s ease;
+  border: 1px solid #ccc;
 }
 
 .customDropdownMenu button {
@@ -666,28 +662,32 @@
   border: none;
   background: #fff;
   text-align: left;
-  font-size: 13px;
+  font-size: 18px;
   cursor: pointer;
+  font-family: inherit;
+  font-weight: normal;
+  font-style: normal;
+  color: var(--font-color);
 }
 
 .customDropdownMenu button:hover {
   background: #f1f1f1;
 }
 
-
 .deckArea {
   padding: 20px 40px 45px;
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 230px);
   gap: 28px;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: flex-start;
+  width: 100%;
+  box-sizing: border-box;
   position: relative;
   overflow: visible;
+  justify-content: start;
 }
 
 .deckCard {
-  width: 250px;
+  width: 230px;
   height: 180px;
   display: flex;
   flex-direction: column;
@@ -698,6 +698,12 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
   cursor: pointer;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.deckArea:has(.emptyState) {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .deckCard:hover {
@@ -721,15 +727,16 @@
   overflow: visible;
   flex: 0 0 100px;
 }
+
 .deckTop::before {
   content: "";
   position: absolute;
   top: 0;
   left: 0;
-  width: 58px;
-  height: 28px;
-  border-radius: 18px 0 14px 0;
-  opacity: 0.6;
+  width: 70px;
+  height: 35px;
+  border-radius: 18px 0 18px 0;
+  background: rgba(0, 0, 0, 0.12); 
 }
 
 .deckMenuBtn {
@@ -925,13 +932,19 @@
 }
 
 .input {
-  width: 100%;
+  width: 95%;
   background: #ededed;
   border-radius: 30px;
   border: none;
   height: 38px;
   padding: 0 16px;
   outline: none;
+
+  font-size: 20px;
+  color: var(--font-color);
+  font-family: inherit;
+  font-weight: normal;
+  font-style: normal;
 }
 
 .radioRow {
@@ -989,6 +1002,12 @@
   box-shadow: 0 4px 0 grey;
   cursor: pointer;
   font-size: 22px;
+
+  font-size: 22px;
+  color: var(--font-color);
+  font-family: inherit;
+  font-weight: normal;
+  font-style: normal;
 }
 
 .confirmBtn {
@@ -999,7 +1018,13 @@
   background: #e3aadd;
   box-shadow: 0 4px 0 #a45de3;
   cursor: pointer;
+
+  border: 1px solid  #b276e6;
   font-size: 22px;
+  color: var(--font-color);
+  font-family: inherit;
+  font-weight: normal;
+  font-style: normal;
 }
 
 @keyframes fadeIn {

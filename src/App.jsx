@@ -54,12 +54,13 @@ import UserManagement from "./pages/admin/UserManagement";
 import ModesManagement from "./pages/admin/Modesmangement";
 import DecksManagement from "./pages/admin/DecksManagement";
 
-/* Learning */
+/* Tutorials */
 import FlashcardsTutorial from "./pages/quizzes/flashcards-tutorial";
 import QandATutorial from "./pages/quizzes/QandA-tutorial";
 import MultipleChoice from "./pages/quizzes/multipleChoice-Tutorial";
 import MatchingTutorial from "./pages/quizzes/matching-tutorial";
 import SurvivalTutorial from "./pages/quizzes/survivaltutorial";
+import TimedQuizTutorial from "./pages/quizzes/timedquiz-tutorial";
 
 /* Quizzes */
 import Flashcards from "./pages/inQuiz/realFlashcard";
@@ -67,9 +68,7 @@ import MatchingType from "./pages/inQuiz/matching";
 import Multiple from "./pages/inQuiz/multiplechoice";
 import QandA from "./pages/inQuiz/qanda";
 import Survival from "./pages/inQuiz/survival";
-
-/* Results */
-import Result from "./pages/quizResults/results";
+import TimedQuiz from "./pages/inQuiz/timedinquiz";
 
 export default function App() {
   return (
@@ -125,19 +124,13 @@ export default function App() {
       <Route path="/admin/modules/edit/:id" element={<EditModule />} />
       <Route path="/admin/decks" element={<DecksManagement />} />
 
-      {/* TUTORIAL */}
-      <Route path="/flashcards-tutorial/:lessonId" element={<FlashcardsTutorial />} />
-      <Route path="/multipleChoice-tutorial/:lessonId" element={<MultipleChoice />} />
-      <Route path="/Matching-tutorial/:lessonId" element={<MatchingTutorial />} />
-      <Route path="/Survival-tutorial/:lessonId" element={<SurvivalTutorial />} />
-      <Route path="/QandA-tutorial/:lessonId" element={<QandATutorial />} />
-
       {/* TUTORIAL — LESSON */}
       <Route path="/flashcards-tutorial/lesson/:lessonId" element={<FlashcardsTutorial />} />
       <Route path="/multipleChoice-tutorial/lesson/:lessonId" element={<MultipleChoice />} />
       <Route path="/Matching-tutorial/lesson/:lessonId" element={<MatchingTutorial />} />
       <Route path="/Survival-tutorial/lesson/:lessonId" element={<SurvivalTutorial />} />
       <Route path="/QandA-tutorial/lesson/:lessonId" element={<QandATutorial />} />
+      <Route path="/timedquiz-tutorial/lesson/:lessonId" element={<TimedQuizTutorial />} />
 
       {/* TUTORIAL — DECK */}
       <Route path="/flashcards-tutorial/deck/:deckId" element={<FlashcardsTutorial />} />
@@ -145,13 +138,7 @@ export default function App() {
       <Route path="/Matching-tutorial/deck/:deckId" element={<MatchingTutorial />} />
       <Route path="/Survival-tutorial/deck/:deckId" element={<SurvivalTutorial />} />
       <Route path="/QandA-tutorial/deck/:deckId" element={<QandATutorial />} />
-      
-    {/* TUTORIAL — DECK */}
-      <Route path="/flashcard/deck/:deckId" element={<Flashcards />} />
-      <Route path="/matching-type/deck/:deckId" element={<MatchingType />} />
-      <Route path="/multiple-choice/deck/:deckId" element={<Multiple />} />
-      <Route path="/qna/deck/:deckId" element={<QandA />} />
-      <Route path="/survival/deck/:deckId" element={<Survival />} />
+      <Route path="/timedquiz-tutorial/deck/:deckId" element={<TimedQuizTutorial />} />
 
       {/* QUIZ — LESSON */}
       <Route path="/flashcard/lesson/:lessonId" element={<Flashcards />} />
@@ -159,6 +146,7 @@ export default function App() {
       <Route path="/multiple-choice/lesson/:lessonId" element={<Multiple />} />
       <Route path="/qna/lesson/:lessonId" element={<QandA />} />
       <Route path="/survival/lesson/:lessonId" element={<Survival />} />
+      <Route path="/timedquiz/lesson/:lessonId" element={<TimedQuiz />} />
 
       {/* QUIZ — DECK */}
       <Route path="/flashcard/deck/:deckId" element={<Flashcards />} />
@@ -166,9 +154,7 @@ export default function App() {
       <Route path="/multiple-choice/deck/:deckId" element={<Multiple />} />
       <Route path="/qna/deck/:deckId" element={<QandA />} />
       <Route path="/survival/deck/:deckId" element={<Survival />} />
-
-      {/* RESULTS */}
-      <Route path="/review" element={<Result />} />
+      <Route path="/timedquiz/deck/:deckId" element={<TimedQuiz />} />
 
       {/* NAV */}
       <Route path="/FAQ" element={<FAQ />} />
