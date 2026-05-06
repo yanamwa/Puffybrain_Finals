@@ -9,7 +9,6 @@ import {
   LogOut,
   Search,
   User,
-  ChevronDown,
   Settings,
 } from "lucide-react";
 import Swal from "sweetalert2";
@@ -26,11 +25,13 @@ function formatToday() {
 
 function parseDeckCards(raw) {
   if (!raw) return [];
+
   const text = String(raw).trim();
   if (!text) return [];
 
   try {
     const parsed = JSON.parse(text);
+
     if (Array.isArray(parsed)) {
       return parsed
         .map((x, i) => ({
@@ -50,6 +51,7 @@ function parseDeckCards(raw) {
   if (blocks.length) {
     return blocks.map((block, idx) => {
       const lines = block.split("\n").filter(Boolean);
+
       return {
         id: idx + 1,
         question: lines[0] || "",
@@ -60,6 +62,7 @@ function parseDeckCards(raw) {
 
   const lines = text.split("\n").filter(Boolean);
   const cards = [];
+
   for (let i = 0; i < lines.length; i += 2) {
     cards.push({
       id: cards.length + 1,
@@ -67,6 +70,7 @@ function parseDeckCards(raw) {
       answer: lines[i + 1] || "",
     });
   }
+
   return cards;
 }
 
@@ -75,34 +79,8 @@ export default function ModuleManagement() {
   const API_URL = "http://localhost/puffybrain/adminLearningModule.php";
 
   const [isCollapsed, setIsCollapsed] = useState(false);
-
-const menuItems = [
-  {
-    label: "Dashboard",
-    path: "/admin/dashboard",
-    icon: <LayoutDashboard size={20} />,
-  },
-  {
-    label: "User Management",
-    path: "/admin/users",
-    icon: <Users size={20} />,
-  },
-  {
-    label: "Module Management",
-    path: "/admin/modules",
-    icon: <Layers size={20} />,
-  },
-  {
-    label: "Decks Management",
-    path: "/admin/decks",
-    icon: <LibraryBig size={20} />,
-  },
-  {
-    label: "Modes Management",
-    path: "/admin/modes",
-    icon: <Gamepad2 size={20} />,
-  },
-];
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const notificationCount = 0;
 
   const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -116,15 +94,39 @@ const menuItems = [
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-
   const [textViewOpen, setTextViewOpen] = useState(false);
   const [textViewTitle, setTextViewTitle] = useState("");
   const [textViewContent, setTextViewContent] = useState("");
 
-
-  const dropdownRef = useRef(null);
   const fetchedOnce = useRef(false);
+
+  const menuItems = [
+    {
+      label: "Dashboard",
+      path: "/admin/dashboard",
+      icon: <LayoutDashboard size={20} />,
+    },
+    {
+      label: "User Management",
+      path: "/admin/users",
+      icon: <Users size={20} />,
+    },
+    {
+      label: "Module Management",
+      path: "/admin/modules",
+      icon: <Layers size={20} />,
+    },
+    {
+      label: "Decks Management",
+      path: "/admin/decks",
+      icon: <LibraryBig size={20} />,
+    },
+    {
+      label: "Modes Management",
+      path: "/admin/modes",
+      icon: <Gamepad2 size={20} />,
+    },
+  ];
 
   const openTextView = (title, content) => {
     setTextViewTitle(title);
@@ -169,6 +171,7 @@ const menuItems = [
     } catch (err) {
       console.error(err);
       setModules([]);
+
       await Swal.fire({
         icon: "error",
         title: "Load Failed",
@@ -196,6 +199,7 @@ const menuItems = [
 
       if (data.success) {
         await fetchModules();
+
         await Swal.fire({
           icon: "success",
           title: "Deleted!",
@@ -210,6 +214,7 @@ const menuItems = [
       }
     } catch (err) {
       console.error(err);
+
       await Swal.fire({
         icon: "error",
         title: "Error",
@@ -230,25 +235,16 @@ const menuItems = [
 
   const handleDeleteConfirmed = async () => {
     if (!deleteTarget?.id) return;
+
     await confirmDelete(deleteTarget);
     closeDelete();
   };
 
   useEffect(() => {
     if (fetchedOnce.current) return;
+
     fetchedOnce.current = true;
     fetchModules();
-  }, []);
-
-  useEffect(() => {
-    const onDown = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
   }, []);
 
   const filteredModules = useMemo(
@@ -296,92 +292,131 @@ const menuItems = [
 
   return (
     <div className={styles.layout}>
-      <aside
-  className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
->
-  <div>
-    <div
-      className={styles.sidebarToggle}
-      onClick={() => setIsCollapsed(!isCollapsed)}
-    >
-      <i className="bx bx-sidebar"></i>
-    </div>
+      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
+        <div className={styles.sidebarTop}>
+          <div
+            className={styles.sidebarToggle}
+            onClick={() => setIsCollapsed(!isCollapsed)}
+          >
+            <i className="bx bx-sidebar"></i>
+          </div>
 
-    <div className={styles.logo}>
-      <img
-        className={styles.logoExpanded}
-        src="/images/logo1.png"
-        alt="Logo"
-      />
-      <img
-        className={styles.logoCollapsed}
-        src="/images/logo_solo.png"
-        alt="Logo"
-      />
-    </div>
+          <div className={styles.logo}>
+            <img
+              className={styles.logoExpanded}
+              src="/images/logo1.png"
+              alt="Logo"
+            />
 
-    <div className={styles.divider}></div>
+            <img
+              className={styles.logoCollapsed}
+              src="/images/logo_solo.png"
+              alt="Logo"
+            />
+          </div>
 
-    <p className={styles.menuLabel}>Menu</p>
+          <div className={styles.divider}></div>
 
-    <nav className={styles.menu}>
-      {menuItems.map((item) => (
-        <NavLink
-          key={item.path}
-          to={item.path}
-          className={({ isActive }) =>
-            `${styles.menuItem} ${isActive ? styles.active : ""}`
-          }
-        >
-          <span className={styles.menuIcon}>{item.icon}</span>
-          <span className={styles.menuText}>{item.label}</span>
-        </NavLink>
-      ))}
-    </nav>
-  </div>
-</aside>
+          <p className={styles.menuLabel}>Menu</p>
+
+          <nav className={styles.menu}>
+            <NavLink
+              to="/admin/profile"
+              className={({ isActive }) =>
+                `${styles.menuItem} ${isActive ? styles.active : ""}`
+              }
+            >
+              <span className={styles.menuIcon}>
+                <User size={20} />
+              </span>
+              <span className={styles.menuText}>Profile</span>
+            </NavLink>
+
+            {menuItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `${styles.menuItem} ${isActive ? styles.active : ""}`
+                }
+              >
+                <span className={styles.menuIcon}>{item.icon}</span>
+                <span className={styles.menuText}>{item.label}</span>
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+
+        <div className={styles.sidebarBottom}>
+          <NavLink
+            to="/admin/settings"
+            className={({ isActive }) =>
+              `${styles.menuItem} ${isActive ? styles.active : ""}`
+            }
+          >
+            <span className={styles.menuIcon}>
+              <Settings size={20} />
+            </span>
+            <span className={styles.menuText}>Settings</span>
+          </NavLink>
+
+          <button type="button" className={styles.menuItem}>
+            <span className={styles.menuIcon}>
+              <LogOut size={20} />
+            </span>
+            <span className={styles.menuText}>Logout</span>
+          </button>
+        </div>
+      </aside>
 
       <header className={styles.headerContainer}>
         <div className={styles.searchBar}>
-          <Search size={18} />
+          <Search size={19} />
+
           <input
             type="text"
-            placeholder="Search"
+            placeholder="Search modules..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
-        <div className={styles.profileWrapper} ref={dropdownRef}>
-          <div className={styles.profileIcon}>
-            <User size={20} />
-          </div>
-          <span className={styles.profileName}>@admin</span>
-
+        <div className={styles.notificationWrapper}>
           <button
-            className={styles.dropdownBtn}
-            onClick={() => setDropdownOpen((v) => !v)}
             type="button"
+            className={styles.notificationBtn}
+            onClick={(e) => {
+              e.stopPropagation();
+              setNotificationOpen((prev) => !prev);
+            }}
           >
-            <ChevronDown size={16} />
+            <i className="bx bx-bell"></i>
+
+            {notificationCount > 0 && (
+              <span className={styles.notificationBadge}>
+                {notificationCount}
+              </span>
+            )}
           </button>
 
-          {dropdownOpen && (
-            <div className={styles.dropdownContent}>
-              <button className={styles.dropdownItem} type="button">
-                <Settings size={16} /> Settings
-              </button>
-              <button className={styles.dropdownItem} type="button">
-                <LogOut size={16} /> Logout
-              </button>
+          <div
+            className={`${styles.notificationDropdown} ${
+              notificationOpen ? styles.show : ""
+            }`}
+          >
+            <h4>Notifications</h4>
+
+            <div className={styles.emptyNotification}>
+              <p>You don’t have any new notifications</p>
             </div>
-          )}
+          </div>
         </div>
       </header>
 
       <main className={styles.main}>
         <div className={styles.pageHeader}>
           <h1>Module Management</h1>
+
           <button type="button" className={styles.addBtn} onClick={openAdd}>
             + Add new module
           </button>
@@ -429,29 +464,30 @@ const menuItems = [
                         ● {mod.status === "active" ? "Active" : "Inactive"}
                       </span>
                     </td>
+
                     <td className={styles.actions}>
                       <button
                         type="button"
                         className={styles.actionEdit}
                         onClick={() => openEdit(mod)}
                       >
-                        ✎ <span>edit</span>
+                        ✎ <span>Edit</span>
                       </button>
 
                       <button
-                        className={styles.actionDelete}
                         type="button"
+                        className={styles.actionDelete}
                         onClick={() => openDelete(mod)}
                       >
-                        🗑 <span>delete</span>
+                        🗑 <span>Delete</span>
                       </button>
 
                       <button
-                        className={styles.actionView}
                         type="button"
+                        className={styles.actionView}
                         onClick={() => openView(mod)}
                       >
-                        👁 <span>view</span>
+                        👁 <span>View</span>
                       </button>
                     </td>
                   </tr>
@@ -472,9 +508,11 @@ const menuItems = [
               >
                 1
               </button>
+
               <button className={styles.pageBtn} type="button">
                 2
               </button>
+
               <button className={styles.pageBtn} type="button">
                 3
               </button>
@@ -492,6 +530,7 @@ const menuItems = [
 
             <div className={styles.rowsControl}>
               <span>Show</span>
+
               <select
                 value={rowsToShow}
                 onChange={(e) => setRowsToShow(Number(e.target.value))}
@@ -500,6 +539,7 @@ const menuItems = [
                 <option value={20}>20</option>
                 <option value={50}>50</option>
               </select>
+
               <span>Row</span>
             </div>
           </div>
@@ -520,11 +560,7 @@ const menuItems = [
                 Edit
               </button>
 
-              <button
-                type="button"
-                className={styles.mmClose}
-                onClick={closeView}
-              >
+              <button type="button" className={styles.mmClose} onClick={closeView}>
                 ✕
               </button>
             </div>
@@ -562,6 +598,7 @@ const menuItems = [
                   <div className={styles.mmGroup}>
                     <div className={styles.mmLabelRow}>
                       <div className={styles.mmLabel}>Learning Objectives</div>
+
                       <button
                         type="button"
                         className={styles.mmViewBtn}
@@ -584,6 +621,7 @@ const menuItems = [
                   <div className={styles.mmGroup}>
                     <div className={styles.mmLabelRow}>
                       <div className={styles.mmLabel}>Lessons</div>
+
                       <button
                         type="button"
                         className={styles.mmViewBtn}
@@ -630,6 +668,7 @@ const menuItems = [
           >
             <div className={styles.popupHeader}>
               <h2 className={styles.popupTitle}>{textViewTitle}</h2>
+
               <button
                 type="button"
                 className={styles.popupClose}
@@ -652,6 +691,7 @@ const menuItems = [
           >
             <div className={styles.popupHeader}>
               <h2 className={styles.popupTitle}>Delete Module</h2>
+
               <button
                 type="button"
                 className={styles.popupClose}

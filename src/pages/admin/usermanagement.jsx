@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import styles from "./user.module.css";
 import "boxicons/css/boxicons.min.css";
@@ -12,23 +12,23 @@ import {
   LogOut,
   Search,
   User,
-  ChevronDown,
   Settings,
 } from "lucide-react";
 
 export default function UserManagement() {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
 
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const notificationCount = 0;
+
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const dropdownRef = useRef(null);
   const usersPerPage = 5;
 
   const menuItems = [
@@ -107,17 +107,6 @@ export default function UserManagement() {
   }, []);
 
   useEffect(() => {
-    function handleClickOutside(e) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, sortBy]);
 
@@ -152,12 +141,8 @@ export default function UserManagement() {
 
   return (
     <div className={styles.gridContainer}>
-      <aside
-        className={`${styles.sidebar} ${
-          isCollapsed ? styles.collapsed : ""
-        }`}
-      >
-        <div>
+      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
+        <div className={styles.sidebarTop}>
           <div
             className={styles.sidebarToggle}
             onClick={() => setIsCollapsed(!isCollapsed)}
@@ -183,6 +168,18 @@ export default function UserManagement() {
           <p className={styles.menuLabel}>Menu</p>
 
           <nav className={styles.menu}>
+            <NavLink
+              to="/admin/profile"
+              className={({ isActive }) =>
+                `${styles.menuItem} ${isActive ? styles.active : ""}`
+              }
+            >
+              <span className={styles.menuIcon}>
+                <User size={20} />
+              </span>
+              <span className={styles.menuText}>Profile</span>
+            </NavLink>
+
             {menuItems.map((item) => (
               <NavLink
                 key={item.path}
@@ -197,46 +194,69 @@ export default function UserManagement() {
             ))}
           </nav>
         </div>
+
+        <div className={styles.sidebarBottom}>
+          <NavLink
+            to="/admin/settings"
+            className={({ isActive }) =>
+              `${styles.menuItem} ${isActive ? styles.active : ""}`
+            }
+          >
+            <span className={styles.menuIcon}>
+              <Settings size={20} />
+            </span>
+            <span className={styles.menuText}>Settings</span>
+          </NavLink>
+
+          <button type="button" className={styles.menuItem}>
+            <span className={styles.menuIcon}>
+              <LogOut size={20} />
+            </span>
+            <span className={styles.menuText}>Logout</span>
+          </button>
+        </div>
       </aside>
 
       <header className={styles.headerContainer}>
         <div className={styles.searchBar}>
-          <Search size={18} />
+          <Search size={19} />
           <input
             type="text"
-            placeholder="Search users"
+            placeholder="Search users..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
-        <div className={styles.profileWrapper} ref={dropdownRef}>
-          <div className={styles.dpContainer}>
-            <User size={22} />
-          </div>
-
-          <span className={styles.profileName}>@admin</span>
-
+        <div className={styles.notificationWrapper}>
           <button
             type="button"
-            className={styles.dropdownBtn}
-            onClick={() => setDropdownOpen((prev) => !prev)}
+            className={styles.notificationBtn}
+            onClick={(e) => {
+              e.stopPropagation();
+              setNotificationOpen((prev) => !prev);
+            }}
           >
-            <ChevronDown size={16} />
+            <i className="bx bx-bell"></i>
+
+            {notificationCount > 0 && (
+              <span className={styles.notificationBadge}>
+                {notificationCount}
+              </span>
+            )}
           </button>
 
-          {dropdownOpen && (
-            <div className={styles.dropdownContent}>
-              <button className={styles.dropdownItem}>
-                <Settings size={16} />
-                Settings
-              </button>
-              <button className={styles.dropdownItem}>
-                <LogOut size={16} />
-                Logout
-              </button>
+          <div
+            className={`${styles.notificationDropdown} ${
+              notificationOpen ? styles.show : ""
+            }`}
+          >
+            <h4>Notifications</h4>
+
+            <div className={styles.emptyNotification}>
+              <p>You don’t have any new notifications</p>
             </div>
-          )}
+          </div>
         </div>
       </header>
 
@@ -303,19 +323,17 @@ export default function UserManagement() {
               Prev
             </button>
 
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-              (page) => (
-                <button
-                  key={page}
-                  className={`${styles.pageBox} ${
-                    currentPage === page ? styles.activePage : ""
-                  }`}
-                  onClick={() => setCurrentPage(page)}
-                >
-                  {page}
-                </button>
-              )
-            )}
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                className={`${styles.pageBox} ${
+                  currentPage === page ? styles.activePage : ""
+                }`}
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </button>
+            ))}
 
             <button
               className={styles.pageBox}
