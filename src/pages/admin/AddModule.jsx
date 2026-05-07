@@ -1,17 +1,19 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
-  BookOpen,
+  Layers,
+  LibraryBig,
+  Gamepad2,
   LogOut,
   Search,
   User,
-  ChevronDown,
   Settings,
 } from "lucide-react";
 import Swal from "sweetalert2";
-import styles from "./modulemanage.module.css";
+import styles from "./Addmodule.module.css";
+import "boxicons/css/boxicons.min.css";
 
 function serializeQuizItems(items) {
   return JSON.stringify(
@@ -33,27 +35,10 @@ export default function AddModule() {
   const AI_API_URL = "http://localhost/puffybrain/generateQuiz.php";
   const EXTRACT_API_URL = "http://localhost/puffybrain/processLessonFile.php";
 
-  const menuItems = [
-    {
-      label: "Dashboard",
-      path: "/admin/dashboard",
-      icon: <LayoutDashboard size={20} />,
-    },
-    {
-      label: "User Management",
-      path: "/admin/users",
-      icon: <Users size={20} />,
-    },
-    {
-      label: "Module Management",
-      path: "/admin/modules",
-      icon: <BookOpen size={20} />,
-    },
-  ];
-
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const notificationCount = 0;
 
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
@@ -67,16 +52,13 @@ export default function AddModule() {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [extractingFile, setExtractingFile] = useState(false);
 
-  useEffect(() => {
-    const onDown = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
-  }, []);
+  const menuItems = [
+    { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
+    { label: "User Management", path: "/admin/users", icon: <Users size={20} /> },
+    { label: "Module Management", path: "/admin/modules", icon: <Layers size={20} /> },
+    { label: "Decks Management", path: "/admin/decks", icon: <LibraryBig size={20} /> },
+    { label: "Modes Management", path: "/admin/modes", icon: <Gamepad2 size={20} /> },
+  ];
 
   const handleUploadAndExtract = async () => {
     if (!uploadedFile) {
@@ -97,9 +79,7 @@ export default function AddModule() {
       title: "Extracting Module...",
       text: "Please wait while the file is being processed.",
       allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-      },
+      didOpen: () => Swal.showLoading(),
     });
 
     try {
@@ -109,7 +89,6 @@ export default function AddModule() {
       });
 
       const data = await res.json();
-
       Swal.close();
 
       if (!data.success) {
@@ -141,15 +120,10 @@ export default function AddModule() {
     }
   };
 
-  const generateQuizFromAI = async ({
-    questionCount = 5,
-    difficulty = "medium",
-  }) => {
+  const generateQuizFromAI = async ({ questionCount = 5, difficulty = "medium" }) => {
     const res = await fetch(AI_API_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         lesson_title: newTitle,
         learning_objectives: newLearningObjectives,
@@ -188,9 +162,7 @@ export default function AddModule() {
       options: Array.isArray(item.options)
         ? [...item.options, "", "", "", ""].slice(0, 4)
         : ["", "", "", ""],
-      correct_answer: String(
-        item.correct_answer || item.correctAnswer || ""
-      ).trim(),
+      correct_answer: String(item.correct_answer || item.correctAnswer || "").trim(),
       explanation: String(item.explanation || "").trim(),
     }));
   };
@@ -225,15 +197,11 @@ export default function AddModule() {
       confirmButtonText: "Generate",
       cancelButtonText: "Cancel",
       preConfirm: () => {
-        const questionCount = Number(
-          document.getElementById("swal-question-count").value
-        );
+        const questionCount = Number(document.getElementById("swal-question-count").value);
         const difficulty = document.getElementById("swal-difficulty").value;
 
         if (!questionCount || questionCount < 1 || questionCount > 50) {
-          Swal.showValidationMessage(
-            "Please enter a valid number between 1 and 50."
-          );
+          Swal.showValidationMessage("Please enter a valid number between 1 and 50.");
           return false;
         }
 
@@ -337,9 +305,7 @@ export default function AddModule() {
 
   const updateNewQuizQuestion = (index, value) => {
     setNewQuizItems((prev) =>
-      prev.map((item, i) =>
-        i === index ? { ...item, question: value } : item
-      )
+      prev.map((item, i) => (i === index ? { ...item, question: value } : item))
     );
   };
 
@@ -347,31 +313,22 @@ export default function AddModule() {
     setNewQuizItems((prev) =>
       prev.map((item, i) => {
         if (i !== itemIndex) return item;
-
         const updatedOptions = [...item.options];
         updatedOptions[optionIndex] = value;
-
-        return {
-          ...item,
-          options: updatedOptions,
-        };
+        return { ...item, options: updatedOptions };
       })
     );
   };
 
   const updateNewCorrectAnswer = (index, value) => {
     setNewQuizItems((prev) =>
-      prev.map((item, i) =>
-        i === index ? { ...item, correct_answer: value } : item
-      )
+      prev.map((item, i) => (i === index ? { ...item, correct_answer: value } : item))
     );
   };
 
   const updateNewExplanation = (index, value) => {
     setNewQuizItems((prev) =>
-      prev.map((item, i) =>
-        i === index ? { ...item, explanation: value } : item
-      )
+      prev.map((item, i) => (i === index ? { ...item, explanation: value } : item))
     );
   };
 
@@ -380,69 +337,113 @@ export default function AddModule() {
   };
 
   return (
-    <div className={styles.layout}>
-      <aside className={styles.sidebar}>
-        <div className={styles.logo}>
-          <img src="/images/logo1.png" alt="Logo" />
+    <div className={styles.gridContainer}>
+      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
+        <div className={styles.sidebarTop}>
+          <div
+            className={styles.sidebarToggle}
+            onClick={() => setIsCollapsed(!isCollapsed)}
+          >
+            <i className="bx bx-sidebar"></i>
+          </div>
+
+          <div className={styles.logo}>
+            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
+            <img className={styles.logoCollapsed} src="/images/logo_solo.png" alt="Logo" />
+          </div>
+
+          <div className={styles.divider}></div>
+
+          <p className={styles.menuLabel}>Menu</p>
+
+          <nav className={styles.menu}>
+            <NavLink
+              to="/admin/profile"
+              className={({ isActive }) =>
+                `${styles.menuItem} ${isActive ? styles.active : ""}`
+              }
+            >
+              <span className={styles.menuIcon}>
+                <User size={20} />
+              </span>
+              <span className={styles.menuText}>Profile</span>
+            </NavLink>
+
+            {menuItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `${styles.menuItem} ${isActive ? styles.active : ""}`
+                }
+              >
+                <span className={styles.menuIcon}>{item.icon}</span>
+                <span className={styles.menuText}>{item.label}</span>
+              </NavLink>
+            ))}
+          </nav>
         </div>
 
-        <div className={styles.menuLabel}>Menu</div>
-
-        {menuItems.map((item) => (
+        <div className={styles.sidebarBottom}>
           <NavLink
-            key={item.path}
-            to={item.path}
+            to="/admin/settings"
             className={({ isActive }) =>
               `${styles.menuItem} ${isActive ? styles.active : ""}`
             }
           >
-            {item.icon}
-            {item.label}
+            <span className={styles.menuIcon}>
+              <Settings size={20} />
+            </span>
+            <span className={styles.menuText}>Settings</span>
           </NavLink>
-        ))}
 
-        <div className={styles.sidebarFooter}>
-          <button className={styles.logoutBtn} type="button">
-            <LogOut size={20} /> Logout
+          <button type="button" className={styles.menuItem}>
+            <span className={styles.menuIcon}>
+              <LogOut size={20} />
+            </span>
+            <span className={styles.menuText}>Logout</span>
           </button>
         </div>
       </aside>
 
       <header className={styles.headerContainer}>
         <div className={styles.searchBar}>
-          <Search size={18} />
+          <Search size={19} />
           <input
             type="text"
-            placeholder="Search"
+            placeholder="Search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
-        <div className={styles.profileWrapper} ref={dropdownRef}>
-          <div className={styles.profileIcon}>
-            <User size={20} />
-          </div>
-          <span className={styles.profileName}>@admin</span>
-
+        <div className={styles.notificationWrapper}>
           <button
-            className={styles.dropdownBtn}
-            onClick={() => setDropdownOpen((v) => !v)}
             type="button"
+            className={styles.notificationBtn}
+            onClick={(e) => {
+              e.stopPropagation();
+              setNotificationOpen((prev) => !prev);
+            }}
           >
-            <ChevronDown size={16} />
+            <i className="bx bx-bell"></i>
+
+            {notificationCount > 0 && (
+              <span className={styles.notificationBadge}>{notificationCount}</span>
+            )}
           </button>
 
-          {dropdownOpen && (
-            <div className={styles.dropdownContent}>
-              <button className={styles.dropdownItem} type="button">
-                <Settings size={16} /> Settings
-              </button>
-              <button className={styles.dropdownItem} type="button">
-                <LogOut size={16} /> Logout
-              </button>
+          <div
+            className={`${styles.notificationDropdown} ${
+              notificationOpen ? styles.show : ""
+            }`}
+          >
+            <h4>Notifications</h4>
+
+            <div className={styles.emptyNotification}>
+              <p>You don’t have any new notifications</p>
             </div>
-          )}
+          </div>
         </div>
       </header>
 
@@ -451,7 +452,7 @@ export default function AddModule() {
           <h1>Add Module</h1>
         </div>
 
-        <div className={styles.popupBody}>
+        <div className={styles.formCard}>
           <div className={styles.popupInfoGrid}>
             <div className={styles.popupField}>
               <label className={styles.popupLabel}>Module Title</label>
@@ -482,6 +483,7 @@ export default function AddModule() {
               className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
               value={newDesc}
               onChange={(e) => setNewDesc(e.target.value)}
+              placeholder="Enter module description"
             />
           </div>
 
@@ -491,35 +493,36 @@ export default function AddModule() {
               className={styles.popupInput}
               value={newSubject}
               onChange={(e) => setNewSubject(e.target.value)}
+              placeholder="Enter subject"
             />
           </div>
 
           <div className={styles.popupSection}>
             <label className={styles.popupLabel}>Upload Lesson File</label>
 
-            <div
-              style={{
-                display: "flex",
-                gap: "10px",
-                flexWrap: "wrap",
-                alignItems: "center",
-              }}
-            >
-              <input
-                type="file"
-                accept=".pdf,.docx,.txt"
-                onChange={(e) => setUploadedFile(e.target.files?.[0] || null)}
-              />
+            <div className={styles.uploadRow}>
+                  <label className={styles.customFileBtn}>
+                    Choose File
+                    <input
+                      type="file"
+                      accept=".pdf,.docx,.txt"
+                      onChange={(e) => setUploadedFile(e.target.files?.[0] || null)}
+                    />
+                  </label>
 
-              <button
-                type="button"
-                className={styles.popupAddBtn}
-                onClick={handleUploadAndExtract}
-                disabled={extractingFile}
-              >
-                {extractingFile ? "Extracting..." : "Upload and Extract"}
-              </button>
-            </div>
+                  <span className={styles.fileName}>
+                    {uploadedFile ? uploadedFile.name : "No file chosen"}
+                  </span>
+
+                  <button
+                    type="button"
+                    className={styles.popupAddBtn}
+                    onClick={handleUploadAndExtract}
+                    disabled={extractingFile}
+                  >
+                    {extractingFile ? "Extracting..." : "Upload and Extract"}
+                  </button>
+                </div>
           </div>
 
           <div className={styles.popupSection}>
@@ -528,6 +531,7 @@ export default function AddModule() {
               className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
               value={newLearningObjectives}
               onChange={(e) => setNewLearningObjectives(e.target.value)}
+              placeholder="Enter learning objectives"
             />
           </div>
 
@@ -537,13 +541,15 @@ export default function AddModule() {
               className={`${styles.popupTextarea} ${styles.popupLargeBox}`}
               value={newLessonContent}
               onChange={(e) => setNewLessonContent(e.target.value)}
+              placeholder="Enter lesson content"
             />
           </div>
 
           <div className={styles.popupSection}>
             <div className={styles.popupSectionRow}>
               <label className={styles.popupLabel}>Quiz Module</label>
-              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+
+              <div className={styles.quizActions}>
                 <button
                   type="button"
                   className={styles.popupAddBtn}
@@ -569,9 +575,8 @@ export default function AddModule() {
               newQuizItems.map((item, index) => (
                 <div key={index} className={styles.popupQuizCard}>
                   <div className={styles.popupQuizCardTop}>
-                    <span className={styles.popupQuizCardTitle}>
-                      Item {index + 1}
-                    </span>
+                    <span className={styles.popupQuizCardTitle}>Item {index + 1}</span>
+
                     <button
                       type="button"
                       className={styles.popupRemoveBtn}
@@ -584,31 +589,18 @@ export default function AddModule() {
                   <input
                     className={styles.popupInput}
                     value={item.question}
-                    onChange={(e) =>
-                      updateNewQuizQuestion(index, e.target.value)
-                    }
+                    onChange={(e) => updateNewQuizQuestion(index, e.target.value)}
                     placeholder="Question"
                   />
 
-                  <div
-                    style={{
-                      display: "grid",
-                      gap: "10px",
-                      marginTop: "10px",
-                      marginBottom: "10px",
-                    }}
-                  >
+                  <div className={styles.optionsGrid}>
                     {item.options.map((option, optionIndex) => (
                       <input
                         key={optionIndex}
                         className={styles.popupInput}
                         value={option}
                         onChange={(e) =>
-                          updateNewQuizOption(
-                            index,
-                            optionIndex,
-                            e.target.value
-                          )
+                          updateNewQuizOption(index, optionIndex, e.target.value)
                         }
                         placeholder={`Option ${optionIndex + 1}`}
                       />
@@ -618,18 +610,14 @@ export default function AddModule() {
                   <input
                     className={styles.popupInput}
                     value={item.correct_answer}
-                    onChange={(e) =>
-                      updateNewCorrectAnswer(index, e.target.value)
-                    }
+                    onChange={(e) => updateNewCorrectAnswer(index, e.target.value)}
                     placeholder="Correct Answer"
                   />
 
                   <textarea
                     className={`${styles.popupTextarea} ${styles.popupAnswerBox}`}
                     value={item.explanation}
-                    onChange={(e) =>
-                      updateNewExplanation(index, e.target.value)
-                    }
+                    onChange={(e) => updateNewExplanation(index, e.target.value)}
                     placeholder="Explanation"
                   />
                 </div>
@@ -645,6 +633,7 @@ export default function AddModule() {
             >
               Cancel
             </button>
+
             <button
               className={styles.popupSaveBtn}
               type="button"
