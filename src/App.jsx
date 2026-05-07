@@ -101,8 +101,11 @@ export default function App() {
       <Route path="/homepage" element={<Homepage />} />
       <Route path="/mydecks" element={<MyDecks />} />
       <Route path="/public-decks" element={<PublicDeck />} />
-      <Route path="/user-profile" element={<UserProfile />} />
       <Route path="/mycourse" element={<MyCourse />} />
+
+      {/* PROFILE */}
+      <Route path="/user-profile" element={<UserProfile />} />
+      <Route path="/user-profile/:userId" element={<UserProfile />} />
 
       {/* DECKS */}
       <Route path="/deckpage" element={<DeckPage />} />

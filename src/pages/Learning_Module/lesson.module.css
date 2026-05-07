@@ -1,14 +1,13 @@
-/* Keep your gradient background */
 .wrapper {
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: "Jersey 15", sans-serif;
-    background-image: url("/background_notebook.png");    background-size: cover;
+    background-image: url("/background_notebook.png");  
+    background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-
     background-color: #0e0e0e;
 }
 
@@ -35,7 +34,6 @@
     display: flex;
     gap: 20px;
 }
-
 
 /* Each tab */
 .welcomeactive ,

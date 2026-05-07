@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, NavLink, useNavigate, useParams } from "react-router-dom";
+import Swal from "sweetalert2";
 import QuizModesModal from "../../components/QuizModesModal";
 import styles from "./userDecks.module.css";
-import Swal from "sweetalert2";
 
 export default function UserDecks() {
   const navigate = useNavigate();
@@ -720,13 +720,29 @@ export default function UserDecks() {
                           </div>
                         </div>
 
-                        <button
-                          type="button"
-                          className={styles.visitBtn}
-                          onClick={() => navigate(`/profile/${deck?.created_by}`)}
-                        >
-                          Visit Profile
-                        </button>
+                                  <button
+                      type="button"
+                      className={styles.visitBtn}
+                      onClick={() => {
+                        const creatorId =
+                          deck?.created_by ||
+                          deck?.creator_id ||
+                          deck?.user_id;
+
+                        console.log("DECK:", deck);
+                        console.log("CREATOR ID TO VISIT:", creatorId);
+
+                        if (!creatorId) {
+                          Swal.fire("Missing User", "Creator ID was not found.", "warning");
+                          return;
+                        }
+
+                        navigate(`/user-profile/${creatorId}`);
+                      }}
+                    >
+                      Visit Profile
+                    </button>
+
                       </div>
                     )}
                   </>

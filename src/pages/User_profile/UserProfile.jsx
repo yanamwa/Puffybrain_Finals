@@ -1,36 +1,43 @@
 import React, { useEffect, useState } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate, useParams } from "react-router-dom";
+import Swal from "sweetalert2";
 import "boxicons/css/boxicons.min.css";
 import styles from "./UserProfile.module.css";
 
 function UserProfile() {
   const navigate = useNavigate();
-
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [search, setSearch] = useState("");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-
+  const { userId } = useParams();
+  const [archivedDecks, setArchivedDecks] = useState([]);
   const [myDecks, setMyDecks] = useState([]);
   const [courses, setCourses] = useState([]);
-
+  const [isOwnProfile, setIsOwnProfile] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [search, setSearch] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(null);  
   const [notificationOpen, setNotificationOpen] = useState(false);
-  const notificationCount = 0; // change this later when you have real data
+  const [activeDeckTab, setActiveDeckTab] = useState("decks");
+  const notificationCount = 0;
 
   const [user, setUser] = useState({
-  username: "",
-  year_level: "",
-  school: "",
-  signature: "",
-  profile_image: "/images/temporary profile.jpg",
-});
+    id: "",
+    username: "",
+    year_level: "",
+    school: "",
+    signature: "",
+    profile_image: "/images/temporary profile.jpg",
+  });
 
-  const fetchUserDecks = async () => {
+  const fetchUserDecks = async (profileId) => {
+    if (!profileId) return;
+
     try {
-      const res = await fetch("http://localhost/puffybrain/userDecks.php", {
-        credentials: "include",
-      });
+      const res = await fetch(
+        `http://localhost/puffybrain/getUserDecksById.php?user_id=${profileId}`,
+        { credentials: "include" }
+      );
 
       const data = await res.json();
+      console.log("DECK DATA:", data);
 
       if (data.success) {
         setMyDecks(data.decks || []);
@@ -43,6 +50,29 @@ function UserProfile() {
     }
   };
 
+  const fetchArchivedDecks = async (profileId) => {
+    if (!profileId) return;
+
+    try {
+      const res = await fetch(
+        `http://localhost/puffybrain/getArchivedDecks.php?user_id=${profileId}`,
+        { credentials: "include" }
+      );
+
+      const data = await res.json();
+      console.log("ARCHIVED DATA:", data);
+
+      if (data.success) {
+        setArchivedDecks(data.decks || []);
+      } else {
+        setArchivedDecks([]);
+      }
+    } catch (err) {
+      console.error("Failed to fetch archived decks:", err);
+      setArchivedDecks([]);
+    }
+  };
+
   const fetchAddedCourses = async () => {
     try {
       const res = await fetch("http://localhost/puffybrain/getMyCourses.php", {
@@ -50,12 +80,7 @@ function UserProfile() {
       });
 
       const data = await res.json();
-
-      if (data.success) {
-        setCourses(data.courses || []);
-      } else {
-        setCourses([]);
-      }
+      setCourses(data.success ? data.courses || [] : []);
     } catch (err) {
       console.error("Fetch courses error:", err);
       setCourses([]);
@@ -64,71 +89,111 @@ function UserProfile() {
 
   const fetchUser = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/getUser.php", {
+      const currentRes = await fetch("http://localhost/puffybrain/getUser.php", {
         credentials: "include",
       });
 
-      const data = await res.json();
+      const currentData = await currentRes.json();
 
-      if (data.success) {
-        setUser({
-          username: data.user?.username || data.username || "",
-          year_level: data.user?.year_level || data.year_level || "",
-          school:
-            data.user?.school ||
-            data.school ||
-            "Cavite State University Imus Campus",
-          signature:
-            data.user?.signature ||
-            data.signature ||
-            data.user?.username ||
-            data.username ||
-            "",
-            profile_image:
-              data.user?.profile_image ||
-              data.profile_image ||
-              "/images/temporary profile.jpg",
-        });
+      if (!currentData.success) {
+        navigate("/login");
+        return;
       }
+
+      const loggedUser = currentData.user;
+      const loggedUserId = loggedUser.id || loggedUser.user_id;
+      const profileId = userId || loggedUserId;
+
+      const profileRes = await fetch(
+        `http://localhost/puffybrain/getUserProfile.php?id=${profileId}`,
+        { credentials: "include" }
+      );
+
+      const profileData = await profileRes.json();
+
+      if (!profileData.success) {
+        console.error(profileData.message || "Profile not found");
+        return;
+      }
+
+      const profileUser = profileData.user;
+      const profileUserId = profileUser.id || profileUser.user_id;
+
+      setUser({
+        id: profileUserId,
+        username: profileUser.username || "",
+        year_level: profileUser.year_level || "",
+        school: profileUser.school || "",
+        signature: profileUser.signature || profileUser.username || "",
+        profile_image:
+          profileUser.profile_image || "/images/temporary profile.jpg",
+      });
+
+      setIsOwnProfile(String(loggedUserId) === String(profileUserId));
+
+      fetchUserDecks(profileUserId);
+      fetchArchivedDecks(profileUserId);
     } catch (err) {
-      console.error("Failed to fetch user:", err);
+      console.error("Failed to fetch profile:", err);
     }
   };
+
+  const handleRestore = async (deckId) => {
+  try {
+    const res = await fetch("http://localhost/puffybrain/restoreDeck.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ deck_id: deckId }),
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      Swal.fire("Restored!", "Deck has been restored.", "success");
+      fetchArchivedDecks(user.id);
+      fetchUserDecks(user.id);
+    } else {
+      Swal.fire("Error", data.message || "Failed to restore", "error");
+    }
+  } catch (err) {
+    console.error(err);
+    Swal.fire("Error", "Server error", "error");
+  }
+};
 
   const openCourse = (courseId) => {
     navigate(`/learning/${courseId}`);
   };
 
   const handleLogout = () => {
-      Swal.fire({
-        title: "Logout?",
-        text: "Are you sure you want to logout?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes",
-        confirmButtonColor: "#7b5cff",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          navigate("/login");
-        }
-      });
-    };
-    
+    Swal.fire({
+      title: "Logout?",
+      text: "Are you sure you want to logout?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes",
+      confirmButtonColor: "#7b5cff",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        navigate("/login");
+      }
+    });
+  };
+
   useEffect(() => {
-    fetchUserDecks();
-    fetchAddedCourses();
     fetchUser();
-  }, []);
+    fetchAddedCourses();
+  }, [userId]);
 
   useEffect(() => {
     const handler = (e) => {
       const insideDropdown = e.target.closest(
-  `.${styles.deckMenu}, .${styles.deckMenuBtn}, .${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}`
-);
+        `.${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}`
+      );
 
       if (!insideDropdown) {
-        setDropdownOpen(null);
-        setProfileDropdownOpen(false);
+        setDropdownOpen(false);
         setNotificationOpen(false);
       }
     };
@@ -136,16 +201,13 @@ function UserProfile() {
     window.addEventListener("click", handler);
     return () => window.removeEventListener("click", handler);
   }, []);
-
   return (
     <div
       className={`${styles.container} ${
         isCollapsed ? styles.sidebarCollapsed : ""
       }`}
     >
-      <aside
-        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
-      >
+      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
         <div>
           <div
             className={styles.sidebarToggle}
@@ -155,16 +217,8 @@ function UserProfile() {
           </div>
 
           <div className={styles.logo}>
-            <img
-              className={styles.logoExpanded}
-              src="/images/logo1.png"
-              alt="Logo"
-            />
-            <img
-              className={styles.logoCollapsed}
-              src="/images/logo_solo.png"
-              alt="Logo"
-            />
+            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
+            <img className={styles.logoCollapsed} src="/images/logo_solo.png" alt="Logo" />
           </div>
 
           <div className={styles.divider}></div>
@@ -173,49 +227,29 @@ function UserProfile() {
           <nav className={styles.menu}>
             <ul className={styles.sidebarList}>
               <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/homepage"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
+                <NavLink to="/homepage" className={({ isActive }) => `${styles.menuItem} ${isActive ? styles.active : ""}`}>
                   <i className="bx bx-home"></i>
                   <span className={styles.menuText}>Home</span>
                 </NavLink>
               </li>
 
               <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/Mydecks"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
+                <NavLink to="/Mydecks" className={({ isActive }) => `${styles.menuItem} ${isActive ? styles.active : ""}`}>
                   <i className="bx bx-book"></i>
                   <span className={styles.menuText}>Decks</span>
                 </NavLink>
               </li>
 
               <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/mycourse"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-book"></i>
+                <NavLink to="/mycourse" className={({ isActive }) => `${styles.menuItem} ${isActive ? styles.active : ""}`}>
+                  <i className="bx bx-book-open"></i>
                   <span className={styles.menuText}>My Course</span>
                 </NavLink>
               </li>
 
               <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/public-decks"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-folder"></i>
+                <NavLink to="/public-decks" className={({ isActive }) => `${styles.menuItem} ${isActive ? styles.active : ""}`}>
+                  <i className="bx bx-world"></i>
                   <span className={styles.menuText}>Public Decks</span>
                 </NavLink>
               </li>
@@ -226,13 +260,13 @@ function UserProfile() {
 
           <div className={styles.myDecksNav}>
             <div className={styles.sectionBlock}>
-              <p className={styles.sectionTitle}>My Decks</p>
+              <p className={styles.sectionTitle}>
+                {isOwnProfile ? "My Decks" : `${user.username || "User"}'s Decks`}
+              </p>
 
               <ul className={styles.sectionList}>
                 {myDecks.length === 0 ? (
-                  <li className={styles.sidebarEmptyText}>
-                    Don't have decks yet
-                  </li>
+                  <li className={styles.sidebarEmptyText}>No decks available</li>
                 ) : (
                   myDecks.slice(0, 3).map((deck) => (
                     <li key={deck.id} className={styles.sidebarListItem}>
@@ -246,31 +280,31 @@ function UserProfile() {
               </ul>
             </div>
 
-            <div className={styles.sectionBlock}>
-              <div className={styles.sectionDivider}></div>
-              <p className={styles.sectionTitle}>My Courses</p>
+            {isOwnProfile && (
+              <div className={styles.sectionBlock}>
+                <div className={styles.sectionDivider}></div>
+                <p className={styles.sectionTitle}>My Courses</p>
 
-              <ul className={styles.sectionList}>
-                {courses.length === 0 ? (
-                  <li className={styles.sidebarEmptyText}>
-                    No courses added yet
-                  </li>
-                ) : (
-                  courses.slice(0, 3).map((course) => (
-                    <li key={course.id} className={styles.sidebarListItem}>
-                      <button
-                        type="button"
-                        onClick={() => openCourse(course.id)}
-                        className={styles.menuItem}
-                      >
-                        <i className="bx bx-book"></i>
-                        <span className={styles.menuText}>{course.title}</span>
-                      </button>
-                    </li>
-                  ))
-                )}
-              </ul>
-            </div>
+                <ul className={styles.sectionList}>
+                  {courses.length === 0 ? (
+                    <li className={styles.sidebarEmptyText}>No courses added yet</li>
+                  ) : (
+                    courses.slice(0, 3).map((course) => (
+                      <li key={course.id} className={styles.sidebarListItem}>
+                        <button
+                          type="button"
+                          onClick={() => openCourse(course.id)}
+                          className={styles.menuItem}
+                        >
+                          <i className="bx bx-book-open"></i>
+                          <span className={styles.menuText}>{course.title}</span>
+                        </button>
+                      </li>
+                    ))
+                  )}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </aside>
@@ -278,13 +312,10 @@ function UserProfile() {
       <div className={styles.mainArea}>
         <div className={styles.gridContainer}>
           <div className={styles.headerContainer}>
-            <form
-              className={styles.searchBar}
-              onSubmit={(e) => e.preventDefault()}
-            >
+            <form className={styles.searchBar} onSubmit={(e) => e.preventDefault()}>
               <input
                 type="text"
-                placeholder="Search your decks"
+                placeholder="Search decks"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -292,45 +323,32 @@ function UserProfile() {
             </form>
 
             <div className={styles.profileWrapper}>
-
               <div className={styles.notificationWrapper}>
-                                <button
-                                  type="button"
-                                  className={styles.notificationBtn}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setNotificationOpen((prev) => !prev);
-                                    setProfileDropdownOpen(false);
-                                    setDropdownOpen(null);
-                                  }}
-                                >
-                                  <i className="bx bx-bell"></i>
-                                  {notificationCount > 0 && (
-                                      <span className={styles.notificationBadge}>
-                                        {notificationCount}
-                                      </span>
-                                    )}
-                                </button>
-              
-                                <div
-                                  className={`${styles.notificationDropdown} ${
-                                    notificationOpen ? styles.show : ""
-                                  }`}
-                                >
-                                  <h4>Notifications</h4>
-              
-                                  <div className={styles.emptyNotification}>
-                                    <p>You don’t have any new notifications</p>
-                                  </div>
-                                </div>
-                              </div>
-                              
+                <button
+                  type="button"
+                  className={styles.notificationBtn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setNotificationOpen((prev) => !prev);
+                    setDropdownOpen(false);
+                  }}
+                >
+                  <i className="bx bx-bell"></i>
+                  {notificationCount > 0 && (
+                    <span className={styles.notificationBadge}>{notificationCount}</span>
+                  )}
+                </button>
+
+                <div className={`${styles.notificationDropdown} ${notificationOpen ? styles.show : ""}`}>
+                  <h4>Notifications</h4>
+                  <div className={styles.emptyNotification}>
+                    <p>You don’t have any new notifications</p>
+                  </div>
+                </div>
+              </div>
+
               <div className={styles.dpContainer}>
-                <img
-                    src={user.profile_image}
-                    alt="Profile"
-                    className={styles.profilePic}
-                  />
+                <img src={user.profile_image} alt="Profile" className={styles.profilePic} />
               </div>
 
               <div className={styles.userInfo}>
@@ -343,17 +361,14 @@ function UserProfile() {
                   className={styles.dropdownBtn}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setDropdownOpen(!dropdownOpen);
+                    setDropdownOpen((prev) => !prev);
+                    setNotificationOpen(false);
                   }}
                 >
                   <i className="bx bx-chevron-down" />
                 </button>
 
-                <div
-                  className={`${styles.dropdownContent} ${
-                    dropdownOpen ? styles.show : ""
-                  }`}
-                >
+                <div className={`${styles.dropdownContent} ${dropdownOpen ? styles.show : ""}`}>
                   <NavLink to="/edit-profile">
                     <i className="bx bx-cog" />
                     <span>Settings</span>
@@ -377,20 +392,14 @@ function UserProfile() {
             <div className={styles.profileCard}>
               <div className={styles.idPhotoBox}>
                 <div className={styles.idPhotoFrame}>
-                  <img
-                    src={user.profile_image}
-                    alt="Profile"
-                    className={styles.idPhoto}
-                  />
+                  <img src={user.profile_image} alt="Profile" className={styles.idPhoto} />
                 </div>
-
                 <div className={styles.idBarcode}></div>
               </div>
 
               <div className={styles.profileCardInner}>
                 <div className={styles.profileCardTop}>
                   <h1 className={styles.profileTitle}>Student ID Card</h1>
-
                   <button className={styles.shareBtn} type="button">
                     <i className="bx bx-share-alt"></i>
                   </button>
@@ -401,94 +410,73 @@ function UserProfile() {
                 <div className={styles.profileInfoGrid}>
                   <div className={styles.profileField}>
                     <span className={styles.profileLabel}>Username:</span>
-                    <span className={styles.profileValue}>
-                      {user.username || "meiko"}
-                    </span>
+                    <span className={styles.profileValue}>{user.username || "User"}</span>
                   </div>
 
                   <div className={styles.profileField}>
                     <span className={styles.profileLabel}>Year:</span>
-                    <span className={styles.profileValue}>
-                      {user.year_level || "2nd Year"}
-                    </span>
+                    <span className={styles.profileValue}>{user.year_level || "Not set"}</span>
                   </div>
 
-                  <div
-                    className={`${styles.profileField} ${styles.profileFieldWide}`}
-                  >
+                  <div className={`${styles.profileField} ${styles.profileFieldWide}`}>
                     <span className={styles.profileLabel}>School:</span>
-                    <span className={styles.profileValue}>
-                      {user.school || "Cavite State University Imus Campus"}
-                    </span>
+                    <span className={styles.profileValue}>{user.school || "Not set"}</span>
                   </div>
 
                   <div className={styles.profileField}>
                     <span className={styles.profileLabel}>Signature:</span>
                     <span className={styles.signatureText}>
-                      {user.signature || user.username || "Meiko"}
+                      {user.signature || user.username || "User"}
                     </span>
                   </div>
 
                   <div className={styles.profileButtonWrap}>
-                    <button
-                      className={styles.editBtn}
-                      onClick={() => navigate("/edit-profile")}
-                    >
-                      Edit Profile
-                    </button>
+                    {isOwnProfile ? (
+                      <button className={styles.editBtn} onClick={() => navigate("/edit-profile")}>
+                        Edit Profile
+                      </button>
+                    ) : (
+                      <button className={styles.editBtn} type="button" disabled>
+                        Visiting Profile
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className={styles.decksSection}>
-              <h2>My Decks</h2>
+            <div className={styles.deckTabsSection}>
+              <div className={styles.deckTabsHeader}>
+                <button
+                  type="button"
+                  className={activeDeckTab === "decks" ? styles.activeTab : styles.tabBtn}
+                  onClick={() => setActiveDeckTab("decks")}
+                >
+                  {isOwnProfile ? "My Decks" : `${user.username || "User"}'s Decks`}
+                </button>
 
-              <div className={styles.decksGrid}>
-                {myDecks.length === 0 ? (
-                  <p className={styles.emptyText}>Don’t have decks yet</p>
-                ) : (
-                  myDecks.map((deck, index) => (
-                    <Link
-                      key={deck.id}
-                      to={`/deck/${deck.id}`}
-                      className={styles.deckBox}
+                {isOwnProfile && (
+                  <>
+                    <span className={styles.tabDivider}></span>
+
+                    <button
+                      type="button"
+                      className={activeDeckTab === "archive" ? styles.activeTab : styles.tabBtn}
+                      onClick={() => setActiveDeckTab("archive")}
                     >
-                      <div
-                        className={`${styles.deckPreview} ${
-                          index % 4 === 0
-                            ? styles.previewBlue
-                            : index % 4 === 1
-                            ? styles.previewPink
-                            : index % 4 === 2
-                            ? styles.previewViolet
-                            : styles.previewRed
-                        }`}
-                      ></div>
-
-                      <div className={styles.deckText}>
-                        <strong>{deck.title}</strong>
-                        <p>{deck.card_count ?? 0} cards</p>
-                      </div>
-                    </Link>
-                  ))
+                      Archive
+                    </button>
+                  </>
                 )}
               </div>
-            </div>
 
-            <div className={styles.archiveSection}>
-                <h2>Archive</h2>
-
+              {activeDeckTab === "decks" && (
                 <div className={styles.decksGrid}>
                   {myDecks.length === 0 ? (
-                    <p className={styles.emptyText}>No archived decks yet</p>
+                    <p className={styles.emptyText}>No decks available</p>
                   ) : (
                     myDecks.map((deck, index) => (
-                      <Link
-                        key={`archive-${deck.id}`}
-                        to={`/deck/${deck.id}`}
-                        className={styles.deckBox}
-                      >
+                      <Link key={deck.id} to={`/deck/${deck.id}`} className={styles.deckBox}>
                         <div
                           className={`${styles.deckPreview} ${
                             index % 4 === 0
@@ -509,8 +497,52 @@ function UserProfile() {
                     ))
                   )}
                 </div>
-              </div>
+              )}
 
+              {activeDeckTab === "archive" && (
+                <div className={styles.decksGrid}>
+                {archivedDecks.length === 0 ? (
+                  <p className={styles.emptyText}>No archived decks yet</p>
+                ) : (
+              archivedDecks.map((deck, index) => (
+                <div key={deck.id} className={styles.deckBox}>
+                  
+                  {/* 3 DOTS MENU */}
+                  <div className={styles.deckMenuWrapper}>
+                    <button
+                      type="button"
+                      className={styles.deckMenuBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDropdownOpen(deck.id === dropdownOpen ? null : deck.id);
+                      }}
+                    >
+                      <i className="bx bx-dots-vertical-rounded"></i>
+                    </button>
+
+                    {dropdownOpen === deck.id && (
+                      <div className={styles.deckDropdown}>
+                        <button
+                          onClick={() => handleRestore(deck.id)}
+                        >
+                          Restore
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className={styles.deckPreview}></div>
+
+                  <div className={styles.deckText}>
+                    <strong>{deck.title}</strong>
+                    <p>{deck.card_count ?? 0} cards</p>
+                  </div>
+                </div>
+              ))
+                )}     
+           </div>
+              )}
+            </div>
           </main>
         </div>
       </div>
