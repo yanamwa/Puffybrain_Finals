@@ -11,7 +11,7 @@ import {
   User,
   Settings,
 } from "lucide-react";
-import styles from "./newpage.module.css";
+import styles from "./adminprofile.module.css";
 import "boxicons/css/boxicons.min.css";
 
 export default function NewPage() {

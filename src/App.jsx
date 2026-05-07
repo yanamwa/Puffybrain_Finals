@@ -53,6 +53,8 @@ import EditModule from "./pages/admin/EditModule";
 import UserManagement from "./pages/admin/UserManagement";
 import ModesManagement from "./pages/admin/Modesmangement";
 import DecksManagement from "./pages/admin/DecksManagement";
+import AdminProfile from "./pages/admin/AdminProfile";
+import AdminSettings from "./pages/admin/AdminSetting";
 
 /* Tutorials */
 import FlashcardsTutorial from "./pages/quizzes/flashcards-tutorial";
@@ -126,7 +128,9 @@ export default function App() {
       <Route path="/admin/modules/new" element={<AddModule />} />
       <Route path="/admin/modules/edit/:id" element={<EditModule />} />
       <Route path="/admin/decks" element={<DecksManagement />} />
-
+      <Route path="/admin/profile" element={<AdminProfile />} />
+      <Route path="/admin/settings" element={<AdminSettings />} />
+      
       {/* TUTORIAL — LESSON */}
       <Route path="/flashcards-tutorial/lesson/:lessonId" element={<FlashcardsTutorial />} />
       <Route path="/multipleChoice-tutorial/lesson/:lessonId" element={<MultipleChoice />} />
