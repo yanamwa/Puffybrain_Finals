@@ -402,6 +402,7 @@
   border-radius: 18px;
   box-shadow: var(--shadow);
   overflow: hidden;
+  padding: 8px;
 }
 
 .tableHeader,
@@ -425,10 +426,10 @@
 }
 
 .row {
-  padding: 18px;
+  padding: 15px;
   border-bottom: 1px solid #eeeeee;
   font-size: 16px;
-  min-height: 72px;
+  min-height: 50px;
 }
 
 .row:last-child {
@@ -460,8 +461,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 82px;
-  min-height: 30px;
+  min-width: 70px;
+  min-height: 20px;
   padding: 6px 14px;
   border-radius: 999px;
   font-size: 13px;
@@ -490,15 +491,15 @@
 
 /* BUTTON */
 .viewBtn {
-  width: 100px;
-  height: 34px;
+  width: 90px;
+  height: 30px;
   justify-self: center;
   background: #c3c7f3;
   border: none;
   border-radius: 10px;
   cursor: pointer;
   font-family: "Jersey 15", sans-serif;
-  font-size: 15px;
+  font-size: 13px;
 }
 
 .viewBtn:hover {
