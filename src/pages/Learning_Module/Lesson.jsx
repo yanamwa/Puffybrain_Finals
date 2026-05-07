@@ -24,10 +24,28 @@ function Lesson() {
   const lessonSlides = useMemo(() => {
     if (!lesson?.lesson_content) return [];
 
-    return lesson.lesson_content
-      .split("---")
-      .map((slide) => slide.trim())
-      .filter((slide) => slide.length > 0);
+    const raw = String(lesson.lesson_content).trim();
+
+    try {
+      const parsed = JSON.parse(raw);
+
+      if (Array.isArray(parsed)) {
+        return parsed.map((page, index) => ({
+          title: page.title || `Lesson Page ${index + 1}`,
+          content: page.content || "",
+        }));
+      }
+    } catch {
+      return raw
+        .split("---")
+        .map((slide, index) => ({
+          title: `Lesson Page ${index + 1}`,
+          content: slide.trim(),
+        }))
+        .filter((slide) => slide.content.length > 0);
+    }
+
+    return [];
   }, [lesson]);
 
   const quizSlides = useMemo(() => {
@@ -45,7 +63,7 @@ function Lesson() {
         correct_answer: String(
           item.correct_answer || item.correctAnswer || item.answer || ""
         ).trim(),
-        explanation: String(item.explanation || "").trim()
+        explanation: String(item.explanation || "").trim(),
       }));
     } catch (error) {
       console.error("Invalid quiz JSON:", error);
@@ -60,14 +78,15 @@ function Lesson() {
     lessonSlides.forEach((slide, index) => {
       combined.push({
         type: "lesson",
-        content: slide
+        content: slide,
       });
 
       if ((index + 1) % 2 === 0 && quizIndex < quizSlides.length) {
         combined.push({
           type: "quiz",
-          content: quizSlides[quizIndex]
+          content: quizSlides[quizIndex],
         });
+
         quizIndex++;
       }
     });
@@ -75,8 +94,9 @@ function Lesson() {
     while (quizIndex < quizSlides.length) {
       combined.push({
         type: "quiz",
-        content: quizSlides[quizIndex]
+        content: quizSlides[quizIndex],
       });
+
       quizIndex++;
     }
 
@@ -97,51 +117,52 @@ function Lesson() {
     const studiedSlides = slideIndexToSave + 1;
 
     try {
-        await fetch("http://localhost/puffybrain/saveLessonProgress.php", {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            lesson_id: Number(lessonId),
-            total_cards: totalSlides,
-            studied_cards: studiedSlides,
-            last_viewed_card: studiedSlides
-          })
-        });
+      await fetch("http://localhost/puffybrain/saveLessonProgress.php", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          lesson_id: Number(lessonId),
+          total_cards: totalSlides,
+          studied_cards: studiedSlides,
+          last_viewed_card: studiedSlides,
+        }),
+      });
     } catch (error) {
       console.error("Error saving lesson progress:", error);
     }
   };
 
- const saveLessonResultsAndGoReview = async (latestResults = quizResults) => {
-  const finalScore = latestResults.filter((item) => item.isCorrect).length;
+  const saveLessonResultsAndGoReview = async (latestResults = quizResults) => {
+    const finalScore = latestResults.filter((item) => item.isCorrect).length;
 
-  localStorage.setItem(
-    "lessonQuizResults",
-    JSON.stringify({
-      lessonId: Number(lessonId),
-      score: finalScore,
-      total: latestResults.length,
-      answers: latestResults
-    })
-  );
+    localStorage.setItem(
+      "lessonQuizResults",
+      JSON.stringify({
+        lessonId: Number(lessonId),
+        score: finalScore,
+        total: latestResults.length,
+        answers: latestResults,
+      })
+    );
 
-  localStorage.setItem(
-    `lessonProgress_${lessonId}`,
-    JSON.stringify({
-      total_cards: totalSlides,
-      studied_cards: totalSlides,
-      progress_percent: 100,
-      last_viewed_card: totalSlides
-    })
-  );
+    localStorage.setItem(
+      `lessonProgress_${lessonId}`,
+      JSON.stringify({
+        total_cards: totalSlides,
+        studied_cards: totalSlides,
+        progress_percent: 100,
+        last_viewed_card: totalSlides,
+      })
+    );
 
-  await saveProgress(totalSlides - 1);
+    await saveProgress(totalSlides - 1);
 
-  navigate(`/review/${lessonId}`);
-};
+    navigate(`/review/${lessonId}`);
+  };
+
   const handleOptionSelect = async (slideIndex, option) => {
     if (selectedAnswers[slideIndex]) return;
 
@@ -155,7 +176,7 @@ function Lesson() {
 
     setSelectedAnswers((prev) => ({
       ...prev,
-      [slideIndex]: option
+      [slideIndex]: option,
     }));
 
     const newResult = {
@@ -163,12 +184,12 @@ function Lesson() {
       userAnswer: option,
       correctAnswer: correctAnswer,
       explanation: explanation,
-      isCorrect: isCorrect
+      isCorrect: isCorrect,
     };
 
     const updatedResults = [
       ...quizResults.filter((item) => item.question !== newResult.question),
-      newResult
+      newResult,
     ];
 
     setQuizResults(updatedResults);
@@ -202,8 +223,8 @@ function Lesson() {
           : "quiz-popup quiz-popup-incorrect",
         title: "quiz-popup-title",
         confirmButton: "quiz-popup-button",
-        icon: "quiz-popup-icon"
-      }
+        icon: "quiz-popup-icon",
+      },
     });
 
     const nextSlide = slideIndex + 1;
@@ -223,7 +244,7 @@ function Lesson() {
       Swal.fire({
         icon: "warning",
         title: "Answer first",
-        text: "Please answer the quick check before continuing."
+        text: "Please answer the quick check before continuing.",
       });
       return;
     }
@@ -290,6 +311,7 @@ function Lesson() {
                 style={{ width: `${progressPercent}%` }}
               ></div>
             </div>
+
             <p className={styles.progressText}>{progressPercent}% Complete</p>
           </div>
 
@@ -297,7 +319,15 @@ function Lesson() {
             {!currentItem && "No lesson content yet."}
 
             {currentItem?.type === "lesson" && (
-              <div className={styles.lessonSlide}>{currentItem.content}</div>
+              <div className={styles.lessonSlide}>
+                <h3 className={styles.lessonSlideTitle}>
+                  {currentItem.content.title}
+                </h3>
+
+                <p className={styles.lessonSlideContent}>
+                  {currentItem.content.content}
+                </p>
+              </div>
             )}
 
             {currentItem?.type === "quiz" && (
