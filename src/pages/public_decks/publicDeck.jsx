@@ -276,6 +276,16 @@ function PublicDecks() {
     return result;
   }, [publicDecks, search, deckSort, deckYear]);
 
+  const limitWords = (text, limit =n15 ) => {
+  if (!text) return "No description available.";
+
+  const words = text.trim().split(/\s+/);
+
+  if (words.length <= limit) return text;
+
+  return words.slice(0, limit).join(" ") + "...";
+};
+
   return (
     <div
       className={`${styles.container} ${
@@ -647,38 +657,49 @@ function PublicDecks() {
                   ) : (
                     filteredLessons.map((lesson) => (
                       <div className={styles.lessonBox} key={lesson.id}>
-                        <div className={styles.lessonTop}></div>
-                        <div className={styles.lessonPreview}></div>
+                          <div className={styles.lessonTop}></div>
+                          <div className={styles.lessonPreview}></div>
 
-                        <div className={styles.lessonContent}>
-                          <div className={styles.lessonHeader}>
-                            <h3 className={styles.lessonTitle}>
-                              {lesson.title}
-                            </h3>
+                          <div
+                            className={styles.lessonContent}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => navigate(`/learning/${lesson.id}`)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") navigate(`/learning/${lesson.id}`);
+                            }}
+                          >
+                            <div className={styles.lessonHeader}>
+                              <h3 className={styles.lessonTitle}>{lesson.title}</h3>
+
+                              <button
+                                type="button"
+                                className={styles.lessonAdd}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddCourse(lesson);
+                                }}
+                              >
+                                <i className="bx bx-plus"></i>
+                              </button>
+                            </div>
+
+                            <p className={styles.lessonDescription}>
+                              {limitWords(lesson.description, 30)}
+                            </p>
 
                             <button
                               type="button"
-                              className={styles.lessonAdd}
+                              className={styles.lessonBtn}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleAddCourse(lesson);
+                                navigate(`/learning/${lesson.id}`);
                               }}
                             >
-                              <i className="bx bx-plus"></i>
-                            </button>
-                          </div>
-
-                          <p className={styles.lessonDescription}>
-                            {lesson.description || "No description available."}
-                          </p>
-
-                          <Link to={`/learning/${lesson.id}`}>
-                            <button className={styles.lessonBtn}>
                               Start Learning
                             </button>
-                          </Link>
+                          </div>
                         </div>
-                      </div>
                     ))
                   )}
                 </div>
