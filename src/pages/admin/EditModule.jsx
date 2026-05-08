@@ -17,11 +17,13 @@ import "boxicons/css/boxicons.min.css";
 
 function parseDeckCards(raw) {
   if (!raw) return [];
+
   const text = String(raw).trim();
   if (!text) return [];
 
   try {
     const parsed = JSON.parse(text);
+
     if (Array.isArray(parsed)) {
       return parsed.map((x, i) => ({
         id: i + 1,
@@ -29,7 +31,9 @@ function parseDeckCards(raw) {
         options: Array.isArray(x.options)
           ? [...x.options, "", "", "", ""].slice(0, 4)
           : ["", "", "", ""],
-        correct_answer: String(x.correct_answer || x.correctAnswer || "").trim(),
+        correct_answer: String(
+          x.correct_answer || x.correctAnswer || ""
+        ).trim(),
         explanation: String(x.explanation || "").trim(),
       }));
     }
@@ -76,12 +80,41 @@ export default function EditModule() {
   const [generatingEditQuiz, setGeneratingEditQuiz] = useState(false);
 
   const menuItems = [
-    { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
-    { label: "User Management", path: "/admin/users", icon: <Users size={20} /> },
-    { label: "Module Management", path: "/admin/modules", icon: <Layers size={20} /> },
-    { label: "Decks Management", path: "/admin/decks", icon: <LibraryBig size={20} /> },
-    { label: "Modes Management", path: "/admin/modes", icon: <Gamepad2 size={20} /> },
+    {
+      label: "Dashboard",
+      path: "/admin/dashboard",
+      icon: <LayoutDashboard size={20} />,
+    },
+    {
+      label: "User Management",
+      path: "/admin/users",
+      icon: <Users size={20} />,
+    },
+    {
+      label: "Module Management",
+      path: "/admin/modules",
+      icon: <Layers size={20} />,
+    },
+    {
+      label: "Decks Management",
+      path: "/admin/decks",
+      icon: <LibraryBig size={20} />,
+    },
+    {
+      label: "Modes Management",
+      path: "/admin/modes",
+      icon: <Gamepad2 size={20} />,
+    },
   ];
+
+  const handleLogout = (e) => {
+    e.preventDefault();
+
+    localStorage.clear();
+    sessionStorage.clear();
+
+    window.location.href = "/admin/login";
+  };
 
   useEffect(() => {
     const fetchModule = async () => {
@@ -98,6 +131,7 @@ export default function EditModule() {
               title: "Not Found",
               text: "Module not found.",
             });
+
             navigate("/admin/modules");
             return;
           }
@@ -112,6 +146,7 @@ export default function EditModule() {
         }
       } catch (err) {
         console.error(err);
+
         await Swal.fire({
           icon: "error",
           title: "Load Failed",
@@ -125,7 +160,10 @@ export default function EditModule() {
     fetchModule();
   }, [id, navigate]);
 
-  const generateQuizFromAI = async ({ questionCount = 5, difficulty = "medium" }) => {
+  const generateQuizFromAI = async ({
+    questionCount = 5,
+    difficulty = "medium",
+  }) => {
     const res = await fetch(AI_API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -141,6 +179,7 @@ export default function EditModule() {
     const text = await res.text();
 
     let data;
+
     try {
       data = JSON.parse(text);
     } catch {
@@ -167,7 +206,9 @@ export default function EditModule() {
       options: Array.isArray(item.options)
         ? [...item.options, "", "", "", ""].slice(0, 4)
         : ["", "", "", ""],
-      correct_answer: String(item.correct_answer || item.correctAnswer || "").trim(),
+      correct_answer: String(
+        item.correct_answer || item.correctAnswer || ""
+      ).trim(),
       explanation: String(item.explanation || "").trim(),
     }));
   };
@@ -202,11 +243,15 @@ export default function EditModule() {
       confirmButtonText: "Generate",
       cancelButtonText: "Cancel",
       preConfirm: () => {
-        const questionCount = Number(document.getElementById("swal-question-count").value);
+        const questionCount = Number(
+          document.getElementById("swal-question-count").value
+        );
         const difficulty = document.getElementById("swal-difficulty").value;
 
         if (!questionCount || questionCount < 1 || questionCount > 50) {
-          Swal.showValidationMessage("Please enter a valid number between 1 and 50.");
+          Swal.showValidationMessage(
+            "Please enter a valid number between 1 and 50."
+          );
           return false;
         }
 
@@ -233,6 +278,7 @@ export default function EditModule() {
       });
     } catch (err) {
       console.error("AI GENERATE EDIT ERROR:", err);
+
       await Swal.fire({
         icon: "error",
         title: "Generation Failed",
@@ -271,6 +317,7 @@ export default function EditModule() {
           title: "Updated!",
           text: "Module updated successfully.",
         });
+
         navigate("/admin/modules");
       } else {
         await Swal.fire({
@@ -281,6 +328,7 @@ export default function EditModule() {
       }
     } catch (err) {
       console.error(err);
+
       await Swal.fire({
         icon: "error",
         title: "Error",
@@ -315,20 +363,27 @@ export default function EditModule() {
         const updatedOptions = [...item.options];
         updatedOptions[optionIndex] = value;
 
-        return { ...item, options: updatedOptions };
+        return {
+          ...item,
+          options: updatedOptions,
+        };
       })
     );
   };
 
   const updateEditCorrectAnswer = (index, value) => {
     setEditQuizItems((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, correct_answer: value } : item))
+      prev.map((item, i) =>
+        i === index ? { ...item, correct_answer: value } : item
+      )
     );
   };
 
   const updateEditExplanation = (index, value) => {
     setEditQuizItems((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, explanation: value } : item))
+      prev.map((item, i) =>
+        i === index ? { ...item, explanation: value } : item
+      )
     );
   };
 
@@ -346,7 +401,9 @@ export default function EditModule() {
 
   return (
     <div className={styles.gridContainer}>
-      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
+      <aside
+        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
+      >
         <div className={styles.sidebarTop}>
           <div
             className={styles.sidebarToggle}
@@ -356,13 +413,41 @@ export default function EditModule() {
           </div>
 
           <div className={styles.logo}>
-            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
-            <img className={styles.logoCollapsed} src="/images/logo_solo.png" alt="Logo" />
+            <img
+              className={styles.logoExpanded}
+              src="/images/logo1.png"
+              alt="Logo"
+            />
+
+            <img
+              className={styles.logoCollapsed}
+              src="/images/logo_solo.png"
+              alt="Logo"
+            />
           </div>
 
           <div className={styles.divider}></div>
 
           <p className={styles.menuLabel}>Menu</p>
+
+          <nav className={styles.menu}>
+            {menuItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `${styles.menuItem} ${isActive ? styles.active : ""}`
+                }
+              >
+                <span className={styles.menuIcon}>{item.icon}</span>
+                <span className={styles.menuText}>{item.label}</span>
+              </NavLink>
+            ))}
+          </nav>
+
+          <div className={styles.divider}></div>
+
+          <p className={styles.menuLabel}>Others</p>
 
           <nav className={styles.menu}>
             <NavLink
@@ -377,46 +462,36 @@ export default function EditModule() {
               <span className={styles.menuText}>Profile</span>
             </NavLink>
 
-            {menuItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  `${styles.menuItem} ${isActive ? styles.active : ""}`
-                }
-              >
-                <span className={styles.menuIcon}>{item.icon}</span>
-                <span className={styles.menuText}>{item.label}</span>
-              </NavLink>
-            ))}
+            <NavLink
+              to="/admin/settings"
+              className={({ isActive }) =>
+                `${styles.menuItem} ${isActive ? styles.active : ""}`
+              }
+            >
+              <span className={styles.menuIcon}>
+                <Settings size={20} />
+              </span>
+              <span className={styles.menuText}>Settings</span>
+            </NavLink>
           </nav>
         </div>
 
         <div className={styles.sidebarBottom}>
-          <NavLink
-            to="/admin/settings"
-            className={({ isActive }) =>
-              `${styles.menuItem} ${isActive ? styles.active : ""}`
-            }
-          >
-            <span className={styles.menuIcon}>
-              <Settings size={20} />
-            </span>
-            <span className={styles.menuText}>Settings</span>
-          </NavLink>
+          <div className={styles.divider}></div>
 
-          <button type="button" className={styles.menuItem}>
+          <NavLink to="/" onClick={handleLogout} className={styles.menuItem}>
             <span className={styles.menuIcon}>
               <LogOut size={20} />
             </span>
             <span className={styles.menuText}>Logout</span>
-          </button>
+          </NavLink>
         </div>
       </aside>
 
       <header className={styles.headerContainer}>
         <div className={styles.searchBar}>
           <Search size={19} />
+
           <input
             type="text"
             placeholder="Search..."
@@ -437,7 +512,9 @@ export default function EditModule() {
             <i className="bx bx-bell"></i>
 
             {notificationCount > 0 && (
-              <span className={styles.notificationBadge}>{notificationCount}</span>
+              <span className={styles.notificationBadge}>
+                {notificationCount}
+              </span>
             )}
           </button>
 
@@ -464,6 +541,7 @@ export default function EditModule() {
           <div className={styles.popupInfoGrid}>
             <div className={styles.popupField}>
               <label className={styles.popupLabel}>Module Title</label>
+
               <input
                 className={styles.popupInput}
                 value={editTitle}
@@ -473,6 +551,7 @@ export default function EditModule() {
 
             <div className={styles.popupField}>
               <label className={styles.popupLabel}>Status</label>
+
               <select
                 className={styles.popupSelect}
                 value={editStatus}
@@ -486,6 +565,7 @@ export default function EditModule() {
 
           <div className={styles.popupSection}>
             <label className={styles.popupLabel}>Module Description</label>
+
             <textarea
               className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
               value={editDesc}
@@ -495,6 +575,7 @@ export default function EditModule() {
 
           <div className={styles.popupSection}>
             <label className={styles.popupLabel}>Subject</label>
+
             <input
               className={styles.popupInput}
               value={editSubject}
@@ -504,6 +585,7 @@ export default function EditModule() {
 
           <div className={styles.popupSection}>
             <label className={styles.popupLabel}>Learning Objectives</label>
+
             <textarea
               className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
               value={editLearningObjectives}
@@ -513,6 +595,7 @@ export default function EditModule() {
 
           <div className={styles.popupSection}>
             <label className={styles.popupLabel}>Lessons</label>
+
             <textarea
               className={`${styles.popupTextarea} ${styles.popupLargeBox}`}
               value={editLessonContent}
@@ -550,7 +633,9 @@ export default function EditModule() {
               editQuizItems.map((item, index) => (
                 <div key={index} className={styles.popupQuizCard}>
                   <div className={styles.popupQuizCardTop}>
-                    <span className={styles.popupQuizCardTitle}>Item {index + 1}</span>
+                    <span className={styles.popupQuizCardTitle}>
+                      Item {index + 1}
+                    </span>
 
                     <button
                       type="button"
@@ -564,7 +649,9 @@ export default function EditModule() {
                   <input
                     className={styles.popupInput}
                     value={item.question}
-                    onChange={(e) => updateEditQuizQuestion(index, e.target.value)}
+                    onChange={(e) =>
+                      updateEditQuizQuestion(index, e.target.value)
+                    }
                     placeholder="Question"
                   />
 
@@ -575,7 +662,11 @@ export default function EditModule() {
                         className={styles.popupInput}
                         value={option}
                         onChange={(e) =>
-                          updateEditQuizOption(index, optionIndex, e.target.value)
+                          updateEditQuizOption(
+                            index,
+                            optionIndex,
+                            e.target.value
+                          )
                         }
                         placeholder={`Option ${optionIndex + 1}`}
                       />
@@ -585,14 +676,18 @@ export default function EditModule() {
                   <input
                     className={styles.popupInput}
                     value={item.correct_answer}
-                    onChange={(e) => updateEditCorrectAnswer(index, e.target.value)}
+                    onChange={(e) =>
+                      updateEditCorrectAnswer(index, e.target.value)
+                    }
                     placeholder="Correct Answer"
                   />
 
                   <textarea
                     className={`${styles.popupTextarea} ${styles.popupAnswerBox}`}
                     value={item.explanation}
-                    onChange={(e) => updateEditExplanation(index, e.target.value)}
+                    onChange={(e) =>
+                      updateEditExplanation(index, e.target.value)
+                    }
                     placeholder="Explanation"
                   />
                 </div>
@@ -609,7 +704,11 @@ export default function EditModule() {
               Cancel
             </button>
 
-            <button className={styles.popupSaveBtn} type="button" onClick={saveEdit}>
+            <button
+              className={styles.popupSaveBtn}
+              type="button"
+              onClick={saveEdit}
+            >
               Save
             </button>
           </div>

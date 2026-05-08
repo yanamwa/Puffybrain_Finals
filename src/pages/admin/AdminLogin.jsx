@@ -22,14 +22,12 @@ function AdminLogin() {
     }
 
     try {
-      const res = await fetch(
-        "http://localhost/puffybrain/AdminLogin.php",
-        {
+      const res = await fetch("http://localhost/puffybrain/AdminLogin.php", {
           method: "POST",
+          credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, password }),
-        }
-      );
+        });
 
       const text = await res.text();
       console.log("RAW RESPONSE:", text);

@@ -59,6 +59,15 @@ export default function UserManagement() {
     },
   ];
 
+  const handleLogout = (e) => {
+    e.preventDefault();
+
+    localStorage.clear();
+    sessionStorage.clear();
+
+    window.location.href = "/admin/login";
+  };
+
   const formatUserId = (user) => {
     const date = user.STDDateCreated
       ? new Date(user.STDDateCreated)
@@ -111,7 +120,7 @@ export default function UserManagement() {
   }, [searchQuery, sortBy]);
 
   const filteredUsers = users.filter((user) => {
-    const q = searchQuery.toLowerCase();
+    const q = searchQuery.trim().toLowerCase();
 
     return (
       String(user.id || "").includes(q) ||
@@ -141,7 +150,9 @@ export default function UserManagement() {
 
   return (
     <div className={styles.gridContainer}>
-      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
+      <aside
+        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
+      >
         <div className={styles.sidebarTop}>
           <div
             className={styles.sidebarToggle}
@@ -168,18 +179,6 @@ export default function UserManagement() {
           <p className={styles.menuLabel}>Menu</p>
 
           <nav className={styles.menu}>
-            <NavLink
-              to="/admin/profile"
-              className={({ isActive }) =>
-                `${styles.menuItem} ${isActive ? styles.active : ""}`
-              }
-            >
-              <span className={styles.menuIcon}>
-                <User size={20} />
-              </span>
-              <span className={styles.menuText}>Profile</span>
-            </NavLink>
-
             {menuItems.map((item) => (
               <NavLink
                 key={item.path}
@@ -193,27 +192,47 @@ export default function UserManagement() {
               </NavLink>
             ))}
           </nav>
+
+          <div className={styles.divider}></div>
+
+          <p className={styles.menuLabel}>Others</p>
+
+          <nav className={styles.menu}>
+            <NavLink
+              to="/admin/profile"
+              className={({ isActive }) =>
+                `${styles.menuItem} ${isActive ? styles.active : ""}`
+              }
+            >
+              <span className={styles.menuIcon}>
+                <User size={20} />
+              </span>
+              <span className={styles.menuText}>Profile</span>
+            </NavLink>
+
+            <NavLink
+              to="/admin/settings"
+              className={({ isActive }) =>
+                `${styles.menuItem} ${isActive ? styles.active : ""}`
+              }
+            >
+              <span className={styles.menuIcon}>
+                <Settings size={20} />
+              </span>
+              <span className={styles.menuText}>Settings</span>
+            </NavLink>
+          </nav>
         </div>
 
         <div className={styles.sidebarBottom}>
-          <NavLink
-            to="/admin/settings"
-            className={({ isActive }) =>
-              `${styles.menuItem} ${isActive ? styles.active : ""}`
-            }
-          >
-            <span className={styles.menuIcon}>
-              <Settings size={20} />
-            </span>
-            <span className={styles.menuText}>Settings</span>
-          </NavLink>
+          <div className={styles.divider}></div>
 
-          <button type="button" className={styles.menuItem}>
+          <NavLink to="/" onClick={handleLogout} className={styles.menuItem}>
             <span className={styles.menuIcon}>
               <LogOut size={20} />
             </span>
             <span className={styles.menuText}>Logout</span>
-          </button>
+          </NavLink>
         </div>
       </aside>
 
@@ -303,6 +322,7 @@ export default function UserManagement() {
                   <div>{user.email || "No email found"}</div>
 
                   <button
+                    type="button"
                     className={styles.viewBtn}
                     onClick={() => setSelectedUser(user)}
                   >
@@ -316,6 +336,7 @@ export default function UserManagement() {
         {totalPages > 1 && (
           <div className={styles.pagination}>
             <button
+              type="button"
               className={styles.pageBox}
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((p) => p - 1)}
@@ -325,6 +346,7 @@ export default function UserManagement() {
 
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
               <button
+                type="button"
                 key={page}
                 className={`${styles.pageBox} ${
                   currentPage === page ? styles.activePage : ""
@@ -336,6 +358,7 @@ export default function UserManagement() {
             ))}
 
             <button
+              type="button"
               className={styles.pageBox}
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage((p) => p + 1)}
@@ -367,7 +390,8 @@ export default function UserManagement() {
                 <strong>ID:</strong> {formatUserId(selectedUser)}
               </p>
               <p>
-                <strong>Username:</strong> {selectedUser.username}
+                <strong>Username:</strong>{" "}
+                {selectedUser.username || "No username"}
               </p>
               <p>
                 <strong>Email:</strong>{" "}

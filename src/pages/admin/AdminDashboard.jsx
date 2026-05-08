@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -21,7 +21,9 @@ function easeOutCubic(t) {
 }
 
 function numberWithCommas(x) {
-  return Number(x || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return Number(x || 0)
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 function useAnimatedCount(target, duration = 900) {
@@ -136,6 +138,14 @@ export default function AdminDashboard() {
     fetchDashboardData();
   }, []);
 
+  const handleLogout = (e) => {
+    e.preventDefault();
+
+    localStorage.clear();
+    sessionStorage.clear();
+
+    window.location.href = "/admin/login";
+  };
   const q = searchQuery.trim().toLowerCase();
 
   const filteredUsers = users.filter((u) =>
@@ -148,10 +158,11 @@ export default function AdminDashboard() {
       : `${d.username || ""} ${d.title || ""}`.toLowerCase().includes(q)
   );
 
-
   return (
     <div className={styles.gridContainer}>
-      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
+      <aside
+        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
+      >
         <div className={styles.sidebarTop}>
           <div
             className={styles.sidebarToggle}
@@ -178,18 +189,6 @@ export default function AdminDashboard() {
           <p className={styles.menuLabel}>Menu</p>
 
           <nav className={styles.menu}>
-            <NavLink
-              to="/admin/profile"
-              className={({ isActive }) =>
-                `${styles.menuItem} ${isActive ? styles.active : ""}`
-              }
-            >
-              <span className={styles.menuIcon}>
-                <User size={20} />
-              </span>
-              <span className={styles.menuText}>Profile</span>
-            </NavLink>
-
             {menuItems.map((item) => (
               <NavLink
                 key={item.path}
@@ -203,27 +202,51 @@ export default function AdminDashboard() {
               </NavLink>
             ))}
           </nav>
+
+          <div className={styles.divider}></div>
+
+          <p className={styles.menuLabel}>Others</p>
+
+          <nav className={styles.menu}>
+            <NavLink
+              to="/admin/profile"
+              className={({ isActive }) =>
+                `${styles.menuItem} ${isActive ? styles.active : ""}`
+              }
+            >
+              <span className={styles.menuIcon}>
+                <User size={20} />
+              </span>
+              <span className={styles.menuText}>Profile</span>
+            </NavLink>
+
+            <NavLink
+              to="/admin/settings"
+              className={({ isActive }) =>
+                `${styles.menuItem} ${isActive ? styles.active : ""}`
+              }
+            >
+              <span className={styles.menuIcon}>
+                <Settings size={20} />
+              </span>
+              <span className={styles.menuText}>Settings</span>
+            </NavLink>
+          </nav>
         </div>
 
         <div className={styles.sidebarBottom}>
-          <NavLink
-            to="/admin/settings"
-            className={({ isActive }) =>
-              `${styles.menuItem} ${isActive ? styles.active : ""}`
-            }
-          >
-            <span className={styles.menuIcon}>
-              <Settings size={20} />
-            </span>
-            <span className={styles.menuText}>Settings</span>
-          </NavLink>
+          <div className={styles.divider}></div>
 
-          <button type="button" className={styles.menuItem}>
+          <NavLink
+            to="/"
+            onClick={handleLogout}
+            className={styles.menuItem}
+          >
             <span className={styles.menuIcon}>
               <LogOut size={20} />
             </span>
             <span className={styles.menuText}>Logout</span>
-          </button>
+          </NavLink>
         </div>
       </aside>
 
@@ -239,35 +262,35 @@ export default function AdminDashboard() {
         </div>
 
         <div className={styles.notificationWrapper}>
-            <button
-              type="button"
-              className={styles.notificationBtn}
-              onClick={(e) => {
-                e.stopPropagation();
-                setNotificationOpen((prev) => !prev);
-              }}
-            >
-              <i className="bx bx-bell"></i>
+          <button
+            type="button"
+            className={styles.notificationBtn}
+            onClick={(e) => {
+              e.stopPropagation();
+              setNotificationOpen((prev) => !prev);
+            }}
+          >
+            <i className="bx bx-bell"></i>
 
-              {notificationCount > 0 && (
-                <span className={styles.notificationBadge}>
-                  {notificationCount}
-                </span>
-              )}
-            </button>
+            {notificationCount > 0 && (
+              <span className={styles.notificationBadge}>
+                {notificationCount}
+              </span>
+            )}
+          </button>
 
-            <div
-              className={`${styles.notificationDropdown} ${
-                notificationOpen ? styles.show : ""
-              }`}
-            >
-              <h4>Notifications</h4>
+          <div
+            className={`${styles.notificationDropdown} ${
+              notificationOpen ? styles.show : ""
+            }`}
+          >
+            <h4>Notifications</h4>
 
-              <div className={styles.emptyNotification}>
-                <p>You don’t have any new notifications</p>
-              </div>
+            <div className={styles.emptyNotification}>
+              <p>You don’t have any new notifications</p>
             </div>
           </div>
+        </div>
       </header>
 
       <main className={styles.main}>
@@ -317,7 +340,9 @@ export default function AdminDashboard() {
 
                   <div className={styles.listInfo}>
                     <div className={styles.listName}>{d.title}</div>
-                    <div className={styles.listSub}>Created by @{d.username}</div>
+                    <div className={styles.listSub}>
+                      Created by @{d.username}
+                    </div>
                   </div>
                 </div>
               ))

@@ -98,6 +98,8 @@ export default function ModuleManagement() {
   const [textViewTitle, setTextViewTitle] = useState("");
   const [textViewContent, setTextViewContent] = useState("");
 
+
+
   const fetchedOnce = useRef(false);
 
   const menuItems = [
@@ -127,6 +129,15 @@ export default function ModuleManagement() {
       icon: <Gamepad2 size={20} />,
     },
   ];
+
+  const handleLogout = (e) => {
+    e.preventDefault();
+
+    localStorage.clear();
+    sessionStorage.clear();
+
+    window.location.href = "/admin/login";
+  };
 
   const openTextView = (title, content) => {
     setTextViewTitle(title);
@@ -257,10 +268,15 @@ export default function ModuleManagement() {
     [modules, searchQuery]
   );
 
-  const shownModules = useMemo(
-    () => filteredModules.slice(0, rowsToShow),
-    [filteredModules, rowsToShow]
-  );
+  const totalPages = Math.ceil(filteredModules.length / rowsToShow);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const shownModules = useMemo(() => {
+  const start = (currentPage - 1) * rowsToShow;
+  const end = start + rowsToShow;
+
+  return filteredModules.slice(start, end);
+}, [filteredModules, currentPage, rowsToShow]);
 
   const selectedModule = useMemo(
     () => modules.find((m) => m.id === selectedId) || null,
@@ -292,7 +308,9 @@ export default function ModuleManagement() {
 
   return (
     <div className={styles.layout}>
-      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
+      <aside
+        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
+      >
         <div className={styles.sidebarTop}>
           <div
             className={styles.sidebarToggle}
@@ -320,18 +338,6 @@ export default function ModuleManagement() {
           <p className={styles.menuLabel}>Menu</p>
 
           <nav className={styles.menu}>
-            <NavLink
-              to="/admin/profile"
-              className={({ isActive }) =>
-                `${styles.menuItem} ${isActive ? styles.active : ""}`
-              }
-            >
-              <span className={styles.menuIcon}>
-                <User size={20} />
-              </span>
-              <span className={styles.menuText}>Profile</span>
-            </NavLink>
-
             {menuItems.map((item) => (
               <NavLink
                 key={item.path}
@@ -345,27 +351,47 @@ export default function ModuleManagement() {
               </NavLink>
             ))}
           </nav>
+
+          <div className={styles.divider}></div>
+
+          <p className={styles.menuLabel}>Others</p>
+
+          <nav className={styles.menu}>
+            <NavLink
+              to="/admin/profile"
+              className={({ isActive }) =>
+                `${styles.menuItem} ${isActive ? styles.active : ""}`
+              }
+            >
+              <span className={styles.menuIcon}>
+                <User size={20} />
+              </span>
+              <span className={styles.menuText}>Profile</span>
+            </NavLink>
+
+            <NavLink
+              to="/admin/settings"
+              className={({ isActive }) =>
+                `${styles.menuItem} ${isActive ? styles.active : ""}`
+              }
+            >
+              <span className={styles.menuIcon}>
+                <Settings size={20} />
+              </span>
+              <span className={styles.menuText}>Settings</span>
+            </NavLink>
+          </nav>
         </div>
 
         <div className={styles.sidebarBottom}>
-          <NavLink
-            to="/admin/settings"
-            className={({ isActive }) =>
-              `${styles.menuItem} ${isActive ? styles.active : ""}`
-            }
-          >
-            <span className={styles.menuIcon}>
-              <Settings size={20} />
-            </span>
-            <span className={styles.menuText}>Settings</span>
-          </NavLink>
+          <div className={styles.divider}></div>
 
-          <button type="button" className={styles.menuItem}>
+          <NavLink to="/" onClick={handleLogout} className={styles.menuItem}>
             <span className={styles.menuIcon}>
               <LogOut size={20} />
             </span>
             <span className={styles.menuText}>Logout</span>
-          </button>
+          </NavLink>
         </div>
       </aside>
 
@@ -498,35 +524,41 @@ export default function ModuleManagement() {
 
           <div className={styles.paginationWrapper}>
             <div className={styles.paginationCenter}>
-              <button className={styles.navBtn} type="button">
-                {"<"}
-              </button>
+                <button
+                  className={styles.navBtn}
+                  type="button"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((prev) => prev - 1)}
+                >
+                  {"<"}
+                </button>
 
-              <button
-                className={`${styles.pageBtn} ${styles.pageActive}`}
-                type="button"
-              >
-                1
-              </button>
+                {[...Array(totalPages)].map((_, index) => {
+                  const page = index + 1;
 
-              <button className={styles.pageBtn} type="button">
-                2
-              </button>
+                  return (
+                    <button
+                      key={page}
+                      className={`${styles.pageBtn} ${
+                        currentPage === page ? styles.pageActive : ""
+                      }`}
+                      type="button"
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
 
-              <button className={styles.pageBtn} type="button">
-                3
-              </button>
-
-              <span className={styles.dots}>...</span>
-
-              <button className={styles.pageBtn} type="button">
-                10
-              </button>
-
-              <button className={styles.navBtn} type="button">
-                {">"}
-              </button>
-            </div>
+                <button
+                  className={styles.navBtn}
+                  type="button"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
+                >
+                  {">"}
+                </button>
+              </div>
 
             <div className={styles.rowsControl}>
               <span>Show</span>
@@ -560,7 +592,11 @@ export default function ModuleManagement() {
                 Edit
               </button>
 
-              <button type="button" className={styles.mmClose} onClick={closeView}>
+              <button
+                type="button"
+                className={styles.mmClose}
+                onClick={closeView}
+              >
                 ✕
               </button>
             </div>
