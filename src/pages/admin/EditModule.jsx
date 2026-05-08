@@ -31,9 +31,7 @@ function parseDeckCards(raw) {
         options: Array.isArray(x.options)
           ? [...x.options, "", "", "", ""].slice(0, 4)
           : ["", "", "", ""],
-        correct_answer: String(
-          x.correct_answer || x.correctAnswer || ""
-        ).trim(),
+        correct_answer: String(x.correct_answer || x.correctAnswer || "").trim(),
         explanation: String(x.explanation || "").trim(),
       }));
     }
@@ -57,12 +55,48 @@ function serializeQuizItems(items) {
   );
 }
 
+function parseLessonPages(raw) {
+  if (!raw) return [];
+
+  try {
+    const parsed = JSON.parse(raw);
+
+    if (Array.isArray(parsed)) {
+      return parsed.map((page, index) => ({
+        id: index + 1,
+        title: String(page.title || `Lesson Page ${index + 1}`).trim(),
+        content: String(page.content || "").trim(),
+      }));
+    }
+  } catch {
+    return [
+      {
+        id: 1,
+        title: "Lesson Content",
+        content: String(raw || "").trim(),
+      },
+    ];
+  }
+
+  return [];
+}
+
+function serializeLessonPages(pages) {
+  return JSON.stringify(
+    pages.map((page) => ({
+      title: String(page.title || "").trim(),
+      content: String(page.content || "").trim(),
+    }))
+  );
+}
+
 export default function EditModule() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const API_URL = "http://localhost/puffybrain/adminLearningModule.php";
   const AI_API_URL = "http://localhost/puffybrain/generateQuiz.php";
+  const EXTRACT_API_URL = "http://localhost/puffybrain/processLessonFile.php";
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -70,56 +104,42 @@ export default function EditModule() {
   const notificationCount = 0;
 
   const [loading, setLoading] = useState(true);
+
   const [editTitle, setEditTitle] = useState("");
   const [editDesc, setEditDesc] = useState("");
   const [editSubject, setEditSubject] = useState("");
   const [editLearningObjectives, setEditLearningObjectives] = useState("");
-  const [editLessonContent, setEditLessonContent] = useState("");
+  const [editLessonPages, setEditLessonPages] = useState([]);
   const [editStatus, setEditStatus] = useState("inactive");
+
   const [editQuizItems, setEditQuizItems] = useState([]);
   const [generatingEditQuiz, setGeneratingEditQuiz] = useState(false);
 
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [extractingFile, setExtractingFile] = useState(false);
+
   const menuItems = [
-    {
-      label: "Dashboard",
-      path: "/admin/dashboard",
-      icon: <LayoutDashboard size={20} />,
-    },
-    {
-      label: "User Management",
-      path: "/admin/users",
-      icon: <Users size={20} />,
-    },
-    {
-      label: "Module Management",
-      path: "/admin/modules",
-      icon: <Layers size={20} />,
-    },
-    {
-      label: "Decks Management",
-      path: "/admin/decks",
-      icon: <LibraryBig size={20} />,
-    },
-    {
-      label: "Modes Management",
-      path: "/admin/modes",
-      icon: <Gamepad2 size={20} />,
-    },
+    { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
+    { label: "User Management", path: "/admin/users", icon: <Users size={20} /> },
+    { label: "Module Management", path: "/admin/modules", icon: <Layers size={20} /> },
+    { label: "Decks Management", path: "/admin/decks", icon: <LibraryBig size={20} /> },
+    { label: "Modes Management", path: "/admin/modes", icon: <Gamepad2 size={20} /> },
   ];
 
   const handleLogout = (e) => {
     e.preventDefault();
-
     localStorage.clear();
     sessionStorage.clear();
-
     window.location.href = "/admin/login";
   };
 
   useEffect(() => {
     const fetchModule = async () => {
       try {
-        const res = await fetch(API_URL);
+        const res = await fetch(API_URL, {
+          credentials: "include",
+        });
+
         const data = await res.json();
 
         if (data?.success && Array.isArray(data.modules)) {
@@ -140,12 +160,12 @@ export default function EditModule() {
           setEditDesc(mod.description || "");
           setEditSubject(mod.subject || "");
           setEditLearningObjectives(mod.learning_objectives || "");
-          setEditLessonContent(mod.lesson_content || "");
+          setEditLessonPages(parseLessonPages(mod.lesson_content || ""));
           setEditStatus(String(mod.status || "inactive").toLowerCase());
           setEditQuizItems(parseDeckCards(mod.quiz_contents));
         }
       } catch (err) {
-        console.error(err);
+        console.error("LOAD ERROR:", err);
 
         await Swal.fire({
           icon: "error",
@@ -160,17 +180,122 @@ export default function EditModule() {
     fetchModule();
   }, [id, navigate]);
 
-  const generateQuizFromAI = async ({
-    questionCount = 5,
-    difficulty = "medium",
-  }) => {
+  const handleUploadAndExtract = async () => {
+    if (!uploadedFile) {
+      await Swal.fire({
+        icon: "warning",
+        title: "No File Selected",
+        text: "Please choose a PDF, DOCX, or TXT file first.",
+      });
+      return;
+    }
+
+    const confirm = await Swal.fire({
+      icon: "question",
+      title: "Replace Current Module Content?",
+      text: "This will replace the current title, description, subject, objectives, and lesson pages.",
+      showCancelButton: true,
+      confirmButtonText: "Yes, replace it",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    const formData = new FormData();
+    formData.append("file", uploadedFile);
+
+    setExtractingFile(true);
+
+    Swal.fire({
+      title: "Sorting Lesson...",
+      text: "Organizing the file into lesson pages.",
+      imageUrl: "/images/Loading.png",
+      imageWidth: 220,
+      imageHeight: 220,
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      customClass: {
+        popup: styles.lessonPopup,
+        image: styles.lessonPopupImage,
+        title: styles.lessonPopupTitle,
+        htmlContainer: styles.lessonPopupText,
+        loader: styles.lessonPopupLoader,
+      },
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
+    try {
+      const res = await fetch(EXTRACT_API_URL, {
+        method: "POST",
+        body: formData,
+      });
+
+      const text = await res.text();
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error("PHP did not return valid JSON.");
+      }
+
+      Swal.close();
+
+      if (!data.success) {
+        throw new Error(data.message || "Could not extract module content.");
+      }
+
+      setEditTitle(data.module_title || "");
+      setEditSubject(data.subject || "");
+      setEditDesc(data.description || "");
+      setEditLearningObjectives(data.learning_objectives || "");
+
+      const pages =
+        Array.isArray(data.lesson_pages) && data.lesson_pages.length > 0
+          ? data.lesson_pages.map((page, index) => ({
+              id: index + 1,
+              title: String(page.title || `Lesson Page ${index + 1}`).trim(),
+              content: String(page.content || "").trim(),
+            }))
+          : parseLessonPages(data.lesson_content || "");
+
+      setEditLessonPages(pages);
+
+      await Swal.fire({
+        icon: "success",
+        title: "Lesson Sorted",
+        text: `${pages.length} lesson page(s) were created automatically.`,
+      });
+    } catch (err) {
+      console.error("UPLOAD EXTRACT ERROR:", err);
+      Swal.close();
+
+      await Swal.fire({
+        icon: "error",
+        title: "Extraction Failed",
+        text: err.message || "Something went wrong while extracting the file.",
+      });
+    } finally {
+      setExtractingFile(false);
+    }
+  };
+
+  const getLessonContentForAI = () => {
+    return editLessonPages
+      .map((page, index) => `Page ${index + 1}: ${page.title}\n${page.content}`)
+      .join("\n\n");
+  };
+
+  const generateQuizFromAI = async ({ questionCount = 5, difficulty = "medium" }) => {
     const res = await fetch(AI_API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         lesson_title: editTitle,
         learning_objectives: editLearningObjectives,
-        lesson_content: editLessonContent,
+        lesson_content: getLessonContentForAI(),
         question_count: questionCount,
         difficulty,
       }),
@@ -179,7 +304,6 @@ export default function EditModule() {
     const text = await res.text();
 
     let data;
-
     try {
       data = JSON.parse(text);
     } catch {
@@ -206,19 +330,17 @@ export default function EditModule() {
       options: Array.isArray(item.options)
         ? [...item.options, "", "", "", ""].slice(0, 4)
         : ["", "", "", ""],
-      correct_answer: String(
-        item.correct_answer || item.correctAnswer || ""
-      ).trim(),
+      correct_answer: String(item.correct_answer || item.correctAnswer || "").trim(),
       explanation: String(item.explanation || "").trim(),
     }));
   };
 
   const handleGenerateQuizForEdit = async () => {
-    if (!editLearningObjectives.trim() && !editLessonContent.trim()) {
+    if (!editLearningObjectives.trim() && editLessonPages.length === 0) {
       await Swal.fire({
         icon: "warning",
         title: "Missing Content",
-        text: "Please enter learning objectives or lesson content first.",
+        text: "Please enter learning objectives or lesson pages first.",
       });
       return;
     }
@@ -243,15 +365,11 @@ export default function EditModule() {
       confirmButtonText: "Generate",
       cancelButtonText: "Cancel",
       preConfirm: () => {
-        const questionCount = Number(
-          document.getElementById("swal-question-count").value
-        );
+        const questionCount = Number(document.getElementById("swal-question-count").value);
         const difficulty = document.getElementById("swal-difficulty").value;
 
         if (!questionCount || questionCount < 1 || questionCount > 50) {
-          Swal.showValidationMessage(
-            "Please enter a valid number between 1 and 50."
-          );
+          Swal.showValidationMessage("Please enter a valid number between 1 and 50.");
           return false;
         }
 
@@ -290,14 +408,23 @@ export default function EditModule() {
   };
 
   const saveEdit = async () => {
+    if (!editTitle.trim()) {
+      await Swal.fire({
+        icon: "warning",
+        title: "Missing Title",
+        text: "Module title is required.",
+      });
+      return;
+    }
+
     const payload = {
       action: "update",
-      id,
-      title: editTitle,
-      description: editDesc,
-      subject: editSubject,
-      learning_objectives: editLearningObjectives,
-      lesson_content: editLessonContent,
+      id: Number(id),
+      title: editTitle.trim(),
+      description: editDesc.trim(),
+      subject: editSubject.trim(),
+      learning_objectives: editLearningObjectives.trim(),
+      lesson_content: serializeLessonPages(editLessonPages),
       status: editStatus,
       quiz_contents: serializeQuizItems(editQuizItems),
     };
@@ -305,11 +432,22 @@ export default function EditModule() {
     try {
       const res = await fetch(API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      console.log("SAVE RAW RESPONSE:", text);
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error("PHP did not return valid JSON.");
+      }
 
       if (data.success) {
         await Swal.fire({
@@ -327,14 +465,35 @@ export default function EditModule() {
         });
       }
     } catch (err) {
-      console.error(err);
+      console.error("SAVE ERROR:", err);
 
       await Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Error updating module.",
+        text: err.message || "Error updating module.",
       });
     }
+  };
+
+  const addLessonPage = () => {
+    setEditLessonPages((prev) => [
+      ...prev,
+      {
+        id: prev.length + 1,
+        title: `Lesson Page ${prev.length + 1}`,
+        content: "",
+      },
+    ]);
+  };
+
+  const updateLessonPage = (index, field, value) => {
+    setEditLessonPages((prev) =>
+      prev.map((page, i) => (i === index ? { ...page, [field]: value } : page))
+    );
+  };
+
+  const removeLessonPage = (index) => {
+    setEditLessonPages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const addEditQuizItem = () => {
@@ -381,9 +540,7 @@ export default function EditModule() {
 
   const updateEditExplanation = (index, value) => {
     setEditQuizItems((prev) =>
-      prev.map((item, i) =>
-        i === index ? { ...item, explanation: value } : item
-      )
+      prev.map((item, i) => (i === index ? { ...item, explanation: value } : item))
     );
   };
 
@@ -401,9 +558,7 @@ export default function EditModule() {
 
   return (
     <div className={styles.gridContainer}>
-      <aside
-        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
-      >
+      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
         <div className={styles.sidebarTop}>
           <div
             className={styles.sidebarToggle}
@@ -413,17 +568,8 @@ export default function EditModule() {
           </div>
 
           <div className={styles.logo}>
-            <img
-              className={styles.logoExpanded}
-              src="/images/logo1.png"
-              alt="Logo"
-            />
-
-            <img
-              className={styles.logoCollapsed}
-              src="/images/logo_solo.png"
-              alt="Logo"
-            />
+            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
+            <img className={styles.logoCollapsed} src="/images/logo_solo.png" alt="Logo" />
           </div>
 
           <div className={styles.divider}></div>
@@ -479,7 +625,7 @@ export default function EditModule() {
         <div className={styles.sidebarBottom}>
           <div className={styles.divider}></div>
 
-          <NavLink to="/" onClick={handleLogout} className={styles.menuItem}>
+          <NavLink to="/admin/login" onClick={handleLogout} className={styles.menuItem}>
             <span className={styles.menuIcon}>
               <LogOut size={20} />
             </span>
@@ -512,9 +658,7 @@ export default function EditModule() {
             <i className="bx bx-bell"></i>
 
             {notificationCount > 0 && (
-              <span className={styles.notificationBadge}>
-                {notificationCount}
-              </span>
+              <span className={styles.notificationBadge}>{notificationCount}</span>
             )}
           </button>
 
@@ -546,6 +690,7 @@ export default function EditModule() {
                 className={styles.popupInput}
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
+                placeholder="Enter module title"
               />
             </div>
 
@@ -570,6 +715,7 @@ export default function EditModule() {
               className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
               value={editDesc}
               onChange={(e) => setEditDesc(e.target.value)}
+              placeholder="Enter module description"
             />
           </div>
 
@@ -580,7 +726,36 @@ export default function EditModule() {
               className={styles.popupInput}
               value={editSubject}
               onChange={(e) => setEditSubject(e.target.value)}
+              placeholder="Enter subject"
             />
+          </div>
+
+          <div className={styles.popupSection}>
+            <label className={styles.popupLabel}>Upload Lesson File</label>
+
+            <div className={styles.uploadRow}>
+              <label className={styles.customFileBtn}>
+                Choose File
+                <input
+                  type="file"
+                  accept=".pdf,.docx,.txt"
+                  onChange={(e) => setUploadedFile(e.target.files?.[0] || null)}
+                />
+              </label>
+
+              <span className={styles.fileName}>
+                {uploadedFile ? uploadedFile.name : "No file chosen"}
+              </span>
+
+              <button
+                type="button"
+                className={styles.popupAddBtn}
+                onClick={handleUploadAndExtract}
+                disabled={extractingFile}
+              >
+                {extractingFile ? "Sorting..." : "Upload and Auto Sort"}
+              </button>
+            </div>
           </div>
 
           <div className={styles.popupSection}>
@@ -590,17 +765,56 @@ export default function EditModule() {
               className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
               value={editLearningObjectives}
               onChange={(e) => setEditLearningObjectives(e.target.value)}
+              placeholder="Enter learning objectives"
             />
           </div>
 
           <div className={styles.popupSection}>
-            <label className={styles.popupLabel}>Lessons</label>
+            <div className={styles.popupSectionRow}>
+              <label className={styles.popupLabel}>Lesson Pages</label>
 
-            <textarea
-              className={`${styles.popupTextarea} ${styles.popupLargeBox}`}
-              value={editLessonContent}
-              onChange={(e) => setEditLessonContent(e.target.value)}
-            />
+              <button
+                type="button"
+                className={styles.popupAddBtn}
+                onClick={addLessonPage}
+              >
+                Add Page +
+              </button>
+            </div>
+
+            {editLessonPages.length === 0 ? (
+              <div className={styles.popupEmptyQuiz}>No lesson pages yet.</div>
+            ) : (
+              editLessonPages.map((page, index) => (
+                <div key={index} className={styles.popupQuizCard}>
+                  <div className={styles.popupQuizCardTop}>
+                    <span className={styles.popupQuizCardTitle}>Page {index + 1}</span>
+
+                    <button
+                      type="button"
+                      className={styles.popupRemoveBtn}
+                      onClick={() => removeLessonPage(index)}
+                    >
+                      Remove
+                    </button>
+                  </div>
+
+                  <input
+                    className={styles.popupInput}
+                    value={page.title}
+                    onChange={(e) => updateLessonPage(index, "title", e.target.value)}
+                    placeholder="Page title"
+                  />
+
+                  <textarea
+                    className={`${styles.popupTextarea} ${styles.popupLargeBox}`}
+                    value={page.content}
+                    onChange={(e) => updateLessonPage(index, "content", e.target.value)}
+                    placeholder="Page content"
+                  />
+                </div>
+              ))
+            )}
           </div>
 
           <div className={styles.popupSection}>
@@ -633,9 +847,7 @@ export default function EditModule() {
               editQuizItems.map((item, index) => (
                 <div key={index} className={styles.popupQuizCard}>
                   <div className={styles.popupQuizCardTop}>
-                    <span className={styles.popupQuizCardTitle}>
-                      Item {index + 1}
-                    </span>
+                    <span className={styles.popupQuizCardTitle}>Item {index + 1}</span>
 
                     <button
                       type="button"
@@ -649,9 +861,7 @@ export default function EditModule() {
                   <input
                     className={styles.popupInput}
                     value={item.question}
-                    onChange={(e) =>
-                      updateEditQuizQuestion(index, e.target.value)
-                    }
+                    onChange={(e) => updateEditQuizQuestion(index, e.target.value)}
                     placeholder="Question"
                   />
 
@@ -662,11 +872,7 @@ export default function EditModule() {
                         className={styles.popupInput}
                         value={option}
                         onChange={(e) =>
-                          updateEditQuizOption(
-                            index,
-                            optionIndex,
-                            e.target.value
-                          )
+                          updateEditQuizOption(index, optionIndex, e.target.value)
                         }
                         placeholder={`Option ${optionIndex + 1}`}
                       />
@@ -676,18 +882,14 @@ export default function EditModule() {
                   <input
                     className={styles.popupInput}
                     value={item.correct_answer}
-                    onChange={(e) =>
-                      updateEditCorrectAnswer(index, e.target.value)
-                    }
+                    onChange={(e) => updateEditCorrectAnswer(index, e.target.value)}
                     placeholder="Correct Answer"
                   />
 
                   <textarea
                     className={`${styles.popupTextarea} ${styles.popupAnswerBox}`}
                     value={item.explanation}
-                    onChange={(e) =>
-                      updateEditExplanation(index, e.target.value)
-                    }
+                    onChange={(e) => updateEditExplanation(index, e.target.value)}
                     placeholder="Explanation"
                   />
                 </div>
@@ -704,11 +906,7 @@ export default function EditModule() {
               Cancel
             </button>
 
-            <button
-              className={styles.popupSaveBtn}
-              type="button"
-              onClick={saveEdit}
-            >
+            <button className={styles.popupSaveBtn} type="button" onClick={saveEdit}>
               Save
             </button>
           </div>

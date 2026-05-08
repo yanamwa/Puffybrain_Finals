@@ -28,6 +28,41 @@ function serializeQuizItems(items) {
   );
 }
 
+function parseLessonPages(raw) {
+  if (!raw) return [];
+
+  try {
+    const parsed = JSON.parse(raw);
+
+    if (Array.isArray(parsed)) {
+      return parsed.map((page, index) => ({
+        id: index + 1,
+        title: String(page.title || `Lesson Page ${index + 1}`).trim(),
+        content: String(page.content || "").trim(),
+      }));
+    }
+  } catch {
+    return [
+      {
+        id: 1,
+        title: "Lesson Content",
+        content: String(raw || "").trim(),
+      },
+    ];
+  }
+
+  return [];
+}
+
+function serializeLessonPages(pages) {
+  return JSON.stringify(
+    pages.map((page) => ({
+      title: String(page.title || "").trim(),
+      content: String(page.content || "").trim(),
+    }))
+  );
+}
+
 export default function AddModule() {
   const navigate = useNavigate();
 
@@ -44,8 +79,9 @@ export default function AddModule() {
   const [newDesc, setNewDesc] = useState("");
   const [newSubject, setNewSubject] = useState("");
   const [newLearningObjectives, setNewLearningObjectives] = useState("");
-  const [newLessonContent, setNewLessonContent] = useState("");
+  const [newLessonPages, setNewLessonPages] = useState([]);
   const [newStatus, setNewStatus] = useState("Draft");
+
   const [newQuizItems, setNewQuizItems] = useState([]);
   const [generatingNewQuiz, setGeneratingNewQuiz] = useState(false);
 
@@ -99,16 +135,40 @@ export default function AddModule() {
       return;
     }
 
+    const confirm = await Swal.fire({
+      icon: "question",
+      title: "Replace Current Module Content?",
+      text: "This will replace the current title, description, subject, objectives, and lesson pages with the uploaded file content.",
+      showCancelButton: true,
+      confirmButtonText: "Yes, replace it",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!confirm.isConfirmed) return;
+
     const formData = new FormData();
     formData.append("file", uploadedFile);
 
     setExtractingFile(true);
 
     Swal.fire({
-      title: "Extracting Module...",
-      text: "Please wait while the file is being processed.",
+      title: "Sorting Lesson...",
+      text: "Organizing the file into lesson pages.",
+      imageUrl: "/images/Loading.png",
+      imageWidth: 220,
+      imageHeight: 220,
       allowOutsideClick: false,
-      didOpen: () => Swal.showLoading(),
+      showConfirmButton: false,
+      customClass: {
+        popup: styles.lessonPopup,
+        image: styles.lessonPopupImage,
+        title: styles.lessonPopupTitle,
+        htmlContainer: styles.lessonPopupText,
+        loader: styles.lessonPopupLoader,
+      },
+      didOpen: () => {
+        Swal.showLoading();
+      },
     });
 
     try {
@@ -117,7 +177,15 @@ export default function AddModule() {
         body: formData,
       });
 
-      const data = await res.json();
+      const text = await res.text();
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error("PHP did not return valid JSON.");
+      }
+
       Swal.close();
 
       if (!data.success) {
@@ -128,12 +196,22 @@ export default function AddModule() {
       setNewSubject(data.subject || "");
       setNewDesc(data.description || "");
       setNewLearningObjectives(data.learning_objectives || "");
-      setNewLessonContent(data.lesson_content || "");
+
+      const pages =
+        Array.isArray(data.lesson_pages) && data.lesson_pages.length > 0
+          ? data.lesson_pages.map((page, index) => ({
+              id: index + 1,
+              title: String(page.title || `Lesson Page ${index + 1}`).trim(),
+              content: String(page.content || "").trim(),
+            }))
+          : parseLessonPages(data.lesson_content || "");
+
+      setNewLessonPages(pages);
 
       await Swal.fire({
         icon: "success",
-        title: "Extracted",
-        text: "The file content was added to the form.",
+        title: "Lesson Sorted",
+        text: `${pages.length} lesson page(s) were created automatically.`,
       });
     } catch (err) {
       console.error("UPLOAD EXTRACT ERROR:", err);
@@ -149,17 +227,20 @@ export default function AddModule() {
     }
   };
 
-  const generateQuizFromAI = async ({
-    questionCount = 5,
-    difficulty = "medium",
-  }) => {
+  const getLessonContentForAI = () => {
+    return newLessonPages
+      .map((page, index) => `Page ${index + 1}: ${page.title}\n${page.content}`)
+      .join("\n\n");
+  };
+
+  const generateQuizFromAI = async ({ questionCount = 5, difficulty = "medium" }) => {
     const res = await fetch(AI_API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         lesson_title: newTitle,
         learning_objectives: newLearningObjectives,
-        lesson_content: newLessonContent,
+        lesson_content: getLessonContentForAI(),
         question_count: questionCount,
         difficulty,
       }),
@@ -203,11 +284,11 @@ export default function AddModule() {
   };
 
   const handleGenerateQuizForNew = async () => {
-    if (!newLearningObjectives.trim() && !newLessonContent.trim()) {
+    if (!newLearningObjectives.trim() && newLessonPages.length === 0) {
       await Swal.fire({
         icon: "warning",
         title: "Missing Content",
-        text: "Please enter learning objectives or lesson content first.",
+        text: "Please enter learning objectives or lesson pages first.",
       });
       return;
     }
@@ -289,23 +370,36 @@ export default function AddModule() {
     }
 
     const payload = {
-      title: newTitle,
-      description: newDesc,
-      subject: newSubject,
-      learning_objectives: newLearningObjectives,
-      lesson_content: newLessonContent,
+      title: newTitle.trim(),
+      description: newDesc.trim(),
+      subject: newSubject.trim(),
+      learning_objectives: newLearningObjectives.trim(),
+      lesson_content: serializeLessonPages(newLessonPages),
       status: newStatus,
       quiz_contents: serializeQuizItems(newQuizItems),
     };
 
+    console.log("ADDING PAYLOAD:", payload);
+
     try {
       const res = await fetch(API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      console.log("ADD RAW RESPONSE:", text);
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error("PHP did not return valid JSON.");
+      }
 
       if (data.success) {
         await Swal.fire({
@@ -323,14 +417,35 @@ export default function AddModule() {
         });
       }
     } catch (err) {
-      console.error(err);
+      console.error("ADD ERROR:", err);
 
       await Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Error adding module.",
+        text: err.message || "Error adding module.",
       });
     }
+  };
+
+  const addLessonPage = () => {
+    setNewLessonPages((prev) => [
+      ...prev,
+      {
+        id: prev.length + 1,
+        title: `Lesson Page ${prev.length + 1}`,
+        content: "",
+      },
+    ]);
+  };
+
+  const updateLessonPage = (index, field, value) => {
+    setNewLessonPages((prev) =>
+      prev.map((page, i) => (i === index ? { ...page, [field]: value } : page))
+    );
+  };
+
+  const removeLessonPage = (index) => {
+    setNewLessonPages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const addNewQuizItem = () => {
@@ -359,10 +474,7 @@ export default function AddModule() {
         const updatedOptions = [...item.options];
         updatedOptions[optionIndex] = value;
 
-        return {
-          ...item,
-          options: updatedOptions,
-        };
+        return { ...item, options: updatedOptions };
       })
     );
   };
@@ -467,7 +579,7 @@ export default function AddModule() {
         <div className={styles.sidebarBottom}>
           <div className={styles.divider}></div>
 
-          <NavLink to="/" onClick={handleLogout} className={styles.menuItem}>
+          <NavLink to="/admin/login" onClick={handleLogout} className={styles.menuItem}>
             <span className={styles.menuIcon}>
               <LogOut size={20} />
             </span>
@@ -580,7 +692,6 @@ export default function AddModule() {
             <div className={styles.uploadRow}>
               <label className={styles.customFileBtn}>
                 Choose File
-
                 <input
                   type="file"
                   accept=".pdf,.docx,.txt"
@@ -598,7 +709,7 @@ export default function AddModule() {
                 onClick={handleUploadAndExtract}
                 disabled={extractingFile}
               >
-                {extractingFile ? "Extracting..." : "Upload and Extract"}
+                {extractingFile ? "Sorting..." : "Upload and Auto Sort"}
               </button>
             </div>
           </div>
@@ -615,14 +726,53 @@ export default function AddModule() {
           </div>
 
           <div className={styles.popupSection}>
-            <label className={styles.popupLabel}>Lessons</label>
+            <div className={styles.popupSectionRow}>
+              <label className={styles.popupLabel}>Lesson Pages</label>
 
-            <textarea
-              className={`${styles.popupTextarea} ${styles.popupLargeBox}`}
-              value={newLessonContent}
-              onChange={(e) => setNewLessonContent(e.target.value)}
-              placeholder="Enter lesson content"
-            />
+              <button
+                type="button"
+                className={styles.popupAddBtn}
+                onClick={addLessonPage}
+              >
+                Add Page +
+              </button>
+            </div>
+
+            {newLessonPages.length === 0 ? (
+              <div className={styles.popupEmptyQuiz}>No lesson pages yet.</div>
+            ) : (
+              newLessonPages.map((page, index) => (
+                <div key={index} className={styles.popupQuizCard}>
+                  <div className={styles.popupQuizCardTop}>
+                    <span className={styles.popupQuizCardTitle}>
+                      Page {index + 1}
+                    </span>
+
+                    <button
+                      type="button"
+                      className={styles.popupRemoveBtn}
+                      onClick={() => removeLessonPage(index)}
+                    >
+                      Remove
+                    </button>
+                  </div>
+
+                  <input
+                    className={styles.popupInput}
+                    value={page.title}
+                    onChange={(e) => updateLessonPage(index, "title", e.target.value)}
+                    placeholder="Page title"
+                  />
+
+                  <textarea
+                    className={`${styles.popupTextarea} ${styles.popupLargeBox}`}
+                    value={page.content}
+                    onChange={(e) => updateLessonPage(index, "content", e.target.value)}
+                    placeholder="Page content"
+                  />
+                </div>
+              ))
+            )}
           </div>
 
           <div className={styles.popupSection}>

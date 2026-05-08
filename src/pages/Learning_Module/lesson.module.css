@@ -1,29 +1,38 @@
 .wrapper {
     min-height: 100vh;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
+    padding: 40px 20px;
     font-family: "Jersey 15", sans-serif;
-    background-image: url("/background_notebook.png");  
+    background-image: url("/images/background_notebook.png");  
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    background-color: #0e0e0e;
+    overflow-y: auto;
 }
 
 /* Notebook container */
 .content {
-    width: 650px;
+    width: min(650px, 92vw);
+    max-height: 90vh;
+
     background: #e7d4fb;
     border-radius: 25px;
+
     padding-top: 60px;
     padding-bottom: 40px;
-    position: relative;
-    box-shadow: 10px 10px 0 #c9c8f8;
-    overflow: hidden;
 
-    transform: scale(1.2);    
-    transform-origin: center;
+    position: relative;
+
+    box-shadow: 10px 10px 0 #c9c8f8;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    transform: none;
 }
 
 /* Tabs */
@@ -324,4 +333,17 @@
 
 :global(.quiz-popup-icon) {
   transform: scale(1.15);
+}
+
+.lessonSlideTitle {
+  font-size: 30px;
+  color: #5b3cc4;
+  margin-bottom: 18px;
+}
+
+.lessonSlideContent {
+  white-space: pre-line;
+  font-size: 20px;
+  line-height: 1.8;
+  color: #222;
 }
