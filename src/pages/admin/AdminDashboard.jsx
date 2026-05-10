@@ -107,6 +107,11 @@ export default function AdminDashboard() {
       path: "/admin/modes",
       icon: <Gamepad2 size={20} />,
     },
+        {
+      label: "Notifacation Management",
+      path: "/admin/notifications",
+      icon: <Gamepad2 size={20} />,
+    },
   ];
 
   useEffect(() => {

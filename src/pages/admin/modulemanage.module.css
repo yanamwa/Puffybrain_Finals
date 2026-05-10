@@ -362,80 +362,105 @@
 }
 
 .addBtn {
-  background: #b388eb;
+  background: #8e6cb9;
   color: #ffffff;
-  border: none;
   padding: 10px 18px;
   border-radius: 8px;
   cursor: pointer;
-  font-weight: 800;
+  font-weight: normal;
   font-family: inherit;
+  font-size: 16px;
+
+  border: 1px solid #56387e;
+  color: #ffffff;
+  box-shadow: 0 5px 0px rgba(115, 41, 158, 0.925);
 }
 
+
 .addBtn:hover {
-  background: #9f73df;
+  background: #573985;
 }
 
 /* TABLE */
+/* TABLE */
 .tableCard {
   background: #ffffff;
-  padding: 26px;
+  padding: 26px 10px;
   border-radius: 20px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.06);
   overflow-x: auto;
 }
 
 .table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 14px;
+  border-collapse: collapse;
 }
 
 .table thead th {
-  background: #f3f3f3;
-  padding: 12px 16px;
-  text-align: left;
-  border-radius: 999px;
+  background: #ffffff;
+  padding: 20px 28px;
+  text-align: center;
   font-weight: 900;
-  color: #4b4b4b;
-  font-size: 13px;
+  color: #000000;
+  font-size: 16px;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.table tbody tr {
+  border-bottom: 1px solid #eeeeee;
 }
 
 .table tbody td {
-  padding: 12px 16px;
-  font-size: 13px;
-  color: #222222;
+  padding: 28px 28px;
+  font-size: 16px;
+  color: #000000;
+  text-align: center;
+  border-bottom: none;
 }
 
-.table tbody tr:hover td {
-  background: #faf5ff;
+.table tbody tr:hover td:first-child {
+  border-radius: 14px 0 0 14px;
+}
+
+.table tbody tr:hover td:last-child {
+  border-radius: 0 14px 14px 0;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .statusActive,
 .statusInactive {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
+  justify-content: center;
+  min-width: 110px;
+  height: 34px;
+  padding: 0 18px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 900;
-  color: #ffffff;
 }
 
 .statusActive {
-  background: #28a745;
+  background: #d7f8df;
+  color: #16803a;
+  border: 1px solid #16803941;
 }
 
 .statusInactive {
-  background: #f4b400;
+  background: #f5d38a;
+  color: #835e0e;
+  border: 1px solid #c59c42;
 }
 
 /* ACTIONS */
 .actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  gap: 12px;
 }
 
 .actionEdit,
@@ -443,36 +468,42 @@
 .actionView {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 8px;
+  justify-content: center;
+  min-width: 90px;
+  height: 34px;
+  padding: 0 16px;
+  border-radius: 10px;
   border: none;
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 900;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 16px;
   font-family: inherit;
-  transition: 0.15s ease;
 }
 
 .actionEdit {
-  background: #2f2f2f;
+  background: #6a6a6a;
+  border: 1px solid #363636;
   color: #ffffff;
-}
+  box-shadow: 0 5px 0px rgb(83, 83, 83);}
 
 .actionDelete {
   background: #e74c3c;
   color: #ffffff;
+  border: 1px solid #8f2020;
+  box-shadow: 0 5px 0px rgba(129, 10, 10, 0.887);
 }
 
 .actionView {
-  background: #6c7a89;
+  background: #415abd;
   color: #ffffff;
+  border: 1px solid #204b8f;
+  box-shadow: 0 5px 0px rgba(23, 63, 174, 0.861);
 }
 
 .actionEdit:hover,
 .actionDelete:hover,
 .actionView:hover {
-  transform: translateY(-1px);
   opacity: 0.9;
 }
 
@@ -585,12 +616,13 @@
   height: 34px;
   padding: 0 18px;
   border-radius: 999px;
-  border: none;
+  border: 1px solid #000000;
   background: #ffffff;
+  color: var(--font-color);
   font-weight: 900;
-  font-size: 13px;
+  font-size: 15px;
   cursor: pointer;
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.18);
+  box-shadow: 0 4px 0 rgba(54, 54, 54, 0.774);
   font-family: inherit;
 }
 
@@ -615,28 +647,16 @@
   overscroll-behavior: contain;
 }
 
-.mmDetails {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  column-gap: 180px;
-}
-
-.mmCol {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
 .mmGroup {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .mmLabel {
   font-weight: 900;
-  font-size: 13px;
-  color: #111111;
+  font-size: 16px;
+  color: var(--font-color);
 }
 
 .mmLabelRow {
@@ -648,11 +668,37 @@
 }
 
 .mmValue {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
   color: #222222;
   word-break: break-word;
   white-space: pre-wrap;
+  background: #f7f7f7;
+  border: 1px solid #e2e2e2;
+  border-radius: 14px;
+  padding: 14px 16px;
+  min-height: 95px;
+  max-height: 95px;
+  overflow: hidden;
+  line-height: 1.6;
+  display: flex;
+  align-items: flex-start;
+}
+
+.mmCol {
+  flex-direction: column;
+  gap: 22px;
+}
+
+.mmDetails {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px 80px;
+  align-items: start;
+}
+
+.mmCol {
+  display: contents;
 }
 
 .mmViewBtn {
@@ -662,20 +708,26 @@
   padding: 8px 14px;
   border-radius: 10px;
   background: #cdb4f6;
-  color: #ffffff;
-  font-size: 14px;
+  color: var(--font-color);
+  font-size: 15px;
   font-weight: 600;
   font-family: inherit;
+  border: 1px solid #a38aca;
+  box-shadow: 0 4px rgb(162, 140, 197);
 }
 
 .mmViewBtn:hover {
   opacity: 0.9;
+  background: #9f89c2;
+  border: 1px solid #a38aca;
+  box-shadow: 0 4px rgb(162, 140, 197);
+
 }
 
 .mmDecksTitle {
   margin: 18px 0 12px;
   font-weight: 900;
-  font-size: 13px;
+  font-size: 16px;
   color: #111111;
 }
 
@@ -689,13 +741,13 @@
 .mmQ {
   padding: 14px 18px;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 16px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .mmA {
   padding: 14px 18px;
-  font-size: 13px;
+  font-size: 16px;
   color: #444444;
   white-space: pre-wrap;
 }
@@ -709,7 +761,7 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  z-index: 99999;
+  z-index: 1000000;
   backdrop-filter: blur(2px);
 }
 
@@ -737,7 +789,7 @@
   margin: 0;
   font-size: 25px;
   font-weight: 900;
-  color: #111111;
+  color: var(--font-color);
 }
 
 .popupClose {
@@ -883,4 +935,13 @@
     margin-left: auto;
     margin-right: 38px;
   }
+}
+
+.actionEdit i,
+.actionDelete i,
+.actionView i {
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

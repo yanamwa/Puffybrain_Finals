@@ -251,9 +251,110 @@ function LearningModule() {
     (quiz) => !correctQuestions.some((item) => item.question === quiz.question)
   );
 
-  const handleStudy = () => {
-    navigate(`/introduction/${lessonId}`);
-  };
+const handlePractice = () => {
+  Swal.fire({
+    customClass: {
+      popup: styles.swalPopup,
+      title: styles.swalTitle,
+      htmlContainer: styles.swalText,
+      confirmButton: styles.swalConfirmBtn,
+      cancelButton: styles.swalCancelBtn,
+      image: styles.swalImage,
+      actions: styles.swalActions,
+    },
+
+    buttonsStyling: false,
+
+    title: "Add this course?",
+    text: "You need to add this course to My Courses before practicing.",
+    imageUrl: "/images/asking.png",
+    imageWidth: 180,
+    imageHeight: 180,
+
+    showCancelButton: true,
+    allowOutsideClick: false,
+
+    confirmButtonText: "Add & Practice",
+    cancelButtonText: "Cancel",
+  }).then(async (result) => {
+
+    if (result.isConfirmed) {
+      try {
+        await fetch("http://localhost/puffybrain/addCourse.php", {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            lesson_id: lessonId,
+          }),
+        });
+
+        Swal.fire({
+          title: "Course Added!",
+          text: "Added to My Courses successfully.",
+          imageUrl: "/images/success.png",
+          imageWidth: 170,
+          imageHeight: 170,
+          timer: 1500,
+          showConfirmButton: false,
+        });
+
+        setOpenModes(true);
+
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  });
+};
+
+const handleStudy = () => {
+Swal.fire({
+customClass: {
+  popup: styles.swalPopup,
+  title: styles.swalTitle,
+  htmlContainer: styles.swalText,
+  confirmButton: styles.swalConfirmBtn,
+  cancelButton: styles.swalCancelBtn,
+  image: styles.swalImage,
+  actions: styles.swalActions,
+},
+
+  buttonsStyling: false,
+
+  title: "Add this course?",
+  text: "You need to add this course to My Courses before studying.",
+  imageUrl: "/images/asking.png",
+  imageWidth: 180,
+  imageHeight: 180,
+
+  showCancelButton: true,
+
+  confirmButtonText: "Add Course",
+  cancelButtonText: "Cancel",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        await fetch("http://localhost/puffybrain/addCourse.php", {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            lesson_id: lessonId,
+          }),
+        });
+
+        navigate(`/introduction/${lessonId}`);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  });
+};
 
   if (!lesson) {
     return <div style={{ padding: "40px" }}>Loading lesson...</div>;
@@ -575,8 +676,8 @@ function LearningModule() {
 
                       <button
                         className={`${styles.btn} ${styles.practiceBtn}`}
-                        onClick={() => setOpenModes(true)}
-                      >
+                        onClick={() => handlePractice()}   
+                   >
                         Practice
                       </button>
                     </div>

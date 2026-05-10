@@ -288,17 +288,23 @@ export default function EditModule() {
       .join("\n\n");
   };
 
-  const generateQuizFromAI = async ({ questionCount = 5, difficulty = "medium" }) => {
-    const res = await fetch(AI_API_URL, {
+    const generateQuizFromAI = async ({
+      questionCount = 5,
+      trueFalseCount = 0,
+      difficulty = "medium",
+    }) => {
+      
+      const res = await fetch(AI_API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        lesson_title: editTitle,
-        learning_objectives: editLearningObjectives,
-        lesson_content: getLessonContentForAI(),
-        question_count: questionCount,
-        difficulty,
-      }),
+     body: JSON.stringify({
+      lesson_title: editTitle,
+      learning_objectives: editLearningObjectives,
+      lesson_content: getLessonContentForAI(),
+      question_count: questionCount,
+      true_false_count: trueFalseCount,
+      difficulty,
+    }),
     });
 
     const text = await res.text();
@@ -345,15 +351,18 @@ export default function EditModule() {
       return;
     }
 
-    const { value: formValues } = await Swal.fire({
+      const { value: formValues } = await Swal.fire({
       title: "Generate Quiz",
       html: `
-        <div style="display:flex; flex-direction:column; gap:12px; text-align:left;">
+        <div class="${styles.generateQuizForm}">
           <label for="swal-question-count">How many questions?</label>
-          <input id="swal-question-count" type="number" min="1" max="50" value="5" class="swal2-input" style="margin:0;" />
+          <input id="swal-question-count" type="number" min="1" max="50" value="5" />
+
+          <label for="swal-truefalse-count">How many True or False questions?</label>
+          <input id="swal-truefalse-count" type="number" min="0" max="50" value="0" />
 
           <label for="swal-difficulty">Difficulty</label>
-          <select id="swal-difficulty" class="swal2-select" style="margin:0;">
+          <select id="swal-difficulty">
             <option value="easy">Easy</option>
             <option value="medium" selected>Medium</option>
             <option value="hard">Hard</option>
@@ -364,28 +373,40 @@ export default function EditModule() {
       showCancelButton: true,
       confirmButtonText: "Generate",
       cancelButtonText: "Cancel",
+      customClass: {
+        popup: styles.generateQuizPopup,
+        title: styles.generateQuizTitle,
+        confirmButton: styles.generateQuizConfirm,
+        cancelButton: styles.generateQuizCancel,
+      },
       preConfirm: () => {
         const questionCount = Number(document.getElementById("swal-question-count").value);
+        const trueFalseCount = Number(document.getElementById("swal-truefalse-count").value);
         const difficulty = document.getElementById("swal-difficulty").value;
 
         if (!questionCount || questionCount < 1 || questionCount > 50) {
-          Swal.showValidationMessage("Please enter a valid number between 1 and 50.");
+          Swal.showValidationMessage("Please enter a valid number of questions.");
           return false;
         }
 
-        return { questionCount, difficulty };
+        if (trueFalseCount < 0 || trueFalseCount > questionCount) {
+          Swal.showValidationMessage("True or False count cannot be higher than total questions.");
+          return false;
+        }
+
+        return { questionCount, trueFalseCount, difficulty };
       },
     });
-
     if (!formValues) return;
 
     setGeneratingEditQuiz(true);
 
     try {
       const quizItems = await generateQuizFromAI({
-        questionCount: formValues.questionCount,
-        difficulty: formValues.difficulty,
-      });
+      questionCount: formValues.questionCount,
+      trueFalseCount: formValues.trueFalseCount,
+      difficulty: formValues.difficulty,
+    });
 
       setEditQuizItems(quizItems);
 
@@ -407,6 +428,42 @@ export default function EditModule() {
     }
   };
 
+const generateOptionsForItem = async (item) => {
+  const res = await fetch("http://localhost/puffybrain/generateOptions.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      question: item.question,
+      correct_answer: item.correct_answer,
+    }),
+  });
+
+  const data = await res.json();
+
+  if (!data.success || !Array.isArray(data.wrong_options)) {
+    throw new Error(data.message || "Could not generate wrong options.");
+  }
+
+  return {
+    ...item,
+    options: [...data.wrong_options].slice(0, 4),
+    explanation: item.explanation?.trim()
+      ? item.explanation
+      : data.explanation || "",
+  };
+};
+
+const isTrueFalseQuestion = (item) => {
+  const answer = item.correct_answer.trim().toLowerCase();
+  const options = item.options.map((opt) => opt.trim().toLowerCase());
+
+  return (
+    ["true", "false"].includes(answer) &&
+    options.includes("true") &&
+    options.includes("false")
+  );
+};
+
   const saveEdit = async () => {
     if (!editTitle.trim()) {
       await Swal.fire({
@@ -417,16 +474,51 @@ export default function EditModule() {
       return;
     }
 
-    const hasLessons = editLessonPages.some(
+    const completedQuizItems = [];
+
+      for (const item of editQuizItems) {
+        const hasQuestion = item.question.trim();
+        const hasAnswer = item.correct_answer.trim();
+
+        const hasEnoughOptions =
+        isTrueFalseQuestion(item) ||
+        item.options.slice(0, 4).every((opt) => opt.trim());
+
+      if (hasQuestion && hasAnswer && !hasEnoughOptions) {
+            try {
+            const generatedItem = await generateOptionsForItem(item);
+            completedQuizItems.push(generatedItem);
+          } catch (err) {
+            console.error("OPTION GENERATE ERROR:", err);
+
+            await Swal.fire({
+              icon: "error",
+              title: "Options Not Generated",
+              text: "Please fill Option 1, Option 2, and Option 3 before publishing.",
+            });
+
+            return;
+          }
+        } else {
+          completedQuizItems.push(item);
+        }
+      }
+          const hasLessons = editLessonPages.some(
       (page) => page.title.trim() && page.content.trim()
     );
 
-    const hasQuiz = editQuizItems.some(
-      (item) =>
-        item.question.trim() &&
-        item.correct_answer.trim() &&
-        item.options.some((opt) => opt.trim())
-    );
+const hasQuiz = completedQuizItems.every((item) => {
+  const hasQuestion = item.question.trim();
+  const hasAnswer = item.correct_answer.trim();
+
+  if (!hasQuestion || !hasAnswer) return false;
+
+  if (isTrueFalseQuestion(item)) {
+    return true;
+  }
+
+  return item.options.slice(0, 4).every((opt) => opt.trim());
+});
 
     const hasRequiredContent =
       editDesc.trim() &&
@@ -446,8 +538,8 @@ export default function EditModule() {
       learning_objectives: editLearningObjectives.trim(),
       lesson_content: serializeLessonPages(editLessonPages),
       status: finalStatus,
-      quiz_contents: serializeQuizItems(editQuizItems),
-    };
+      quiz_contents: serializeQuizItems(completedQuizItems),  
+  };
     try {
       const res = await fetch(API_URL, {
         method: "POST",
@@ -468,14 +560,61 @@ export default function EditModule() {
         throw new Error("PHP did not return valid JSON.");
       }
 
-if (data.success) {
-  if (!hasRequiredContent && editStatus === "publish") {
-    await Swal.fire({
-      icon: "warning",
-      title: "Incomplete Input",
-      text: "Some required module content is missing. Module was automatically saved as Draft.",
-    });
-  } else {
+      if (data.success) {
+          if (!hasRequiredContent && editStatus === "publish") {
+            const missingFields = [];
+
+      if (!editDesc.trim()) {
+        missingFields.push(
+          `<span class="${styles.missingItem}">• Module Description</span>`
+        );
+      }
+
+      if (!editLearningObjectives.trim()) {
+        missingFields.push(
+          `<span class="${styles.missingItem}">• Learning Objectives</span>`
+        );
+      }
+
+      if (!hasLessons) {
+        missingFields.push(
+          `<span class="${styles.missingItem}">• Lesson Pages</span>`
+        );
+      }
+
+      if (!hasQuiz) {
+        missingFields.push(
+          `<span class="${styles.missingItem}">• Quiz Module</span>`
+        );
+      }
+
+      await Swal.fire({
+        icon: "warning",
+        title: "Incomplete Input",
+        html: `
+          <div class="missingContentWrapper">
+            <p class="missingText">
+              Some required module content is missing.
+            </p>
+
+            <div class="missingList">
+              ${missingFields.join("<br>")}
+            </div>
+
+            <p class="draftText">
+              Module was automatically saved as <b>Draft</b>.
+            </p>
+          </div>
+        `,
+        customClass: {
+          popup: styles.incompletePopup,
+          title: styles.incompleteTitle,
+          confirmButton: styles.incompleteButton,
+          htmlContainer: styles.incompleteHtml,
+        },
+      });
+    }
+  else {
     await Swal.fire({
       icon: "success",
       title: "Updated!",
@@ -899,19 +1038,19 @@ if (data.success) {
                     placeholder="Question"
                   />
 
-                  <div className={styles.optionsGrid}>
-                    {item.options.map((option, optionIndex) => (
-                      <input
-                        key={optionIndex}
-                        className={styles.popupInput}
-                        value={option}
-                        onChange={(e) =>
-                          updateEditQuizOption(index, optionIndex, e.target.value)
-                        }
-                        placeholder={`Option ${optionIndex + 1}`}
-                      />
-                    ))}
-                  </div>
+             <div className={styles.optionsGrid}>
+                  {item.options.slice(0, 4).map((option, optionIndex) => (
+                    <input
+                      key={optionIndex}
+                      className={styles.popupInput}
+                      value={option}
+                      onChange={(e) =>
+                        updateEditQuizOption(index, optionIndex, e.target.value)
+                      }
+                      placeholder={`Option ${optionIndex + 1}`}
+                    />
+                  ))}
+                </div>
 
                   <input
                     className={styles.popupInput}

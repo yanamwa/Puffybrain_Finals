@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import styles from "./lessonresult.module.css";
+import QuizModesModal from "../../components/QuizModesModal";
 
 export default function LessonResult() {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ export default function LessonResult() {
 
   const [quizMode, setQuizMode] = useState("");
   const [isTimedOut, setIsTimedOut] = useState(false);
+  const [showQuizModal, setShowQuizModal] = useState(false);
 
   useEffect(() => {
     const savedResults = JSON.parse(localStorage.getItem("lessonQuizResults"));
@@ -154,17 +156,9 @@ export default function LessonResult() {
       "Try again and manage your time better, or review the lesson before retrying.";
   }
 
-  const retryQuiz = () => {
-    localStorage.removeItem("lessonQuizResults");
-
-    if (source === "deck") {
-      navigate(`/deck/${deckId}`);
-    } else {
-      localStorage.setItem("startQuizMode", "true");
-      navigate(`/learning/${lessonId}`);
-    }
-  };
-
+const retryQuiz = () => {
+  setShowQuizModal(true);
+};
   const goHome = () => {
     navigate("/homepage");
   };
@@ -217,7 +211,7 @@ export default function LessonResult() {
 
         <div className={styles.resultButtons}>
           <button className={styles.retry} onClick={retryQuiz}>
-            Practice?
+            Practice Again
           </button>
 
           <button className={styles.lesson} onClick={goBack}>
@@ -331,7 +325,7 @@ export default function LessonResult() {
 
                     <p>
                       Correct Answer:{" "}
-                      <span className={styles.correctText}>
+                      <span className={styles.correctAnswer}>
                         {correctAnswer}
                       </span>
                     </p>
@@ -342,6 +336,17 @@ export default function LessonResult() {
           )}
         </div>
       </div>
-    </div>
+      {showQuizModal && (
+  <QuizModesModal
+    source={source}
+    lessonId={lessonId}
+    deckId={deckId}
+    quizzes={results.answers}
+    cards={results.answers}
+    onClose={() => setShowQuizModal(false)}
+  />
+)}
+
+    </div>    
   );
 }

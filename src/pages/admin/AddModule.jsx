@@ -359,6 +359,31 @@ export default function AddModule() {
     }
   };
 
+  const generateOptionsForItem = async (item) => {
+  const res = await fetch(
+    "http://localhost/puffybrain/generateOptions.php",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        question: item.question,
+        correct_answer: item.correct_answer,
+      }),
+    }
+  );
+
+  const data = await res.json();
+
+  if (!data.success || !Array.isArray(data.options)) {
+    throw new Error(data.message || "Could not generate options.");
+  }
+
+  return {
+    ...item,
+    options: data.options.slice(0, 4),
+  };
+};
+
   const handleAddModule = async () => {
     if (!newTitle.trim()) {
       await Swal.fire({

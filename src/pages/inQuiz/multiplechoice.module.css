@@ -56,7 +56,7 @@
 .questionBox {
   width: 90%;
   margin: 30px auto;
-  background: rgba(255, 255, 255, 0);
+  background: rgb(255, 255, 255);
   border-radius: 25px;
   padding: 25px;
   text-align: center;

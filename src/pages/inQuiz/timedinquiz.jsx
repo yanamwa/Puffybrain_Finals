@@ -23,17 +23,33 @@ export default function TimedQuiz() {
 
   const finishedRef = useRef(false);
 
+  function shuffleArray(array) {
+    const shuffled = [...array];
+
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    return shuffled;
+  }
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
 
       try {
+        // =========================
+        // LESSON MODE
+        // =========================
         if (isLessonMode) {
           const res = await fetch(
             `http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`
           );
 
           const lesson = await res.json();
+
           setTitle(lesson?.title || "Lesson Timed Quiz");
 
           let parsed = [];
@@ -54,13 +70,15 @@ export default function TimedQuiz() {
                 item.correct ||
                 "";
 
-              const options = [
+              const rawOptions = [
                 ...(Array.isArray(item.options) ? item.options : []),
                 ...(Array.isArray(item.choices) ? item.choices : []),
+
                 item.option_a,
                 item.option_b,
                 item.option_c,
                 item.option_d,
+
                 item.choice_a,
                 item.choice_b,
                 item.choice_c,
@@ -69,24 +87,32 @@ export default function TimedQuiz() {
                 .filter(Boolean)
                 .map(String);
 
+              const options = shuffleArray([
+                ...new Set([...rawOptions, correctAnswer]),
+              ]);
+
               return {
                 question: item.question || "No question available.",
-                options: [...new Set(options)],
+                options,
                 answer: String(correctAnswer),
                 explanation: item.explanation || correctAnswer,
               };
             })
             .filter((item) => item.question && item.options.length > 0);
 
-          setQuestions(lessonQuestions);
+          setQuestions(shuffleArray(lessonQuestions));
         }
 
+        // =========================
+        // DECK MODE
+        // =========================
         if (isDeckMode) {
           const res = await fetch(
             `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`
           );
 
           const data = await res.json();
+
           const cards = data.success ? data.cards || [] : [];
 
           setTitle("Deck Timed Quiz");
@@ -95,12 +121,18 @@ export default function TimedQuiz() {
             .map((card) => {
               const correctAnswer = card.answer || "";
 
-              const otherAnswers = cards
-                .filter((c) => c.answer && c.answer !== correctAnswer)
-                .map((c) => c.answer)
-                .slice(0, 3);
+              const otherAnswers = shuffleArray(
+                cards
+                  .filter(
+                    (c) => c.answer && c.answer !== correctAnswer
+                  )
+                  .map((c) => c.answer)
+              ).slice(0, 3);
 
-              const options = shuffleOptions([correctAnswer, ...otherAnswers]);
+              const options = shuffleArray([
+                correctAnswer,
+                ...otherAnswers,
+              ]);
 
               return {
                 question: card.question || "No question available.",
@@ -111,7 +143,7 @@ export default function TimedQuiz() {
             })
             .filter((item) => item.question && item.options.length > 0);
 
-          setQuestions(deckQuestions);
+          setQuestions(shuffleArray(deckQuestions));
         }
       } catch (error) {
         console.error("Error loading timed quiz:", error);
@@ -131,7 +163,9 @@ export default function TimedQuiz() {
       setTime((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
+
           finishQuiz(score, userResults, "timeout");
+
           return 0;
         }
 
@@ -141,10 +175,6 @@ export default function TimedQuiz() {
 
     return () => clearInterval(timer);
   }, [loading, questions.length, score, userResults]);
-
-  function shuffleOptions(options) {
-    return [...options].sort(() => Math.random() - 0.5);
-  }
 
   function cleanAnswer(text) {
     return String(text)
@@ -157,10 +187,12 @@ export default function TimedQuiz() {
 
   function handleAnswer(selectedAnswer) {
     const currentQuestion = questions[questionIndex];
+
     if (!currentQuestion) return;
 
     const isCorrect =
-      cleanAnswer(selectedAnswer) === cleanAnswer(currentQuestion.answer);
+      cleanAnswer(selectedAnswer) ===
+      cleanAnswer(currentQuestion.answer);
 
     const newResult = {
       question: currentQuestion.question,
@@ -171,6 +203,7 @@ export default function TimedQuiz() {
     };
 
     const updatedResults = [...userResults, newResult];
+
     const updatedScore = score + (isCorrect ? 1 : 0);
 
     setUserResults(updatedResults);
@@ -212,6 +245,7 @@ export default function TimedQuiz() {
     finishReason = "completed"
   ) {
     if (finishedRef.current) return;
+
     finishedRef.current = true;
 
     await saveQuizAttempt(finalScore, finishReason);
@@ -257,15 +291,20 @@ export default function TimedQuiz() {
   const minutes = Math.floor(time / 60);
   const seconds = time % 60;
 
-  const progress = ((questionIndex + 1) / questions.length) * 100;
+  const progress =
+    ((questionIndex + 1) / questions.length) * 100;
 
   const isWarningTime = time <= 30;
   const isDangerTime = time <= 10;
 
   const timerClass = `${styles.timer} ${
-    isDangerTime ? styles.dangerTimer : isWarningTime ? styles.warningTimer : ""
+    isDangerTime
+      ? styles.dangerTimer
+      : isWarningTime
+      ? styles.warningTimer
+      : ""
   }`;
-  
+
   return (
     <div className={styles.page}>
       <div className={styles.quizHeader}>
@@ -290,7 +329,9 @@ export default function TimedQuiz() {
           </div>
         </div>
 
-        <p className={styles.question}>{questions[questionIndex].question}</p>
+        <p className={styles.question}>
+          {questions[questionIndex].question}
+        </p>
 
         <div className={styles.options}>
           {questions[questionIndex].options.map((option, i) => (

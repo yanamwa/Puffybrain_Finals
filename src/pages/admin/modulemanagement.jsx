@@ -37,8 +37,7 @@ function parseDeckCards(raw) {
         .map((x, i) => ({
           id: i + 1,
           question: String(x.question ?? x.q ?? "").trim(),
-          answer: String(x.answer ?? x.a ?? "").trim(),
-        }))
+          answer: String(x.correct_answer ?? x.correctAnswer ?? x.answer ?? x.a ?? "").trim(),        }))
         .filter((c) => c.question || c.answer);
     }
   } catch {}
@@ -476,11 +475,15 @@ export default function ModuleManagement() {
               ) : (
                 shownModules.map((mod) => (
                   <tr key={mod.id}>
-                    <td>{mod.id}</td>
-                    <td>{mod.title}</td>
+                  <td>
+                    {`MOD${String(mod.date)
+                      .replace(/[-/: ]/g, "")
+                      .slice(2, 10)}${String(mod.id).padStart(3, "0")}`}
+                  </td>   
+                 <td>{mod.title}</td>
                     <td>{mod.date}</td>
                     <td>
-                  <span
+                  <span 
                       className={
                         mod.status === "publish"
                           ? styles.statusActive
@@ -497,7 +500,8 @@ export default function ModuleManagement() {
                         className={styles.actionEdit}
                         onClick={() => openEdit(mod)}
                       >
-                        ✎ <span>Edit</span>
+                      <i className='bx bx-pencil'></i>
+                      <span>Edit</span>                  
                       </button>
 
                       <button
@@ -505,16 +509,18 @@ export default function ModuleManagement() {
                         className={styles.actionDelete}
                         onClick={() => openDelete(mod)}
                       >
-                        🗑 <span>Delete</span>
-                      </button>
+                    <i className='bx bx-trash'></i>
+                    <span>Delete</span>   
+                   </button>
 
                       <button
                         type="button"
                         className={styles.actionView}
                         onClick={() => openView(mod)}
                       >
-                        👁 <span>View</span>
-                      </button>
+                    <i className='bx bx-show'></i>
+                    <span>View</span>   
+                   </button>
                     </td>
                   </tr>
                 ))
@@ -619,15 +625,6 @@ export default function ModuleManagement() {
                         : "—"}
                     </div>
                   </div>
-
-                  <div className={styles.mmGroup}>
-                    <div className={styles.mmLabel}>Subject</div>
-                    <div className={styles.mmValue}>
-                      {selectedModule.subject?.trim()
-                        ? selectedModule.subject
-                        : "—"}
-                    </div>
-                  </div>
                 </div>
 
                 <div className={styles.mmCol}>
@@ -662,16 +659,44 @@ export default function ModuleManagement() {
                         type="button"
                         className={styles.mmViewBtn}
                         onClick={() =>
-                          openTextView("Lessons", selectedModule.lessonContent)
-                        }
+                        openTextView(
+                          "Lessons",
+                          (() => {
+                            try {
+                              const parsed = JSON.parse(selectedModule.lessonContent);
+
+                              if (Array.isArray(parsed)) {
+                                return parsed
+                                  .map((page) => page.content || "")
+                                  .join("\n\n");
+                              }
+                            } catch {}
+
+                            return selectedModule.lessonContent;
+                          })()
+                        )                        }
                       >
                         View
                       </button>
                     </div>
 
-                    <div className={styles.mmValue}>
-                      {getPreviewText(selectedModule.lessonContent)}
-                    </div>
+              <div className={styles.mmValue}>
+                  {(() => {
+                    try {
+                      const parsed = JSON.parse(selectedModule.lessonContent);
+
+                      if (Array.isArray(parsed)) {
+                        return getPreviewText(
+                          parsed
+                            .map((page) => page.content || "")
+                            .join(" ")
+                        );
+                      }
+                    } catch {}
+
+                    return getPreviewText(selectedModule.lessonContent);
+                  })()}
+                </div>
                   </div>
                 </div>
               </div>

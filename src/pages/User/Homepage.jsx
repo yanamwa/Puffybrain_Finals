@@ -21,9 +21,10 @@ function Homepage() {
   const [deckColor, setDeckColor] = useState("#C3C7F3");
 
   const [notificationOpen, setNotificationOpen] = useState(false);
-  const notificationCount = 0;
-
-  const [user, setUser] = useState({
+  const [notifications, setNotifications] = useState([]);
+const notificationCount = notifications.filter(
+  (notif) => notif.status === "unread"
+).length;  const [user, setUser] = useState({
     username: "",
     year_level: "",
     profile_image: "/images/temporary profile.jpg",
@@ -100,15 +101,68 @@ function Homepage() {
     }
   };
 
+const fetchNotifications = async () => {
+  try {
+    const res = await fetch("http://localhost/puffybrain/getUserNotifications.php",
+      {
+        method: "GET",
+        credentials: "include",
+      }
+    );
+
+    const text = await res.text();
+    console.log("RAW NOTIFICATION RESPONSE:", text);
+
+    const data = JSON.parse(text);
+
+    if (data.success) {
+      setNotifications(data.notifications || []);
+      console.log("NOTIFICATIONS:", data.notifications);
+    } else {
+      console.error("Notification error:", data.message);
+      setNotifications([]);
+    }
+  } catch (err) {
+    console.error("Notification fetch error:", err);
+    setNotifications([]);
+  }
+};
+const markNotificationsAsRead = async () => {
+  try {
+    const res = await fetch(
+      "http://localhost/puffybrain/markNotificationsAsRead.php",
+      {
+        method: "POST",
+        credentials: "include",
+      }
+    );
+
+    const data = await res.json();
+
+    if (data.success) {
+      setNotifications((prev) =>
+        prev.map((notif) => ({
+          ...notif,
+          status: "read",
+        }))
+      );
+    }
+  } catch (err) {
+    console.error("Mark notifications as read error:", err);
+  }
+};
+
+
   const openCourse = (courseId) => {
     navigate(`/learning/${courseId}`);
   };
 
-  useEffect(() => {
-    fetchUserDecks();
-    fetchUser();
-    fetchCourses();
-  }, []);
+useEffect(() => {
+  fetchUserDecks();
+  fetchUser();
+  fetchCourses();
+  fetchNotifications();
+}, []);
 
   useEffect(() => {
     const handler = (e) => {
@@ -401,11 +455,52 @@ function Homepage() {
                 notificationOpen ? styles.show : ""
               }`}
             >
-              <h4>Notifications</h4>
+             <div className={styles.notificationHeader}>
+  <h4>Notifications</h4>
 
-              <div className={styles.emptyNotification}>
-                <p>You don’t have any new notifications</p>
-              </div>
+  {notificationCount > 0 && (
+    <button
+      type="button"
+      className={styles.markReadBtn}
+      onClick={markNotificationsAsRead}
+    >
+      Mark all as read
+    </button>
+  )}
+</div>
+
+           {notifications.length > 0 ? (
+  notifications.slice(0, 5).map((notif) => (
+<div
+  key={notif.notification_id}
+  className={styles.notificationItem}
+>
+  <div className={styles.notificationTop}>
+    <h5>{notif.title}</h5>
+
+    <span className={styles.notificationRole}>
+      {notif.target_role}
+    </span>
+  </div>
+
+  <p>{notif.message}</p>
+
+  <small className={styles.notificationDate}>
+    {new Date(notif.created_at).toLocaleString()}
+  </small>
+</div>
+  ))
+) : (
+<div className={styles.emptyNotification}>
+  <img
+    src="/images/NoNotifcation.png"
+    alt="No notifications"
+    className={styles.emptyNotificationImg}
+  />
+
+  <p>You don’t have any new notifications</p>
+</div>
+)}
             </div>
           </div>
         </header>

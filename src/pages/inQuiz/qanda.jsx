@@ -20,6 +20,9 @@ export default function QandA() {
   const [userResults, setUserResults] = useState([]);
 
   const inputRef = useRef(null);
+  const shuffleArray = (array) => {
+  return [...array].sort(() => Math.random() - 0.5);
+};
 
   useEffect(() => {
     const loadData = async () => {
@@ -51,33 +54,37 @@ export default function QandA() {
     loadData();
   }, [lessonId, deckId, isLessonMode, isDeckMode]);
 
-  const questions = useMemo(() => {
-    if (isLessonMode && lesson?.quiz_contents) {
-      try {
-        const parsed = JSON.parse(lesson.quiz_contents);
-        if (!Array.isArray(parsed)) return [];
+const questions = useMemo(() => {
+  if (isLessonMode && lesson?.quiz_contents) {
+    try {
+      const parsed = JSON.parse(lesson.quiz_contents);
+      if (!Array.isArray(parsed)) return [];
 
-        return parsed.map((item) => ({
+      return shuffleArray(
+        parsed.map((item) => ({
           q: item.question || "No question available.",
           correctAnswer:
             item.correct_answer || item.correctAnswer || item.answer || "",
-          explanation: item.explanation || item.answer,
-        }));
-      } catch {
-        return [];
-      }
+          explanation: item.explanation || item.answer || "",
+        }))
+      );
+    } catch {
+      return [];
     }
+  }
 
-    if (isDeckMode) {
-      return deckCards.map((card) => ({
+  if (isDeckMode) {
+    return shuffleArray(
+      deckCards.map((card) => ({
         q: card.question || "No question available.",
         correctAnswer: card.answer || "",
         explanation: card.answer || "",
-      }));
-    }
+      }))
+    );
+  }
 
-    return [];
-  }, [lesson, deckCards, isLessonMode, isDeckMode]);
+  return [];
+}, [lesson, deckCards, isLessonMode, isDeckMode]);
 
   useEffect(() => {
     if (inputRef.current) inputRef.current.focus();

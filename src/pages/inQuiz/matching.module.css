@@ -8,7 +8,6 @@
 }
 
 .wrapper {
-  font-family: 'Jersey 15', sans-serif;
   display: flex;
   justify-content: center;
   width: 100%;
@@ -18,10 +17,10 @@
   width: 100%;
   min-height: 100vh;
 
-  background-image: url("/images/background_notebook.png"); /* your image */
-  background-size: cover;       /* fill screen */
-  background-position: center;  /* center the image */
-  background-repeat: no-repeat; /* prevent repeating */
+  background-image: url("/images/background_notebook.png"); 
+  background-size: cover;      
+  background-position: center;  
+  background-repeat: no-repeat; 
 
   padding: 28px;
   display: flex;
@@ -80,7 +79,6 @@ table {
   border-collapse: collapse;
   width: 420px;
   max-width: 100%;
-  background: #fff;
   border-radius: 12px;
 }
 

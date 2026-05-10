@@ -1,7 +1,5 @@
 .wrapper{
   min-height:100vh;
-  font-family:'Lato', sans-serif;
-
   background: repeating-linear-gradient(
       0deg,
       rgba(0,0,0,0.05) 0px,
@@ -64,7 +62,7 @@
 .questionBox{
   width:80%;
   margin:40px auto;
-  background:rgba(255, 255, 255, 0.37);
+  background:rgb(255, 255, 255);
   border-radius:25px;
   padding:10px;
   text-align:center;
@@ -72,7 +70,7 @@
 }
 
 .question{
-  font-size:20px;
+  font-size: 25px;
   font-weight:400;
   padding:25px 25px;
   border-radius:15px;
@@ -81,6 +79,12 @@
   text-align:center;
   width:75%;
   margin:0 auto 30px auto;
+  
+  font-family: inherit;
+  font-weight: normal;
+  font-style: normal;
+  color: var(--font-color);
+
 }
 
 .typingContainer{
@@ -94,11 +98,16 @@
   padding:10px 20px;
   width:60%;
   height:50px;
-  font-size:18px;
+  font-size: 25px;
   border-radius:15px;
   border:2px solid #505152;
   outline:none;
   transition:0.3s;
+
+  font-family: inherit;
+  font-weight: normal;
+  font-style: normal;
+  color: var(--font-color);
 }
 
 .input:focus{

@@ -19,6 +19,10 @@ export default function Quiz() {
   const [locked, setLocked] = useState(false);
   const [answers, setAnswers] = useState([]);
 
+  const shuffleArray = (array) => {
+  return [...array].sort(() => Math.random() - 0.5);
+};
+
   const makeFallbackQuestions = (cards) => {
     return cards.map((card) => {
       const correctAnswer = card.answer || "No answer available.";
@@ -81,7 +85,7 @@ export default function Quiz() {
             };
           });
 
-          setQuestions(lessonQuestions);
+          setQuestions(shuffleArray(lessonQuestions));
         }
 
         if (isDeckMode) {
@@ -138,8 +142,8 @@ export default function Quiz() {
           });
 
           setTitle("Deck Quiz");
-          setQuestions(deckQuestions);
-        }
+            setQuestions(shuffleArray(deckQuestions));   
+           }
       } catch (error) {
         console.error("Error loading multiple choice:", error);
         setQuestions([]);
@@ -153,7 +157,6 @@ export default function Quiz() {
 
   const question = questions[current];
 
-  // ✅ SAVE ATTEMPT TO DB
   async function saveQuizAttempt(finalScore) {
     try {
       await fetch("http://localhost/puffybrain/saveQuizAttempt.php", {
@@ -244,6 +247,22 @@ export default function Quiz() {
 
   const progressPercent = ((current + 1) / questions.length) * 100;
 
+  const cleanOptions = (question.options || []).filter(
+  (opt) => opt && String(opt).trim() !== ""
+);
+
+const isTrueFalse = cleanOptions.some(
+  (opt) =>
+    String(opt).trim().toLowerCase() === "true" ||
+    String(opt).trim().toLowerCase() === "false"
+);
+
+const visibleOptions = isTrueFalse
+  ? cleanOptions.filter((opt) =>
+      ["true", "false"].includes(String(opt).trim().toLowerCase())
+    )
+  : cleanOptions.slice(0, 4);
+
   return (
     <div className={styles.wrapper}>
       <div className={styles.header}>
@@ -264,30 +283,32 @@ export default function Quiz() {
       <div className={styles.questionBox}>
         <p className={styles.question}>{question.q}</p>
 
-        <div className={styles.options}>
-          {question.options.map((opt, i) => {
-            let optionClass = styles.option;
+<div className={styles.options}>
+  {visibleOptions.map((opt, i) => {
+    let optionClass = styles.option;
 
-            if (selected !== null) {
-              if (i === question.correct) {
-                optionClass = `${styles.option} ${styles.correct}`;
-              } else if (i === selected) {
-                optionClass = `${styles.option} ${styles.wrong}`;
-              }
-            }
+    const isSelected = selected === opt;
+    const isCorrect = String(opt).trim().toLowerCase() ===
+      String(question.correctAnswer).trim().toLowerCase();
 
-            return (
-              <button
-                key={i}
-                className={optionClass}
-                onClick={() => handleAnswer(i)}
-                disabled={locked}
-              >
-                {opt}
-              </button>
-            );
-          })}
-        </div>
+    if (selected !== null && isSelected) {
+      optionClass = isCorrect
+        ? `${styles.option} ${styles.correct}`
+        : `${styles.option} ${styles.wrong}`;
+    }
+
+    return (
+      <button
+        key={i}
+        className={optionClass}
+        onClick={() => handleAnswer(question.options.indexOf(opt))}
+        disabled={locked}
+      >
+        {opt}
+      </button>
+    );
+  })}
+</div>
       </div>
     </div>
   );

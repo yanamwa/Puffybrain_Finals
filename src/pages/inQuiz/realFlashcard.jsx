@@ -18,6 +18,9 @@ export default function Flashcards() {
   const [userResults, setUserResults] = useState([]);
   const [flipped, setFlipped] = useState(false);
 
+  const shuffleArray = (array) => {
+  return [...array].sort(() => Math.random() - 0.5);
+};
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -55,34 +58,34 @@ export default function Flashcards() {
         const parsed = JSON.parse(lesson.quiz_contents);
         if (!Array.isArray(parsed)) return [];
 
-        return parsed.map((item) => ({
-          question: item.question || "No question available.",
-          answer:
-            item.correct_answer ||
-            item.correctAnswer ||
-            item.answer ||
-            "No answer available.",
-          explanation: item.explanation || "",
-        }));
+return shuffleArray(
+  parsed.map((item) => ({
+    question: item.question || "No question available.",
+    answer:
+      item.correct_answer ||
+      item.correctAnswer ||
+      item.answer ||
+      "No answer available.",
+    explanation: item.explanation || "",
+  }))
+);
       } catch {
         return [];
       }
     }
-
-    if (isDeckMode) {
-      return deckCards.map((card) => ({
-        question: card.question || "No question available.",
-        answer: card.answer || "No answer available.",
-        explanation: "",
-      }));
-    }
-
+if (isDeckMode) {
+  return shuffleArray(
+    deckCards.map((card) => ({
+      question: card.question || "No question available.",
+      answer: card.answer || "No answer available.",
+      explanation: "",
+    }))
+  );
+}
     return [];
   }, [lesson, deckCards, isLessonMode, isDeckMode]);
 
   const currentCard = flashcards[currentIndex];
-
-  // ✅ ADD THIS (SAVE ATTEMPT)
   async function saveQuizAttempt(finalScore) {
     try {
       await fetch("http://localhost/puffybrain/saveQuizAttempt.php", {
@@ -233,6 +236,9 @@ export default function Flashcards() {
               Hard
             </button>
           </div>
+          <p className={styles.difficultyHint}>
+              Easy = mastered • Good = understood • Hard = needs review
+            </p>
         </div>
       </div>
     </div>
