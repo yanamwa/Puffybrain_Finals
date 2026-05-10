@@ -23,6 +23,8 @@ function Homepage() {
   const [notificationOpen, setNotificationOpen] = useState(false);
   const notificationCount = 0;
 
+  const [searchQuery, setSearchQuery] = useState("");
+
   const [user, setUser] = useState({
     username: "",
     year_level: "",
@@ -37,6 +39,46 @@ function Homepage() {
     "#CF8686",
     "#EECB99",
   ];
+
+  const filteredDecks = myDecks.filter((deck) =>
+    deck.title?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredCourses = courses.filter((course) =>
+    course.title?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return;
+
+    const foundDeck = myDecks.find((deck) =>
+      deck.title?.toLowerCase().includes(q)
+    );
+
+    const foundCourse = courses.find((course) =>
+      course.title?.toLowerCase().includes(q)
+    );
+
+    if (foundDeck) {
+      navigate(`/deck/${foundDeck.id}`);
+      return;
+    }
+
+    if (foundCourse) {
+      navigate(`/learning/${foundCourse.id}`);
+      return;
+    }
+
+    Swal.fire({
+      icon: "info",
+      title: "No results found",
+      text: "No deck or course matches your search.",
+      confirmButtonColor: "#7b5cff",
+    });
+  };
 
   const handleLogout = () => {
     Swal.fire({
@@ -185,57 +227,57 @@ function Homepage() {
   };
 
   const handleDeleteDeck = async (deckId) => {
-  const result = await Swal.fire({
-    title: "Archive deck?",
-    text: "This deck will be removed from your list.",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Yes, archive it",
-    cancelButtonText: "Cancel",
-    confirmButtonColor: "#7b5cff",
-  });
-
-  if (!result.isConfirmed) return;
-
-  try {
-    const res = await fetch("http://localhost/puffybrain/archiveDeck.php", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ deck_id: deckId }),
+    const result = await Swal.fire({
+      title: "Archive deck?",
+      text: "This deck will be removed from your list.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, archive it",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#7b5cff",
     });
 
-    const data = await res.json();
+    if (!result.isConfirmed) return;
 
-    if (data.success) {
-      Swal.fire({
-        icon: "success",
-        title: "Archived",
-        text: "Deck archived successfully.",
-        confirmButtonColor: "#7b5cff",
+    try {
+      const res = await fetch("http://localhost/puffybrain/archiveDeck.php", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ deck_id: deckId }),
       });
 
-      setDropdownOpen(null);
-      fetchUserDecks();
-    } else {
+      const data = await res.json();
+
+      if (data.success) {
+        Swal.fire({
+          icon: "success",
+          title: "Archived",
+          text: "Deck archived successfully.",
+          confirmButtonColor: "#7b5cff",
+        });
+
+        setDropdownOpen(null);
+        fetchUserDecks();
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Failed",
+          text: data.message || "Could not archive deck.",
+        });
+      }
+    } catch (err) {
+      console.error("Archive deck error:", err);
+
       Swal.fire({
         icon: "error",
-        title: "Failed",
-        text: data.message || "Could not archive deck.",
+        title: "Server Error",
+        text: "Something went wrong while archiving.",
       });
     }
-  } catch (err) {
-    console.error("Archive deck error:", err);
-
-    Swal.fire({
-      icon: "error",
-      title: "Server Error",
-      text: "Something went wrong while archiving.",
-    });
-  }
-};
+  };
 
   return (
     <div
@@ -253,16 +295,8 @@ function Homepage() {
           </div>
 
           <div className={styles.logo}>
-            <img
-              className={styles.logoExpanded}
-              src="/images/logo1.png"
-              alt="Logo"
-            />
-            <img
-              className={styles.logoCollapsed}
-              src="/images/logo_solo.png"
-              alt="Logo"
-            />
+            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
+            <img className={styles.logoCollapsed} src="/images/logo_solo.png" alt="Logo" />
           </div>
 
           <div className={styles.divider}></div>
@@ -328,9 +362,7 @@ function Homepage() {
 
               <ul className={styles.sectionList}>
                 {myDecks.length === 0 ? (
-                  <li className={styles.sidebarEmptyText}>
-                    Don't have decks yet
-                  </li>
+                  <li className={styles.sidebarEmptyText}>Don't have decks yet</li>
                 ) : (
                   myDecks.slice(0, 3).map((deck) => (
                     <li key={deck.id} className={styles.sidebarListItem}>
@@ -373,9 +405,17 @@ function Homepage() {
 
       <div className={styles.mainArea}>
         <header className={styles.header}>
-          <form className={styles.searchBar} onSubmit={(e) => e.preventDefault()}>
-            <input type="text" placeholder="Search your deck title" />
-            <i className="bx bx-search"></i>
+          <form className={styles.searchBar} onSubmit={handleSearchSubmit}>
+            <input
+              type="text"
+              placeholder="Search your deck or course title"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+
+            <button type="submit" className={styles.searchBtn}>
+              <i className="bx bx-search"></i>
+            </button>
           </form>
 
           <div className={styles.notificationWrapper}>
@@ -390,9 +430,7 @@ function Homepage() {
               <i className="bx bx-bell"></i>
 
               {notificationCount > 0 && (
-                <span className={styles.notificationBadge}>
-                  {notificationCount}
-                </span>
+                <span className={styles.notificationBadge}>{notificationCount}</span>
               )}
             </button>
 
@@ -422,10 +460,12 @@ function Homepage() {
 
             <div className={styles.decksArea}>
               <div className={styles.decksGrid}>
-                {courses.length === 0 ? (
-                  <p style={{ opacity: 0.6 }}>No courses yet</p>
+                {filteredCourses.length === 0 ? (
+                  <p style={{ opacity: 0.6 }}>
+                    {searchQuery ? "No matching courses found" : "No courses yet"}
+                  </p>
                 ) : (
-                  courses.slice(0, 3).map((course, index) => {
+                  filteredCourses.slice(0, 3).map((course, index) => {
                     const rawProgress = course.progress ?? course.completion;
                     const progress =
                       rawProgress !== undefined && rawProgress !== null
@@ -458,10 +498,7 @@ function Homepage() {
 
                           <div className={styles.courseProgressWrap}>
                             <div className={styles.courseProgressRing}>
-                              <svg
-                                viewBox="0 0 48 48"
-                                className={styles.courseProgressSvg}
-                              >
+                              <svg viewBox="0 0 48 48" className={styles.courseProgressSvg}>
                                 <circle
                                   className={styles.courseProgressBg}
                                   cx="24"
@@ -497,17 +534,11 @@ function Homepage() {
               <h3>My Decks</h3>
 
               <div className={styles.sectionButtons}>
-                <button
-                  className={styles.btnAdd}
-                  onClick={() => setShowPopup(true)}
-                >
+                <button className={styles.btnAdd} onClick={() => setShowPopup(true)}>
                   Add Deck
                 </button>
 
-                <button
-                  className={styles.btnShow}
-                  onClick={() => navigate("/Mydecks")}
-                >
+                <button className={styles.btnShow} onClick={() => navigate("/Mydecks")}>
                   Show All
                 </button>
               </div>
@@ -515,10 +546,12 @@ function Homepage() {
 
             <div className={styles.myDecksArea}>
               <div className={styles.myDecksGrid}>
-                {myDecks.length === 0 ? (
-                  <p style={{ opacity: 0.6 }}>Don’t have decks yet</p>
+                {filteredDecks.length === 0 ? (
+                  <p style={{ opacity: 0.6 }}>
+                    {searchQuery ? "No matching decks found" : "Don’t have decks yet"}
+                  </p>
                 ) : (
-                  myDecks.slice(0, 4).map((deck) => {
+                  filteredDecks.slice(0, 4).map((deck) => {
                     const deckColorValue = deck.deck_color || "#C3C7F3";
 
                     return (
@@ -579,12 +612,13 @@ function Homepage() {
                                 >
                                   Duplicate
                                 </button>
-                           <button
+
+                                <button
                                   type="button"
-                                    onClick={() => handleDeleteDeck(deck.id)}
-                                  >
-                                    Archive
-                                  </button>
+                                  onClick={() => handleDeleteDeck(deck.id)}
+                                >
+                                  Archive
+                                </button>
                               </div>
                             )}
                           </div>
@@ -605,111 +639,99 @@ function Homepage() {
           </div>
         </main>
 
-    {showPopup && (
-  <div className={styles.popupOverlay}>
-    <div className={styles.popupContainer}>
-      
-      {/* HEADER */}
-      <div className={styles.popupHeaderBar}>
-        <h2 className={styles.popupHeaderTitle}>Create New Deck</h2>
-      </div>
+        {showPopup && (
+          <div className={styles.popupOverlay}>
+            <div className={styles.popupContainer}>
+              <div className={styles.popupHeaderBar}>
+                <h2 className={styles.popupHeaderTitle}>Create New Deck</h2>
+              </div>
 
-      {/* FORM */}
-      <div className={styles.subtitleForm}>
-        
-        {/* TITLE */}
-        <div className={styles.formGroup}>
-          <label className={styles.deckinfo}>Deck Title</label>
-          <input
-            type="text"
-            placeholder="Enter your deck name"
-            value={deckTitle}
-            onChange={(e) => setDeckTitle(e.target.value)}
-            className={styles.newdecktitle}
-          />
-        </div>
+              <div className={styles.subtitleForm}>
+                <div className={styles.formGroup}>
+                  <label className={styles.deckinfo}>Deck Title</label>
+                  <input
+                    type="text"
+                    placeholder="Enter your deck name"
+                    value={deckTitle}
+                    onChange={(e) => setDeckTitle(e.target.value)}
+                    className={styles.newdecktitle}
+                  />
+                </div>
 
-        {/* DESCRIPTION */}
-        <div className={styles.formGroup}>
-          <label className={styles.deckinfo}>Description</label>
-          <input
-            type="text"
-            placeholder="Optional description"
-            value={deckDescription}
-            onChange={(e) => setDeckDescription(e.target.value)}
-            className={styles.newdecktitle}
-          />
-        </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.deckinfo}>Description</label>
+                  <input
+                    type="text"
+                    placeholder="Optional description"
+                    value={deckDescription}
+                    onChange={(e) => setDeckDescription(e.target.value)}
+                    className={styles.newdecktitle}
+                  />
+                </div>
 
-        {/* VISIBILITY */}
-        <div className={styles.formGroup}>
-          <label className={styles.deckinfo}>Visibility</label>
-          <div className={styles.radioGroup}>
-            <label className={styles.pubpriv}>
-              <input
-                type="radio"
-                name="visibility"
-                value="public"
-                checked={deckVisibility === "public"}
-                onChange={(e) => setDeckVisibility(e.target.value)}
-              />
-              Public
-            </label>
+                <div className={styles.formGroup}>
+                  <label className={styles.deckinfo}>Visibility</label>
 
-            <label className={styles.pubpriv}>
-              <input
-                type="radio"
-                name="visibility"
-                value="private"
-                checked={deckVisibility === "private"}
-                onChange={(e) => setDeckVisibility(e.target.value)}
-              />
-              Private
-            </label>
+                  <div className={styles.radioGroup}>
+                    <label className={styles.pubpriv}>
+                      <input
+                        type="radio"
+                        name="visibility"
+                        value="public"
+                        checked={deckVisibility === "public"}
+                        onChange={(e) => setDeckVisibility(e.target.value)}
+                      />
+                      Public
+                    </label>
+
+                    <label className={styles.pubpriv}>
+                      <input
+                        type="radio"
+                        name="visibility"
+                        value="private"
+                        checked={deckVisibility === "private"}
+                        onChange={(e) => setDeckVisibility(e.target.value)}
+                      />
+                      Private
+                    </label>
+                  </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.deckinfo}>Deck Color</label>
+
+                  <div className={styles.colorOptions}>
+                    {deckColors.map((color) => (
+                      <div
+                        key={color}
+                        className={`${styles.colorCircle} ${
+                          deckColor === color ? styles.selected : ""
+                        }`}
+                        style={{ backgroundColor: color }}
+                        onClick={() => setDeckColor(color)}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className={styles.popupDivider}></div>
+
+                <div className={styles.startsaveContainer}>
+                  <button
+                    className={styles.cancelBtn}
+                    onClick={() => setShowPopup(false)}
+                  >
+                    Cancel
+                  </button>
+
+                  <button className={styles.popaddBtn} onClick={handleAddDeck}>
+                    Add
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-
-        {/* COLORS */}
-        <div className={styles.formGroup}>
-          <label className={styles.deckinfo}>Deck Color</label>
-          <div className={styles.colorOptions}>
-            {deckColors.map((color) => (
-              <div
-                key={color}
-                className={`${styles.colorCircle} ${
-                  deckColor === color ? styles.selected : ""
-                }`}
-                style={{ backgroundColor: color }}
-                onClick={() => setDeckColor(color)}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* DIVIDER */}
-        <div className={styles.popupDivider}></div>
-
-        {/* BUTTONS */}
-        <div className={styles.startsaveContainer}>
-          <button
-            className={styles.cancelBtn}
-            onClick={() => setShowPopup(false)}
-          >
-            Cancel
-          </button>
-
-          <button
-            className={styles.popaddBtn}
-            onClick={handleAddDeck}
-          >
-            Add
-          </button>
-        </div>
-
-      </div>
-    </div>
-  </div>
-)}
+        )}
       </div>
 
       <aside className={styles.rightSidebar}>

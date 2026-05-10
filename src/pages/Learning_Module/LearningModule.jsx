@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate, useParams } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Swal from "sweetalert2";
 import "boxicons/css/boxicons.min.css";
 import styles from "./Learning_Module.module.css";
@@ -16,7 +16,6 @@ function LearningModule() {
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("tab1");
   const [openModes, setOpenModes] = useState(false);
-  const [showQuiz, setShowQuiz] = useState(false);
   const [search, setSearch] = useState("");
 
   const [myDecks, setMyDecks] = useState([]);
@@ -27,6 +26,7 @@ function LearningModule() {
   const [user, setUser] = useState({
     username: "",
     year_level: "",
+    profile_image: "/images/temporary profile.jpg",
   });
 
   const [progress, setProgress] = useState({
@@ -45,7 +45,12 @@ function LearningModule() {
       const data = await res.json();
 
       if (data.success) {
-        setUser(data.user);
+        setUser({
+          username: data.user?.username || "",
+          year_level: data.user?.year_level || "",
+          profile_image:
+            data.user?.profile_image || "/images/temporary profile.jpg",
+        });
       }
     } catch (err) {
       console.error("fetchUser error:", err);
@@ -87,29 +92,20 @@ function LearningModule() {
   }, []);
 
   useEffect(() => {
-    const shouldStartQuiz = localStorage.getItem("startQuizMode");
+    const handler = (e) => {
+      const insideDropdown = e.target.closest(
+        `.${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}, .${styles.searchBar}`
+      );
 
-    if (shouldStartQuiz === "true") {
-      setShowQuiz(true);
-      localStorage.removeItem("startQuizMode");
-    }
+      if (!insideDropdown) {
+        setProfileDropdownOpen(false);
+        setNotificationOpen(false);
+      }
+    };
+
+    window.addEventListener("click", handler);
+    return () => window.removeEventListener("click", handler);
   }, []);
-
-  useEffect(() => {
-  const handler = (e) => {
-    const insideDropdown = e.target.closest(
-      `.${styles.deckMenu}, .${styles.deckMenuBtn}, .${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}`
-    );
-
-    if (!insideDropdown) {
-      setProfileDropdownOpen(false);
-      setNotificationOpen(false);
-    }
-  };
-
-  window.addEventListener("click", handler);
-  return () => window.removeEventListener("click", handler);
-}, []);
 
   useEffect(() => {
     const loadLessonAndProgress = async () => {
@@ -178,20 +174,20 @@ function LearningModule() {
     loadLessonAndProgress();
   }, [lessonId]);
 
- const handleLogout = () => {
-     Swal.fire({
-       title: "Logout?",
-       text: "Are you sure you want to logout?",
-       icon: "warning",
-       showCancelButton: true,
-       confirmButtonText: "Yes",
-       confirmButtonColor: "#7b5cff",
-     }).then((result) => {
-       if (result.isConfirmed) {
-         navigate("/login");
-       }
-     });
-   };
+  const handleLogout = () => {
+    Swal.fire({
+      title: "Logout?",
+      text: "Are you sure you want to logout?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes",
+      confirmButtonColor: "#7b5cff",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        navigate("/login");
+      }
+    });
+  };
 
   const handleShare = async () => {
     const lessonLink = `${window.location.origin}/learning/${lessonId}`;
@@ -221,35 +217,66 @@ function LearningModule() {
     navigate(`/learning/${courseId}`);
   };
 
-  let quizzes = [];
+  const quizzes = useMemo(() => {
+    if (!lesson?.quiz_contents) return [];
 
-  if (lesson?.quiz_contents) {
     try {
-      quizzes = JSON.parse(lesson.quiz_contents);
-      if (!Array.isArray(quizzes)) quizzes = [];
+      const parsed = JSON.parse(lesson.quiz_contents);
+      return Array.isArray(parsed) ? parsed : [];
     } catch (e) {
       console.error("Invalid quiz JSON", e);
-      quizzes = [];
+      return [];
     }
-  }
+  }, [lesson]);
 
   const savedQuizResults =
     JSON.parse(localStorage.getItem("lessonQuizResults")) || null;
-
-  const filteredQuizzes = quizzes.filter((quiz) =>
-    quiz.question?.toLowerCase().includes(search.toLowerCase())
-  );
 
   const correctQuestions =
     savedQuizResults?.lessonId === Number(lessonId)
       ? savedQuizResults.answers.filter((item) => item.isCorrect)
       : [];
 
-  const memorizedCards = correctQuestions;
+  const filteredQuizzes = useMemo(() => {
+    const q = search.trim().toLowerCase();
 
-  const notMemorizedCards = filteredQuizzes.filter(
-    (quiz) => !correctQuestions.some((item) => item.question === quiz.question)
-  );
+    return quizzes.filter((quiz) => {
+      const searchableText = [
+        quiz.question,
+        quiz.answer,
+        quiz.correct_answer,
+        quiz.explanation,
+        ...(Array.isArray(quiz.options) ? quiz.options : []),
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      return !q || searchableText.includes(q);
+    });
+  }, [quizzes, search]);
+
+  const memorizedCards = useMemo(() => {
+    const q = search.trim().toLowerCase();
+
+    return correctQuestions.filter((item) => {
+      const searchableText = [
+        item.question,
+        item.answer,
+        item.correctAnswer,
+        item.correct_answer,
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      return !q || searchableText.includes(q);
+    });
+  }, [correctQuestions, search]);
+
+  const notMemorizedCards = useMemo(() => {
+    return filteredQuizzes.filter(
+      (quiz) => !correctQuestions.some((item) => item.question === quiz.question)
+    );
+  }, [filteredQuizzes, correctQuestions]);
 
   const handleStudy = () => {
     navigate(`/introduction/${lessonId}`);
@@ -266,136 +293,142 @@ function LearningModule() {
       }`}
     >
       <aside
-              className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
-            >
-              <div>
-                <div
-                  className={styles.sidebarToggle}
-                  onClick={() => setIsCollapsed(!isCollapsed)}
+        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
+      >
+        <div>
+          <div
+            className={styles.sidebarToggle}
+            onClick={() => setIsCollapsed(!isCollapsed)}
+          >
+            <i className="bx bx-sidebar"></i>
+          </div>
+
+          <div className={styles.logo}>
+            <img
+              className={styles.logoExpanded}
+              src="/images/logo1.png"
+              alt="Logo"
+            />
+            <img
+              className={styles.logoCollapsed}
+              src="/images/logo_solo.png"
+              alt="Logo"
+            />
+          </div>
+
+          <div className={styles.divider}></div>
+          <p className={styles.myDecksTitle}>Menu</p>
+
+          <nav className={styles.menu}>
+            <ul className={styles.sidebarList}>
+              <li className={styles.sidebarListItem}>
+                <NavLink
+                  to="/homepage"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
                 >
-                  <i className="bx bx-sidebar"></i>
-                </div>
-      
-                <div className={styles.logo}>
-                  <img
-                    className={styles.logoExpanded}
-                    src="/images/logo1.png"
-                    alt="Logo"
-                  />
-                  <img
-                    className={styles.logoCollapsed}
-                    src="/images/logo_solo.png"
-                    alt="Logo"
-                  />
-                </div>
-      
-                <div className={styles.divider}></div>
-                <p className={styles.myDecksTitle}>Menu</p>
-      
-                <nav className={styles.menu}>
-                  <ul className={styles.sidebarList}>
-                    <li className={styles.sidebarListItem}>
-                      <NavLink
-                        to="/homepage"
-                        className={({ isActive }) =>
-                          `${styles.menuItem} ${isActive ? styles.active : ""}`
-                        }
-                      >
-                        <i className="bx bx-home"></i>
-                        <span className={styles.menuText}>Home</span>
-                      </NavLink>
-                    </li>
-      
-                    <li className={styles.sidebarListItem}>
-                      <NavLink
-                        to="/Mydecks"
-                        className={({ isActive }) =>
-                          `${styles.menuItem} ${isActive ? styles.active : ""}`
-                        }
+                  <i className="bx bx-home"></i>
+                  <span className={styles.menuText}>Home</span>
+                </NavLink>
+              </li>
+
+              <li className={styles.sidebarListItem}>
+                <NavLink
+                  to="/Mydecks"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
+                  <i className="bx bx-collection"></i>
+                  <span className={styles.menuText}>Decks</span>
+                </NavLink>
+              </li>
+
+              <li className={styles.sidebarListItem}>
+                <NavLink
+                  to="/mycourse"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
+                  <i className="bx bx-book-open"></i>
+                  <span className={styles.menuText}>My Course</span>
+                </NavLink>
+              </li>
+
+              <li className={styles.sidebarListItem}>
+                <NavLink
+                  to="/public-decks"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
+                  <i className="bx bx-world"></i>
+                  <span className={styles.menuText}>Public Decks</span>
+                </NavLink>
+              </li>
+            </ul>
+          </nav>
+
+          <div className={styles.divider}></div>
+
+          <div className={styles.myDecksNav}>
+            <div className={styles.sectionBlock}>
+              <p className={styles.sectionTitle}>My Decks</p>
+
+              <ul className={styles.sectionList}>
+                {myDecks.length === 0 ? (
+                  <li className={styles.sidebarEmptyText}>
+                    Don't have decks yet
+                  </li>
+                ) : (
+                  myDecks.slice(0, 3).map((deck) => (
+                    <li
+                      key={deck.id || deck.deck_id}
+                      className={styles.sidebarListItem}
+                    >
+                      <Link
+                        to={`/deck/${deck.id || deck.deck_id}`}
+                        className={styles.menuItem}
                       >
                         <i className="bx bx-collection"></i>
-                        <span className={styles.menuText}>Decks</span>
-                      </NavLink>
+                        <span className={styles.menuText}>{deck.title}</span>
+                      </Link>
                     </li>
-      
-                    <li className={styles.sidebarListItem}>
-                      <NavLink
-                        to="/mycourse"
-                        className={({ isActive }) =>
-                          `${styles.menuItem} ${isActive ? styles.active : ""}`
-                        }
+                  ))
+                )}
+              </ul>
+            </div>
+
+            <div className={styles.sectionBlock}>
+              <div className={styles.sectionDivider}></div>
+              <p className={styles.sectionTitle}>My Courses</p>
+
+              <ul className={styles.sectionList}>
+                {courses.length === 0 ? (
+                  <li className={styles.sidebarEmptyText}>
+                    No courses added yet
+                  </li>
+                ) : (
+                  courses.slice(0, 3).map((course) => (
+                    <li key={course.id} className={styles.sidebarListItem}>
+                      <button
+                        type="button"
+                        onClick={() => openCourse(course.id)}
+                        className={styles.menuItem}
                       >
                         <i className="bx bx-book-open"></i>
-                        <span className={styles.menuText}>My Course</span>
-                      </NavLink>
+                        <span className={styles.menuText}>{course.title}</span>
+                      </button>
                     </li>
-      
-                    <li className={styles.sidebarListItem}>
-                      <NavLink
-                        to="/public-decks"
-                        className={({ isActive }) =>
-                          `${styles.menuItem} ${isActive ? styles.active : ""}`
-                        }
-                      >
-                        <i className="bx bx-world"></i>
-                        <span className={styles.menuText}>Public Decks</span>
-                      </NavLink>
-                    </li>
-                  </ul>
-                </nav>
-      
-                <div className={styles.divider}></div>
-      
-                <div className={styles.myDecksNav}>
-                  <div className={styles.sectionBlock}>
-                    <p className={styles.sectionTitle}>My Decks</p>
-      
-                    <ul className={styles.sectionList}>
-                      {myDecks.length === 0 ? (
-                        <li className={styles.sidebarEmptyText}>
-                          Don't have decks yet
-                        </li>
-                      ) : (
-                        myDecks.slice(0, 3).map((deck) => (
-                          <li key={deck.id} className={styles.sidebarListItem}>
-                            <Link to={`/deck/${deck.id}`} className={styles.menuItem}>
-                              <i className="bx bx-collection"></i>
-                              <span className={styles.menuText}>{deck.title}</span>
-                            </Link>
-                          </li>
-                        ))
-                      )}
-                    </ul>
-                  </div>
-      
-                  <div className={styles.sectionBlock}>
-                    <div className={styles.sectionDivider}></div>
-                    <p className={styles.sectionTitle}>My Courses</p>
-      
-                    <ul className={styles.sectionList}>
-                      {courses.length === 0 ? (
-                        <li className={styles.sidebarEmptyText}>
-                          No courses added yet
-                        </li>
-                      ) : (
-                        courses.slice(0, 3).map((course) => (
-                          <li key={course.id} className={styles.sidebarListItem}>
-                            <button
-                              type="button"
-                              onClick={() => openCourse(course.id)}
-                              className={styles.menuItem}
-                            >
-                              <i className="bx bx-book-open"></i>
-                              <span className={styles.menuText}>{course.title}</span>
-                            </button>
-                          </li>
-                        ))
-                      )}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </aside>
+                  ))
+                )}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </aside>
 
       <div className={styles.mainArea}>
         <div className={styles.gridContainer}>
@@ -406,11 +439,29 @@ function LearningModule() {
             >
               <input
                 type="text"
-                placeholder="Search your cards"
+                placeholder="Search cards"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
-              <i className="bx bx-search" />
+
+              {search.trim() ? (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  aria-label="Clear search"
+                  style={{
+                    border: "none",
+                    background: "transparent",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <i className="bx bx-x"></i>
+                </button>
+              ) : (
+                <i className="bx bx-search" />
+              )}
             </form>
 
             <div className={styles.profileWrapper}>
@@ -447,18 +498,18 @@ function LearningModule() {
               </div>
 
               <Link to="/user-profile" className={styles.profileLink}>
-                  <div className={styles.dpContainer}>
-                    <img
-                      src={user.profile_image || "/images/temporary profile.jpg"}
-                      alt="Profile"
-                      className={styles.profilePic}
-                    />
-                  </div>
+                <div className={styles.dpContainer}>
+                  <img
+                    src={user.profile_image || "/images/temporary profile.jpg"}
+                    alt="Profile"
+                    className={styles.profilePic}
+                  />
+                </div>
 
-                  <div className={styles.userInfo}>
-                    <p>{user.username}</p>
-                  </div>
-                </Link>
+                <div className={styles.userInfo}>
+                  <p>{user.username}</p>
+                </div>
+              </Link>
 
               <div className={styles.dropdown}>
                 <button
@@ -494,7 +545,6 @@ function LearningModule() {
                   </button>
                 </div>
               </div>
-
             </div>
           </div>
 
@@ -583,12 +633,12 @@ function LearningModule() {
                   </div>
 
                   {openModes && (
-                 <QuizModesModal
-                    source="lesson"
-                    lessonId={lessonId}
-                    quizzes={quizzes}
-                    onClose={() => setOpenModes(false)}
-                  />
+                    <QuizModesModal
+                      source="lesson"
+                      lessonId={lessonId}
+                      quizzes={quizzes}
+                      onClose={() => setOpenModes(false)}
+                    />
                   )}
 
                   <div className={styles.innercardHead}>
@@ -621,82 +671,97 @@ function LearningModule() {
                   </div>
 
                   <div className={styles.cardContent}>
-                        {activeTab === "tab1" && (
-                          <div className={styles.tabBoxes}>
-                            {filteredQuizzes.length === 0 ? (
-                              <div className={styles.emptyState}>
-                                <img
-                                  src="/images/cute1.png"
-                                  alt="No cards"
-                                  className={styles.emptyImage}
-                                />
-                                <p>No cards available yet.</p>
-                              </div>
-                            ) : (
-                              filteredQuizzes.map((quiz, index) => (
-                                <div key={index} className={styles.box}>
-                                  <p className={styles.question}>{quiz.question}</p>
-                                </div>
-                              ))
-                            )}
+                    {activeTab === "tab1" && (
+                      <div className={styles.tabBoxes}>
+                        {filteredQuizzes.length === 0 ? (
+                          <div className={styles.emptyState}>
+                            <img
+                              src="/images/cute1.png"
+                              alt="No cards"
+                              className={styles.emptyImage}
+                            />
+                            <p>
+                              {search.trim()
+                                ? `No cards found for “${search}”.`
+                                : "No cards available yet."}
+                            </p>
                           </div>
-                        )}
-
-                        {activeTab === "tab2" && (
-                            <div className={styles.tabBoxes}>
-                              {filteredQuizzes.length === 0 ? (
-                                // 🧊 Case 1: No cards exist at all
-                                <div className={styles.emptyState}>
-                                  <img
-                                    src="/images/cute1.png"
-                                    alt="No cards"
-                                    className={styles.emptyImage}
-                                  />
-                                  <p>No cards to memorize yet.</p>
-                                </div>
-                              ) : notMemorizedCards.length === 0 ? (
-                                // 🎉 Case 2: All cards memorized
-                                <div className={styles.emptyState}>
-                                  <img
-                                    src="/images/celeb.png"
-                                    alt="All memorized"
-                                    className={styles.emptyImage}
-                                  />
-                                  <p>Congratulation! You memorized all cards 🎉</p>
-                                </div>
-                              ) : (
-                                // 📚 Case 3: There are still cards to study
-                                notMemorizedCards.map((quiz, index) => (
-                                  <div key={index} className={styles.box}>
-                                    <p className={styles.question}>{quiz.question}</p>
-                                  </div>
-                                ))
-                              )}
+                        ) : (
+                          filteredQuizzes.map((quiz, index) => (
+                            <div key={index} className={styles.box}>
+                              <p className={styles.question}>
+                                {quiz.question}
+                              </p>
                             </div>
-                          )}
-
-                        {activeTab === "tab3" && (
-                          <div className={styles.tabBoxes}>
-                            {memorizedCards.length === 0 ? (
-                              <div className={styles.emptyState}>
-                                <img
-                                  src="/images/cute1.png"
-                                  alt="No memorized cards"
-                                  className={styles.emptyImage}
-                                />
-                                <p>No memorized cards yet.</p>
-                              </div>
-                            ) : (
-                              memorizedCards.map((quiz, index) => (
-                                <div key={index} className={styles.box}>
-                                  <p className={styles.question}>{quiz.question}</p>
-                                </div>
-                              ))
-                            )}
-                          </div>
+                          ))
                         )}
                       </div>
-                                      </div>
+                    )}
+
+                    {activeTab === "tab2" && (
+                      <div className={styles.tabBoxes}>
+                        {filteredQuizzes.length === 0 ? (
+                          <div className={styles.emptyState}>
+                            <img
+                              src="/images/cute1.png"
+                              alt="No cards"
+                              className={styles.emptyImage}
+                            />
+                            <p>
+                              {search.trim()
+                                ? `No not memorized cards found for “${search}”.`
+                                : "No cards to memorize yet."}
+                            </p>
+                          </div>
+                        ) : notMemorizedCards.length === 0 ? (
+                          <div className={styles.emptyState}>
+                            <img
+                              src="/images/celeb.png"
+                              alt="All memorized"
+                              className={styles.emptyImage}
+                            />
+                            <p>Congratulation! You memorized all cards 🎉</p>
+                          </div>
+                        ) : (
+                          notMemorizedCards.map((quiz, index) => (
+                            <div key={index} className={styles.box}>
+                              <p className={styles.question}>
+                                {quiz.question}
+                              </p>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+
+                    {activeTab === "tab3" && (
+                      <div className={styles.tabBoxes}>
+                        {memorizedCards.length === 0 ? (
+                          <div className={styles.emptyState}>
+                            <img
+                              src="/images/cute1.png"
+                              alt="No memorized cards"
+                              className={styles.emptyImage}
+                            />
+                            <p>
+                              {search.trim()
+                                ? `No memorized cards found for “${search}”.`
+                                : "No memorized cards yet."}
+                            </p>
+                          </div>
+                        ) : (
+                          memorizedCards.map((quiz, index) => (
+                            <div key={index} className={styles.box}>
+                              <p className={styles.question}>
+                                {quiz.question}
+                              </p>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </main>

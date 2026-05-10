@@ -315,7 +315,17 @@
   outline: none;
   color: var(--font-color);
 }
-
+.searchBtn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  font-size: 20px;
+  padding: 0;
+}
 .searchBar i {
   font-size: 16px;
   color: #000;
@@ -915,6 +925,7 @@
 
   font-size: 12px;
   font-weight: 600;
+  font-family: inherit;
 
   cursor: pointer;
   outline: none;
@@ -952,10 +963,11 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: #555;
   cursor: pointer;
+  font-family: inherit;
 }
 
 .customDropdownBtn i:first-child {

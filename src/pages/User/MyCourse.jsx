@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import "boxicons/css/boxicons.min.css";
 import styles from "./Mycourse.module.css";
 
@@ -13,18 +14,16 @@ export default function MyCourse() {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
   const [notificationOpen, setNotificationOpen] = useState(false);
-  const notificationCount = 0; // change this later when you have real data
+  const notificationCount = 0;
 
   const [openFilterDropdown, setOpenFilterDropdown] = useState(null);
   const [selectedFilter, setSelectedFilter] = useState("");
 
-  const [filterOpen, setFilterOpen] = useState(false);
-
   const [user, setUser] = useState({
-  username: "",
-  year_level: "",
-  profile_image: "/images/temporary profile.jpg",
-});
+    username: "",
+    year_level: "",
+    profile_image: "/images/temporary profile.jpg",
+  });
 
   const fetchAddedCourses = async () => {
     try {
@@ -55,25 +54,25 @@ export default function MyCourse() {
   };
 
   const fetchUser = async () => {
-  try {
-    const res = await fetch("http://localhost/puffybrain/getUser.php", {
-      credentials: "include",
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      setUser({
-        username: data.user?.username || "",
-        year_level: data.user?.year_level || "",
-        profile_image:
-          data.user?.profile_image || "/images/temporary profile.jpg",
+    try {
+      const res = await fetch("http://localhost/puffybrain/getUser.php", {
+        credentials: "include",
       });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setUser({
+          username: data.user?.username || "",
+          year_level: data.user?.year_level || "",
+          profile_image:
+            data.user?.profile_image || "/images/temporary profile.jpg",
+        });
+      }
+    } catch (err) {
+      console.error("Fetch user error:", err);
     }
-  } catch (err) {
-    console.error("Fetch user error:", err);
-  }
-};
+  };
 
   useEffect(() => {
     fetchAddedCourses();
@@ -81,15 +80,16 @@ export default function MyCourse() {
     fetchUser();
   }, []);
 
- useEffect(() => {
+  useEffect(() => {
     const handler = (e) => {
       const insideDropdown = e.target.closest(
-  `.${styles.deckMenu}, .${styles.deckMenuBtn}, .${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}`
-);
+        `.${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}, .${styles.customDropdown}, .${styles.searchBar}`
+      );
 
       if (!insideDropdown) {
         setProfileDropdownOpen(false);
         setNotificationOpen(false);
+        setOpenFilterDropdown(null);
       }
     };
 
@@ -97,42 +97,64 @@ export default function MyCourse() {
     return () => window.removeEventListener("click", handler);
   }, []);
 
-const filteredCourses = useMemo(() => {
-  const q = search.trim().toLowerCase();
+  const getCourseVisibility = (course) => {
+    return (
+      course.visibility ||
+      course.course_visibility ||
+      course.status ||
+      "private"
+    ).toLowerCase();
+  };
 
-  return courses
-    .filter((course) =>
-      (course.title || "").toLowerCase().includes(q)
-    )
-    .filter((course) => {
-      if (!selectedFilter) return true;
+  const filteredCourses = useMemo(() => {
+    const q = search.trim().toLowerCase();
 
-      // adjust based on your DB field
-      if (selectedFilter === "private") return course.visibility === "private";
-      if (selectedFilter === "shared") return course.visibility === "public";
+    return courses.filter((course) => {
+      const visibility = getCourseVisibility(course);
+      const progress = course.progress ?? course.completion ?? 0;
 
-      return true;
+      const searchableText = [
+        course.title,
+        course.description,
+        course.subject,
+        course.category,
+        course.learning_objectives,
+        visibility,
+        progress,
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      const matchesSearch = !q || searchableText.includes(q);
+
+      const matchesFilter =
+        !selectedFilter ||
+        (selectedFilter === "private" && visibility === "private") ||
+        (selectedFilter === "shared" &&
+          (visibility === "public" || visibility === "shared"));
+
+      return matchesSearch && matchesFilter;
     });
-}, [courses, search, selectedFilter]);
+  }, [courses, search, selectedFilter]);
 
   const openCourse = (courseId) => {
     navigate(`/learning/${courseId}`);
   };
 
   const handleLogout = () => {
-      Swal.fire({
-        title: "Logout?",
-        text: "Are you sure you want to logout?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes",
-        confirmButtonColor: "#7b5cff",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          navigate("/login");
-        }
-      });
-    };
+    Swal.fire({
+      title: "Logout?",
+      text: "Are you sure you want to logout?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes",
+      confirmButtonColor: "#7b5cff",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        navigate("/login");
+      }
+    });
+  };
 
   return (
     <div
@@ -141,136 +163,142 @@ const filteredCourses = useMemo(() => {
       }`}
     >
       <aside
-              className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
-            >
-              <div>
-                <div
-                  className={styles.sidebarToggle}
-                  onClick={() => setIsCollapsed(!isCollapsed)}
+        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
+      >
+        <div>
+          <div
+            className={styles.sidebarToggle}
+            onClick={() => setIsCollapsed(!isCollapsed)}
+          >
+            <i className="bx bx-sidebar"></i>
+          </div>
+
+          <div className={styles.logo}>
+            <img
+              className={styles.logoExpanded}
+              src="/images/logo1.png"
+              alt="Logo"
+            />
+            <img
+              className={styles.logoCollapsed}
+              src="/images/logo_solo.png"
+              alt="Logo"
+            />
+          </div>
+
+          <div className={styles.divider}></div>
+          <p className={styles.myDecksTitle}>Menu</p>
+
+          <nav className={styles.menu}>
+            <ul className={styles.sidebarList}>
+              <li className={styles.sidebarListItem}>
+                <NavLink
+                  to="/homepage"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
                 >
-                  <i className="bx bx-sidebar"></i>
-                </div>
-      
-                <div className={styles.logo}>
-                  <img
-                    className={styles.logoExpanded}
-                    src="/images/logo1.png"
-                    alt="Logo"
-                  />
-                  <img
-                    className={styles.logoCollapsed}
-                    src="/images/logo_solo.png"
-                    alt="Logo"
-                  />
-                </div>
-      
-                <div className={styles.divider}></div>
-                <p className={styles.myDecksTitle}>Menu</p>
-      
-                <nav className={styles.menu}>
-                  <ul className={styles.sidebarList}>
-                    <li className={styles.sidebarListItem}>
-                      <NavLink
-                        to="/homepage"
-                        className={({ isActive }) =>
-                          `${styles.menuItem} ${isActive ? styles.active : ""}`
-                        }
-                      >
-                        <i className="bx bx-home"></i>
-                        <span className={styles.menuText}>Home</span>
-                      </NavLink>
-                    </li>
-      
-                    <li className={styles.sidebarListItem}>
-                      <NavLink
-                        to="/Mydecks"
-                        className={({ isActive }) =>
-                          `${styles.menuItem} ${isActive ? styles.active : ""}`
-                        }
+                  <i className="bx bx-home"></i>
+                  <span className={styles.menuText}>Home</span>
+                </NavLink>
+              </li>
+
+              <li className={styles.sidebarListItem}>
+                <NavLink
+                  to="/Mydecks"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
+                  <i className="bx bx-collection"></i>
+                  <span className={styles.menuText}>Decks</span>
+                </NavLink>
+              </li>
+
+              <li className={styles.sidebarListItem}>
+                <NavLink
+                  to="/mycourse"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
+                  <i className="bx bx-book-open"></i>
+                  <span className={styles.menuText}>My Course</span>
+                </NavLink>
+              </li>
+
+              <li className={styles.sidebarListItem}>
+                <NavLink
+                  to="/public-decks"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
+                  <i className="bx bx-world"></i>
+                  <span className={styles.menuText}>Public Decks</span>
+                </NavLink>
+              </li>
+            </ul>
+          </nav>
+
+          <div className={styles.divider}></div>
+
+          <div className={styles.myDecksNav}>
+            <div className={styles.sectionBlock}>
+              <p className={styles.sectionTitle}>My Decks</p>
+
+              <ul className={styles.sectionList}>
+                {myDecks.length === 0 ? (
+                  <li className={styles.sidebarEmptyText}>
+                    Don't have decks yet
+                  </li>
+                ) : (
+                  myDecks.slice(0, 3).map((deck) => (
+                    <li
+                      key={deck.id || deck.deck_id}
+                      className={styles.sidebarListItem}
+                    >
+                      <Link
+                        to={`/deck/${deck.id || deck.deck_id}`}
+                        className={styles.menuItem}
                       >
                         <i className="bx bx-collection"></i>
-                        <span className={styles.menuText}>Decks</span>
-                      </NavLink>
+                        <span className={styles.menuText}>{deck.title}</span>
+                      </Link>
                     </li>
-      
-                    <li className={styles.sidebarListItem}>
-                      <NavLink
-                        to="/mycourse"
-                        className={({ isActive }) =>
-                          `${styles.menuItem} ${isActive ? styles.active : ""}`
-                        }
+                  ))
+                )}
+              </ul>
+            </div>
+
+            <div className={styles.sectionBlock}>
+              <div className={styles.sectionDivider}></div>
+              <p className={styles.sectionTitle}>My Courses</p>
+
+              <ul className={styles.sectionList}>
+                {courses.length === 0 ? (
+                  <li className={styles.sidebarEmptyText}>
+                    No courses added yet
+                  </li>
+                ) : (
+                  courses.slice(0, 3).map((course) => (
+                    <li key={course.id} className={styles.sidebarListItem}>
+                      <button
+                        type="button"
+                        onClick={() => openCourse(course.id)}
+                        className={styles.menuItem}
                       >
                         <i className="bx bx-book-open"></i>
-                        <span className={styles.menuText}>My Course</span>
-                      </NavLink>
+                        <span className={styles.menuText}>{course.title}</span>
+                      </button>
                     </li>
-      
-                    <li className={styles.sidebarListItem}>
-                      <NavLink
-                        to="/public-decks"
-                        className={({ isActive }) =>
-                          `${styles.menuItem} ${isActive ? styles.active : ""}`
-                        }
-                      >
-                        <i className="bx bx-world"></i>
-                        <span className={styles.menuText}>Public Decks</span>
-                      </NavLink>
-                    </li>
-                  </ul>
-                </nav>
-      
-                <div className={styles.divider}></div>
-      
-                <div className={styles.myDecksNav}>
-                  <div className={styles.sectionBlock}>
-                    <p className={styles.sectionTitle}>My Decks</p>
-      
-                    <ul className={styles.sectionList}>
-                      {myDecks.length === 0 ? (
-                        <li className={styles.sidebarEmptyText}>
-                          Don't have decks yet
-                        </li>
-                      ) : (
-                        myDecks.slice(0, 3).map((deck) => (
-                          <li key={deck.id} className={styles.sidebarListItem}>
-                            <Link to={`/deck/${deck.id}`} className={styles.menuItem}>
-                              <i className="bx bx-collection"></i>
-                              <span className={styles.menuText}>{deck.title}</span>
-                            </Link>
-                          </li>
-                        ))
-                      )}
-                    </ul>
-                  </div>
-      
-                  <div className={styles.sectionBlock}>
-                    <div className={styles.sectionDivider}></div>
-                    <p className={styles.sectionTitle}>My Courses</p>
-      
-                    <ul className={styles.sectionList}>
-                      {courses.length === 0 ? (
-                        <li className={styles.sidebarEmptyText}>
-                          No courses added yet
-                        </li>
-                      ) : (
-                        courses.slice(0, 3).map((course) => (
-                          <li key={course.id} className={styles.sidebarListItem}>
-                            <button
-                              type="button"
-                              onClick={() => openCourse(course.id)}
-                              className={styles.menuItem}
-                            >
-                              <i className="bx bx-book-open"></i>
-                              <span className={styles.menuText}>{course.title}</span>
-                            </button>
-                          </li>
-                        ))
-                      )}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </aside>
+                  ))
+                )}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </aside>
 
       <div className={styles.mainArea}>
         <div className={styles.gridContainer}>
@@ -285,55 +313,73 @@ const filteredCourses = useMemo(() => {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
-              <i className="bx bx-search" />
+
+              {search.trim() ? (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  aria-label="Clear search"
+                  style={{
+                    border: "none",
+                    background: "transparent",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <i className="bx bx-x"></i>
+                </button>
+              ) : (
+                <i className="bx bx-search" />
+              )}
             </form>
 
             <div className={styles.profileWrapper}>
+              <div className={styles.notificationWrapper}>
+                <button
+                  type="button"
+                  className={styles.notificationBtn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setNotificationOpen((prev) => !prev);
+                    setProfileDropdownOpen(false);
+                    setOpenFilterDropdown(null);
+                  }}
+                >
+                  <i className="bx bx-bell"></i>
+                  {notificationCount > 0 && (
+                    <span className={styles.notificationBadge}>
+                      {notificationCount}
+                    </span>
+                  )}
+                </button>
 
-               <div className={styles.notificationWrapper}>
-                                <button
-                                  type="button"
-                                  className={styles.notificationBtn}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setNotificationOpen((prev) => !prev);
-                                    setProfileDropdownOpen(false);
-                                  }}
-                                >
-                                  <i className="bx bx-bell"></i>
-                                  {notificationCount > 0 && (
-                                      <span className={styles.notificationBadge}>
-                                        {notificationCount}
-                                      </span>
-                                    )}
-                                </button>
-              
-                                <div
-                                  className={`${styles.notificationDropdown} ${
-                                    notificationOpen ? styles.show : ""
-                                  }`}
-                                >
-                                  <h4>Notifications</h4>
-              
-                                  <div className={styles.emptyNotification}>
-                                    <p>You don’t have any new notifications</p>
-                                  </div>
-                                </div>
-                              </div>
-                              
+                <div
+                  className={`${styles.notificationDropdown} ${
+                    notificationOpen ? styles.show : ""
+                  }`}
+                >
+                  <h4>Notifications</h4>
+
+                  <div className={styles.emptyNotification}>
+                    <p>You don’t have any new notifications</p>
+                  </div>
+                </div>
+              </div>
+
               <Link to="/user-profile" className={styles.profileLink}>
-                  <div className={styles.dpContainer}>
-                    <img
-                      src={user.profile_image || "/images/temporary profile.jpg"}
-                      alt="Profile"
-                      className={styles.profilePic}
-                    />
-                  </div>
+                <div className={styles.dpContainer}>
+                  <img
+                    src={user.profile_image || "/images/temporary profile.jpg"}
+                    alt="Profile"
+                    className={styles.profilePic}
+                  />
+                </div>
 
-                  <div className={styles.userInfo}>
-                    <p>{user.username}</p>
-                  </div>
-                </Link>
+                <div className={styles.userInfo}>
+                  <p>{user.username}</p>
+                </div>
+              </Link>
 
               <div className={styles.dropdown}>
                 <button
@@ -342,6 +388,8 @@ const filteredCourses = useMemo(() => {
                   onClick={(e) => {
                     e.stopPropagation();
                     setProfileDropdownOpen(!profileDropdownOpen);
+                    setOpenFilterDropdown(null);
+                    setNotificationOpen(false);
                   }}
                 >
                   <i className="bx bx-chevron-down" />
@@ -377,6 +425,7 @@ const filteredCourses = useMemo(() => {
 
               <div className={styles.panelHeader}>
                 <h1>My Courses</h1>
+
                 <div className={styles.filterGroup}>
                   <div className={styles.customDropdown}>
                     <button
@@ -384,8 +433,12 @@ const filteredCourses = useMemo(() => {
                       className={styles.customDropdownBtn}
                       onClick={(e) => {
                         e.stopPropagation();
+                        setProfileDropdownOpen(false);
+                        setNotificationOpen(false);
                         setOpenFilterDropdown(
-                          openFilterDropdown === "courseType" ? null : "courseType"
+                          openFilterDropdown === "courseType"
+                            ? null
+                            : "courseType"
                         );
                       }}
                     >
@@ -402,18 +455,45 @@ const filteredCourses = useMemo(() => {
 
                     {openFilterDropdown === "courseType" && (
                       <div className={styles.customDropdownMenu}>
-                        <button onClick={() => setSelectedFilter("")}>All</button>
-                        <button onClick={() => setSelectedFilter("private")}>Private</button>
-                        <button onClick={() => setSelectedFilter("shared")}>Shared</button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedFilter("");
+                            setOpenFilterDropdown(null);
+                          }}
+                        >
+                          All
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedFilter("private");
+                            setOpenFilterDropdown(null);
+                          }}
+                        >
+                          Private
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedFilter("shared");
+                            setOpenFilterDropdown(null);
+                          }}
+                        >
+                          Shared
+                        </button>
                       </div>
                     )}
                   </div>
                 </div>
               </div>
-                                      <div className={styles.headerDivider}></div>
+
+              <div className={styles.headerDivider}></div>
 
               <div className={styles.deckArea}>
-                {filteredCourses.length === 0 ? (
+                {courses.length === 0 ? (
                   <div className={styles.emptyState}>
                     <img
                       src="/images/cute1.png"
@@ -422,9 +502,19 @@ const filteredCourses = useMemo(() => {
                     />
 
                     <p className={styles.emptyText}>
-                      {search
-                        ? "No courses match your search."
-                        : "You haven't added any courses yet."}
+                      You haven't added any courses yet.
+                    </p>
+                  </div>
+                ) : filteredCourses.length === 0 ? (
+                  <div className={styles.emptyState}>
+                    <img
+                      src="/images/cute1.png"
+                      alt="No courses"
+                      className={styles.emptyImg}
+                    />
+
+                    <p className={styles.emptyText}>
+                      No courses found for “{search}”.
                     </p>
                   </div>
                 ) : (
@@ -498,7 +588,6 @@ const filteredCourses = useMemo(() => {
           </main>
         </div>
       </div>
-      
     </div>
   );
 }

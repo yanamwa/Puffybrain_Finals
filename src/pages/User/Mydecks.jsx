@@ -56,6 +56,20 @@ export default function Mydecks() {
     });
   };
 
+  const normalizeDeck = (deck) => {
+    const visibilityValue = deck.visibility || "private";
+
+    return {
+      id: deck.id || deck.deck_id,
+      title: deck.title || "",
+      description: deck.description || "",
+      cards: Number(deck.card_count || deck.cards || 0),
+      type: visibilityValue === "public" ? "shared" : "private",
+      visibility: visibilityValue,
+      deckColor: deck.deck_color || deck.deckColor || "#c9cdfa",
+    };
+  };
+
   const fetchUserDecks = async () => {
     try {
       const res = await fetch("http://localhost/puffybrain/userDecks.php", {
@@ -66,19 +80,11 @@ export default function Mydecks() {
       console.log("USER DECKS RESPONSE:", data);
 
       if (data.success) {
-        setMyDecks(data.decks || []);
+        const rawDecks = data.decks || [];
+        const normalizedDecks = rawDecks.map(normalizeDeck);
 
-        setDecks(
-          (data.decks || []).map((deck) => ({
-            id: deck.id,
-            title: deck.title,
-            description: deck.description || "",
-            cards: Number(deck.card_count) || 0,
-            type: deck.visibility === "public" ? "shared" : "private",
-            visibility: deck.visibility,
-            deckColor: deck.deck_color || "#c9cdfa",
-          }))
-        );
+        setMyDecks(rawDecks);
+        setDecks(normalizedDecks);
       } else {
         setDecks([]);
         setMyDecks([]);
@@ -134,7 +140,7 @@ export default function Mydecks() {
   useEffect(() => {
     const handler = (e) => {
       const insideDropdown = e.target.closest(
-        `.${styles.deckMenu}, .${styles.deckMenuBtn}, .${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}, .${styles.customDropdown}`
+        `.${styles.deckMenu}, .${styles.deckMenuBtn}, .${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}, .${styles.customDropdown}, .${styles.searchBar}`
       );
 
       if (!insideDropdown) {
@@ -152,9 +158,19 @@ export default function Mydecks() {
   const filteredDecks = useMemo(() => {
     const q = search.trim().toLowerCase();
 
-    return decks
-      .filter((d) => (!q ? true : d.title.toLowerCase().includes(q)))
-      .filter((d) => (!selectedFilter ? true : d.type === selectedFilter));
+    return decks.filter((deck) => {
+      const matchesSearch =
+        !q ||
+        deck.title.toLowerCase().includes(q) ||
+        deck.description.toLowerCase().includes(q) ||
+        deck.visibility.toLowerCase().includes(q) ||
+        deck.type.toLowerCase().includes(q) ||
+        String(deck.cards).includes(q);
+
+      const matchesFilter = !selectedFilter || deck.type === selectedFilter;
+
+      return matchesSearch && matchesFilter;
+    });
   }, [decks, search, selectedFilter]);
 
   const openDeck = (deckId) => {
@@ -203,13 +219,6 @@ export default function Mydecks() {
       formData.append("visibility", visibility);
       formData.append("deck_color", deckColor);
 
-      console.log("ADDING DECK:", {
-        title: deckTitle.trim(),
-        description: deckDesc.trim(),
-        visibility,
-        deck_color: deckColor,
-      });
-
       const res = await fetch("http://localhost/puffybrain/userDecks.php", {
         method: "POST",
         credentials: "include",
@@ -217,7 +226,6 @@ export default function Mydecks() {
       });
 
       const data = await res.json();
-      console.log("ADD DECK RESPONSE:", data);
 
       if (data.success) {
         setAddPopupOpen(false);
@@ -262,6 +270,7 @@ export default function Mydecks() {
       showCancelButton: true,
       confirmButtonText: "Save",
       cancelButtonText: "Cancel",
+      confirmButtonColor: "#7b5cff",
       preConfirm: () => {
         return {
           title: document.getElementById("swal-title").value,
@@ -294,6 +303,12 @@ export default function Mydecks() {
           title: "Deck updated!",
           timer: 1500,
           showConfirmButton: false,
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Update failed",
+          text: data.message || "Something went wrong.",
         });
       }
     } catch (err) {
@@ -339,51 +354,54 @@ export default function Mydecks() {
   };
 
   const handleArchiveDeck = async (deck) => {
-  const result = await Swal.fire({
-    title: "Archive this deck?",
-    text: "You can restore it later.",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Archive",
-    cancelButtonText: "Cancel",
-  });
-
-  if (!result.isConfirmed) return;
-
-  try {
-    const res = await fetch("http://localhost/puffybrain/archiveDeck.php", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ deck_id: deck.id }),
+    const result = await Swal.fire({
+      title: "Archive this deck?",
+      text: "You can restore it later.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Archive",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#7b5cff",
     });
 
-    const data = await res.json();
+    if (!result.isConfirmed) return;
 
-    if (data.success) {
-      setDecks((prev) => prev.filter((d) => d.id !== deck.id));
-      setMyDecks((prev) => prev.filter((d) => d.id !== deck.id));
+    try {
+      const res = await fetch("http://localhost/puffybrain/archiveDeck.php", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ deck_id: deck.id }),
+      });
 
-      Swal.fire({
-        icon: "success",
-        title: "Archived!",
-        text: "The deck was archived.",
-        timer: 1500,
-        showConfirmButton: false,
-      });
-    } else {
-      Swal.fire({
-        icon: "error",
-        title: "Archive failed",
-        text: data.message || "Something went wrong",
-      });
+      const data = await res.json();
+
+      if (data.success) {
+        setDecks((prev) => prev.filter((d) => d.id !== deck.id));
+        setMyDecks((prev) =>
+          prev.filter((d) => Number(d.id || d.deck_id) !== Number(deck.id))
+        );
+
+        Swal.fire({
+          icon: "success",
+          title: "Archived!",
+          text: "The deck was archived.",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Archive failed",
+          text: data.message || "Something went wrong",
+        });
+      }
+    } catch (err) {
+      console.error("Archive error:", err);
     }
-  } catch (err) {
-    console.error("Archive error:", err);
-  }
-};
+  };
 
   return (
     <div
@@ -483,8 +501,14 @@ export default function Mydecks() {
                   </li>
                 ) : (
                   myDecks.slice(0, 3).map((deck) => (
-                    <li key={deck.id} className={styles.sidebarListItem}>
-                      <Link to={`/deck/${deck.id}`} className={styles.menuItem}>
+                    <li
+                      key={deck.id || deck.deck_id}
+                      className={styles.sidebarListItem}
+                    >
+                      <Link
+                        to={`/deck/${deck.id || deck.deck_id}`}
+                        className={styles.menuItem}
+                      >
                         <i className="bx bx-collection"></i>
                         <span className={styles.menuText}>{deck.title}</span>
                       </Link>
@@ -532,11 +556,29 @@ export default function Mydecks() {
             >
               <input
                 type="text"
-                placeholder="Search your decks"
+                placeholder="Search by title, description, public, private..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
-              <i className="bx bx-search" />
+
+              {search.trim() ? (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  aria-label="Clear search"
+                  style={{
+                    border: "none",
+                    background: "transparent",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <i className="bx bx-x"></i>
+                </button>
+              ) : (
+                <i className="bx bx-search" />
+              )}
             </form>
 
             <div className={styles.profileWrapper}>
@@ -705,7 +747,9 @@ export default function Mydecks() {
                   </div>
                 </div>
               </div>
-             <div className={styles.fullDivider}></div>
+
+              <div className={styles.fullDivider}></div>
+
               <div className={styles.deckArea}>
                 {decks.length === 0 ? (
                   <div className={styles.emptyState}>
@@ -726,7 +770,7 @@ export default function Mydecks() {
                       className={styles.emptyImg}
                     />
                     <p className={styles.emptyText}>
-                      No decks match your search or filter.
+                      No decks found for “{search}”.
                     </p>
                   </div>
                 ) : (
@@ -862,12 +906,12 @@ export default function Mydecks() {
                 <label className={styles.label}>Choose Deck Color</label>
                 <div className={styles.colorRow}>
                   {[
-            "#D7C9F7", // soft purple
-            "#B8F2D9", // mint green
-            "#FFB7A5", // peach
-            "#B5A9FF", // lilac
-            "#9EE7DD", // aqua
-            "#F4A7C1", // pink
+                    "#D7C9F7",
+                    "#B8F2D9",
+                    "#FFB7A5",
+                    "#B5A9FF",
+                    "#9EE7DD",
+                    "#F4A7C1",
                   ].map((c) => (
                     <button
                       key={c}
