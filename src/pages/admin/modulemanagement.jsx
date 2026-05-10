@@ -480,15 +480,15 @@ export default function ModuleManagement() {
                     <td>{mod.title}</td>
                     <td>{mod.date}</td>
                     <td>
-                      <span
-                        className={
-                          mod.status === "active"
-                            ? styles.statusActive
-                            : styles.statusInactive
-                        }
-                      >
-                        ● {mod.status === "active" ? "Active" : "Inactive"}
-                      </span>
+                  <span
+                      className={
+                        mod.status === "publish"
+                          ? styles.statusActive
+                          : styles.statusInactive
+                      }
+                    >
+                      ● {mod.status === "publish" ? "Publish" : "Draft"}
+                    </span>
                     </td>
 
                     <td className={styles.actions}>

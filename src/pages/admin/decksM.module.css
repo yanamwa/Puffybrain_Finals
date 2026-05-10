@@ -649,3 +649,13 @@
     width: 92vw;
   }
 }
+
+.archivedBadge {
+  background: #ffe4e6;
+  color: #be123c;
+}
+
+.activeBadge {
+  background: #dcfce7;
+  color: #166534;
+}

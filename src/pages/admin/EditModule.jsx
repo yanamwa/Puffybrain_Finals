@@ -417,6 +417,26 @@ export default function EditModule() {
       return;
     }
 
+    const hasLessons = editLessonPages.some(
+      (page) => page.title.trim() && page.content.trim()
+    );
+
+    const hasQuiz = editQuizItems.some(
+      (item) =>
+        item.question.trim() &&
+        item.correct_answer.trim() &&
+        item.options.some((opt) => opt.trim())
+    );
+
+    const hasRequiredContent =
+      editDesc.trim() &&
+      editSubject.trim() &&
+      editLearningObjectives.trim() &&
+      hasLessons &&
+      hasQuiz;
+
+    const finalStatus = hasRequiredContent ? editStatus : "draft";
+
     const payload = {
       action: "update",
       id: Number(id),
@@ -425,10 +445,9 @@ export default function EditModule() {
       subject: editSubject.trim(),
       learning_objectives: editLearningObjectives.trim(),
       lesson_content: serializeLessonPages(editLessonPages),
-      status: editStatus,
+      status: finalStatus,
       quiz_contents: serializeQuizItems(editQuizItems),
     };
-
     try {
       const res = await fetch(API_URL, {
         method: "POST",
@@ -449,15 +468,25 @@ export default function EditModule() {
         throw new Error("PHP did not return valid JSON.");
       }
 
-      if (data.success) {
-        await Swal.fire({
-          icon: "success",
-          title: "Updated!",
-          text: "Module updated successfully.",
-        });
-
-        navigate("/admin/modules");
-      } else {
+if (data.success) {
+  if (!hasRequiredContent && editStatus === "publish") {
+    await Swal.fire({
+      icon: "warning",
+      title: "Incomplete Input",
+      text: "Some required module content is missing. Module was automatically saved as Draft.",
+    });
+  } else {
+    await Swal.fire({
+      icon: "success",
+      title: "Updated!",
+      text: `Module successfully saved as ${
+        finalStatus === "publish" ? "Published" : "Draft"
+      }.`,
+    });
+  }
+  navigate("/admin/modules");
+} else {
+  
         await Swal.fire({
           icon: "error",
           title: "Update Failed",
@@ -684,8 +713,9 @@ export default function EditModule() {
         <div className={styles.formCard}>
           <div className={styles.popupInfoGrid}>
             <div className={styles.popupField}>
-              <label className={styles.popupLabel}>Module Title</label>
-
+           <label className={styles.popupLabel}>
+              Module Title <span className={styles.required}>*Required</span>
+            </label>
               <input
                 className={styles.popupInput}
                 value={editTitle}
@@ -702,15 +732,16 @@ export default function EditModule() {
                 value={editStatus}
                 onChange={(e) => setEditStatus(e.target.value)}
               >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+             <option value="draft">Draft</option>
+            <option value="publish">Publish</option>
               </select>
             </div>
           </div>
 
           <div className={styles.popupSection}>
-            <label className={styles.popupLabel}>Module Description</label>
-
+          <label className={styles.popupLabel}>
+              Module Description <span className={styles.required}>*Required</span>
+            </label>
             <textarea
               className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
               value={editDesc}
@@ -759,8 +790,9 @@ export default function EditModule() {
           </div>
 
           <div className={styles.popupSection}>
-            <label className={styles.popupLabel}>Learning Objectives</label>
-
+          <label className={styles.popupLabel}>
+            Learning Objectives <span className={styles.required}>*Required</span>
+          </label>
             <textarea
               className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
               value={editLearningObjectives}
@@ -771,8 +803,9 @@ export default function EditModule() {
 
           <div className={styles.popupSection}>
             <div className={styles.popupSectionRow}>
-              <label className={styles.popupLabel}>Lesson Pages</label>
-
+            <label className={styles.popupLabel}>
+              Lesson Pages <span className={styles.required}>*Required</span>
+            </label>
               <button
                 type="button"
                 className={styles.popupAddBtn}
@@ -819,8 +852,9 @@ export default function EditModule() {
 
           <div className={styles.popupSection}>
             <div className={styles.popupSectionRow}>
-              <label className={styles.popupLabel}>Quiz Module</label>
-
+          <label className={styles.popupLabel}>
+            Quiz Module <span className={styles.required}>*Required</span>
+          </label>
               <div className={styles.quizActions}>
                 <button
                   type="button"

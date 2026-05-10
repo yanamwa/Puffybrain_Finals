@@ -80,7 +80,7 @@ export default function AddModule() {
   const [newSubject, setNewSubject] = useState("");
   const [newLearningObjectives, setNewLearningObjectives] = useState("");
   const [newLessonPages, setNewLessonPages] = useState([]);
-  const [newStatus, setNewStatus] = useState("Draft");
+  const [newStatus, setNewStatus] = useState("draft");
 
   const [newQuizItems, setNewQuizItems] = useState([]);
   const [generatingNewQuiz, setGeneratingNewQuiz] = useState(false);
@@ -369,13 +369,33 @@ export default function AddModule() {
       return;
     }
 
+    const hasLessons = newLessonPages.some(
+      (page) => page.title.trim() && page.content.trim()
+    );
+
+    const hasQuiz = newQuizItems.some(
+      (item) =>
+        item.question.trim() &&
+        item.correct_answer.trim() &&
+        item.options.some((opt) => opt.trim())
+    );
+
+    const hasRequiredContent =
+      newDesc.trim() &&
+      newSubject.trim() &&
+      newLearningObjectives.trim() &&
+      hasLessons &&
+      hasQuiz;
+
+    const finalStatus = hasRequiredContent ? newStatus : "draft";
+
     const payload = {
       title: newTitle.trim(),
       description: newDesc.trim(),
       subject: newSubject.trim(),
       learning_objectives: newLearningObjectives.trim(),
       lesson_content: serializeLessonPages(newLessonPages),
-      status: newStatus,
+      status: finalStatus,
       quiz_contents: serializeQuizItems(newQuizItems),
     };
 
@@ -401,14 +421,23 @@ export default function AddModule() {
         throw new Error("PHP did not return valid JSON.");
       }
 
-      if (data.success) {
-        await Swal.fire({
-          icon: "success",
-          title: "Added!",
-          text: "Module added successfully.",
-        });
-
-        navigate("/admin/modules");
+if (data.success) {
+  if (!hasRequiredContent && newStatus === "publish") {
+    await Swal.fire({
+      icon: "warning",
+      title: "Incomplete Input",
+      text: "Some required module content is missing. Module was automatically saved as Draft.",
+    });
+  } else {
+    await Swal.fire({
+      icon: "success",
+      title: "Added!",
+      text: `Module successfully saved as ${
+        finalStatus === "publish" ? "Published" : "Draft"
+      }.`,
+    });
+  }
+  navigate("/admin/modules");
       } else {
         await Swal.fire({
           icon: "error",
@@ -640,8 +669,9 @@ export default function AddModule() {
         <div className={styles.formCard}>
           <div className={styles.popupInfoGrid}>
             <div className={styles.popupField}>
-              <label className={styles.popupLabel}>Module Title</label>
-
+            <label className={styles.popupLabel}>
+              Module Title <span className={styles.required}>*Required</span>
+            </label>
               <input
                 className={styles.popupInput}
                 value={newTitle}
@@ -658,15 +688,16 @@ export default function AddModule() {
                 value={newStatus}
                 onChange={(e) => setNewStatus(e.target.value)}
               >
-                <option value="Draft">Draft</option>
-                <option value="Publish">Publish</option>
+                <option value="draft">Draft</option>
+                <option value="publish">Publish</option>
               </select>
             </div>
           </div>
 
           <div className={styles.popupSection}>
-            <label className={styles.popupLabel}>Module Description</label>
-
+<label className={styles.popupLabel}>
+  Module Description <span className={styles.required}>*Required</span>
+</label>
             <textarea
               className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
               value={newDesc}
@@ -715,8 +746,9 @@ export default function AddModule() {
           </div>
 
           <div className={styles.popupSection}>
-            <label className={styles.popupLabel}>Learning Objectives</label>
-
+<label className={styles.popupLabel}>
+  Learning Objectives <span className={styles.required}>*Required</span>
+</label>
             <textarea
               className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
               value={newLearningObjectives}
@@ -727,8 +759,9 @@ export default function AddModule() {
 
           <div className={styles.popupSection}>
             <div className={styles.popupSectionRow}>
-              <label className={styles.popupLabel}>Lesson Pages</label>
-
+<label className={styles.popupLabel}>
+  Lesson Pages <span className={styles.required}>*Required</span>
+</label>
               <button
                 type="button"
                 className={styles.popupAddBtn}
@@ -777,8 +810,9 @@ export default function AddModule() {
 
           <div className={styles.popupSection}>
             <div className={styles.popupSectionRow}>
-              <label className={styles.popupLabel}>Quiz Module</label>
-
+          <label className={styles.popupLabel}>
+            Quiz Module <span className={styles.required}>*Required</span>
+          </label>
               <div className={styles.quizActions}>
                 <button
                   type="button"

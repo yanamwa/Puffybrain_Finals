@@ -666,3 +666,10 @@
   order: -1;
   margin-bottom: 20px;
 }
+
+.required {
+  color: #5353539d;
+  font-size: 14px;
+  font-weight: normal;
+  margin-left: 4px;
+}

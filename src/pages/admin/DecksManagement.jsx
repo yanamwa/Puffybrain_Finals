@@ -345,17 +345,17 @@ export default function DeckManagement() {
                     </span>
                   </div>
 
-                  <div>
-                    <span
-                      className={`${styles.badge} ${
-                        String(deck.status || "").toLowerCase() === "archived"
-                          ? styles.archivedBadge
-                          : styles.activeBadge
-                      }`}
-                    >
-                      {deck.status || "Active"}
-                    </span>
-                  </div>
+              <div>
+                <span
+                  className={`${styles.badge} ${
+                    Number(deck.archived) === 1
+                      ? styles.archivedBadge
+                      : styles.activeBadge
+                  }`}
+                >
+                  {Number(deck.archived) === 1 ? "Archived" : "Active"}
+                </span>
+              </div>
 
                   <button
                     className={styles.viewBtn}
