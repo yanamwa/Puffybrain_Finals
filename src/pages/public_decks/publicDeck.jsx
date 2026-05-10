@@ -18,12 +18,10 @@ function PublicDecks() {
   const [courses, setCourses] = useState([]);
 
   const [courseSort, setCourseSort] = useState("");
-  const [courseYear, setCourseYear] = useState("");
   const [deckSort, setDeckSort] = useState("");
   const [deckYear, setDeckYear] = useState("");
 
   const [courseSortOpen, setCourseSortOpen] = useState(false);
-  const [courseYearOpen, setCourseYearOpen] = useState(false);
   const [deckSortOpen, setDeckSortOpen] = useState(false);
   const [deckYearOpen, setDeckYearOpen] = useState(false);
 
@@ -37,9 +35,28 @@ function PublicDecks() {
 
   const closeAllFilterDropdowns = () => {
     setCourseSortOpen(false);
-    setCourseYearOpen(false);
     setDeckSortOpen(false);
     setDeckYearOpen(false);
+  };
+
+  const normalizeYear = (value) => {
+    const text = String(value || "").trim().toLowerCase();
+
+    if (text.includes("1st") || text.includes("first")) return "first";
+    if (text.includes("2nd") || text.includes("second")) return "second";
+    if (text.includes("3rd") || text.includes("third")) return "third";
+    if (text.includes("4th") || text.includes("fourth")) return "fourth";
+
+    return text;
+  };
+
+  const limitWords = (text, limit = 15) => {
+    if (!text) return "No description available.";
+
+    const words = text.trim().split(/\s+/);
+    if (words.length <= limit) return text;
+
+    return words.slice(0, limit).join(" ") + "...";
   };
 
   const handleLogout = () => {
@@ -51,9 +68,7 @@ function PublicDecks() {
       confirmButtonText: "Yes",
       confirmButtonColor: "#7b5cff",
     }).then((result) => {
-      if (result.isConfirmed) {
-        navigate("/login");
-      }
+      if (result.isConfirmed) navigate("/login");
     });
   };
 
@@ -170,6 +185,38 @@ function PublicDecks() {
     navigate(`/learning/${courseId}`);
   };
 
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+
+    const q = search.trim().toLowerCase();
+    if (!q) return;
+
+    const foundLesson = lessons.find((lesson) =>
+      (lesson.title || "").toLowerCase().includes(q)
+    );
+
+    const foundDeck = publicDecks.find((deck) =>
+      (deck.title || "").toLowerCase().includes(q)
+    );
+
+    if (foundLesson) {
+      navigate(`/learning/${foundLesson.id}`);
+      return;
+    }
+
+    if (foundDeck) {
+      navigate(`/deck/${foundDeck.id}`);
+      return;
+    }
+
+    Swal.fire({
+      icon: "info",
+      title: "No results found",
+      text: "No course or public deck matches your search.",
+      confirmButtonColor: "#7b5cff",
+    });
+  };
+
   const handleAddCourse = async (lesson) => {
     const result = await Swal.fire({
       title: "Add Course?",
@@ -225,66 +272,90 @@ function PublicDecks() {
   };
 
   const filteredLessons = useMemo(() => {
-    const q = search.trim().toLowerCase();
+  const q = search.trim().toLowerCase();
 
-    let result = lessons
-      .filter((lesson) => (lesson.title || "").toLowerCase().includes(q))
-      .filter((lesson) => {
-        const year = lesson.level || lesson.year_level || "";
+  let result = lessons.filter((lesson) => {
+    if (!q) return true;
 
-        return courseYear
-          ? year.toLowerCase() === courseYear.toLowerCase()
-          : true;
-      });
+    const searchableText = [
+      lesson.title,
+      lesson.description,
+      lesson.subject,
+      lesson.category,
+    ]
+      .join(" ")
+      .toLowerCase();
 
-    if (courseSort === "az") {
-      result = [...result].sort((a, b) =>
-        (a.title || "").localeCompare(b.title || "")
-      );
-    }
+    return searchableText.includes(q);
+  });
 
-    if (courseSort === "recent") {
-      result = [...result].sort((a, b) => Number(b.id) - Number(a.id));
-    }
+  if (courseSort === "az") {
+    result = [...result].sort((a, b) =>
+      (a.title || "").localeCompare(b.title || "")
+    );
+  }
 
-    return result;
-  }, [lessons, search, courseSort, courseYear]);
+  if (courseSort === "recent") {
+    result = [...result].sort((a, b) => Number(b.id) - Number(a.id));
+  }
 
-  const filteredPublicDecks = useMemo(() => {
-    const q = search.trim().toLowerCase();
+  if (courseSort === "oldest") {
+    result = [...result].sort((a, b) => Number(a.id) - Number(b.id));
+  }
 
-    let result = publicDecks
-      .filter((deck) => (deck.title || "").toLowerCase().includes(q))
-      .filter((deck) => {
-        const year = deck.level || deck.year_level || "";
+  return result;
+}, [lessons, search, courseSort]);
 
-        return deckYear
-          ? year.toLowerCase() === deckYear.toLowerCase()
-          : true;
-      });
+const filteredPublicDecks = useMemo(() => {
+  const q = search.trim().toLowerCase();
 
-    if (deckSort === "az") {
-      result = [...result].sort((a, b) =>
-        (a.title || "").localeCompare(b.title || "")
-      );
-    }
+  let result = publicDecks
+    .filter((deck) => {
+      if (!q) return true;
 
-    if (deckSort === "recent") {
-      result = [...result].sort((a, b) => Number(b.id) - Number(a.id));
-    }
+      const searchableText = [
+        deck.title,
+        deck.description,
+        deck.username,
+        deck.created_by,
+        deck.creator,
+        deck.creator_username,
+        deck.uploader_username,
+      ]
+        .join(" ")
+        .toLowerCase();
 
-    return result;
-  }, [publicDecks, search, deckSort, deckYear]);
+      return searchableText.includes(q);
+    })
+    .filter((deck) => {
+      const uploaderYear =
+        deck.uploader_year_level ||
+        deck.creator_year_level ||
+        deck.year_level ||
+        deck.level ||
+        "";
 
-  const limitWords = (text, limit =n15 ) => {
-  if (!text) return "No description available.";
+      if (!deckYear) return true;
 
-  const words = text.trim().split(/\s+/);
+      return normalizeYear(uploaderYear) === normalizeYear(deckYear);
+    });
 
-  if (words.length <= limit) return text;
+  if (deckSort === "az") {
+    result = [...result].sort((a, b) =>
+      (a.title || "").localeCompare(b.title || "")
+    );
+  }
 
-  return words.slice(0, limit).join(" ") + "...";
-};
+  if (deckSort === "recent") {
+    result = [...result].sort((a, b) => Number(b.id) - Number(a.id));
+  }
+
+  if (deckSort === "oldest") {
+    result = [...result].sort((a, b) => Number(a.id) - Number(b.id));
+  }
+
+  return result;
+}, [publicDecks, search, deckSort, deckYear]);
 
   return (
     <div
@@ -292,152 +363,138 @@ function PublicDecks() {
         isCollapsed ? styles.sidebarCollapsed : ""
       }`}
     >
-      <aside
-              className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
-            >
-              <div>
-                <div
-                  className={styles.sidebarToggle}
-                  onClick={() => setIsCollapsed(!isCollapsed)}
+      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
+        <div>
+          <div
+            className={styles.sidebarToggle}
+            onClick={() => setIsCollapsed(!isCollapsed)}
+          >
+            <i className="bx bx-sidebar"></i>
+          </div>
+
+          <div className={styles.logo}>
+            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
+            <img className={styles.logoCollapsed} src="/images/logo_solo.png" alt="Logo" />
+          </div>
+
+          <div className={styles.divider}></div>
+          <p className={styles.myDecksTitle}>Menu</p>
+
+          <nav className={styles.menu}>
+            <ul className={styles.sidebarList}>
+              <li className={styles.sidebarListItem}>
+                <NavLink
+                  to="/homepage"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
                 >
-                  <i className="bx bx-sidebar"></i>
-                </div>
-      
-                <div className={styles.logo}>
-                  <img
-                    className={styles.logoExpanded}
-                    src="/images/logo1.png"
-                    alt="Logo"
-                  />
-                  <img
-                    className={styles.logoCollapsed}
-                    src="/images/logo_solo.png"
-                    alt="Logo"
-                  />
-                </div>
-      
-                <div className={styles.divider}></div>
-                <p className={styles.myDecksTitle}>Menu</p>
-      
-                <nav className={styles.menu}>
-                  <ul className={styles.sidebarList}>
-                    <li className={styles.sidebarListItem}>
-                      <NavLink
-                        to="/homepage"
-                        className={({ isActive }) =>
-                          `${styles.menuItem} ${isActive ? styles.active : ""}`
-                        }
-                      >
-                        <i className="bx bx-home"></i>
-                        <span className={styles.menuText}>Home</span>
-                      </NavLink>
-                    </li>
-      
-                    <li className={styles.sidebarListItem}>
-                      <NavLink
-                        to="/Mydecks"
-                        className={({ isActive }) =>
-                          `${styles.menuItem} ${isActive ? styles.active : ""}`
-                        }
-                      >
+                  <i className="bx bx-home"></i>
+                  <span className={styles.menuText}>Home</span>
+                </NavLink>
+              </li>
+
+              <li className={styles.sidebarListItem}>
+                <NavLink
+                  to="/Mydecks"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
+                  <i className="bx bx-collection"></i>
+                  <span className={styles.menuText}>Decks</span>
+                </NavLink>
+              </li>
+
+              <li className={styles.sidebarListItem}>
+                <NavLink
+                  to="/mycourse"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
+                  <i className="bx bx-book-open"></i>
+                  <span className={styles.menuText}>My Course</span>
+                </NavLink>
+              </li>
+
+              <li className={styles.sidebarListItem}>
+                <NavLink
+                  to="/public-decks"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
+                  <i className="bx bx-world"></i>
+                  <span className={styles.menuText}>Public Decks</span>
+                </NavLink>
+              </li>
+            </ul>
+          </nav>
+
+          <div className={styles.divider}></div>
+
+          <div className={styles.myDecksNav}>
+            <div className={styles.sectionBlock}>
+              <p className={styles.sectionTitle}>My Decks</p>
+
+              <ul className={styles.sectionList}>
+                {myDecks.length === 0 ? (
+                  <li className={styles.sidebarEmptyText}>Don't have decks yet</li>
+                ) : (
+                  myDecks.slice(0, 3).map((deck) => (
+                    <li key={deck.id} className={styles.sidebarListItem}>
+                      <Link to={`/deck/${deck.id}`} className={styles.menuItem}>
                         <i className="bx bx-collection"></i>
-                        <span className={styles.menuText}>Decks</span>
-                      </NavLink>
+                        <span className={styles.menuText}>{deck.title}</span>
+                      </Link>
                     </li>
-      
-                    <li className={styles.sidebarListItem}>
-                      <NavLink
-                        to="/mycourse"
-                        className={({ isActive }) =>
-                          `${styles.menuItem} ${isActive ? styles.active : ""}`
-                        }
+                  ))
+                )}
+              </ul>
+            </div>
+
+            <div className={styles.sectionBlock}>
+              <div className={styles.sectionDivider}></div>
+              <p className={styles.sectionTitle}>My Courses</p>
+
+              <ul className={styles.sectionList}>
+                {courses.length === 0 ? (
+                  <li className={styles.sidebarEmptyText}>No courses added yet</li>
+                ) : (
+                  courses.slice(0, 3).map((course) => (
+                    <li key={course.id} className={styles.sidebarListItem}>
+                      <button
+                        type="button"
+                        onClick={() => openCourse(course.id)}
+                        className={styles.menuItem}
                       >
                         <i className="bx bx-book-open"></i>
-                        <span className={styles.menuText}>My Course</span>
-                      </NavLink>
+                        <span className={styles.menuText}>{course.title}</span>
+                      </button>
                     </li>
-      
-                    <li className={styles.sidebarListItem}>
-                      <NavLink
-                        to="/public-decks"
-                        className={({ isActive }) =>
-                          `${styles.menuItem} ${isActive ? styles.active : ""}`
-                        }
-                      >
-                        <i className="bx bx-world"></i>
-                        <span className={styles.menuText}>Public Decks</span>
-                      </NavLink>
-                    </li>
-                  </ul>
-                </nav>
-      
-                <div className={styles.divider}></div>
-      
-                <div className={styles.myDecksNav}>
-                  <div className={styles.sectionBlock}>
-                    <p className={styles.sectionTitle}>My Decks</p>
-      
-                    <ul className={styles.sectionList}>
-                      {myDecks.length === 0 ? (
-                        <li className={styles.sidebarEmptyText}>
-                          Don't have decks yet
-                        </li>
-                      ) : (
-                        myDecks.slice(0, 3).map((deck) => (
-                          <li key={deck.id} className={styles.sidebarListItem}>
-                            <Link to={`/deck/${deck.id}`} className={styles.menuItem}>
-                              <i className="bx bx-collection"></i>
-                              <span className={styles.menuText}>{deck.title}</span>
-                            </Link>
-                          </li>
-                        ))
-                      )}
-                    </ul>
-                  </div>
-      
-                  <div className={styles.sectionBlock}>
-                    <div className={styles.sectionDivider}></div>
-                    <p className={styles.sectionTitle}>My Courses</p>
-      
-                    <ul className={styles.sectionList}>
-                      {courses.length === 0 ? (
-                        <li className={styles.sidebarEmptyText}>
-                          No courses added yet
-                        </li>
-                      ) : (
-                        courses.slice(0, 3).map((course) => (
-                          <li key={course.id} className={styles.sidebarListItem}>
-                            <button
-                              type="button"
-                              onClick={() => openCourse(course.id)}
-                              className={styles.menuItem}
-                            >
-                              <i className="bx bx-book-open"></i>
-                              <span className={styles.menuText}>{course.title}</span>
-                            </button>
-                          </li>
-                        ))
-                      )}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </aside>
+                  ))
+                )}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </aside>
 
       <div className={styles.mainArea}>
         <div className={styles.gridContainer}>
           <div className={styles.headerContainer}>
-            <form
-              className={styles.searchBar}
-              onSubmit={(e) => e.preventDefault()}
-            >
+            <form className={styles.searchBar} onSubmit={handleSearchSubmit}>
               <input
                 type="text"
-                placeholder="Search public decks"
+                placeholder="Search courses or public decks"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
-              <i className="bx bx-search" />
+
+              <button type="submit" className={styles.searchBtn}>
+                <i className="bx bx-search" />
+              </button>
             </form>
 
             <div className={styles.profileWrapper}>
@@ -542,7 +599,6 @@ function PublicDecks() {
                         onClick={(e) => {
                           e.stopPropagation();
                           setCourseSortOpen((prev) => !prev);
-                          setCourseYearOpen(false);
                           setDeckSortOpen(false);
                           setDeckYearOpen(false);
                         }}
@@ -553,6 +609,8 @@ function PublicDecks() {
                             ? "A-Z"
                             : courseSort === "recent"
                             ? "Recently"
+                            : courseSort === "oldest"
+                            ? "Oldest"
                             : "Sort by"}
                         </span>
                         <i className="bx bx-chevron-down"></i>
@@ -579,67 +637,15 @@ function PublicDecks() {
                           >
                             Recently Added
                           </button>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className={styles.customDropdown}>
-                      <button
-                        type="button"
-                        className={styles.customDropdownBtn}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setCourseYearOpen((prev) => !prev);
-                          setCourseSortOpen(false);
-                          setDeckSortOpen(false);
-                          setDeckYearOpen(false);
-                        }}
-                      >
-                        <i className="bx bx-user"></i>
-                        <span>{courseYear || "Level"}</span>
-                        <i className="bx bx-chevron-down"></i>
-                      </button>
-
-                      {courseYearOpen && (
-                        <div className={styles.customDropdownMenu}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setCourseYear("First Year");
-                              setCourseYearOpen(false);
-                            }}
-                          >
-                            First year
-                          </button>
 
                           <button
                             type="button"
                             onClick={() => {
-                              setCourseYear("Second Year");
-                              setCourseYearOpen(false);
+                              setCourseSort("oldest");
+                              setCourseSortOpen(false);
                             }}
                           >
-                            Second year
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setCourseYear("Third Year");
-                              setCourseYearOpen(false);
-                            }}
-                          >
-                            Third year
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setCourseYear("Fourth Year");
-                              setCourseYearOpen(false);
-                            }}
-                          >
-                            Fourth year
+                            Oldest
                           </button>
                         </div>
                       )}
@@ -650,56 +656,54 @@ function PublicDecks() {
                 <div className={styles.lessons}>
                   {filteredLessons.length === 0 ? (
                     <p className={styles.emptyMain}>
-                      {search
-                        ? "No courses match your search or filter."
-                        : "No courses available."}
+                      {search ? "No courses match your search." : "No courses available."}
                     </p>
                   ) : (
                     filteredLessons.map((lesson) => (
                       <div className={styles.lessonBox} key={lesson.id}>
-                          <div className={styles.lessonTop}></div>
-                          <div className={styles.lessonPreview}></div>
+                        <div className={styles.lessonTop}></div>
+                        <div className={styles.lessonPreview}></div>
 
-                          <div
-                            className={styles.lessonContent}
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => navigate(`/learning/${lesson.id}`)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") navigate(`/learning/${lesson.id}`);
-                            }}
-                          >
-                            <div className={styles.lessonHeader}>
-                              <h3 className={styles.lessonTitle}>{lesson.title}</h3>
-
-                              <button
-                                type="button"
-                                className={styles.lessonAdd}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleAddCourse(lesson);
-                                }}
-                              >
-                                <i className="bx bx-plus"></i>
-                              </button>
-                            </div>
-
-                            <p className={styles.lessonDescription}>
-                              {limitWords(lesson.description, 30)}
-                            </p>
+                        <div
+                          className={styles.lessonContent}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => navigate(`/learning/${lesson.id}`)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") navigate(`/learning/${lesson.id}`);
+                          }}
+                        >
+                          <div className={styles.lessonHeader}>
+                            <h3 className={styles.lessonTitle}>{lesson.title}</h3>
 
                             <button
                               type="button"
-                              className={styles.lessonBtn}
+                              className={styles.lessonAdd}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigate(`/learning/${lesson.id}`);
+                                handleAddCourse(lesson);
                               }}
                             >
-                              Start Learning
+                              <i className="bx bx-plus"></i>
                             </button>
                           </div>
+
+                          <p className={styles.lessonDescription}>
+                            {limitWords(lesson.description, 30)}
+                          </p>
+
+                          <button
+                            type="button"
+                            className={styles.lessonBtn}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/learning/${lesson.id}`);
+                            }}
+                          >
+                            Start Learning
+                          </button>
                         </div>
+                      </div>
                     ))
                   )}
                 </div>
@@ -723,7 +727,6 @@ function PublicDecks() {
                           setDeckSortOpen((prev) => !prev);
                           setDeckYearOpen(false);
                           setCourseSortOpen(false);
-                          setCourseYearOpen(false);
                         }}
                       >
                         <i className="bx bx-message-square-dots"></i>
@@ -732,6 +735,8 @@ function PublicDecks() {
                             ? "A-Z"
                             : deckSort === "recent"
                             ? "Recently"
+                            : deckSort === "oldest"
+                            ? "Oldest"
                             : "Sort by"}
                         </span>
                         <i className="bx bx-chevron-down"></i>
@@ -758,6 +763,16 @@ function PublicDecks() {
                           >
                             Recently Added
                           </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDeckSort("oldest");
+                              setDeckSortOpen(false);
+                            }}
+                          >
+                            Oldest
+                          </button>
                         </div>
                       )}
                     </div>
@@ -771,16 +786,25 @@ function PublicDecks() {
                           setDeckYearOpen((prev) => !prev);
                           setDeckSortOpen(false);
                           setCourseSortOpen(false);
-                          setCourseYearOpen(false);
                         }}
                       >
                         <i className="bx bx-user"></i>
-                        <span>{deckYear || "Level"}</span>
+                        <span>{deckYear || "All Level"}</span>
                         <i className="bx bx-chevron-down"></i>
                       </button>
 
                       {deckYearOpen && (
                         <div className={styles.customDropdownMenu}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDeckYear("");
+                              setDeckYearOpen(false);
+                            }}
+                          >
+                            All Level
+                          </button>
+
                           <button
                             type="button"
                             onClick={() => {
@@ -829,38 +853,40 @@ function PublicDecks() {
                 <div className={styles.deckGrid}>
                   {filteredPublicDecks.length === 0 ? (
                     <p className={styles.emptyMain}>
-                      {search
+                      {search || deckYear
                         ? "No public decks match your search or filter."
                         : "No public decks available."}
                     </p>
                   ) : (
                     filteredPublicDecks.map((deck, index) => (
-                <article
-                  key={deck.id}
-                  className={styles.deckCard}
-                  onClick={() => navigate(`/deck/${deck.id}`)}
-                >
-                  <div className={styles.deckCardInner}>
-                    <div
-                      className={styles.deckTop}
-                      style={{
-                        backgroundColor: [
-                          "#D7C9F7",
-                          "#B8F2D9",
-                          "#FFB7A5",
-                          "#B5A9FF",
-                          "#9EE7DD",
-                          "#F4A7C1",
-                        ][index % 6],
-                      }}
-                    ></div>
+                      <article
+                        key={deck.id}
+                        className={styles.deckCard}
+                        onClick={() => navigate(`/deck/${deck.id}`)}
+                      >
+                        <div className={styles.deckCardInner}>
+                          <div
+                            className={styles.deckTop}
+                            style={{
+                              backgroundColor:
+                                deck.deck_color ||
+                                [
+                                  "#D7C9F7",
+                                  "#B8F2D9",
+                                  "#FFB7A5",
+                                  "#B5A9FF",
+                                  "#9EE7DD",
+                                  "#F4A7C1",
+                                ][index % 6],
+                            }}
+                          ></div>
 
-                    <div className={styles.deckBody}>
-                      <h4>{deck.title}</h4>
-                      <span>{deck.description || "No description"}</span>
-                    </div>
-                  </div>
-                </article>
+                          <div className={styles.deckBody}>
+                            <h4>{deck.title}</h4>
+                            <span>{deck.description || "No description"}</span>
+                          </div>
+                        </div>
+                      </article>
                     ))
                   )}
                 </div>

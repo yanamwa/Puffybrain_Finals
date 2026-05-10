@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Link, NavLink, useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import QuizModesModal from "../../components/QuizModesModal";
@@ -13,6 +13,7 @@ export default function UserDecks() {
   const [showModes, setShowModes] = useState(false);
   const [activeTab, setActiveTab] = useState("All Cards");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
   const [deck, setDeck] = useState(null);
   const [myDecks, setMyDecks] = useState([]);
@@ -119,7 +120,6 @@ export default function UserDecks() {
       );
 
       const data = await res.json();
-      console.log("DECK RESPONSE:", data);
 
       if (data.success) {
         setDeck(data.deck);
@@ -138,7 +138,6 @@ export default function UserDecks() {
       );
 
       const data = await res.json();
-      console.log("Cards response:", data);
 
       if (data.success) {
         setCards(data.cards || []);
@@ -158,12 +157,7 @@ export default function UserDecks() {
       });
 
       const data = await res.json();
-
-      if (data.success) {
-        setMyDecks(data.decks || []);
-      } else {
-        setMyDecks([]);
-      }
+      setMyDecks(data.success ? data.decks || [] : []);
     } catch (err) {
       console.error("fetchUserDecks error:", err);
       setMyDecks([]);
@@ -177,12 +171,7 @@ export default function UserDecks() {
       });
 
       const data = await res.json();
-
-      if (data.success) {
-        setCourses(data.courses || []);
-      } else {
-        setCourses([]);
-      }
+      setCourses(data.success ? data.courses || [] : []);
     } catch (err) {
       console.error("fetchCourses error:", err);
       setCourses([]);
@@ -196,7 +185,6 @@ export default function UserDecks() {
       });
 
       const data = await res.json();
-      console.log("USER RESPONSE:", data);
 
       if (data.success) {
         setUser({
@@ -228,7 +216,7 @@ export default function UserDecks() {
   useEffect(() => {
     const handler = (e) => {
       const insideDropdown = e.target.closest(
-        `.${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}`
+        `.${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}, .${styles.searchBar}`
       );
 
       if (!insideDropdown) {
@@ -293,15 +281,16 @@ export default function UserDecks() {
         },
       });
 
-      const res = await fetch("http://localhost/puffybrain/uploadLessonCards.php", {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-      });
+      const res = await fetch(
+        "http://localhost/puffybrain/uploadLessonCards.php",
+        {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+        }
+      );
 
       const text = await res.text();
-      console.log("UPLOAD LESSON RAW RESPONSE:", text);
-
       let data;
 
       try {
@@ -328,12 +317,15 @@ export default function UserDecks() {
           showConfirmButton: false,
         });
       } else {
-        console.log("UPLOAD LESSON ERROR:", data);
         Swal.fire("Failed", data.message || "Could not generate cards.", "error");
       }
     } catch (err) {
       console.error("UPLOAD LESSON FETCH ERROR:", err);
-      Swal.fire("Server Error", err.message || "Failed to upload lesson.", "error");
+      Swal.fire(
+        "Server Error",
+        err.message || "Failed to upload lesson.",
+        "error"
+      );
     }
   };
 
@@ -344,7 +336,11 @@ export default function UserDecks() {
     }
 
     if (!question.trim() || !answer.trim()) {
-      Swal.fire("Missing fields", "Please fill in both question and answer.", "warning");
+      Swal.fire(
+        "Missing fields",
+        "Please fill in both question and answer.",
+        "warning"
+      );
       return;
     }
 
@@ -390,7 +386,11 @@ export default function UserDecks() {
       }
     } catch (err) {
       console.error("handleAddCard error:", err);
-      Swal.fire("Server Error", "Something went wrong while saving the card.", "error");
+      Swal.fire(
+        "Server Error",
+        "Something went wrong while saving the card.",
+        "error"
+      );
     }
   };
 
@@ -448,90 +448,90 @@ export default function UserDecks() {
   };
 
   const handleEditDeck = async () => {
-  if (!deck) return;
+    if (!deck) return;
 
-  const { value: formValues } = await Swal.fire({
-    html: `
-      <div class="${styles.editDeckModal}">
-        <div class="${styles.editDeckHeader}">
-          <span>Edit Deck</span>
-        </div>
-
-        <div class="${styles.editDeckBody}">
-          <div class="${styles.editDeckGroup}">
-            <label>Deck title</label>
-            <input 
-              id="swal-title" 
-              type="text" 
-              placeholder="Deck title" 
-              value="${deck.title || ""}"
-            />
+    const { value: formValues } = await Swal.fire({
+      html: `
+        <div class="${styles.editDeckModal}">
+          <div class="${styles.editDeckHeader}">
+            <span>Edit Deck</span>
           </div>
 
-          <div class="${styles.editDeckGroup}">
-            <label>Description</label>
-            <textarea 
-              id="swal-desc" 
-              placeholder="Deck description"
-            >${deck.description || ""}</textarea>
+          <div class="${styles.editDeckBody}">
+            <div class="${styles.editDeckGroup}">
+              <label>Deck title</label>
+              <input 
+                id="swal-title" 
+                type="text" 
+                placeholder="Deck title" 
+                value="${deck.title || ""}"
+              />
+            </div>
+
+            <div class="${styles.editDeckGroup}">
+              <label>Description</label>
+              <textarea 
+                id="swal-desc" 
+                placeholder="Deck description"
+              >${deck.description || ""}</textarea>
+            </div>
           </div>
         </div>
-      </div>
-    `,
-    showCancelButton: true,
-    confirmButtonText: "Save",
-  cancelButtonText: "Cancel",
-  reverseButtons: true,
-    focusConfirm: false,
-    customClass: {
-      popup: styles.editDeckPopup,
-      actions: styles.editDeckActions,
-      confirmButton: styles.editDeckSave,
-      cancelButton: styles.editDeckCancel,
-    },
-    buttonsStyling: false,
-    preConfirm: () => {
-      return {
-        title: document.getElementById("swal-title").value,
-        description: document.getElementById("swal-desc").value,
-      };
-    },
-  });
-
-  if (!formValues) return;
-
-  try {
-    const formData = new FormData();
-    formData.append("deckId", deckId);
-    formData.append("title", formValues.title);
-    formData.append("description", formValues.description);
-
-    const res = await fetch("http://localhost/puffybrain/updateDeck.php", {
-      method: "POST",
-      body: formData,
-      credentials: "include",
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Save",
+      cancelButtonText: "Cancel",
+      reverseButtons: true,
+      focusConfirm: false,
+      customClass: {
+        popup: styles.editDeckPopup,
+        actions: styles.editDeckActions,
+        confirmButton: styles.editDeckSave,
+        cancelButton: styles.editDeckCancel,
+      },
+      buttonsStyling: false,
+      preConfirm: () => {
+        return {
+          title: document.getElementById("swal-title").value,
+          description: document.getElementById("swal-desc").value,
+        };
+      },
     });
 
-    const data = await res.json();
+    if (!formValues) return;
 
-    if (data.success) {
-      await fetchDeck();
+    try {
+      const formData = new FormData();
+      formData.append("deckId", deckId);
+      formData.append("title", formValues.title);
+      formData.append("description", formValues.description);
 
-      Swal.fire({
-        title: "Updated!",
-        text: "Deck information updated successfully.",
-        icon: "success",
-        timer: 1500,
-        showConfirmButton: false,
+      const res = await fetch("http://localhost/puffybrain/updateDeck.php", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
       });
-    } else {
-      Swal.fire("Error", data.message || "Failed to update deck.", "error");
+
+      const data = await res.json();
+
+      if (data.success) {
+        await fetchDeck();
+
+        Swal.fire({
+          title: "Updated!",
+          text: "Deck information updated successfully.",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      } else {
+        Swal.fire("Error", data.message || "Failed to update deck.", "error");
+      }
+    } catch (err) {
+      console.error("handleEditDeck error:", err);
+      Swal.fire("Server Error", "Could not update deck.", "error");
     }
-  } catch (err) {
-    console.error("handleEditDeck error:", err);
-    Swal.fire("Server Error", "Could not update deck.", "error");
-  }
-};
+  };
 
   const handleEditCard = (card) => {
     const realCardId = card.cardId || card.id;
@@ -556,12 +556,31 @@ export default function UserDecks() {
     setImageName("");
   };
 
-  const filteredCards = cards.filter((card) => {
-    if (activeTab === "All Cards") return true;
-    if (activeTab === "Memorized") return Number(card.is_memorized) === 1;
-    if (activeTab === "Not Memorized") return Number(card.is_memorized) !== 1;
-    return true;
-  });
+  const filteredCards = useMemo(() => {
+    const q = search.trim().toLowerCase();
+
+    return cards.filter((card) => {
+      const isMemorized = Number(card.is_memorized) === 1;
+
+      const matchesTab =
+        activeTab === "All Cards" ||
+        (activeTab === "Memorized" && isMemorized) ||
+        (activeTab === "Not Memorized" && !isMemorized);
+
+      const searchableText = [
+        card.question,
+        card.answer,
+        card.image,
+        isMemorized ? "memorized" : "not memorized",
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      const matchesSearch = !q || searchableText.includes(q);
+
+      return matchesTab && matchesSearch;
+    });
+  }, [cards, activeTab, search]);
 
   const handleLogout = () => {
     Swal.fire({
@@ -665,8 +684,14 @@ export default function UserDecks() {
                   <li className={styles.sidebarEmptyText}>Don't have decks yet</li>
                 ) : (
                   myDecks.slice(0, 3).map((deckItem) => (
-                    <li key={deckItem.id} className={styles.sidebarListItem}>
-                      <Link to={`/deck/${deckItem.id}`} className={styles.menuItem}>
+                    <li
+                      key={deckItem.id || deckItem.deck_id}
+                      className={styles.sidebarListItem}
+                    >
+                      <Link
+                        to={`/deck/${deckItem.id || deckItem.deck_id}`}
+                        className={styles.menuItem}
+                      >
                         <i className="bx bx-collection"></i>
                         <span className={styles.menuText}>{deckItem.title}</span>
                       </Link>
@@ -707,8 +732,31 @@ export default function UserDecks() {
         <div className={styles.gridContainer}>
           <div className={styles.headerContainer}>
             <form className={styles.searchBar} onSubmit={(e) => e.preventDefault()}>
-              <input type="text" placeholder="Search your decks" />
-              <i className="bx bx-search" />
+              <input
+                type="text"
+                placeholder="Search cards"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+
+              {search.trim() ? (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  aria-label="Clear search"
+                  style={{
+                    border: "none",
+                    background: "transparent",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <i className="bx bx-x"></i>
+                </button>
+              ) : (
+                <i className="bx bx-search" />
+              )}
             </form>
 
             <div className={styles.profileWrapper}>
@@ -961,7 +1009,11 @@ export default function UserDecks() {
                     alt="Empty"
                   />
 
-                  <p className={styles["empty-msg"]}>There are no cards</p>
+                  <p className={styles["empty-msg"]}>
+                    {search.trim()
+                      ? `No cards found for “${search}”.`
+                      : "There are no cards"}
+                  </p>
                 </div>
               ) : (
                 <div className={styles.cardsList}>
@@ -1033,39 +1085,41 @@ export default function UserDecks() {
               <label>Upload file</label>
 
               {!lessonFile ? (
-                    <label className={styles["attach-img"]}>
-                      <i className="bx bx-upload"></i>
-                      Choose lesson file
+                <label className={styles["attach-img"]}>
+                  <i className="bx bx-upload"></i>
+                  Choose lesson file
 
-                      <input
-                        type="file"
-                        ref={lessonInputRef}
-                        className={styles.fileInput}
-                        accept=".txt,.pdf,.doc,.docx"
-                        onChange={(e) => setLessonFile(e.target.files?.[0] || null)}
-                      />
-                    </label>
-                  ) : (
-                    <div className={styles.uploadedFile}>
-                      <i className="bx bx-check-circle"></i>
+                  <input
+                    type="file"
+                    ref={lessonInputRef}
+                    className={styles.fileInput}
+                    accept=".txt,.pdf,.doc,.docx"
+                    onChange={(e) =>
+                      setLessonFile(e.target.files?.[0] || null)
+                    }
+                  />
+                </label>
+              ) : (
+                <div className={styles.uploadedFile}>
+                  <i className="bx bx-check-circle"></i>
 
-                      <span>{lessonFile.name}</span>
+                  <span>{lessonFile.name}</span>
 
-                      <button
-                        type="button"
-                        className={styles.removeUploadBtn}
-                        onClick={() => {
-                          setLessonFile(null);
+                  <button
+                    type="button"
+                    className={styles.removeUploadBtn}
+                    onClick={() => {
+                      setLessonFile(null);
 
-                          if (lessonInputRef.current) {
-                            lessonInputRef.current.value = "";
-                          }
-                        }}
-                      >
-                        <i className="bx bx-x"></i>
-                      </button>
-                    </div>
-                  )}
+                      if (lessonInputRef.current) {
+                        lessonInputRef.current.value = "";
+                      }
+                    }}
+                  >
+                    <i className="bx bx-x"></i>
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className={styles["form-group"]}>

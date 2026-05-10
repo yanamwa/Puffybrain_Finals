@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import "boxicons/css/boxicons.min.css";
@@ -7,15 +7,18 @@ import styles from "./UserProfile.module.css";
 function UserProfile() {
   const navigate = useNavigate();
   const { userId } = useParams();
+
   const [archivedDecks, setArchivedDecks] = useState([]);
   const [myDecks, setMyDecks] = useState([]);
   const [courses, setCourses] = useState([]);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [search, setSearch] = useState("");
-  const [dropdownOpen, setDropdownOpen] = useState(null);  
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [activeDeckTab, setActiveDeckTab] = useState("decks");
+  const [archivedDropdownOpen, setArchivedDropdownOpen] = useState(null);
+
   const notificationCount = 0;
 
   const [user, setUser] = useState({
@@ -27,6 +30,32 @@ function UserProfile() {
     profile_image: "/images/temporary profile.jpg",
   });
 
+  const filterDecks = (decks) => {
+    const q = search.trim().toLowerCase();
+
+    if (!q) return decks;
+
+    return decks.filter((deck) => {
+      const searchableText = [
+        deck.title,
+        deck.description,
+        deck.visibility,
+        deck.card_count,
+        deck.cards,
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      return searchableText.includes(q);
+    });
+  };
+
+  const filteredDecks = useMemo(() => filterDecks(myDecks), [myDecks, search]);
+  const filteredArchivedDecks = useMemo(
+    () => filterDecks(archivedDecks),
+    [archivedDecks, search]
+  );
+
   const fetchUserDecks = async (profileId) => {
     if (!profileId) return;
 
@@ -37,13 +66,7 @@ function UserProfile() {
       );
 
       const data = await res.json();
-      console.log("DECK DATA:", data);
-
-      if (data.success) {
-        setMyDecks(data.decks || []);
-      } else {
-        setMyDecks([]);
-      }
+      setMyDecks(data.success ? data.decks || [] : []);
     } catch (err) {
       console.error("Failed to fetch user decks:", err);
       setMyDecks([]);
@@ -60,13 +83,7 @@ function UserProfile() {
       );
 
       const data = await res.json();
-      console.log("ARCHIVED DATA:", data);
-
-      if (data.success) {
-        setArchivedDecks(data.decks || []);
-      } else {
-        setArchivedDecks([]);
-      }
+      setArchivedDecks(data.success ? data.decks || [] : []);
     } catch (err) {
       console.error("Failed to fetch archived decks:", err);
       setArchivedDecks([]);
@@ -139,28 +156,28 @@ function UserProfile() {
   };
 
   const handleRestore = async (deckId) => {
-  try {
-    const res = await fetch("http://localhost/puffybrain/restoreDeck.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ deck_id: deckId }),
-    });
+    try {
+      const res = await fetch("http://localhost/puffybrain/restoreDeck.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ deck_id: deckId }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (data.success) {
-      Swal.fire("Restored!", "Deck has been restored.", "success");
-      fetchArchivedDecks(user.id);
-      fetchUserDecks(user.id);
-    } else {
-      Swal.fire("Error", data.message || "Failed to restore", "error");
+      if (data.success) {
+        Swal.fire("Restored!", "Deck has been restored.", "success");
+        fetchArchivedDecks(user.id);
+        fetchUserDecks(user.id);
+      } else {
+        Swal.fire("Error", data.message || "Failed to restore", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Server error", "error");
     }
-  } catch (err) {
-    console.error(err);
-    Swal.fire("Error", "Server error", "error");
-  }
-};
+  };
 
   const openCourse = (courseId) => {
     navigate(`/learning/${courseId}`);
@@ -189,11 +206,12 @@ function UserProfile() {
   useEffect(() => {
     const handler = (e) => {
       const insideDropdown = e.target.closest(
-        `.${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}`
+        `.${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}, .${styles.deckMenuWrapper}, .${styles.searchBar}`
       );
 
       if (!insideDropdown) {
         setDropdownOpen(false);
+        setArchivedDropdownOpen(null);
         setNotificationOpen(false);
       }
     };
@@ -201,6 +219,7 @@ function UserProfile() {
     window.addEventListener("click", handler);
     return () => window.removeEventListener("click", handler);
   }, []);
+
   return (
     <div
       className={`${styles.container} ${
@@ -227,28 +246,48 @@ function UserProfile() {
           <nav className={styles.menu}>
             <ul className={styles.sidebarList}>
               <li className={styles.sidebarListItem}>
-                <NavLink to="/homepage" className={({ isActive }) => `${styles.menuItem} ${isActive ? styles.active : ""}`}>
+                <NavLink
+                  to="/homepage"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
                   <i className="bx bx-home"></i>
                   <span className={styles.menuText}>Home</span>
                 </NavLink>
               </li>
 
               <li className={styles.sidebarListItem}>
-                <NavLink to="/Mydecks" className={({ isActive }) => `${styles.menuItem} ${isActive ? styles.active : ""}`}>
+                <NavLink
+                  to="/Mydecks"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
                   <i className="bx bx-book"></i>
                   <span className={styles.menuText}>Decks</span>
                 </NavLink>
               </li>
 
               <li className={styles.sidebarListItem}>
-                <NavLink to="/mycourse" className={({ isActive }) => `${styles.menuItem} ${isActive ? styles.active : ""}`}>
+                <NavLink
+                  to="/mycourse"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
                   <i className="bx bx-book-open"></i>
                   <span className={styles.menuText}>My Course</span>
                 </NavLink>
               </li>
 
               <li className={styles.sidebarListItem}>
-                <NavLink to="/public-decks" className={({ isActive }) => `${styles.menuItem} ${isActive ? styles.active : ""}`}>
+                <NavLink
+                  to="/public-decks"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
                   <i className="bx bx-world"></i>
                   <span className={styles.menuText}>Public Decks</span>
                 </NavLink>
@@ -269,8 +308,11 @@ function UserProfile() {
                   <li className={styles.sidebarEmptyText}>No decks available</li>
                 ) : (
                   myDecks.slice(0, 3).map((deck) => (
-                    <li key={deck.id} className={styles.sidebarListItem}>
-                      <Link to={`/deck/${deck.id}`} className={styles.menuItem}>
+                    <li key={deck.id || deck.deck_id} className={styles.sidebarListItem}>
+                      <Link
+                        to={`/deck/${deck.id || deck.deck_id}`}
+                        className={styles.menuItem}
+                      >
                         <i className="bx bx-book"></i>
                         <span className={styles.menuText}>{deck.title}</span>
                       </Link>
@@ -315,11 +357,33 @@ function UserProfile() {
             <form className={styles.searchBar} onSubmit={(e) => e.preventDefault()}>
               <input
                 type="text"
-                placeholder="Search decks"
+                placeholder={
+                  activeDeckTab === "archive"
+                    ? "Search archived decks"
+                    : "Search decks"
+                }
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
-              <i className="bx bx-search" />
+
+              {search.trim() ? (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  aria-label="Clear search"
+                  style={{
+                    border: "none",
+                    background: "transparent",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <i className="bx bx-x"></i>
+                </button>
+              ) : (
+                <i className="bx bx-search" />
+              )}
             </form>
 
             <div className={styles.profileWrapper}>
@@ -335,11 +399,17 @@ function UserProfile() {
                 >
                   <i className="bx bx-bell"></i>
                   {notificationCount > 0 && (
-                    <span className={styles.notificationBadge}>{notificationCount}</span>
+                    <span className={styles.notificationBadge}>
+                      {notificationCount}
+                    </span>
                   )}
                 </button>
 
-                <div className={`${styles.notificationDropdown} ${notificationOpen ? styles.show : ""}`}>
+                <div
+                  className={`${styles.notificationDropdown} ${
+                    notificationOpen ? styles.show : ""
+                  }`}
+                >
                   <h4>Notifications</h4>
                   <div className={styles.emptyNotification}>
                     <p>You don’t have any new notifications</p>
@@ -368,7 +438,11 @@ function UserProfile() {
                   <i className="bx bx-chevron-down" />
                 </button>
 
-                <div className={`${styles.dropdownContent} ${dropdownOpen ? styles.show : ""}`}>
+                <div
+                  className={`${styles.dropdownContent} ${
+                    dropdownOpen ? styles.show : ""
+                  }`}
+                >
                   <NavLink to="/edit-profile">
                     <i className="bx bx-cog" />
                     <span>Settings</span>
@@ -410,17 +484,23 @@ function UserProfile() {
                 <div className={styles.profileInfoGrid}>
                   <div className={styles.profileField}>
                     <span className={styles.profileLabel}>Username:</span>
-                    <span className={styles.profileValue}>{user.username || "User"}</span>
+                    <span className={styles.profileValue}>
+                      {user.username || "User"}
+                    </span>
                   </div>
 
                   <div className={styles.profileField}>
                     <span className={styles.profileLabel}>Year:</span>
-                    <span className={styles.profileValue}>{user.year_level || "Not set"}</span>
+                    <span className={styles.profileValue}>
+                      {user.year_level || "Not set"}
+                    </span>
                   </div>
 
                   <div className={`${styles.profileField} ${styles.profileFieldWide}`}>
                     <span className={styles.profileLabel}>School:</span>
-                    <span className={styles.profileValue}>{user.school || "Not set"}</span>
+                    <span className={styles.profileValue}>
+                      {user.school || "Not set"}
+                    </span>
                   </div>
 
                   <div className={styles.profileField}>
@@ -432,7 +512,10 @@ function UserProfile() {
 
                   <div className={styles.profileButtonWrap}>
                     {isOwnProfile ? (
-                      <button className={styles.editBtn} onClick={() => navigate("/edit-profile")}>
+                      <button
+                        className={styles.editBtn}
+                        onClick={() => navigate("/edit-profile")}
+                      >
                         Edit Profile
                       </button>
                     ) : (
@@ -449,7 +532,9 @@ function UserProfile() {
               <div className={styles.deckTabsHeader}>
                 <button
                   type="button"
-                  className={activeDeckTab === "decks" ? styles.activeTab : styles.tabBtn}
+                  className={
+                    activeDeckTab === "decks" ? styles.activeTab : styles.tabBtn
+                  }
                   onClick={() => setActiveDeckTab("decks")}
                 >
                   {isOwnProfile ? "My Decks" : `${user.username || "User"}'s Decks`}
@@ -461,7 +546,11 @@ function UserProfile() {
 
                     <button
                       type="button"
-                      className={activeDeckTab === "archive" ? styles.activeTab : styles.tabBtn}
+                      className={
+                        activeDeckTab === "archive"
+                          ? styles.activeTab
+                          : styles.tabBtn
+                      }
                       onClick={() => setActiveDeckTab("archive")}
                     >
                       Archive
@@ -474,9 +563,17 @@ function UserProfile() {
                 <div className={styles.decksGrid}>
                   {myDecks.length === 0 ? (
                     <p className={styles.emptyText}>No decks available</p>
+                  ) : filteredDecks.length === 0 ? (
+                    <p className={styles.emptyText}>
+                      No decks found for “{search}”.
+                    </p>
                   ) : (
-                    myDecks.map((deck, index) => (
-                      <Link key={deck.id} to={`/deck/${deck.id}`} className={styles.deckBox}>
+                    filteredDecks.map((deck, index) => (
+                      <Link
+                        key={deck.id || deck.deck_id}
+                        to={`/deck/${deck.id || deck.deck_id}`}
+                        className={styles.deckBox}
+                      >
                         <div
                           className={`${styles.deckPreview} ${
                             index % 4 === 0
@@ -501,46 +598,64 @@ function UserProfile() {
 
               {activeDeckTab === "archive" && (
                 <div className={styles.decksGrid}>
-                {archivedDecks.length === 0 ? (
-                  <p className={styles.emptyText}>No archived decks yet</p>
-                ) : (
-              archivedDecks.map((deck, index) => (
-                <div key={deck.id} className={styles.deckBox}>
-                  
-                  {/* 3 DOTS MENU */}
-                  <div className={styles.deckMenuWrapper}>
-                    <button
-                      type="button"
-                      className={styles.deckMenuBtn}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDropdownOpen(deck.id === dropdownOpen ? null : deck.id);
-                      }}
-                    >
-                      <i className="bx bx-dots-vertical-rounded"></i>
-                    </button>
+                  {archivedDecks.length === 0 ? (
+                    <p className={styles.emptyText}>No archived decks yet</p>
+                  ) : filteredArchivedDecks.length === 0 ? (
+                    <p className={styles.emptyText}>
+                      No archived decks found for “{search}”.
+                    </p>
+                  ) : (
+                    filteredArchivedDecks.map((deck, index) => (
+                      <div key={deck.id || deck.deck_id} className={styles.deckBox}>
+                        <div className={styles.deckMenuWrapper}>
+                          <button
+                            type="button"
+                            className={styles.deckMenuBtn}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setArchivedDropdownOpen(
+                                archivedDropdownOpen === deck.id ? null : deck.id
+                              );
+                            }}
+                          >
+                            <i className="bx bx-dots-vertical-rounded"></i>
+                          </button>
 
-                    {dropdownOpen === deck.id && (
-                      <div className={styles.deckDropdown}>
-                        <button
-                          onClick={() => handleRestore(deck.id)}
-                        >
-                          Restore
-                        </button>
+                          {archivedDropdownOpen === deck.id && (
+                            <div className={styles.deckDropdown}>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleRestore(deck.id);
+                                  setArchivedDropdownOpen(null);
+                                }}
+                              >
+                                Restore
+                              </button>
+                            </div>
+                          )}
+                        </div>
+
+                        <div
+                          className={`${styles.deckPreview} ${
+                            index % 4 === 0
+                              ? styles.previewBlue
+                              : index % 4 === 1
+                              ? styles.previewPink
+                              : index % 4 === 2
+                              ? styles.previewViolet
+                              : styles.previewRed
+                          }`}
+                        ></div>
+
+                        <div className={styles.deckText}>
+                          <strong>{deck.title}</strong>
+                          <p>{deck.card_count ?? 0} cards</p>
+                        </div>
                       </div>
-                    )}
-                  </div>
-
-                  <div className={styles.deckPreview}></div>
-
-                  <div className={styles.deckText}>
-                    <strong>{deck.title}</strong>
-                    <p>{deck.card_count ?? 0} cards</p>
-                  </div>
+                    ))
+                  )}
                 </div>
-              ))
-                )}     
-           </div>
               )}
             </div>
           </main>
