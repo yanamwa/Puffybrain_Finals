@@ -1,58 +1,46 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import styles from "../quizzes/QandA-tutorial.module.css";
 import { useNavigate, useParams } from "react-router-dom";
 
 const slidesData = [
-  { question: 'What is the primary purpose of a "Router" in a home network?' },
-  { question: "Which network device is used to amplify a Wi-Fi signal to extend coverage?" },
-  { question: 'What does the acronym "LAN" commonly stand for?' },
-];
+  {
+    question: 'What is the primary purpose of a "Router" in a home network?',
+    status: "correct",
+    answer: "Correct Answer: Connect devices to the internet",
+  },
 
-const colors = [
-  { bg: "rgba(255, 16, 16, 0.24)", border: "rgba(83, 9, 9, 0.7)" },
-  { bg: "rgba(42, 180, 52, 0.24)", border: "rgba(16, 255, 32, 0.7)" },
+  {
+    question:
+      "Which network device is used to amplify a Wi-Fi signal to extend coverage?",
+    status: "wrong",
+    answer: "Incorrect Answer",
+  },
+
+  {
+    question: 'What does the acronym "LAN" commonly stand for?',
+    status: "correct",
+    answer: "Correct Answer: Local Area Network",
+  },
 ];
 
 export default function QandATutorial() {
-  const navigate = useNavigate();        
-  const { lessonId, deckId } = useParams();  
+  const navigate = useNavigate();
+  const { lessonId, deckId } = useParams();
+
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [colorIndex, setColorIndex] = useState(0);
-  const inputRef = useRef(null);
 
-  // Handle Enter key
-  const handleEnter = (event) => {
-    if (event.key === "Enter") {
-      alert("You submitted: " + event.target.value);
-      event.target.value = "";
-    }
-  };
-
-  // Slide rotation
+  /* AUTO SLIDE */
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slidesData.length);
     }, 5500);
+
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    if (!inputRef.current) return;
-
-    const flash = setInterval(() => {
-      const color = colors[colorIndex];
-      inputRef.current.style.backgroundColor = color.bg;
-      inputRef.current.style.borderColor = color.border;
-
-      setColorIndex((prev) => (prev + 1) % colors.length);
-    }, 1900);
-
-    return () => clearInterval(flash);
-  }, [currentSlide]);
-
   return (
     <div className={styles.container}>
-      
+
       {/* HEADER */}
       <div className={styles.headerBox}>
         <div className={styles.headerTop}>
@@ -60,15 +48,20 @@ export default function QandATutorial() {
         </div>
 
         <div className={styles.subtitles}>
-          <p className={styles.subtitle}>Ask, Answer, and explore!</p>
           <p className={styles.subtitle}>
-            Challenge your brain with interesting questions and discover something new every time you play!
+            Ask, Answer, and explore!
+          </p>
+
+          <p className={styles.subtitle}>
+            Challenge your brain with interesting questions and
+            discover something new every time you play!
           </p>
         </div>
 
-       <button
+        <button
           className={styles.startBtn}
           onClick={() => {
+
             if (lessonId) {
               navigate(`/qna/lesson/${lessonId}`);
               return;
@@ -86,25 +79,32 @@ export default function QandATutorial() {
 
       {/* SLIDESHOW */}
       <div className={styles.slideshowBox}>
+
         {slidesData.map((slide, i) => (
+
           <div
             key={i}
             className={`${styles.slide} ${
               currentSlide === i ? styles.active : ""
             }`}
           >
-            <p className={styles.question}>{slide.question}</p>
 
-            <input
-              type="text"
-              className={styles.placeholder}
-              placeholder="Type your answer and press Enter"
-              autoComplete="off"
-              disabled
-              ref={currentSlide === i ? inputRef : null}
-            />
+            {/* QUESTION */}
+            <p className={styles.question}>
+              {slide.question}
+            </p>
 
-            <p className={styles.result}></p>
+            {/* ANSWER BOX */}
+            <div
+              className={`${styles.answerBox} ${
+                slide.status === "correct"
+                  ? styles.correct
+                  : styles.wrong
+              }`}
+            >
+              {slide.answer}
+            </div>
+
           </div>
         ))}
 
@@ -119,6 +119,7 @@ export default function QandATutorial() {
             ></span>
           ))}
         </div>
+
       </div>
     </div>
   );
