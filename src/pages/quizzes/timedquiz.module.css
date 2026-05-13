@@ -1,23 +1,35 @@
+/* =========================
+   UPDATED TIMED QUIZ CSS
+========================= */
+
 .page {
   min-height: 100vh;
   padding: 48px 20px;
-  background: repeating-linear-gradient(
-    to bottom,
-    #ffffff 0px,
-    #ffffff 22px,
-    #e8e8e8 23px,
-    #ffffff 24px
-  );
+
+  background-image: url("/public/images/background_notebook.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
   box-sizing: border-box;
 }
+
+/* =========================
+   HEADER
+========================= */
 
 .headerBox {
   width: 70%;
   margin: 0 auto 25px;
+
   background: #ffffff;
+
   border-radius: 35px;
   overflow: hidden;
+
   text-align: center;
+
+  box-shadow: 0 8px 15px rgba(0,0,0,0.10);
 }
 
 .headerTop {
@@ -27,9 +39,14 @@
 
 .title {
   margin: 0;
-  font-size: 24px;
-  font-weight: 700;
-  color: #333;
+
+  font-family: "Jersey 15", sans-serif;
+  font-size: 42px;
+
+  font-weight: normal;
+  font-style: normal;
+
+  color: #111;
 }
 
 .subtitles {
@@ -38,48 +55,96 @@
 
 .subtitle {
   margin: 6px 0;
-  font-size: 13px;
-  font-weight: 700;
+
+  font-size: 15px;
+
+  font-weight: normal;
+  font-style: normal;
+
   color: #111;
 }
 
+/* =========================
+   START BUTTON
+========================= */
+
 .startBtn {
-  margin: 8px 0 18px;
-  width: 82px;
-  height: 28px;
-  border: none;
-  border-radius: 18px;
-  background: #dfa0d8;
-  font-weight: 700;
+  margin: 10px 0 20px;
+
+  width: 140px;
+  height: 45px;
+
+  border-radius: 20px;
+
+  background: #9f89c2;
+
+  border: 1px solid #a38aca;
+
+  box-shadow: 0 4px rgb(162, 140, 197);
+
+  font-family: inherit;
+  font-size: 20px;
+
+  font-weight: normal;
+  font-style: normal;
+
   cursor: pointer;
-  box-shadow: 4px 3px 0 #ead4ff;
+
+  transition: 0.25s ease;
 }
+
+.startBtn:hover {
+  transform: translateY(-2px);
+}
+
+/* =========================
+   QUESTION BOX
+========================= */
 
 .slideshowBox,
 .questionBox {
   position: relative;
+
   width: 62%;
+
   margin: 0 auto 35px;
-  padding: 30px 45px 15px;
+
+  padding: 35px 45px 20px;
+
   background: #f1f1f1;
+
   border-radius: 55px;
+
   box-sizing: border-box;
+
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
 }
+
+/* =========================
+   TIMER
+========================= */
 
 .timerBox {
   position: absolute;
+
   top: -17px;
   right: 65px;
+
   background: #f1f1f1;
+
   padding: 5px 18px 8px;
+
   border-radius: 22px;
 }
 
 .timer {
   width: 95px;
   height: 34px;
+
   background: #ffffff;
+
   border: 2px solid #cfd5ff;
+
   border-radius: 20px;
 
   display: flex;
@@ -87,10 +152,14 @@
   justify-content: center;
 
   font-size: 16px;
-  font-weight: 700;
+
+  font-weight: normal;
+  font-style: normal;
+
   color: #222;
 
   box-shadow: 3px 3px 0 #d6d5ff;
+
   transition: all 0.25s ease;
 }
 
@@ -103,12 +172,16 @@
 .dangerTimer {
   border-color: #ff6b6b;
   background: #ffe0e0;
+
   color: #c91818;
+
   box-shadow: 3px 3px 0 #ffaaaa;
+
   animation: timerPulse 0.7s infinite;
 }
 
 @keyframes timerPulse {
+
   0% {
     transform: scale(1);
   }
@@ -122,49 +195,120 @@
   }
 }
 
+/* =========================
+   QUESTION
+========================= */
+
 .question {
   width: 100%;
+
   margin: 0 auto 22px;
+
   padding: 18px 35px;
+
   background: #ffffff;
-  border: 1.5px solid #69aee6;
-  border-radius: 9px;
+
+  border: 2px solid #b26adf;
+
+  border-radius: 15px;
+
   box-sizing: border-box;
-  font-size: 15px;
+
+  font-size: 17px;
+
+  font-weight: normal;
+  font-style: normal;
+
   color: #222;
+
+  text-align: center;
+
+  box-shadow: 0 4px rgb(220,220,220);
 }
+
+/* =========================
+   OPTIONS
+========================= */
 
 .options,
 .previewOptions {
   display: flex;
   flex-direction: column;
   align-items: center;
+
   gap: 18px;
 }
 
 .option {
   width: 68%;
-  min-height: 31px;
-  border: 1px solid #ddd;
-  border-radius: 13px;
+  min-height: 45px;
+
+  padding: 12px 18px;
+
+  border-radius: 16px;
+
   background: #ffffff;
-  font-size: 15px;
+
+  border: 2px solid #b26adf;
+
+  font-size: 16px;
+
+  font-family: inherit;
+
+  font-weight: normal;
+  font-style: normal;
+
   color: #222;
+
   cursor: pointer;
-  box-shadow: 0 3px 4px rgba(0, 0, 0, 0.18);
+
+  box-shadow: 0 4px rgb(220,220,220);
+
+  transition: 0.25s ease;
 }
 
 .option:hover {
   transform: translateY(-2px);
+  background: #f8f4ff;
 }
 
+/* =========================
+   CORRECT / WRONG
+========================= */
+
 .correct {
-  background: #b7ffbd;
+  background: #b7ffbd !important;
+  border-color: #2ecc71 !important;
 }
 
 .wrong {
-  background: #ffb5b5;
+  background: #ffb5b5 !important;
+  border-color: #e74c3c !important;
 }
+
+/* =========================
+   RESULT TEXT
+========================= */
+
+.correctText {
+  color: #1f9d39;
+  font-size: 18px;
+  margin-top: 15px;
+
+  font-weight: normal;
+}
+
+.wrongText {
+  color: #d11a2a;
+  font-size: 18px;
+  margin-top: 15px;
+
+  font-weight: normal;
+}
+
+/* =========================
+   DOTS
+========================= */
 
 .dots {
   margin-top: 20px;
@@ -174,15 +318,23 @@
 .dot {
   width: 12px;
   height: 12px;
+
   margin: 0 5px;
+
   display: inline-block;
+
   border-radius: 50%;
+
   background: #d8d8d8;
 }
 
 .activeDot {
   background: #c79aea;
 }
+
+/* =========================
+   PROGRESS BAR
+========================= */
 
 .quizHeader {
   width: 70%;
@@ -193,52 +345,95 @@
 .progressContainer {
   width: 70%;
   height: 12px;
+
   margin: 15px auto;
+
   background: #ddd;
+
   border-radius: 20px;
+
   overflow: hidden;
 }
 
 .progressBar {
   height: 100%;
+
   background: #c79aea;
+
   border-radius: 20px;
+
   transition: width 0.3s ease;
 }
+
+/* =========================
+   RESULT PAGE
+========================= */
 
 .resultContainer {
   width: 70%;
   margin: 50px auto;
+
   text-align: center;
 }
 
 .scoreContainer {
   font-size: 36px;
-  font-weight: 700;
+
+  font-weight: normal;
 }
 
 .buttonsContainer button {
   margin: 15px 8px;
-  padding: 10px 24px;
+
+  padding: 12px 26px;
+
   border-radius: 20px;
-  border: none;
+
   cursor: pointer;
+
+  font-size: 16px;
+
+  font-weight: normal;
+  font-style: normal;
+
+  transition: 0.25s ease;
 }
 
 .tryAgain {
-  background: #dfa0d8;
+  background: #9f89c2;
+
+  border: 1px solid #a38aca;
+
+  box-shadow: 0 4px rgb(162, 140, 197);
 }
 
 .goHome {
   background: #ffffff;
-  border: 1px solid #ccc;
+
+  border: 2px solid #b26adf;
+
+  box-shadow: 0 4px rgb(220,220,220);
 }
+
+.tryAgain:hover,
+.goHome:hover {
+  transform: translateY(-2px);
+}
+
+/* =========================
+   REVIEW
+========================= */
 
 .reviewItem {
   margin: 18px;
+
   padding: 16px;
+
   background: #f1f1f1;
+
   border-radius: 15px;
+
+  border: 2px solid #d6b5f7;
 }
 
 .reviewItem strong {
@@ -246,34 +441,48 @@
   margin-bottom: 8px;
 }
 
+/* =========================
+   MOBILE
+========================= */
+
 @media (max-width: 768px) {
+
   .headerBox,
   .quizHeader,
   .resultContainer {
-    width: 92%;
+    width: 95%;
   }
 
   .slideshowBox,
   .questionBox {
-    width: 92%;
-    padding: 30px 22px 18px;
+    width: 95%;
+
+    padding: 30px 20px 18px;
+
     border-radius: 35px;
   }
 
   .timerBox {
-    right: 25px;
+    right: 20px;
   }
 
   .option {
-    width: 90%;
+    width: 95%;
+    font-size: 15px;
   }
 
   .title {
-    font-size: 22px;
+    font-size: 32px;
   }
 
   .question {
-    font-size: 14px;
+    font-size: 15px;
     padding: 16px;
+  }
+
+  .startBtn {
+    width: 120px;
+    height: 42px;
+    font-size: 18px;
   }
 }
