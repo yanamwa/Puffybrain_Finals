@@ -11,6 +11,7 @@ function PublicDecks() {
   const [search, setSearch] = useState("");
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
 
   const [lessons, setLessons] = useState([]);
   const [publicDecks, setPublicDecks] = useState([]);
@@ -25,7 +26,9 @@ function PublicDecks() {
   const [deckSortOpen, setDeckSortOpen] = useState(false);
   const [deckYearOpen, setDeckYearOpen] = useState(false);
 
-  const notificationCount = 0;
+  const notificationCount = notifications.filter(
+    (notif) => notif.status === "unread"
+  ).length;
 
   const [user, setUser] = useState({
     username: "",
@@ -90,6 +93,54 @@ function PublicDecks() {
       }
     } catch (err) {
       console.error("Fetch user error:", err);
+    }
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch(
+        "http://localhost/puffybrain/getUserNotifications.php",
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        setNotifications(data.notifications || []);
+      } else {
+        setNotifications([]);
+      }
+    } catch (err) {
+      console.error("Notification fetch error:", err);
+      setNotifications([]);
+    }
+  };
+
+  const markNotificationsAsRead = async () => {
+    try {
+      const res = await fetch(
+        "http://localhost/puffybrain/markNotificationsAsRead.php",
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        setNotifications((prev) =>
+          prev.map((notif) => ({
+            ...notif,
+            status: "read",
+          }))
+        );
+      }
+    } catch (err) {
+      console.error("Mark notifications as read error:", err);
     }
   };
 
@@ -158,6 +209,7 @@ function PublicDecks() {
 
   useEffect(() => {
     fetchUser();
+    fetchNotifications();
     fetchUserDecks();
     fetchCourses();
     fetchLessons();
@@ -167,7 +219,7 @@ function PublicDecks() {
   useEffect(() => {
     const handler = (e) => {
       const insideDropdown = e.target.closest(
-        `.${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}, .${styles.customDropdown}`
+        `.${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}, .${styles.customDropdown}, .${styles.searchBar}`
       );
 
       if (!insideDropdown) {
@@ -272,90 +324,90 @@ function PublicDecks() {
   };
 
   const filteredLessons = useMemo(() => {
-  const q = search.trim().toLowerCase();
+    const q = search.trim().toLowerCase();
 
-  let result = lessons.filter((lesson) => {
-    if (!q) return true;
-
-    const searchableText = [
-      lesson.title,
-      lesson.description,
-      lesson.subject,
-      lesson.category,
-    ]
-      .join(" ")
-      .toLowerCase();
-
-    return searchableText.includes(q);
-  });
-
-  if (courseSort === "az") {
-    result = [...result].sort((a, b) =>
-      (a.title || "").localeCompare(b.title || "")
-    );
-  }
-
-  if (courseSort === "recent") {
-    result = [...result].sort((a, b) => Number(b.id) - Number(a.id));
-  }
-
-  if (courseSort === "oldest") {
-    result = [...result].sort((a, b) => Number(a.id) - Number(b.id));
-  }
-
-  return result;
-}, [lessons, search, courseSort]);
-
-const filteredPublicDecks = useMemo(() => {
-  const q = search.trim().toLowerCase();
-
-  let result = publicDecks
-    .filter((deck) => {
+    let result = lessons.filter((lesson) => {
       if (!q) return true;
 
       const searchableText = [
-        deck.title,
-        deck.description,
-        deck.username,
-        deck.created_by,
-        deck.creator,
-        deck.creator_username,
-        deck.uploader_username,
+        lesson.title,
+        lesson.description,
+        lesson.subject,
+        lesson.category,
       ]
         .join(" ")
         .toLowerCase();
 
       return searchableText.includes(q);
-    })
-    .filter((deck) => {
-      const uploaderYear =
-        deck.uploader_year_level ||
-        deck.creator_year_level ||
-        deck.year_level ||
-        deck.level ||
-        "";
-
-      if (!deckYear) return true;
-
-      return normalizeYear(uploaderYear) === normalizeYear(deckYear);
     });
 
-  if (deckSort === "az") {
-    result = [...result].sort((a, b) =>
-      (a.title || "").localeCompare(b.title || "")
-    );
-  }
+    if (courseSort === "az") {
+      result = [...result].sort((a, b) =>
+        (a.title || "").localeCompare(b.title || "")
+      );
+    }
 
-  if (deckSort === "recent") {
-    result = [...result].sort((a, b) => Number(b.id) - Number(a.id));
-  }
+    if (courseSort === "recent") {
+      result = [...result].sort((a, b) => Number(b.id) - Number(a.id));
+    }
 
-  if (deckSort === "oldest") {
-    result = [...result].sort((a, b) => Number(a.id) - Number(b.id));
-  }
+    if (courseSort === "oldest") {
+      result = [...result].sort((a, b) => Number(a.id) - Number(b.id));
+    }
 
-  return result;
-}, [publicDecks, search, deckSort, deckYear]);
+    return result;
+  }, [lessons, search, courseSort]);
+
+  const filteredPublicDecks = useMemo(() => {
+    const q = search.trim().toLowerCase();
+
+    let result = publicDecks
+      .filter((deck) => {
+        if (!q) return true;
+
+        const searchableText = [
+          deck.title,
+          deck.description,
+          deck.username,
+          deck.created_by,
+          deck.creator,
+          deck.creator_username,
+          deck.uploader_username,
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        return searchableText.includes(q);
+      })
+      .filter((deck) => {
+        const uploaderYear =
+          deck.uploader_year_level ||
+          deck.creator_year_level ||
+          deck.year_level ||
+          deck.level ||
+          "";
+
+        if (!deckYear) return true;
+
+        return normalizeYear(uploaderYear) === normalizeYear(deckYear);
+      });
+
+    if (deckSort === "az") {
+      result = [...result].sort((a, b) =>
+        (a.title || "").localeCompare(b.title || "")
+      );
+    }
+
+    if (deckSort === "recent") {
+      result = [...result].sort((a, b) => Number(b.id) - Number(a.id));
+    }
+
+    if (deckSort === "oldest") {
+      result = [...result].sort((a, b) => Number(a.id) - Number(b.id));
+    }
+
+    return result;
+  }, [publicDecks, search, deckSort, deckYear]);
 
   return (
     <div
@@ -492,9 +544,20 @@ const filteredPublicDecks = useMemo(() => {
                 onChange={(e) => setSearch(e.target.value)}
               />
 
-              <button type="submit" className={styles.searchBtn}>
-                <i className="bx bx-search" />
-              </button>
+              {search.trim() ? (
+                <button
+                  type="button"
+                  className={styles.searchBtn}
+                  onClick={() => setSearch("")}
+                  aria-label="Clear search"
+                >
+                  <i className="bx bx-x" />
+                </button>
+              ) : (
+                <button type="submit" className={styles.searchBtn}>
+                  <i className="bx bx-search" />
+                </button>
+              )}
             </form>
 
             <div className={styles.profileWrapper}>
@@ -523,11 +586,52 @@ const filteredPublicDecks = useMemo(() => {
                     notificationOpen ? styles.show : ""
                   }`}
                 >
-                  <h4>Notifications</h4>
+                  <div className={styles.notificationHeader}>
+                    <h4>Notifications</h4>
 
-                  <div className={styles.emptyNotification}>
-                    <p>You don’t have any new notifications</p>
+                    {notificationCount > 0 && (
+                      <button
+                        type="button"
+                        className={styles.markReadBtn}
+                        onClick={markNotificationsAsRead}
+                      >
+                        Mark all as read
+                      </button>
+                    )}
                   </div>
+
+                  {notifications.length > 0 ? (
+                    notifications.slice(0, 5).map((notif) => (
+                      <div
+                        key={notif.notification_id}
+                        className={styles.notificationItem}
+                      >
+                        <div className={styles.notificationTop}>
+                          <h5>{notif.title}</h5>
+
+                          <span className={styles.notificationRole}>
+                            {notif.target_role}
+                          </span>
+                        </div>
+
+                        <p>{notif.message}</p>
+
+                        <small className={styles.notificationDate}>
+                          {new Date(notif.created_at).toLocaleString()}
+                        </small>
+                      </div>
+                    ))
+                  ) : (
+                    <div className={styles.emptyNotification}>
+                      <img
+                        src="/images/NoNotifcation.png"
+                        alt="No notifications"
+                        className={styles.emptyNotificationImg}
+                      />
+
+                      <p>You don’t have any new notifications</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -618,33 +722,13 @@ const filteredPublicDecks = useMemo(() => {
 
                       {courseSortOpen && (
                         <div className={styles.customDropdownMenu}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setCourseSort("az");
-                              setCourseSortOpen(false);
-                            }}
-                          >
+                          <button type="button" onClick={() => { setCourseSort("az"); setCourseSortOpen(false); }}>
                             A-Z
                           </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setCourseSort("recent");
-                              setCourseSortOpen(false);
-                            }}
-                          >
+                          <button type="button" onClick={() => { setCourseSort("recent"); setCourseSortOpen(false); }}>
                             Recently Added
                           </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setCourseSort("oldest");
-                              setCourseSortOpen(false);
-                            }}
-                          >
+                          <button type="button" onClick={() => { setCourseSort("oldest"); setCourseSortOpen(false); }}>
                             Oldest
                           </button>
                         </div>
@@ -744,33 +828,13 @@ const filteredPublicDecks = useMemo(() => {
 
                       {deckSortOpen && (
                         <div className={styles.customDropdownMenu}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDeckSort("az");
-                              setDeckSortOpen(false);
-                            }}
-                          >
+                          <button type="button" onClick={() => { setDeckSort("az"); setDeckSortOpen(false); }}>
                             A-Z
                           </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDeckSort("recent");
-                              setDeckSortOpen(false);
-                            }}
-                          >
+                          <button type="button" onClick={() => { setDeckSort("recent"); setDeckSortOpen(false); }}>
                             Recently Added
                           </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDeckSort("oldest");
-                              setDeckSortOpen(false);
-                            }}
-                          >
+                          <button type="button" onClick={() => { setDeckSort("oldest"); setDeckSortOpen(false); }}>
                             Oldest
                           </button>
                         </div>
@@ -795,55 +859,18 @@ const filteredPublicDecks = useMemo(() => {
 
                       {deckYearOpen && (
                         <div className={styles.customDropdownMenu}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDeckYear("");
-                              setDeckYearOpen(false);
-                            }}
-                          >
-                            All Level
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDeckYear("First Year");
-                              setDeckYearOpen(false);
-                            }}
-                          >
-                            First year
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDeckYear("Second Year");
-                              setDeckYearOpen(false);
-                            }}
-                          >
-                            Second year
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDeckYear("Third Year");
-                              setDeckYearOpen(false);
-                            }}
-                          >
-                            Third year
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDeckYear("Fourth Year");
-                              setDeckYearOpen(false);
-                            }}
-                          >
-                            Fourth year
-                          </button>
+                          {["", "First Year", "Second Year", "Third Year", "Fourth Year"].map((year) => (
+                            <button
+                              key={year || "all"}
+                              type="button"
+                              onClick={() => {
+                                setDeckYear(year);
+                                setDeckYearOpen(false);
+                              }}
+                            >
+                              {year || "All Level"}
+                            </button>
+                          ))}
                         </div>
                       )}
                     </div>

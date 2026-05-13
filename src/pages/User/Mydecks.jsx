@@ -26,7 +26,11 @@ export default function Mydecks() {
   const [courses, setCourses] = useState([]);
 
   const [notificationOpen, setNotificationOpen] = useState(false);
-  const notificationCount = 0;
+  const [notifications, setNotifications] = useState([]);
+
+  const notificationCount = notifications.filter(
+    (notif) => notif.status === "unread"
+  ).length;
 
   const [user, setUser] = useState({
     username: "",
@@ -50,9 +54,7 @@ export default function Mydecks() {
       confirmButtonText: "Yes",
       confirmButtonColor: "#7b5cff",
     }).then((result) => {
-      if (result.isConfirmed) {
-        navigate("/login");
-      }
+      if (result.isConfirmed) navigate("/login");
     });
   };
 
@@ -77,14 +79,11 @@ export default function Mydecks() {
       });
 
       const data = await res.json();
-      console.log("USER DECKS RESPONSE:", data);
 
       if (data.success) {
         const rawDecks = data.decks || [];
-        const normalizedDecks = rawDecks.map(normalizeDeck);
-
         setMyDecks(rawDecks);
-        setDecks(normalizedDecks);
+        setDecks(rawDecks.map(normalizeDeck));
       } else {
         setDecks([]);
         setMyDecks([]);
@@ -131,10 +130,59 @@ export default function Mydecks() {
     }
   };
 
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch(
+        "http://localhost/puffybrain/getUserNotifications.php",
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        setNotifications(data.notifications || []);
+      } else {
+        setNotifications([]);
+      }
+    } catch (err) {
+      console.error("Notification fetch error:", err);
+      setNotifications([]);
+    }
+  };
+
+  const markNotificationsAsRead = async () => {
+    try {
+      const res = await fetch(
+        "http://localhost/puffybrain/markNotificationsAsRead.php",
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        setNotifications((prev) =>
+          prev.map((notif) => ({
+            ...notif,
+            status: "read",
+          }))
+        );
+      }
+    } catch (err) {
+      console.error("Mark notifications as read error:", err);
+    }
+  };
+
   useEffect(() => {
     fetchUserDecks();
     fetchCourses();
     fetchUser();
+    fetchNotifications();
   }, []);
 
   useEffect(() => {
@@ -566,18 +614,18 @@ export default function Mydecks() {
                   type="button"
                   onClick={() => setSearch("")}
                   aria-label="Clear search"
-                  style={{
-                    border: "none",
-                    background: "transparent",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                  }}
+                  className={styles.searchBtn}
                 >
                   <i className="bx bx-x"></i>
                 </button>
               ) : (
-                <i className="bx bx-search" />
+                <button
+                  type="submit"
+                  aria-label="Search"
+                  className={styles.searchBtn}
+                >
+                  <i className="bx bx-search"></i>
+                </button>
               )}
             </form>
 
@@ -595,6 +643,7 @@ export default function Mydecks() {
                   }}
                 >
                   <i className="bx bx-bell"></i>
+
                   {notificationCount > 0 && (
                     <span className={styles.notificationBadge}>
                       {notificationCount}
@@ -607,11 +656,52 @@ export default function Mydecks() {
                     notificationOpen ? styles.show : ""
                   }`}
                 >
-                  <h4>Notifications</h4>
+                  <div className={styles.notificationHeader}>
+                    <h4>Notifications</h4>
 
-                  <div className={styles.emptyNotification}>
-                    <p>You don’t have any new notifications</p>
+                    {notificationCount > 0 && (
+                      <button
+                        type="button"
+                        className={styles.markReadBtn}
+                        onClick={markNotificationsAsRead}
+                      >
+                        Mark all as read
+                      </button>
+                    )}
                   </div>
+
+                  {notifications.length > 0 ? (
+                    notifications.slice(0, 5).map((notif) => (
+                      <div
+                        key={notif.notification_id}
+                        className={styles.notificationItem}
+                      >
+                        <div className={styles.notificationTop}>
+                          <h5>{notif.title}</h5>
+
+                          <span className={styles.notificationRole}>
+                            {notif.target_role}
+                          </span>
+                        </div>
+
+                        <p>{notif.message}</p>
+
+                        <small className={styles.notificationDate}>
+                          {new Date(notif.created_at).toLocaleString()}
+                        </small>
+                      </div>
+                    ))
+                  ) : (
+                    <div className={styles.emptyNotification}>
+                      <img
+                        src="/images/NoNotifcation.png"
+                        alt="No notifications"
+                        className={styles.emptyNotificationImg}
+                      />
+
+                      <p>You don’t have any new notifications</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
