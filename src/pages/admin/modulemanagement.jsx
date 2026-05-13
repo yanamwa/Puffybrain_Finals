@@ -96,6 +96,7 @@ export default function ModuleManagement() {
   const [textViewOpen, setTextViewOpen] = useState(false);
   const [textViewTitle, setTextViewTitle] = useState("");
   const [textViewContent, setTextViewContent] = useState("");
+  
 
 
 
@@ -127,8 +128,13 @@ export default function ModuleManagement() {
       path: "/admin/modes",
       icon: <Gamepad2 size={20} />,
     },
+    {
+      label: "Notification Management",
+      path: "/admin/notifications",
+      icon: <i className="bx bx-bell"></i>,
+    },
   ];
-
+  
   const handleLogout = (e) => {
     e.preventDefault();
 
@@ -438,14 +444,17 @@ export default function ModuleManagement() {
         </div>
       </header>
 
-      <main className={styles.main}>
-        <div className={styles.pageHeader}>
-          <h1>Module Management</h1>
-
-          <button type="button" className={styles.addBtn} onClick={openAdd}>
-            + Add new module
-          </button>
+    <main className={styles.main}>
+      <div className={styles.pageTop}>
+        <div className={styles.titleSection}>
+          <h1 className={styles.pageTitle}>Module Management</h1>
+          <p> Create and manage learning modules for PuffyBrain users. </p>
         </div>
+
+        <button type="button" className={styles.addBtn} onClick={openAdd}>
+          + Add new module
+        </button>
+      </div>
 
         <div className={styles.tableCard}>
           <table className={styles.table}>
@@ -768,13 +777,11 @@ export default function ModuleManagement() {
                 <strong>{deleteTarget.title}</strong>?
               </p>
 
-              <p className={styles.popupDeleteText}>
-                Description: {deleteTarget.module_description || "—"}
-              </p>
+            <div className={styles.warningBox}>
+              <i className='bx bx-error-circle'></i>
 
-              <p className={styles.popupDeleteText}>
-                This action cannot be undone.
-              </p>
+              <span>This action cannot be undone.</span>
+            </div>
 
               <div className={styles.popupActions}>
                 <button

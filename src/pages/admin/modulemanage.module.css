@@ -348,6 +348,11 @@
   background: #ffffff;
 }
 
+.titleSection {
+  display: flex;
+  flex-direction: column;
+}
+
 .pageHeader {
   display: flex;
   justify-content: space-between;
@@ -355,10 +360,25 @@
   margin-bottom: 22px;
 }
 
-.pageHeader h1 {
-  font-size: 26px;
-  font-weight: 900;
+.pageTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 38px;
+  position: relative;
+  padding-bottom: 28px;
+}
+
+.pageTitle {
   margin: 0;
+  font-size: 34px;
+  color: var(--font-color);
+}
+
+.pageTop p {
+  margin: 8px 0 0;
+  color: #777;
+  font-size: 17px;
 }
 
 .addBtn {
@@ -807,17 +827,43 @@
 }
 
 .popupDeleteText {
-  font-size: 15px;
+  font-size: 20px;
   color: #333333;
-  line-height: 1.7;
-  margin: 10px 0 0;
+  line-height: 1.8;
+  margin: 14px 0 0;
 }
 
 .popupActions {
   display: flex;
   justify-content: center;
-  gap: 18px;
-  margin-top: 26px;
+  gap: 14px;
+  margin-top: 32px;
+}
+
+.warningBox {
+  margin-top: 24px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 14px 16px;
+
+  border-radius: 14px;
+
+  background: #fff1f0;
+  border: 1px solid #ffb3ad;
+
+  color: #c0392b;
+
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.warningBox i {
+  font-size: 24px;
+  color: #e74c3c;
+  flex-shrink: 0;
 }
 
 .popupCancelBtn,
@@ -833,15 +879,41 @@
 }
 
 .popupCancelBtn {
-  background: #ffffff;
-  border: 2px solid #2b2b2b;
-  color: #111111;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid #363636;
+  background: #6a6a6a;
+  color: #ffffff;
+  box-shadow: 0 5px 0px rgb(83, 83, 83);
+  cursor: pointer;
+  font-size: 18px;
+  font-family: inherit;
 }
 
 .popupDeleteBtn {
-  background: #ef5350;
-  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 120px;
+  height: 42px;
+
+  border-radius: 10px;
+  border: 1px solid #8f2020;
+
+  background: #e74c3c;
   color: #ffffff;
+
+  box-shadow: 0 5px 0px rgba(129, 10, 10, 0.887);
+
+  cursor: pointer;
+
+  font-size: 18px;
+  font-family: inherit;
 }
 
 .textViewModal {

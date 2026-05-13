@@ -107,13 +107,13 @@ export default function AdminDashboard() {
       path: "/admin/modes",
       icon: <Gamepad2 size={20} />,
     },
-        {
-      label: "Notifacation Management",
+    {
+      label: "Notification Management",
       path: "/admin/notifications",
-      icon: <Gamepad2 size={20} />,
+      icon: <i className="bx bx-bell"></i>,
     },
   ];
-
+  
   useEffect(() => {
     async function fetchDashboardData() {
       try {

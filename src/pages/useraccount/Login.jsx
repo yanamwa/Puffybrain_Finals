@@ -10,6 +10,10 @@ function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
+  // NEW
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const MAX_ATTEMPTS = 10;
+
   const handleLogin = () => {
     if (!username || !password) {
       Swal.fire({
@@ -22,26 +26,50 @@ function Login() {
       return;
     }
 
+    // BLOCK LOGIN AFTER 10 TRIES
+    if (loginAttempts >= MAX_ATTEMPTS) {
+      Swal.fire({
+        imageUrl: "/images/error.png",
+        imageWidth: 170,
+        imageHeight: 170,
+        title: "Too Many Attempts",
+        text: "You reached the maximum login attempts. Please try again later.",
+      });
+      return;
+    }
+
     fetch("http://localhost/puffybrain/login.php", {
       method: "POST",
-      credentials: "include", 
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),
     })
       .then((res) => res.json())
       .then((data) => {
         if (!data.success) {
+
+          // INCREASE ATTEMPTS
+          const newAttempts = loginAttempts + 1;
+          setLoginAttempts(newAttempts);
+
           Swal.fire({
             imageUrl: "/images/error.png",
             imageWidth: 170,
             imageHeight: 170,
             title: "Login Failed",
-            text: data.message || "Invalid credentials",
+            text:
+              data.message ||
+              `Invalid credentials. Attempts left: ${
+                MAX_ATTEMPTS - newAttempts
+              }`,
           });
+
           return;
         }
 
-        // Optional localStorage (NOT for auth, just UI)
+        // RESET ATTEMPTS ON SUCCESS
+        setLoginAttempts(0);
+
         localStorage.setItem("user_email", data.email);
         localStorage.setItem("username", data.username);
 
@@ -67,7 +95,6 @@ function Login() {
         Swal.fire("Error", "Server error", "error");
       });
   };
-
   return (
     <div className={styles.wrapper}>
       <section className={styles.container}>

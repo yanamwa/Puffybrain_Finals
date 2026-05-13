@@ -114,6 +114,11 @@ export default function AddModule() {
       path: "/admin/modes",
       icon: <Gamepad2 size={20} />,
     },
+    {
+      label: "Notification Management",
+      path: "/admin/notifications",
+      icon: <i className="bx bx-bell"></i>,
+    },
   ];
 
   const handleLogout = (e) => {

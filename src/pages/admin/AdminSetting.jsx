@@ -60,7 +60,6 @@ export default function AdminSettings() {
     newPassword: "",
     confirmPassword: "",
   });
-
   const menuItems = [
     {
       label: "Dashboard",
@@ -87,8 +86,12 @@ export default function AdminSettings() {
       path: "/admin/modes",
       icon: <Gamepad2 size={20} />,
     },
+    {
+      label: "Notification Management",
+      path: "/admin/notifications",
+      icon: <i className="bx bx-bell"></i>,
+    },
   ];
-
   const showFeedback = (type, title, text) => {
     Swal.fire({
       imageUrl: type === "success" ? "/images/success.png" : "/images/error.png",
