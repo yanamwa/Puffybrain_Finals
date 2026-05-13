@@ -326,8 +326,13 @@ export default function Flashcards() {
 
       <div className={styles.flashcardWrapper}>
         <div className={styles.tab}>
-          <span className={!flipped ? styles.active : ""}>Question</span>
-          <span onClick={() => setFlipped((prev) => !prev)}>Flip</span>
+        <span className={styles.active}>
+  {flipped ? "Answer" : "Question"}
+</span>
+
+<span onClick={() => setFlipped((prev) => !prev)}>
+  Flip
+</span>
         </div>
 
         <div

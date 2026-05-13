@@ -1,11 +1,12 @@
 .todoSection {
-  width: 85%;
-  background: white;
-  padding: 10px;
-  border-radius: 14px;
+  width: 95%;
+  background: #ffffff;
+  padding: 12px;
+  border-radius: 16px;
   margin-top: 20px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  font-family: sans-serif;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+  font-family: inherit;
+  box-sizing: border-box;
 }
 
 .todoHeader {
@@ -17,27 +18,23 @@
 
 .todoHeader h4 {
   margin: 0;
-  font-size: 16px;
-  color: #555;
+  font-size: 17px;
+  color: var(--font-color);
+  font-weight: normal;
 }
 
 .addBtn {
   background: #a993d8;
   border: none;
   color: white;
-  font-size: 18px;
-  width: 28px;
-  height: 28px;
+  font-size: 22px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s ease;
-}
-
-.addBtn:hover {
-  background: #c8a8e9;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 0 #8068b5;
 }
 
 .todoList {
@@ -46,131 +43,147 @@
   margin: 0;
 }
 
-.todoList li {
+.todoItem {
+  width: 100%;
+  min-height: 34px;
+  background: #f3f3f3;
+  border-radius: 10px;
+  padding: 7px 8px;
   display: flex;
-  justify-content: space-between;
-  padding: 6px 8px;
-  margin-bottom: 5px;
-  background: #f5f5f5;
-  border-radius: 8px;
-  font-size: 14px;
+  align-items: center;
+  gap: 7px;
+  box-sizing: border-box;
 }
 
-.todoList li button {
-  background: none;
-  border: none;
-  color: #a993d8;
-  font-size: 18px;
+.checkboxContainer {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.checkboxContainer input {
+  display: none;
+}
+
+.customCheckbox {
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  border: 1.8px solid #b69ae4;
+  background: white;
+  display: block;
   cursor: pointer;
-  transition: color 0.2s ease;
 }
 
-.todoList li button:hover {
-  color: #c8a8e9;
+.checkboxContainer input:checked + .customCheckbox {
+  background: #a993d8;
+  border-color: #a993d8;
+}
+
+.checkboxContainer input:checked + .customCheckbox::after {
+  content: "✓";
+  color: white;
+  font-size: 12px;
+  position: absolute;
+  top: 0px;
+  left: 4px;
+}
+
+.todoText {
+  flex: 1;
+  min-width: 0;
+  font-size: 17px;
+  color: var(--font-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.deleteBtn {
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: #a993d8;
+  font-size: 20px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
 }
 
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10000;
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  background: rgba(0, 0, 0, 0.45);
+  display: grid;
+  place-items: center;
+  z-index: 99999;
 }
 
 .modalContainer {
-  background: white;
-  border-radius: 16px;
   width: 90%;
-  max-width: 400px;
-  box-shadow: 0 20px 60px rgba(169, 147, 216, 0.3);
-  animation: slideUp 0.3s ease;
+  max-width: 420px;
+  background: #ffffff;
+  border-radius: 28px;
   overflow: hidden;
-}
-
-@keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.22);
 }
 
 .modalHeader {
-  background: #ebd3fa;
-  padding: 20px;
+  background: #e3c2ff;
+  padding: 22px;
   text-align: center;
 }
 
 .modalHeader h2 {
   margin: 0;
-  font-size: 24px;
-  font-weight: 500;
-  color: #2f2f2f;
+  font-size: 30px;
+  font-weight: normal;
 }
 
 .modalBody {
-  padding: 30px 20px;
+  padding: 26px 24px 12px;
 }
 
 .modalBody input {
   width: 100%;
-  padding: 12px 16px;
-  font-size: 15px;
-  border: 2px solid #e0e0e0;
-  border-radius: 10px;
+  height: 42px;
+  border: none;
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 999px;
+  background: #ededed;
+  padding: 0 16px;
+  font-family: inherit;
+  font-size: 16px;
   box-sizing: border-box;
 }
 
-.modalBody input:focus {
-  border-color: #a993d8;
-  box-shadow: 0 0 0 3px rgba(169, 147, 216, 0.1);
-}
-
 .modalFooter {
-  padding: 20px;
+  padding: 16px 20px 26px;
   display: flex;
-  gap: 12px;
   justify-content: center;
+  gap: 14px;
 }
 
 .cancelBtn,
 .confirmBtn {
-  padding: 10px 24px;
-  border-radius: 50px;
+  min-width: 110px;
+  height: 38px;
+  border-radius: 999px;
   font-size: 16px;
   font-family: inherit;
   cursor: pointer;
-  border: none;
-  transition: all 0.2s ease;
 }
 
 .cancelBtn {
   background: white;
-  color: #333;
-  box-shadow: 2px 2px #000;
-}
-
-.cancelBtn:hover {
-  background: #f5f5f5;
-  transform: translateY(-2px);
-  box-shadow: 3px 3px #000;
+  border: 1px solid #777;
+  box-shadow: 0 4px 0 #777;
 }
 
 .confirmBtn {
-  background: #a993d8;
-  color: white;
-  box-shadow: 2px 2px #8b7ab8;
-}
-
-.confirmBtn:hover {
-  background: #c8a8e9;
-  transform: translateY(-2px);
-  box-shadow: 3px 3px #8b7ab8;
+  background: #e3aadd;
+  border: 1px solid #9b65b6;
+  box-shadow: 0 4px 0 #9b65b6;
 }

@@ -17,22 +17,31 @@ function Homepage() {
 
   const [deckTitle, setDeckTitle] = useState("");
   const [deckDescription, setDeckDescription] = useState("");
+  const [deckCategory, setDeckCategory] = useState("Reviewer");
+  const [customCategory, setCustomCategory] = useState("");
   const [deckVisibility, setDeckVisibility] = useState("private");
   const [deckColor, setDeckColor] = useState("#C3C7F3");
+
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
 
-  const notificationCount = notifications.filter(
-    (notif) => notif.status === "unread"
-  ).length;
-
   const [searchQuery, setSearchQuery] = useState("");
 
-  const [user, setUser] = useState({
-    username: "",
-    year_level: "",
-    profile_image: "/images/temporary profile.jpg",
-  });
+  const categories = [
+    "Reviewer",
+    "Mathematics",
+    "Science",
+    "English",
+    "Programming",
+    "History",
+    "Research",
+    "Networking",
+    "Database",
+    "Web Development",
+    "Cybersecurity",
+    "Business",
+    "Others",
+  ];
 
   const deckColors = [
     "#C8BBD0",
@@ -43,6 +52,16 @@ function Homepage() {
     "#EECB99",
   ];
 
+  const [user, setUser] = useState({
+    username: "",
+    year_level: "",
+    profile_image: "/images/temporary profile.jpg",
+  });
+
+  const notificationCount = notifications.filter(
+    (notif) => notif.status === "unread"
+  ).length;
+
   const filteredDecks = myDecks.filter((deck) =>
     deck.title?.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -50,6 +69,15 @@ function Homepage() {
   const filteredCourses = courses.filter((course) =>
     course.title?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const resetDeckForm = () => {
+    setDeckTitle("");
+    setDeckDescription("");
+    setDeckCategory("Reviewer");
+    setCustomCategory("");
+    setDeckVisibility("private");
+    setDeckColor("#C3C7F3");
+  };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -145,68 +173,64 @@ function Homepage() {
     }
   };
 
-const fetchNotifications = async () => {
-  try {
-    const res = await fetch("http://localhost/puffybrain/getUserNotifications.php",
-      {
-        method: "GET",
-        credentials: "include",
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch(
+        "http://localhost/puffybrain/getUserNotifications.php",
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        setNotifications(data.notifications || []);
+      } else {
+        setNotifications([]);
       }
-    );
-
-    const text = await res.text();
-    console.log("RAW NOTIFICATION RESPONSE:", text);
-
-    const data = JSON.parse(text);
-
-    if (data.success) {
-      setNotifications(data.notifications || []);
-      console.log("NOTIFICATIONS:", data.notifications);
-    } else {
-      console.error("Notification error:", data.message);
+    } catch (err) {
+      console.error("Notification fetch error:", err);
       setNotifications([]);
     }
-  } catch (err) {
-    console.error("Notification fetch error:", err);
-    setNotifications([]);
-  }
-};
-const markNotificationsAsRead = async () => {
-  try {
-    const res = await fetch(
-      "http://localhost/puffybrain/markNotificationsAsRead.php",
-      {
-        method: "POST",
-        credentials: "include",
-      }
-    );
+  };
 
-    const data = await res.json();
-
-    if (data.success) {
-      setNotifications((prev) =>
-        prev.map((notif) => ({
-          ...notif,
-          status: "read",
-        }))
+  const markNotificationsAsRead = async () => {
+    try {
+      const res = await fetch(
+        "http://localhost/puffybrain/markNotificationsAsRead.php",
+        {
+          method: "POST",
+          credentials: "include",
+        }
       );
-    }
-  } catch (err) {
-    console.error("Mark notifications as read error:", err);
-  }
-};
 
+      const data = await res.json();
+
+      if (data.success) {
+        setNotifications((prev) =>
+          prev.map((notif) => ({
+            ...notif,
+            status: "read",
+          }))
+        );
+      }
+    } catch (err) {
+      console.error("Mark notifications as read error:", err);
+    }
+  };
 
   const openCourse = (courseId) => {
     navigate(`/learning/${courseId}`);
   };
 
-useEffect(() => {
-  fetchUserDecks();
-  fetchUser();
-  fetchCourses();
-  fetchNotifications();
-}, []);
+  useEffect(() => {
+    fetchUserDecks();
+    fetchUser();
+    fetchCourses();
+    fetchNotifications();
+  }, []);
 
   useEffect(() => {
     const handler = (e) => {
@@ -235,10 +259,24 @@ useEffect(() => {
       return;
     }
 
+    const finalCategory =
+      deckCategory === "Others" ? customCategory.trim() : deckCategory;
+
+    if (!finalCategory) {
+      Swal.fire({
+        icon: "warning",
+        title: "Missing category",
+        text: "Please enter a category.",
+        confirmButtonColor: "#7b5cff",
+      });
+      return;
+    }
+
     try {
       const formData = new FormData();
-      formData.append("title", deckTitle);
-      formData.append("description", deckDescription);
+      formData.append("title", deckTitle.trim());
+      formData.append("description", deckDescription.trim());
+      formData.append("category", finalCategory);
       formData.append("visibility", deckVisibility);
       formData.append("deck_color", deckColor);
 
@@ -259,10 +297,7 @@ useEffect(() => {
         });
 
         setShowPopup(false);
-        setDeckTitle("");
-        setDeckDescription("");
-        setDeckVisibility("private");
-        setDeckColor("#C3C7F3");
+        resetDeckForm();
         fetchUserDecks();
       } else {
         Swal.fire({
@@ -284,14 +319,24 @@ useEffect(() => {
 
   const handleDeleteDeck = async (deckId) => {
     const result = await Swal.fire({
-      title: "Archive deck?",
-      text: "This deck will be removed from your list.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, archive it",
-      cancelButtonText: "Cancel",
-      confirmButtonColor: "#7b5cff",
-    });
+  title: "Archive deck?",
+  text: "This deck will be removed from your list.",
+  icon: "warning",
+  showCancelButton: true,
+  confirmButtonText: "Yes, archive it",
+  cancelButtonText: "Cancel",
+  buttonsStyling: false,
+
+  customClass: {
+    popup: styles.swalPopup,
+    title: styles.swalTitle,
+    htmlContainer: styles.swalText,
+    actions: styles.swalActions,
+    confirmButton: styles.swalConfirm,
+    cancelButton: styles.swalCancel,
+    icon: styles.swalIcon,
+  },
+}); 
 
     if (!result.isConfirmed) return;
 
@@ -341,7 +386,9 @@ useEffect(() => {
         isCollapsed ? styles.sidebarCollapsed : ""
       }`}
     >
-      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
+      <aside
+        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
+      >
         <div>
           <div
             className={styles.sidebarToggle}
@@ -351,8 +398,16 @@ useEffect(() => {
           </div>
 
           <div className={styles.logo}>
-            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
-            <img className={styles.logoCollapsed} src="/images/logo_solo.png" alt="Logo" />
+            <img
+              className={styles.logoExpanded}
+              src="/images/logo1.png"
+              alt="Logo"
+            />
+            <img
+              className={styles.logoCollapsed}
+              src="/images/logo_solo.png"
+              alt="Logo"
+            />
           </div>
 
           <div className={styles.divider}></div>
@@ -418,7 +473,9 @@ useEffect(() => {
 
               <ul className={styles.sectionList}>
                 {myDecks.length === 0 ? (
-                  <li className={styles.sidebarEmptyText}>Don't have decks yet</li>
+                  <li className={styles.sidebarEmptyText}>
+                    Don't have decks yet
+                  </li>
                 ) : (
                   myDecks.slice(0, 3).map((deck) => (
                     <li key={deck.id} className={styles.sidebarListItem}>
@@ -438,7 +495,9 @@ useEffect(() => {
 
               <ul className={styles.sectionList}>
                 {courses.length === 0 ? (
-                  <li className={styles.sidebarEmptyText}>No courses added yet</li>
+                  <li className={styles.sidebarEmptyText}>
+                    No courses added yet
+                  </li>
                 ) : (
                   courses.slice(0, 3).map((course) => (
                     <li key={course.id} className={styles.sidebarListItem}>
@@ -486,7 +545,9 @@ useEffect(() => {
               <i className="bx bx-bell"></i>
 
               {notificationCount > 0 && (
-                <span className={styles.notificationBadge}>{notificationCount}</span>
+                <span className={styles.notificationBadge}>
+                  {notificationCount}
+                </span>
               )}
             </button>
 
@@ -495,52 +556,52 @@ useEffect(() => {
                 notificationOpen ? styles.show : ""
               }`}
             >
-             <div className={styles.notificationHeader}>
-  <h4>Notifications</h4>
+              <div className={styles.notificationHeader}>
+                <h4>Notifications</h4>
 
-  {notificationCount > 0 && (
-    <button
-      type="button"
-      className={styles.markReadBtn}
-      onClick={markNotificationsAsRead}
-    >
-      Mark all as read
-    </button>
-  )}
-</div>
+                {notificationCount > 0 && (
+                  <button
+                    type="button"
+                    className={styles.markReadBtn}
+                    onClick={markNotificationsAsRead}
+                  >
+                    Mark all as read
+                  </button>
+                )}
+              </div>
 
-           {notifications.length > 0 ? (
-  notifications.slice(0, 5).map((notif) => (
-<div
-  key={notif.notification_id}
-  className={styles.notificationItem}
->
-  <div className={styles.notificationTop}>
-    <h5>{notif.title}</h5>
+              {notifications.length > 0 ? (
+                notifications.slice(0, 5).map((notif) => (
+                  <div
+                    key={notif.notification_id}
+                    className={styles.notificationItem}
+                  >
+                    <div className={styles.notificationTop}>
+                      <h5>{notif.title}</h5>
 
-    <span className={styles.notificationRole}>
-      {notif.target_role}
-    </span>
-  </div>
+                      <span className={styles.notificationRole}>
+                        {notif.target_role}
+                      </span>
+                    </div>
 
-  <p>{notif.message}</p>
+                    <p>{notif.message}</p>
 
-  <small className={styles.notificationDate}>
-    {new Date(notif.created_at).toLocaleString()}
-  </small>
-</div>
-  ))
-) : (
-<div className={styles.emptyNotification}>
-  <img
-    src="/images/NoNotifcation.png"
-    alt="No notifications"
-    className={styles.emptyNotificationImg}
-  />
+                    <small className={styles.notificationDate}>
+                      {new Date(notif.created_at).toLocaleString()}
+                    </small>
+                  </div>
+                ))
+              ) : (
+                <div className={styles.emptyNotification}>
+                  <img
+                    src="/images/NoNotifcation.png"
+                    alt="No notifications"
+                    className={styles.emptyNotificationImg}
+                  />
 
-  <p>You don’t have any new notifications</p>
-</div>
-)}
+                  <p>You don’t have any new notifications</p>
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -559,7 +620,9 @@ useEffect(() => {
               <div className={styles.decksGrid}>
                 {filteredCourses.length === 0 ? (
                   <p style={{ opacity: 0.6 }}>
-                    {searchQuery ? "No matching courses found" : "No courses yet"}
+                    {searchQuery
+                      ? "No matching courses found"
+                      : "No courses yet"}
                   </p>
                 ) : (
                   filteredCourses.slice(0, 3).map((course, index) => {
@@ -595,7 +658,10 @@ useEffect(() => {
 
                           <div className={styles.courseProgressWrap}>
                             <div className={styles.courseProgressRing}>
-                              <svg viewBox="0 0 48 48" className={styles.courseProgressSvg}>
+                              <svg
+                                viewBox="0 0 48 48"
+                                className={styles.courseProgressSvg}
+                              >
                                 <circle
                                   className={styles.courseProgressBg}
                                   cx="24"
@@ -631,11 +697,17 @@ useEffect(() => {
               <h3>My Decks</h3>
 
               <div className={styles.sectionButtons}>
-                <button className={styles.btnAdd} onClick={() => setShowPopup(true)}>
+                <button
+                  className={styles.btnAdd}
+                  onClick={() => setShowPopup(true)}
+                >
                   Add Deck
                 </button>
 
-                <button className={styles.btnShow} onClick={() => navigate("/Mydecks")}>
+                <button
+                  className={styles.btnShow}
+                  onClick={() => navigate("/Mydecks")}
+                >
                   Show All
                 </button>
               </div>
@@ -645,7 +717,9 @@ useEffect(() => {
               <div className={styles.myDecksGrid}>
                 {filteredDecks.length === 0 ? (
                   <p style={{ opacity: 0.6 }}>
-                    {searchQuery ? "No matching decks found" : "Don’t have decks yet"}
+                    {searchQuery
+                      ? "No matching decks found"
+                      : "Don’t have decks yet"}
                   </p>
                 ) : (
                   filteredDecks.slice(0, 4).map((deck) => {
@@ -722,6 +796,12 @@ useEffect(() => {
 
                           <div className={styles.cardBody}>
                             <p className={styles.deckTitle}>{deck.title}</p>
+
+                            <p className={styles.deckCategoryText}>
+                              <i className="bx bxs-book"></i>
+                              <span>{deck.category || "Reviewer"}</span>
+                            </p>
+
                             <span className={styles.deckCount}>
                               {deck.card_count ?? 0} cards
                             </span>
@@ -764,6 +844,45 @@ useEffect(() => {
                     onChange={(e) => setDeckDescription(e.target.value)}
                     className={styles.newdecktitle}
                   />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.deckinfo}>Category</label>
+
+                  <select
+                    className={styles.newdecktitle}
+                    value={deckCategory}
+                    onChange={(e) => {
+                      setDeckCategory(e.target.value);
+
+                      if (e.target.value !== "Others") {
+                        setCustomCategory("");
+                      }
+                    }}
+                  >
+                    {categories.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
+
+                  {deckCategory === "Others" && (
+                    <input
+                      type="text"
+                      placeholder="Type category"
+                      value={customCategory}
+                      maxLength={30}
+                      onChange={(e) => {
+                        const cleanValue = e.target.value.replace(
+                          /[^A-Za-z0-9 ]/g,
+                          ""
+                        );
+                        setCustomCategory(cleanValue);
+                      }}
+                      className={`${styles.newdecktitle} ${styles.customCategoryInput}`}
+                    />
+                  )}
                 </div>
 
                 <div className={styles.formGroup}>
@@ -816,7 +935,10 @@ useEffect(() => {
                 <div className={styles.startsaveContainer}>
                   <button
                     className={styles.cancelBtn}
-                    onClick={() => setShowPopup(false)}
+                    onClick={() => {
+                      setShowPopup(false);
+                      resetDeckForm();
+                    }}
                   >
                     Cancel
                   </button>

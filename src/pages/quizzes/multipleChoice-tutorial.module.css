@@ -47,7 +47,7 @@
 
   position: relative;
 
-  box-shadow: 0 8px 15px var(--color-shadow);
+  box-shadow: 5px 8px 0px var(--color-shadow);
 }
 
 .headerTop {
@@ -100,33 +100,32 @@
 
 .startBtn {
   margin-top: 20px;
-
   width: 60%;
-
   padding: 14px;
+}
 
+.startBtn {
   background: #9f89c2;
-
-  border: 1px solid #a38aca;
-
-  border-radius: 23px;
-
-  font-family: inherit;
-
-  font-size: 22px;
-
-  font-weight: normal;
-  font-style: normal;
-
+  border: 1px solid #533a7a;
+  box-shadow: 0 4px rgb(114, 90, 153);
+  padding: 10px 35px;
+  border-radius: 20px;
   cursor: pointer;
-
-  box-shadow: 0 4px rgb(162, 140, 197);
-
-  transition: 0.25s ease;
+  font-family: "Jersey 15", sans-serif;
+  font-size: 24px;
+  color: white;
+  font-weight: normal;
+  font-size: normal;
+  transition: 0.2s ease;
 }
 
 .startBtn:hover {
   transform: translateY(-2px);
+}
+
+.startBtn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px rgb(162, 140, 197);
 }
 
 /* =========================
@@ -349,5 +348,65 @@
 
   .slideshowBox {
     padding: 30px 18px;
+  }
+}
+
+.introScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #efd9ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.multipleIntroImage {
+  width: 380px;
+  height: auto;
+  image-rendering: pixelated;
+  animation: multiplePop 0.2s ease;
+}
+
+.circleLoader {
+  width: 10px;
+  height: 10px;
+  background: white;
+  border-radius: 50%;
+  animation: growCircle 0.7s ease-out forwards;
+}
+
+@keyframes multiplePop {
+  from {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes growCircle {
+  0% {
+    width: 8px;
+    height: 8px;
+  }
+
+  35% {
+    width: 55px;
+    height: 55px;
+  }
+
+  70% {
+    width: 170px;
+    height: 170px;
+  }
+
+  100% {
+    width: 1400px;
+    height: 1400px;
   }
 }

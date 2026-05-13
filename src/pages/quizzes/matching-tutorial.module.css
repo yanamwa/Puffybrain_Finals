@@ -93,42 +93,58 @@
 /* =========================
    START BUTTON
 ========================= */
-
-.startButton{
-  margin-top:20px;
-
-  width:60%;
-
-  padding:12px;
-
-  background:#9f89c2;
-
-  border:1px solid #a38aca;
-
-  border-radius:23px;
-
-  cursor:pointer;
-
-  font-size:22px;
-
-  font-family:"Jersey 15", sans-serif;
-  font-weight:normal;
-  font-style:normal;
-
-  color:white;
-
-  box-shadow:0 4px rgb(162, 140, 197);
-
-  transition:0.2s ease;
+.startButton {
+  margin-top: 20px;
+  width: 60%;
+  padding: 14px;
 }
 
-.startButton:hover{
-  transform:translateY(-2px);
+.startBtn {
+  background: #9f89c2;
+  border: 1px solid #533a7a;
+  box-shadow: 0 4px rgb(114, 90, 153);
+  padding: 10px 35px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-family: "Jersey 15", sans-serif;
+  font-size: 24px;
+  color: white;
+  font-weight: normal;
+  font-size: normal;
+  transition: 0.2s ease;
 }
 
-.startButton:active{
-  transform:translateY(3px);
-  box-shadow:0 1px rgb(162, 140, 197);
+.startBtn:hover {
+  transform: translateY(-2px);
+}
+
+.startBtn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px rgb(162, 140, 197);
+}
+
+.startButton {
+  background: #9f89c2;
+  border: 1px solid #533a7a;
+  box-shadow: 0 4px rgb(114, 90, 153);
+  padding: 10px 35px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-family: "Jersey 15", sans-serif;
+  font-size: 24px;
+  color: white;
+  font-weight: normal;
+  font-size: normal;
+  transition: 0.2s ease;
+}
+
+.startButton:hover {
+  transform: translateY(-2px);
+}
+
+.startButton:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px rgb(162, 140, 197);
 }
 
 /* =========================
@@ -314,5 +330,64 @@
   .startButton{
     width:90%;
     font-size:18px;
+  }
+}
+.introScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #efd9ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.matchIntroImage {
+  width: 380px;
+  height: auto;
+  image-rendering: pixelated;
+  animation: matchPop 0.2s ease;
+}
+
+.circleLoader {
+  width: 10px;
+  height: 10px;
+  background: white;
+  border-radius: 50%;
+  animation: growCircle 0.7s ease-out forwards;
+}
+
+@keyframes matchPop {
+  from {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes growCircle {
+  0% {
+    width: 8px;
+    height: 8px;
+  }
+
+  35% {
+    width: 55px;
+    height: 55px;
+  }
+
+  70% {
+    width: 170px;
+    height: 170px;
+  }
+
+  100% {
+    width: 1400px;
+    height: 1400px;
   }
 }

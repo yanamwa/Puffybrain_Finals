@@ -51,51 +51,73 @@
 }
 
 .flashcardWrapper {
-  background: #eeeeee;
-  width: 80%;
-  max-width: 1100px;
-  min-height: 520px;
-  border-radius: 30px;
-  padding: 35px 35px 25px;
+  width: 92%;
+  max-width: 1180px;
+  background: #f7f7f7;
+  height: 420px;
+  border-radius: 45px;
+  padding: 38px 70px 35px;
+  margin-top: 25px;
+  box-sizing: border-box;
+  box-shadow:
+    0 8px 18px rgba(0,0,0,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.7);
   display: flex;
   flex-direction: column;
+  align-items: center;
 }
 
+/* =========================
+   TABS
+========================= */
+
 .tab {
+  width: 100%;
+  max-width: 860px;
   display: flex;
   justify-content: space-between;
-  padding: 0 70px;
-  margin-bottom: 20px;
+  padding: 0 58px;
+  position: relative;
+  z-index: 5;
+  box-sizing: border-box;
 }
 
 .tab span {
-  background-image: url("../images/notebook line.png");
-  background-color: white;
+  background: #ffffff;
   min-width: 110px;
-  padding: 9px 20px;
-  border-radius: 13px 13px 0 0;
+  padding: 8px 0 6px;
+  border-radius: 12px 12px 0 0;
   text-align: center;
-  font-size: 18px;
-  border-bottom: 4px solid #dba8ff;
+  font-size: 16px;
+  border-bottom: 4px solid #c2c2c2;
   cursor: pointer;
-  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.15);
+  color: #111;
+
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
 }
 
-.tab .active {
-  min-width: 130px;
+.active {
+  border-bottom: 4px solid #696969 !important;
 }
+
+/* =========================
+   FLASHCARD
+========================= */
 
 .flashcard {
-  flex: 1;
-  min-height: 330px;
+  width: 100%;
+  max-width: 860px;
+  height: 238px;
   perspective: 1000px;
   cursor: pointer;
+  position: relative;
+  margin-top: -1px;
+  height: 500px;
 }
 
 .flashcardInner {
   width: 100%;
   height: 100%;
-  min-height: 330px;
   position: relative;
   transition: transform 0.6s ease;
   transform-style: preserve-3d;
@@ -105,108 +127,147 @@
   transform: rotateY(180deg);
 }
 
+/* =========================
+   CARD FACE
+========================= */
+
 .flashcardFace {
   position: absolute;
   inset: 0;
-  padding: 55px 70px;
-  border-radius: 20px;
+  padding: 45px 55px 72px;
+  border-radius: 26px;
   backface-visibility: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  font-size: 20px;
-  line-height: 1.4;
-  overflow-y: auto;
-
-  background-color: #848484a9;
-
-  background-image: url("/images/notebook line.png");
-  background-size: 100% 40px;
+  background-color: #ffffff;
+  background-size: 100% 24px;
   background-repeat: repeat-y;
   background-position: top left;
+  border: 1px solid #c2c2c2;
+  overflow: hidden;
 }
 
-
 .flashcardFace p {
-  max-width: 850px;
+  max-width: 760px;
+
   margin: 0;
-  color: var(--font-color);
+
+  color: #222;
+
+  font-family: "Jersey 15", sans-serif;
   font-size: 23px;
+  font-weight: normal;
+
+  line-height: 1.2;
 }
 
 .back {
   transform: rotateY(180deg);
 }
 
+/* =========================
+   AUDIO BUTTON
+========================= */
+
+.audioIconBtn {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #8d8d8d;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: 0.2s ease;
+  z-index: 5;
+
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.audioIconBtn i {
+  font-size: 19px;
+}
+
+.audioIconBtn:hover {
+  background: #f1f1f1;
+}
+
+/* =========================
+   DIFFICULTY BAR
+========================= */
+
 .difficulty {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  padding: 12px 20px;
   display: flex;
   justify-content: center;
-  gap: 22px;
+  gap: 30px;
   background: #efd9ff;
-  padding: 16px 20px;
-  border-radius: 0 0 22px 22px;
-  margin-top: 25px;
-  width: 100%;
+  border-radius: 0 0 26px 26px;
   box-sizing: border-box;
+  z-index: 4;
 }
 
 .difficulty button {
-  width: 100px;
-  padding: 8px 0;
-  border-radius: 20px;
-  font-size: 15px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 20px;
+  width: 95px;
+  padding: 6px 0;
+  border-radius: 18px;
+  font-family: "Jersey 15", sans-serif;
+  font-size: 16px;
   font-weight: normal;
-  font-style: normal;
+  color: #ffffff;
+  cursor: pointer;
+  transition: 0.2s ease;
 }
 
 .easy {
-  background: #8376be;
-  color: #fff;
-  border: 1px solid #6c2d9a;
-  box-shadow: 0px 4px 0 #6f63a8;
+  background: #a997dd;
+  border: 1px solid #8f7cc9;
+  box-shadow: 0 4px 0 #8f7cc9;
 }
 
 .good {
-  background: #3bb54a;
-  color: #fff;
-  border: 1px solid #0f4a16;
-  box-shadow: 0px 4px 0 #0f701c;
+  background: #15991f;
+  border: 1px solid #0b6412;
+  box-shadow: 0 4px 0 #0b6412;
 }
 
 .hard {
-  background: #b53131;
-  color: #fff;
-  border: 1px solid  #811d1d;
-  box-shadow: 0px 4px 0  #821919;
+  background: #b51f1f;
+  border: 1px solid #7f1414;
+  box-shadow: 0 4px 0 #7f1414;
 }
 
-.easy:hover {
-  background: #9789d8;
+.difficulty button:hover {
   transform: translateY(-2px);
-  box-shadow: 0px 6px 0 #6f63a8;
 }
 
-.good:hover {
-  background: #4dcb5d;
-  transform: translateY(-2px);
-  box-shadow: 0px 6px 0 #0f701c;
+.difficulty button:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.25);
 }
 
-.hard:hover {
-  background: #cf4444;
-  transform: translateY(-2px);
-  box-shadow: 0px 6px 0 #821919;
-}
+/* =========================
+   HINT
+========================= */
 
 .difficultyHint {
-  text-align: center;
-  margin-top: 10px;
+  margin-top: 18px;
+
   font-size: 16px;
-  color: #5f5f5f98;
+
+  color: #6e6e6e;
+
+  text-align: center;
 }
 
 .settingsBtn {

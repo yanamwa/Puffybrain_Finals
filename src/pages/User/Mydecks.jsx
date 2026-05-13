@@ -17,9 +17,12 @@ export default function Mydecks() {
 
   const [deckTitle, setDeckTitle] = useState("");
   const [deckDesc, setDeckDesc] = useState("");
+  const [deckCategory, setDeckCategory] = useState("Reviewer");
+  const [customCategory, setCustomCategory] = useState("");
   const [visibility, setVisibility] = useState("");
   const [deckColor, setDeckColor] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   const [decks, setDecks] = useState([]);
   const [myDecks, setMyDecks] = useState([]);
@@ -32,6 +35,22 @@ export default function Mydecks() {
     (notif) => notif.status === "unread"
   ).length;
 
+  const categories = [
+    "Reviewer",
+    "Mathematics",
+    "Science",
+    "English",
+    "Programming",
+    "History",
+    "Research",
+    "Networking",
+    "Database",
+    "Web Development",
+    "Cybersecurity",
+    "Business",
+    "Others",
+  ];
+
   const [user, setUser] = useState({
     username: "",
     year_level: "",
@@ -41,6 +60,8 @@ export default function Mydecks() {
   const resetAddForm = () => {
     setDeckTitle("");
     setDeckDesc("");
+    setDeckCategory("Reviewer");
+    setCustomCategory("");
     setVisibility("");
     setDeckColor("");
   };
@@ -65,6 +86,7 @@ export default function Mydecks() {
       id: deck.id || deck.deck_id,
       title: deck.title || "",
       description: deck.description || "",
+      category: deck.category || "Reviewer",
       cards: Number(deck.card_count || deck.cards || 0),
       type: visibilityValue === "public" ? "shared" : "private",
       visibility: visibilityValue,
@@ -211,15 +233,19 @@ export default function Mydecks() {
         !q ||
         deck.title.toLowerCase().includes(q) ||
         deck.description.toLowerCase().includes(q) ||
+        deck.category.toLowerCase().includes(q) ||
         deck.visibility.toLowerCase().includes(q) ||
         deck.type.toLowerCase().includes(q) ||
         String(deck.cards).includes(q);
 
       const matchesFilter = !selectedFilter || deck.type === selectedFilter;
 
-      return matchesSearch && matchesFilter;
+      const matchesCategory =
+        !selectedCategory || deck.category === selectedCategory;
+
+      return matchesSearch && matchesFilter && matchesCategory;
     });
-  }, [decks, search, selectedFilter]);
+  }, [decks, search, selectedFilter, selectedCategory]);
 
   const openDeck = (deckId) => {
     navigate(`/deck/${deckId}`);
@@ -235,6 +261,29 @@ export default function Mydecks() {
         icon: "warning",
         title: "Missing title",
         text: "Please enter a deck title.",
+        confirmButtonColor: "#7b5cff",
+      });
+      return;
+    }
+
+    const finalCategory =
+      deckCategory === "Others" ? customCategory.trim() : deckCategory;
+
+    if (!finalCategory) {
+      Swal.fire({
+        icon: "warning",
+        title: "Missing category",
+        text: "Please enter a category.",
+        confirmButtonColor: "#7b5cff",
+      });
+      return;
+    }
+
+    if (!/^[A-Za-z0-9 ]+$/.test(finalCategory)) {
+      Swal.fire({
+        icon: "warning",
+        title: "Invalid category",
+        text: "Only letters and numbers are allowed.",
         confirmButtonColor: "#7b5cff",
       });
       return;
@@ -264,6 +313,7 @@ export default function Mydecks() {
       const formData = new FormData();
       formData.append("title", deckTitle.trim());
       formData.append("description", deckDesc.trim());
+      formData.append("category", finalCategory);
       formData.append("visibility", visibility);
       formData.append("deck_color", deckColor);
 
@@ -369,6 +419,7 @@ export default function Mydecks() {
       const formData = new FormData();
       formData.append("title", `${deck.title} (Copy)`);
       formData.append("description", deck.description || "");
+      formData.append("category", deck.category || "Reviewer");
       formData.append("visibility", deck.visibility || "private");
       formData.append("deck_color", deck.deckColor || "#c9cdfa");
 
@@ -604,7 +655,7 @@ export default function Mydecks() {
             >
               <input
                 type="text"
-                placeholder="Search by title, description, public, private..."
+                placeholder="Search by title, category, public, private..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -835,6 +886,53 @@ export default function Mydecks() {
                       </div>
                     )}
                   </div>
+
+                  <div className={styles.customDropdown}>
+                    <button
+                      type="button"
+                      className={styles.customDropdownBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDropdownOpen(null);
+                        setOpenFilterDropdown(
+                          openFilterDropdown === "category" ? null : "category"
+                        );
+                      }}
+                    >
+                      <i className="bx bx-book"></i>
+                      <span>{selectedCategory || "Categories"}</span>
+                      <i className="bx bx-chevron-down"></i>
+                    </button>
+
+                    {openFilterDropdown === "category" && (
+                      <div className={styles.customDropdownMenu}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedCategory("");
+                            setOpenFilterDropdown(null);
+                          }}
+                        >
+                          All Categories
+                        </button>
+
+                        {categories
+                          .filter((cat) => cat !== "Others")
+                          .map((cat) => (
+                            <button
+                              key={cat}
+                              type="button"
+                              onClick={() => {
+                                setSelectedCategory(cat);
+                                setOpenFilterDropdown(null);
+                              }}
+                            >
+                              {cat}
+                            </button>
+                          ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -930,7 +1028,15 @@ export default function Mydecks() {
 
                         <div className={styles.deckBody}>
                           <h4>{d.title}</h4>
-                          <span>{d.cards} cards</span>
+
+                          <p className={styles.deckCategoryText}>
+                            <i className="bx bxs-book"></i>
+                            <span>{d.category || "Reviewer"}</span>
+                          </p>
+
+                          <span className={styles.cardCount}>
+                            {d.cards} cards
+                          </span>
                         </div>
                       </div>
                     </article>
@@ -969,6 +1075,38 @@ export default function Mydecks() {
                   onChange={(e) => setDeckDesc(e.target.value)}
                   placeholder="Optional"
                 />
+
+                <label className={styles.label}>Category</label>
+                <select
+                  className={styles.selectInput}
+                  value={deckCategory}
+                  onChange={(e) => {
+                    setDeckCategory(e.target.value);
+
+                    if (e.target.value !== "Others") {
+                      setCustomCategory("");
+                    }
+                  }}
+                >
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+
+             {deckCategory === "Others" && (
+  <input
+    className={`${styles.input} ${styles.customCategoryInput}`}
+    placeholder="Type category"
+    value={customCategory}
+    maxLength={30}
+    onChange={(e) => {
+      const cleanValue = e.target.value.replace(/[^A-Za-z0-9 ]/g, "");
+      setCustomCategory(cleanValue);
+    }}
+  />
+)}
 
                 <label className={styles.label}>Visibility</label>
                 <div className={styles.radioRow}>

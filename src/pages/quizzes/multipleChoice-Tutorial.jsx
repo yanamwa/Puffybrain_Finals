@@ -2,6 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import styles from "./multipleChoice-tutorial.module.css";
 
+const multipleFrames = [
+  "/images/multiple1.png",
+  "/images/multiple2.png",
+  "/images/multiple3.png",
+];
+
 const slidesData = [
   {
     question: "Which keyword is used to prevent a class from being subclassed?",
@@ -26,7 +32,35 @@ const slidesData = [
 export default function MultipleChoiceTutorial() {
   const navigate = useNavigate();
   const { lessonId, deckId } = useParams();
+
   const [currentSlide, setCurrentSlide] = useState(0);
+
+  const [showIntro, setShowIntro] = useState(true);
+  const [frameIndex, setFrameIndex] = useState(0);
+  const [showCircle, setShowCircle] = useState(false);
+  const [startLoading, setStartLoading] = useState(false);
+
+  useEffect(() => {
+    const animationSequence = [0, 1, 2, 0, 1, 2, 0, 1, 2];
+    let current = 0;
+
+    const interval = setInterval(() => {
+      setFrameIndex(animationSequence[current]);
+      current++;
+
+      if (current >= animationSequence.length) {
+        clearInterval(interval);
+        setShowCircle(true);
+
+        setTimeout(() => {
+          setShowIntro(false);
+          setShowCircle(false);
+        }, 700);
+      }
+    }, 220);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -36,89 +70,108 @@ export default function MultipleChoiceTutorial() {
     return () => clearInterval(interval);
   }, []);
 
+  const handleStart = () => {
+    setStartLoading(true);
+
+    setTimeout(() => {
+      if (deckId) {
+        navigate(`/multiple-choice/deck/${deckId}`);
+        return;
+      }
+
+      if (lessonId) {
+        navigate(`/multiple-choice/lesson/${lessonId}`);
+      }
+    }, 700);
+  };
+
   return (
     <div className={styles.page}>
-      {/* HEADER */}
-      <div className={styles.headerBox}>
-        <div className={styles.headerTop}>
-          <h1 className={styles.title}>Multiple Choice Quiz</h1>
+      {(showIntro || startLoading) && (
+        <div className={styles.introScreen}>
+          {!showCircle && !startLoading && (
+            <img
+              src={multipleFrames[frameIndex]}
+              alt="Multiple Choice loading"
+              className={styles.multipleIntroImage}
+            />
+          )}
+
+          {(showCircle || startLoading) && (
+            <div className={styles.circleLoader}></div>
+          )}
         </div>
+      )}
 
-        <div className={styles.subtitles}>
-          <p className={styles.subtitle}>Pick the right one!</p>
-          <p className={styles.subtitle}>
-            Select the correct answer. Don’t worry if you miss, every mistake
-            helps you learn!
-          </p>
-        </div>
+      {!showIntro && !startLoading && (
+        <>
+          <div className={styles.headerBox}>
+            <div className={styles.headerTop}>
+              <h1 className={styles.title}>Multiple Choice Quiz</h1>
+            </div>
 
-              <button
-            className={styles.startBtn}
-            onClick={() => {
-              if (deckId) {
-                navigate(`/multiple-choice/deck/${deckId}`);
-                return;
-              }
+            <div className={styles.subtitles}>
+              <p className={styles.subtitle}>Pick the right one!</p>
+              <p className={styles.subtitle}>
+                Select the correct answer. Don’t worry if you miss, every
+                mistake helps you learn!
+              </p>
+            </div>
 
-              if (lessonId) {
-                navigate(`/multiple-choice/lesson/${lessonId}`);
-                return;
-              }
-            }}
-          >
-            Start
-          </button>
-      </div>
+            <button className={styles.startBtn} onClick={handleStart}>
+              Start
+            </button>
+          </div>
 
-      {/* SLIDESHOW */}
-      <div className={styles.slideshowBox}>
-        {slidesData.map((slide, i) => (
-          <div
-            key={i}
-            className={`${styles.slide} ${
-              currentSlide === i ? styles.active : ""
-            }`}
-          >
-            <p className={styles.question}>{slide.question}</p>
+          <div className={styles.slideshowBox}>
+            {slidesData.map((slide, i) => (
+              <div
+                key={i}
+                className={`${styles.slide} ${
+                  currentSlide === i ? styles.active : ""
+                }`}
+              >
+                <p className={styles.question}>{slide.question}</p>
 
-            <div className={styles.options}>
-              {slide.options.map((option, j) => {
-                let btnClass = "";
+                <div className={styles.options}>
+                  {slide.options.map((option, j) => {
+                    let btnClass = "";
 
-                if (j === slide.colorIndex) {
-                  btnClass =
-                    slide.colorType === "correct"
-                      ? styles.correct
-                      : styles.wrong;
-                }
+                    if (j === slide.colorIndex) {
+                      btnClass =
+                        slide.colorType === "correct"
+                          ? styles.correct
+                          : styles.wrong;
+                    }
 
-                return (
-                  <button
-                    key={j}
-                    type="button"
-                    className={btnClass}
-                    disabled
-                  >
-                    {option}
-                  </button>
-                );
-              })}
+                    return (
+                      <button
+                        key={j}
+                        type="button"
+                        className={btnClass}
+                        disabled
+                      >
+                        {option}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+
+            <div className={styles.dots}>
+              {slidesData.map((_, i) => (
+                <span
+                  key={i}
+                  className={`${styles.dot} ${
+                    currentSlide === i ? styles.activeDot : ""
+                  }`}
+                ></span>
+              ))}
             </div>
           </div>
-        ))}
-
-        {/* DOTS */}
-        <div className={styles.dots}>
-          {slidesData.map((_, i) => (
-            <span
-              key={i}
-              className={`${styles.dot} ${
-                currentSlide === i ? styles.activeDot : ""
-              }`}
-            ></span>
-          ))}
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 }

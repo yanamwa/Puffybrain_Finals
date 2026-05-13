@@ -1,200 +1,220 @@
-/* =========================
-   UPDATED TIMED QUIZ CSS
-========================= */
-
 .page {
   min-height: 100vh;
-  padding: 48px 20px;
-
+  padding: 35px 20px;
+  box-sizing: border-box;
   background-image: url("/public/images/background_notebook.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-
-  box-sizing: border-box;
+  font-family: "Jersey 15", sans-serif;
 }
 
-/* =========================
-   HEADER
-========================= */
-
+/* HEADER FIX */
 .headerBox {
-  width: 70%;
-  margin: 0 auto 25px;
-
+  width: 72%;
+  height: 25vh;
+  max-width: 900px;
+  margin: 0 auto 28px;
   background: #ffffff;
-
-  border-radius: 35px;
+  border-radius: 28px;
   overflow: hidden;
-
   text-align: center;
-
-  box-shadow: 0 8px 15px rgba(0,0,0,0.10);
+  box-shadow: 4px 6px 0 rgba(221, 221, 221, 0.8);
 }
 
 .headerTop {
-  background: #e7c9f7;
-  padding: 18px;
+  background: #e3c2ff;
+  padding: 14px 20px;
 }
 
 .title {
   margin: 0;
-
-  font-family: "Jersey 15", sans-serif;
   font-size: 42px;
-
   font-weight: normal;
-  font-style: normal;
-
-  color: #111;
+  color: var(--font-color);
 }
 
 .subtitles {
-  padding: 14px 30px 6px;
+  padding: 15px 35px 0px;
 }
 
 .subtitle {
-  margin: 6px 0;
-
-  font-size: 15px;
-
-  font-weight: normal;
-  font-style: normal;
-
-  color: #111;
+  margin: 6px auto;
+  font-size: 18px;
+  line-height: 1.4;
+  color: var(--font-color);
+  max-width: 720px;
 }
 
-/* =========================
-   START BUTTON
-========================= */
+.subtitle:first-child {
+  font-size: 22px;
+}
+
+/* CENTERED BUTTON */
+.startBtn {
+  margin-top: 20px;
+  width: 60%;
+  padding: 14px;
+}
 
 .startBtn {
-  margin: 10px 0 20px;
-
-  width: 140px;
-  height: 45px;
-
-  border-radius: 20px;
-
   background: #9f89c2;
-
-  border: 1px solid #a38aca;
-
-  box-shadow: 0 4px rgb(162, 140, 197);
-
-  font-family: inherit;
-  font-size: 20px;
-
-  font-weight: normal;
-  font-style: normal;
-
+  border: 1px solid #533a7a;
+  box-shadow: 0 4px rgb(114, 90, 153);
+  padding: 10px 35px;
+  border-radius: 20px;
   cursor: pointer;
-
-  transition: 0.25s ease;
+  font-family: "Jersey 15", sans-serif;
+  font-size: 24px;
+  color: white;
+  font-weight: normal;
+  font-size: normal;
+  transition: 0.2s ease;
 }
 
 .startBtn:hover {
   transform: translateY(-2px);
 }
 
-/* =========================
-   QUESTION BOX
-========================= */
-
-.slideshowBox,
-.questionBox {
+.startBtn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px rgb(162, 140, 197);
+}
+/* PREVIEW BOX FIX */
+.slideshowBox {
   position: relative;
+  width: 60%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 34px 45px 25px;
+  margin-top: 40px;
 
-  width: 62%;
-
-  margin: 0 auto 35px;
-
-  padding: 35px 45px 20px;
-
-  background: #f1f1f1;
-
-  border-radius: 55px;
-
+  background: #eeeeee;
+  border-radius: 38px;
   box-sizing: border-box;
-
-  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+  box-shadow: 4px 6px 0 rgba(221, 221, 221, 0.8);
 }
 
-/* =========================
-   TIMER
-========================= */
+.question {
+  width: 100%;
+  margin: 0 auto 18px;
+  padding: 13px 25px;
+
+  background: white;
+  border: 1px solid #aaaaaa;
+  border-radius: 12px;
+
+  font-size: 16px;
+  color: var(--font-color);
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.previewOptions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.option {
+  width: 70%;
+  padding: 10px 15px;
+
+  background: white;
+  border: 1px solid #aaaaaa;
+  border-radius: 14px;
+
+  font-family: "Jersey 15", sans-serif;
+  font-size: 16px;
+  color: var(--font-color);
+
+  box-shadow: 0 3px #dcdcdc;
+}
 
 .timerBox {
   position: absolute;
-
-  top: -17px;
-  right: 65px;
-
-  background: #f1f1f1;
-
-  padding: 5px 18px 8px;
-
-  border-radius: 22px;
+  top: -18px;
+  right: 70px;
+  background: #eeeeee;
+  padding: 4px 14px;
+  border-radius: 18px;
 }
 
 .timer {
-  width: 95px;
-  height: 34px;
-
-  background: #ffffff;
-
+  width: 78px;
+  height: 30px;
+  background: white;
   border: 2px solid #cfd5ff;
-
-  border-radius: 20px;
+  border-radius: 18px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  font-size: 16px;
-
-  font-weight: normal;
-  font-style: normal;
-
-  color: #222;
-
+  font-size: 15px;
+  color: var(--font-color);
   box-shadow: 3px 3px 0 #d6d5ff;
-
-  transition: all 0.25s ease;
 }
 
-.warningTimer {
-  border-color: #ffbf69;
-  background: #fff3d6;
-  box-shadow: 3px 3px 0 #ffd68a;
+.dots {
+  margin-top: 16px;
+  text-align: center;
 }
 
-.dangerTimer {
-  border-color: #ff6b6b;
-  background: #ffe0e0;
-
-  color: #c91818;
-
-  box-shadow: 3px 3px 0 #ffaaaa;
-
-  animation: timerPulse 0.7s infinite;
+.dot {
+  width: 10px;
+  height: 10px;
+  margin: 0 4px;
+  display: inline-block;
+  border-radius: 50%;
+  background: #d8d8d8;
 }
 
-@keyframes timerPulse {
+.activeDot {
+  background: #c79aea;
+}
 
-  0% {
-    transform: scale(1);
+.correct {
+  background: #b7ffbd !important;
+  border-color: #2ecc71 !important;
+}
+
+.wrong {
+  background: #ffb5b5 !important;
+  border-color: #e74c3c !important;
+}
+
+@media (max-width: 768px) {
+  .headerBox,
+  .slideshowBox {
+    width: 95%;
   }
 
-  50% {
-    transform: scale(1.08);
+  .title {
+    font-size: 34px;
   }
 
-  100% {
-    transform: scale(1);
+  .subtitle {
+    font-size: 15px;
+  }
+
+  .subtitle:first-child {
+    font-size: 19px;
+  }
+
+  .startBtn {
+    width: 80%;
+  }
+
+  .option {
+    width: 95%;
+  }
+
+  .timerBox {
+    right: 25px;
   }
 }
-
 /* =========================
    QUESTION
 ========================= */
@@ -484,5 +504,117 @@
     width: 120px;
     height: 42px;
     font-size: 18px;
+  }
+}
+
+.introScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #efd9ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.timedIntroImage {
+  width: 120px;
+  height: auto;
+
+  image-rendering: pixelated;
+
+  animation:
+    timedRotate 0.8s linear infinite,
+    timedPulse 0.5s ease-in-out infinite alternate;
+}
+
+.circleLoader {
+  width: 10px;
+  height: 10px;
+  background: white;
+  border-radius: 50%;
+  animation: growCircle 0.7s ease-out forwards;
+}
+
+@keyframes timedPop {
+  from {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes growCircle {
+  0% {
+    width: 8px;
+    height: 8px;
+  }
+
+  35% {
+    width: 55px;
+    height: 55px;
+  }
+
+  70% {
+    width: 170px;
+    height: 170px;
+  }
+
+  100% {
+    width: 1400px;
+    height: 1400px;
+  }
+}
+
+@keyframes timedRotate {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes timedPulse {
+  from {
+    scale: 1;
+  }
+
+  to {
+    scale: 1.08;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .headerBox {
+    width: 95%;
+  }
+
+  .title {
+    font-size: 38px;
+  }
+
+  .subtitle:first-child {
+    font-size: 22px;
+  }
+
+  .subtitle:last-child {
+    font-size: 16px;
+  }
+
+  .subtitles {
+    padding: 25px 18px 30px;
+  }
+
+  .startBtn {
+    width: 90%;
+    font-size: 24px;
   }
 }
