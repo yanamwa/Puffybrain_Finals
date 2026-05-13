@@ -1,5 +1,5 @@
 import styles from "./lesson.module.css";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
 import Swal from "sweetalert2";
 
@@ -11,6 +11,7 @@ function Lesson() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [quizResults, setQuizResults] = useState([]);
+  const [hasTakenQuiz, setHasTakenQuiz] = useState(false);
 
   useEffect(() => {
     fetch(`http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`)
@@ -19,6 +20,22 @@ function Lesson() {
         setLesson(data);
       })
       .catch((err) => console.error(err));
+  }, [lessonId]);
+
+  useEffect(() => {
+    const savedResults = localStorage.getItem("lessonQuizResults");
+
+    if (!savedResults) {
+      setHasTakenQuiz(false);
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(savedResults);
+      setHasTakenQuiz(Number(parsed.lessonId) === Number(lessonId));
+    } catch {
+      setHasTakenQuiz(false);
+    }
   }, [lessonId]);
 
   const lessonSlides = useMemo(() => {
@@ -135,6 +152,10 @@ function Lesson() {
     }
   };
 
+  const goBackToLearningModule = () => {
+    navigate(`/learningmodule/${lessonId}`);
+  };
+
   const saveLessonResultsAndGoReview = async (latestResults = quizResults) => {
     const finalScore = latestResults.filter((item) => item.isCorrect).length;
 
@@ -160,11 +181,16 @@ function Lesson() {
 
     await saveProgress(totalSlides - 1);
 
+    if (hasTakenQuiz) {
+      goBackToLearningModule();
+      return;
+    }
+
     navigate(`/review/${lessonId}`);
   };
 
   const handleOptionSelect = async (slideIndex, option) => {
-    if (selectedAnswers[slideIndex]) return;
+    if (hasTakenQuiz || selectedAnswers[slideIndex]) return;
 
     const quiz = currentItem?.content;
     const correctAnswer = quiz?.correct_answer || "";
@@ -240,7 +266,11 @@ function Lesson() {
   const handleNext = async () => {
     const nextSlide = currentSlide + 1;
 
-    if (currentItem?.type === "quiz" && !selectedAnswers[currentSlide]) {
+    if (
+      currentItem?.type === "quiz" &&
+      !selectedAnswers[currentSlide] &&
+      !hasTakenQuiz
+    ) {
       Swal.fire({
         icon: "warning",
         title: "Answer first",
@@ -253,6 +283,12 @@ function Lesson() {
       await saveProgress(nextSlide);
       setCurrentSlide(nextSlide);
     } else {
+      if (hasTakenQuiz) {
+        await saveProgress(totalSlides - 1);
+        goBackToLearningModule();
+        return;
+      }
+
       await saveLessonResultsAndGoReview();
     }
   };
@@ -280,19 +316,15 @@ function Lesson() {
         <div className={styles.ribbon}></div>
 
         <div className={styles.tabs}>
-          <Link to={`/introduction/${lessonId}`}>
-            <button className={styles.welcome}>Introduction</button>
-          </Link>
+          <button className={styles.welcome} type="button" disabled>
+            Introduction
+          </button>
 
-          <Link to={`/lesson/${lessonId}`}>
-            <button className={styles.howitworksactive}>Lesson</button>
-          </Link>
+          <button className={styles.howitworksactive} type="button" disabled>
+            Lesson
+          </button>
 
-          <button
-            className={styles.aboutyou}
-            type="button"
-            onClick={() => saveLessonResultsAndGoReview()}
-          >
+          <button className={styles.aboutyou} type="button" disabled>
             Review
           </button>
         </div>
@@ -348,6 +380,7 @@ function Lesson() {
                           selectedAnswer === option ? styles.selectedOption : ""
                         }`}
                         onClick={() => handleOptionSelect(currentSlide, option)}
+                        disabled={hasTakenQuiz || Boolean(selectedAnswer)}
                       >
                         {option}
                       </button>

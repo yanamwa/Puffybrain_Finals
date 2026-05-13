@@ -174,6 +174,36 @@ function LearningModule() {
     loadLessonAndProgress();
   }, [lessonId]);
 
+  const isCourseAdded = useMemo(() => {
+    return courses.some((course) => {
+      return (
+        String(course.lesson_id) === String(lessonId) ||
+        String(course.id) === String(lessonId)
+      );
+    });
+  }, [courses, lessonId]);
+
+  const addCurrentCourse = async () => {
+    const res = await fetch("http://localhost/puffybrain/addCourse.php", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        lesson_id: lessonId,
+      }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok || data.success === false) {
+      throw new Error(data.message || "Failed to add course.");
+    }
+
+    await fetchCourses();
+  };
+
   const handleLogout = () => {
     Swal.fire({
       title: "Logout?",
@@ -278,110 +308,103 @@ function LearningModule() {
     );
   }, [filteredQuizzes, correctQuestions]);
 
-const handlePractice = () => {
-  Swal.fire({
-    customClass: {
-      popup: styles.swalPopup,
-      title: styles.swalTitle,
-      htmlContainer: styles.swalText,
-      confirmButton: styles.swalConfirmBtn,
-      cancelButton: styles.swalCancelBtn,
-      image: styles.swalImage,
-      actions: styles.swalActions,
-    },
-
-    buttonsStyling: false,
-
-    title: "Add this course?",
-    text: "You need to add this course to My Courses before practicing.",
-    imageUrl: "/images/asking.png",
-    imageWidth: 180,
-    imageHeight: 180,
-
-    showCancelButton: true,
-    allowOutsideClick: false,
-
-    confirmButtonText: "Add & Practice",
-    cancelButtonText: "Cancel",
-  }).then(async (result) => {
-
-    if (result.isConfirmed) {
-      try {
-        await fetch("http://localhost/puffybrain/addCourse.php", {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            lesson_id: lessonId,
-          }),
-        });
-
-        Swal.fire({
-          title: "Course Added!",
-          text: "Added to My Courses successfully.",
-          imageUrl: "/images/success.png",
-          imageWidth: 170,
-          imageHeight: 170,
-          timer: 1500,
-          showConfirmButton: false,
-        });
-
-        setOpenModes(true);
-
-      } catch (err) {
-        console.error(err);
-      }
+  const handlePractice = () => {
+    if (isCourseAdded) {
+      setOpenModes(true);
+      return;
     }
-  });
-};
 
-const handleStudy = () => {
-Swal.fire({
-customClass: {
-  popup: styles.swalPopup,
-  title: styles.swalTitle,
-  htmlContainer: styles.swalText,
-  confirmButton: styles.swalConfirmBtn,
-  cancelButton: styles.swalCancelBtn,
-  image: styles.swalImage,
-  actions: styles.swalActions,
-},
+    Swal.fire({
+      customClass: {
+        popup: styles.swalPopup,
+        title: styles.swalTitle,
+        htmlContainer: styles.swalText,
+        confirmButton: styles.swalConfirmBtn,
+        cancelButton: styles.swalCancelBtn,
+        image: styles.swalImage,
+        actions: styles.swalActions,
+      },
+      buttonsStyling: false,
+      title: "Add this course?",
+      text: "You need to add this course to My Courses before practicing.",
+      imageUrl: "/images/asking.png",
+      imageWidth: 180,
+      imageHeight: 180,
+      showCancelButton: true,
+      allowOutsideClick: false,
+      confirmButtonText: "Add & Practice",
+      cancelButtonText: "Cancel",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await addCurrentCourse();
 
-  buttonsStyling: false,
+          Swal.fire({
+            title: "Course Added!",
+            text: "Added to My Courses successfully.",
+            imageUrl: "/images/success.png",
+            imageWidth: 170,
+            imageHeight: 170,
+            timer: 1500,
+            showConfirmButton: false,
+          });
 
-  title: "Add this course?",
-  text: "You need to add this course to My Courses before studying.",
-  imageUrl: "/images/asking.png",
-  imageWidth: 180,
-  imageHeight: 180,
+          setOpenModes(true);
+        } catch (err) {
+          console.error(err);
 
-  showCancelButton: true,
-
-  confirmButtonText: "Add Course",
-  cancelButtonText: "Cancel",
-  }).then(async (result) => {
-    if (result.isConfirmed) {
-      try {
-        await fetch("http://localhost/puffybrain/addCourse.php", {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            lesson_id: lessonId,
-          }),
-        });
-
-        navigate(`/introduction/${lessonId}`);
-      } catch (err) {
-        console.error(err);
+          Swal.fire({
+            icon: "error",
+            title: "Add failed",
+            text: "Unable to add this course. Please try again.",
+          });
+        }
       }
+    });
+  };
+
+  const handleStudy = () => {
+    if (isCourseAdded) {
+      navigate(`/introduction/${lessonId}`);
+      return;
     }
-  });
-};
+
+    Swal.fire({
+      customClass: {
+        popup: styles.swalPopup,
+        title: styles.swalTitle,
+        htmlContainer: styles.swalText,
+        confirmButton: styles.swalConfirmBtn,
+        cancelButton: styles.swalCancelBtn,
+        image: styles.swalImage,
+        actions: styles.swalActions,
+      },
+      buttonsStyling: false,
+      title: "Add this course?",
+      text: "You need to add this course to My Courses before studying.",
+      imageUrl: "/images/asking.png",
+      imageWidth: 180,
+      imageHeight: 180,
+      showCancelButton: true,
+      confirmButtonText: "Add Course",
+      cancelButtonText: "Cancel",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await addCurrentCourse();
+          navigate(`/introduction/${lessonId}`);
+        } catch (err) {
+          console.error(err);
+
+          Swal.fire({
+            icon: "error",
+            title: "Add failed",
+            text: "Unable to add this course. Please try again.",
+          });
+        }
+      }
+    });
+  };
 
   if (!lesson) {
     return <div style={{ padding: "40px" }}>Loading lesson...</div>;
@@ -512,18 +535,27 @@ customClass: {
                     No courses added yet
                   </li>
                 ) : (
-                  courses.slice(0, 3).map((course) => (
-                    <li key={course.id} className={styles.sidebarListItem}>
-                      <button
-                        type="button"
-                        onClick={() => openCourse(course.id)}
-                        className={styles.menuItem}
+                  courses.slice(0, 3).map((course) => {
+                    const courseLessonId = course.lesson_id || course.id;
+
+                    return (
+                      <li
+                        key={course.id || course.lesson_id}
+                        className={styles.sidebarListItem}
                       >
-                        <i className="bx bx-book-open"></i>
-                        <span className={styles.menuText}>{course.title}</span>
-                      </button>
-                    </li>
-                  ))
+                        <button
+                          type="button"
+                          onClick={() => openCourse(courseLessonId)}
+                          className={styles.menuItem}
+                        >
+                          <i className="bx bx-book-open"></i>
+                          <span className={styles.menuText}>
+                            {course.title}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })
                 )}
               </ul>
             </div>
@@ -593,7 +625,7 @@ customClass: {
                   <h4>Notifications</h4>
 
                   <div className={styles.emptyNotification}>
-                    <p>You don’t have any new notifications</p>
+                    <p>You don't have any new notifications</p>
                   </div>
                 </div>
               </div>
@@ -726,8 +758,8 @@ customClass: {
 
                       <button
                         className={`${styles.btn} ${styles.practiceBtn}`}
-                        onClick={() => handlePractice()}   
-                   >
+                        onClick={handlePractice}
+                      >
                         Practice
                       </button>
                     </div>
@@ -783,7 +815,7 @@ customClass: {
                             />
                             <p>
                               {search.trim()
-                                ? `No cards found for “${search}”.`
+                                ? `No cards found for "${search}".`
                                 : "No cards available yet."}
                             </p>
                           </div>
@@ -810,7 +842,7 @@ customClass: {
                             />
                             <p>
                               {search.trim()
-                                ? `No not memorized cards found for “${search}”.`
+                                ? `No not memorized cards found for "${search}".`
                                 : "No cards to memorize yet."}
                             </p>
                           </div>
@@ -821,7 +853,7 @@ customClass: {
                               alt="All memorized"
                               className={styles.emptyImage}
                             />
-                            <p>Congratulation! You memorized all cards 🎉</p>
+                            <p>Congratulations! You memorized all cards.</p>
                           </div>
                         ) : (
                           notMemorizedCards.map((quiz, index) => (
@@ -846,7 +878,7 @@ customClass: {
                             />
                             <p>
                               {search.trim()
-                                ? `No memorized cards found for “${search}”.`
+                                ? `No memorized cards found for "${search}".`
                                 : "No memorized cards yet."}
                             </p>
                           </div>

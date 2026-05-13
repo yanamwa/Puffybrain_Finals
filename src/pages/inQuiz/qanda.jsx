@@ -47,15 +47,37 @@ export default function QandA() {
         }
 
         if (isDeckMode) {
-          const res = await fetch(
+          const cardsRes = await fetch(
             `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`
           );
-          const data = await res.json();
+          const cardsData = await cardsRes.json();
 
-          setDeckTitle(
-            data.deck?.title || data.deckTitle || data.title || "Deck Q&A"
-          );
-          setDeckCards(data.success ? data.cards || [] : []);
+          setDeckCards(cardsData.success ? cardsData.cards || [] : []);
+
+          const titleFromCardsResponse =
+            cardsData.deck?.title ||
+            cardsData.deck_title ||
+            cardsData.deckTitle ||
+            cardsData.title ||
+            cardsData.cards?.[0]?.deck_title ||
+            cardsData.cards?.[0]?.deckTitle;
+
+          if (titleFromCardsResponse) {
+            setDeckTitle(titleFromCardsResponse);
+          } else {
+            const deckRes = await fetch(
+              `http://localhost/puffybrain/getDeckById.php?id=${deckId}`
+            );
+            const deckData = await deckRes.json();
+
+            setDeckTitle(
+              deckData.deck?.title ||
+                deckData.deck_title ||
+                deckData.deckTitle ||
+                deckData.title ||
+                "Deck Q&A"
+            );
+          }
         }
       } catch (err) {
         console.error("Error loading Q&A:", err);
@@ -369,4 +391,3 @@ export default function QandA() {
     </div>
   );
 }
-  
