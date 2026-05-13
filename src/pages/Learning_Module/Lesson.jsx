@@ -13,6 +13,8 @@ function Lesson() {
   const [quizResults, setQuizResults] = useState([]);
   const [hasTakenQuiz, setHasTakenQuiz] = useState(false);
 
+  const quizResultKey = `lessonQuizResults_${lessonId}`;
+
   useEffect(() => {
     fetch(`http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`)
       .then((res) => res.json())
@@ -20,22 +22,6 @@ function Lesson() {
         setLesson(data);
       })
       .catch((err) => console.error(err));
-  }, [lessonId]);
-
-  useEffect(() => {
-    const savedResults = localStorage.getItem("lessonQuizResults");
-
-    if (!savedResults) {
-      setHasTakenQuiz(false);
-      return;
-    }
-
-    try {
-      const parsed = JSON.parse(savedResults);
-      setHasTakenQuiz(Number(parsed.lessonId) === Number(lessonId));
-    } catch {
-      setHasTakenQuiz(false);
-    }
   }, [lessonId]);
 
   const lessonSlides = useMemo(() => {
@@ -120,6 +106,47 @@ function Lesson() {
     return combined;
   }, [lessonSlides, quizSlides]);
 
+  useEffect(() => {
+    if (allSlides.length === 0) return;
+
+    const savedResults = localStorage.getItem(quizResultKey);
+
+    if (!savedResults) {
+      setHasTakenQuiz(false);
+      setQuizResults([]);
+      setSelectedAnswers({});
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(savedResults);
+      const savedAnswers = Array.isArray(parsed.answers) ? parsed.answers : [];
+
+      setHasTakenQuiz(true);
+      setQuizResults(savedAnswers);
+
+      const restoredAnswers = {};
+
+      allSlides.forEach((slide, index) => {
+        if (slide.type !== "quiz") return;
+
+        const savedAnswer = savedAnswers.find(
+          (item) => item.question === slide.content.question
+        );
+
+        if (savedAnswer) {
+          restoredAnswers[index] = savedAnswer.userAnswer;
+        }
+      });
+
+      setSelectedAnswers(restoredAnswers);
+    } catch {
+      setHasTakenQuiz(false);
+      setQuizResults([]);
+      setSelectedAnswers({});
+    }
+  }, [quizResultKey, allSlides]);
+
   const totalSlides = allSlides.length;
 
   const progressPercent = useMemo(() => {
@@ -160,7 +187,7 @@ function Lesson() {
     const finalScore = latestResults.filter((item) => item.isCorrect).length;
 
     localStorage.setItem(
-      "lessonQuizResults",
+      quizResultKey,
       JSON.stringify({
         lessonId: Number(lessonId),
         score: finalScore,
@@ -179,13 +206,9 @@ function Lesson() {
       })
     );
 
+    setHasTakenQuiz(true);
+
     await saveProgress(totalSlides - 1);
-
-    if (hasTakenQuiz) {
-      goBackToLearningModule();
-      return;
-    }
-
     navigate(`/review/${lessonId}`);
   };
 
@@ -208,9 +231,9 @@ function Lesson() {
     const newResult = {
       question: quiz?.question || "Question not available",
       userAnswer: option,
-      correctAnswer: correctAnswer,
-      explanation: explanation,
-      isCorrect: isCorrect,
+      correctAnswer,
+      explanation,
+      isCorrect,
     };
 
     const updatedResults = [
@@ -369,6 +392,12 @@ function Lesson() {
                 <p className={styles.quizQuestion}>
                   {currentItem.content.question || "No question available."}
                 </p>
+
+                {hasTakenQuiz && (
+                  <p className={styles.noOptions}>
+                    You already answered this quiz.
+                  </p>
+                )}
 
                 {hasOptions ? (
                   <div className={styles.optionsContainer}>

@@ -36,6 +36,15 @@ function PublicDecks() {
     profile_image: "/images/temporary profile.jpg",
   });
 
+  const swalClasses = {
+    popup: styles.swalPopup,
+    title: styles.swalTitle,
+    htmlContainer: styles.swalText,
+    confirmButton: styles.swalConfirmBtn,
+    cancelButton: styles.swalCancelBtn,
+    actions: styles.swalActions,
+  };
+
   const closeAllFilterDropdowns = () => {
     setCourseSortOpen(false);
     setDeckSortOpen(false);
@@ -69,7 +78,9 @@ function PublicDecks() {
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Yes",
-      confirmButtonColor: "#7b5cff",
+      cancelButtonText: "Cancel",
+      buttonsStyling: false,
+      customClass: swalClasses,
     }).then((result) => {
       if (result.isConfirmed) navigate("/login");
     });
@@ -237,6 +248,15 @@ function PublicDecks() {
     navigate(`/learning/${courseId}`);
   };
 
+  const isCourseAdded = (lessonId) => {
+    return courses.some((course) => {
+      return (
+        String(course.lesson_id) === String(lessonId) ||
+        String(course.id) === String(lessonId)
+      );
+    });
+  };
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
 
@@ -265,32 +285,50 @@ function PublicDecks() {
       icon: "info",
       title: "No results found",
       text: "No course or public deck matches your search.",
-      confirmButtonColor: "#7b5cff",
+      confirmButtonText: "Okay",
+      buttonsStyling: false,
+      customClass: swalClasses,
     });
   };
 
   const handleAddCourse = async (lesson) => {
+    if (isCourseAdded(lesson.id)) {
+      await Swal.fire({
+        title: "Already Added",
+        text: "This course has already been added to My Courses.",
+        icon: "info",
+        confirmButtonText: "Okay",
+        buttonsStyling: false,
+        customClass: swalClasses,
+      });
+
+      return;
+    }
+
     const result = await Swal.fire({
       title: "Add Course?",
       text: `Add "${lesson.title}" to My Courses?`,
       icon: "question",
       showCancelButton: true,
       confirmButtonText: "Yes, add it",
-      confirmButtonColor: "#7b5cff",
+      cancelButtonText: "Cancel",
+      buttonsStyling: false,
+      customClass: swalClasses,
     });
 
     if (!result.isConfirmed) return;
 
     try {
-      const res = await fetch("http://localhost/puffybrain/addDeck.php", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: `lesson_id=${lesson.id}`,
-      });
-
+    const res = await fetch("http://localhost/puffybrain/addCourse.php", {
+  method: "POST",
+  credentials: "include",
+  headers: {
+    "Content-Type": "application/x-www-form-urlencoded",
+  },
+  body: new URLSearchParams({
+    lesson_id: lesson.id,
+  }),
+});
       const data = await res.json();
 
       if (data.success) {
@@ -300,7 +338,9 @@ function PublicDecks() {
           text: "Course added successfully",
           timer: 2000,
           showConfirmButton: true,
-          confirmButtonColor: "#7b5cff",
+          confirmButtonText: "Okay",
+          buttonsStyling: false,
+          customClass: swalClasses,
         });
 
         await fetchCourses();
@@ -310,6 +350,9 @@ function PublicDecks() {
           icon: "error",
           title: "Failed",
           text: data.message || "Failed to add course",
+          confirmButtonText: "Okay",
+          buttonsStyling: false,
+          customClass: swalClasses,
         });
       }
     } catch (err) {
@@ -319,6 +362,9 @@ function PublicDecks() {
         icon: "error",
         title: "Error",
         text: "An error occurred while adding the course",
+        confirmButtonText: "Okay",
+        buttonsStyling: false,
+        customClass: swalClasses,
       });
     }
   };
@@ -415,7 +461,9 @@ function PublicDecks() {
         isCollapsed ? styles.sidebarCollapsed : ""
       }`}
     >
-      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
+      <aside
+        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
+      >
         <div>
           <div
             className={styles.sidebarToggle}
@@ -425,8 +473,16 @@ function PublicDecks() {
           </div>
 
           <div className={styles.logo}>
-            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
-            <img className={styles.logoCollapsed} src="/images/logo_solo.png" alt="Logo" />
+            <img
+              className={styles.logoExpanded}
+              src="/images/logo1.png"
+              alt="Logo"
+            />
+            <img
+              className={styles.logoCollapsed}
+              src="/images/logo_solo.png"
+              alt="Logo"
+            />
           </div>
 
           <div className={styles.divider}></div>
@@ -492,7 +548,9 @@ function PublicDecks() {
 
               <ul className={styles.sectionList}>
                 {myDecks.length === 0 ? (
-                  <li className={styles.sidebarEmptyText}>Don't have decks yet</li>
+                  <li className={styles.sidebarEmptyText}>
+                    Don't have decks yet
+                  </li>
                 ) : (
                   myDecks.slice(0, 3).map((deck) => (
                     <li key={deck.id} className={styles.sidebarListItem}>
@@ -512,20 +570,31 @@ function PublicDecks() {
 
               <ul className={styles.sectionList}>
                 {courses.length === 0 ? (
-                  <li className={styles.sidebarEmptyText}>No courses added yet</li>
+                  <li className={styles.sidebarEmptyText}>
+                    No courses added yet
+                  </li>
                 ) : (
-                  courses.slice(0, 3).map((course) => (
-                    <li key={course.id} className={styles.sidebarListItem}>
-                      <button
-                        type="button"
-                        onClick={() => openCourse(course.id)}
-                        className={styles.menuItem}
+                  courses.slice(0, 3).map((course) => {
+                    const courseLessonId = course.lesson_id || course.id;
+
+                    return (
+                      <li
+                        key={course.id || course.lesson_id}
+                        className={styles.sidebarListItem}
                       >
-                        <i className="bx bx-book-open"></i>
-                        <span className={styles.menuText}>{course.title}</span>
-                      </button>
-                    </li>
-                  ))
+                        <button
+                          type="button"
+                          onClick={() => openCourse(courseLessonId)}
+                          className={styles.menuItem}
+                        >
+                          <i className="bx bx-book-open"></i>
+                          <span className={styles.menuText}>
+                            {course.title}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })
                 )}
               </ul>
             </div>
@@ -629,7 +698,7 @@ function PublicDecks() {
                         className={styles.emptyNotificationImg}
                       />
 
-                      <p>You don’t have any new notifications</p>
+                      <p>You don't have any new notifications</p>
                     </div>
                   )}
                 </div>
@@ -722,13 +791,31 @@ function PublicDecks() {
 
                       {courseSortOpen && (
                         <div className={styles.customDropdownMenu}>
-                          <button type="button" onClick={() => { setCourseSort("az"); setCourseSortOpen(false); }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCourseSort("az");
+                              setCourseSortOpen(false);
+                            }}
+                          >
                             A-Z
                           </button>
-                          <button type="button" onClick={() => { setCourseSort("recent"); setCourseSortOpen(false); }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCourseSort("recent");
+                              setCourseSortOpen(false);
+                            }}
+                          >
                             Recently Added
                           </button>
-                          <button type="button" onClick={() => { setCourseSort("oldest"); setCourseSortOpen(false); }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCourseSort("oldest");
+                              setCourseSortOpen(false);
+                            }}
+                          >
                             Oldest
                           </button>
                         </div>
@@ -740,7 +827,9 @@ function PublicDecks() {
                 <div className={styles.lessons}>
                   {filteredLessons.length === 0 ? (
                     <p className={styles.emptyMain}>
-                      {search ? "No courses match your search." : "No courses available."}
+                      {search
+                        ? "No courses match your search."
+                        : "No courses available."}
                     </p>
                   ) : (
                     filteredLessons.map((lesson) => (
@@ -754,11 +843,15 @@ function PublicDecks() {
                           tabIndex={0}
                           onClick={() => navigate(`/learning/${lesson.id}`)}
                           onKeyDown={(e) => {
-                            if (e.key === "Enter") navigate(`/learning/${lesson.id}`);
+                            if (e.key === "Enter") {
+                              navigate(`/learning/${lesson.id}`);
+                            }
                           }}
                         >
                           <div className={styles.lessonHeader}>
-                            <h3 className={styles.lessonTitle}>{lesson.title}</h3>
+                            <h3 className={styles.lessonTitle}>
+                              {lesson.title}
+                            </h3>
 
                             <button
                               type="button"
@@ -828,13 +921,31 @@ function PublicDecks() {
 
                       {deckSortOpen && (
                         <div className={styles.customDropdownMenu}>
-                          <button type="button" onClick={() => { setDeckSort("az"); setDeckSortOpen(false); }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDeckSort("az");
+                              setDeckSortOpen(false);
+                            }}
+                          >
                             A-Z
                           </button>
-                          <button type="button" onClick={() => { setDeckSort("recent"); setDeckSortOpen(false); }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDeckSort("recent");
+                              setDeckSortOpen(false);
+                            }}
+                          >
                             Recently Added
                           </button>
-                          <button type="button" onClick={() => { setDeckSort("oldest"); setDeckSortOpen(false); }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDeckSort("oldest");
+                              setDeckSortOpen(false);
+                            }}
+                          >
                             Oldest
                           </button>
                         </div>
@@ -859,7 +970,13 @@ function PublicDecks() {
 
                       {deckYearOpen && (
                         <div className={styles.customDropdownMenu}>
-                          {["", "First Year", "Second Year", "Third Year", "Fourth Year"].map((year) => (
+                          {[
+                            "",
+                            "First Year",
+                            "Second Year",
+                            "Third Year",
+                            "Fourth Year",
+                          ].map((year) => (
                             <button
                               key={year || "all"}
                               type="button"

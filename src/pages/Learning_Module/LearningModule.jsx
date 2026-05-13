@@ -17,6 +17,7 @@ function LearningModule() {
   const [activeTab, setActiveTab] = useState("tab1");
   const [openModes, setOpenModes] = useState(false);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const [myDecks, setMyDecks] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -24,6 +25,7 @@ function LearningModule() {
   const notificationCount = 0;
 
   const [user, setUser] = useState({
+    id: null,
     username: "",
     year_level: "",
     profile_image: "/images/temporary profile.jpg",
@@ -36,6 +38,30 @@ function LearningModule() {
     last_viewed_card: 0,
   });
 
+  const currentCourse = useMemo(() => {
+  return courses.find((course) => {
+    const courseId =
+      course.id ||
+      course.lesson_id ||
+      course.course_id ||
+      course.module_id;
+
+    return Number(courseId) === Number(lessonId);
+  });
+}, [courses, lessonId]);
+
+  const isCourseAdded = useMemo(() => {
+    return courses.some((course) => {
+      const courseId =
+        course.id ||
+        course.lesson_id ||
+        course.course_id ||
+        course.module_id;
+
+      return Number(courseId) === Number(lessonId);
+    });
+  }, [courses, lessonId]);
+
   const fetchUser = async () => {
     try {
       const res = await fetch("http://localhost/puffybrain/getUser.php", {
@@ -46,6 +72,7 @@ function LearningModule() {
 
       if (data.success) {
         setUser({
+          id: data.user?.id || data.user?.user_id || null,
           username: data.user?.username || "",
           year_level: data.user?.year_level || "",
           profile_image:
@@ -107,101 +134,321 @@ function LearningModule() {
     return () => window.removeEventListener("click", handler);
   }, []);
 
-  useEffect(() => {
-    const loadLessonAndProgress = async () => {
+  const getTotalSlides = (lessonData) => {
+    const lessonSlides = lessonData?.lesson_content
+      ? lessonData.lesson_content
+          .split("---")
+          .map((slide) => slide.trim())
+          .filter((slide) => slide.length > 0)
+      : [];
+
+    let quizSlides = [];
+
+    if (lessonData?.quiz_contents) {
       try {
-        const lessonRes = await fetch(
-          `http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`
-        );
-
-        const data = await lessonRes.json();
-        setLesson(data);
-
-        const lessonSlides = data.lesson_content
-          ? data.lesson_content
-              .split("---")
-              .map((slide) => slide.trim())
-              .filter((slide) => slide.length > 0)
-          : [];
-
-        let quizSlides = [];
-
-        if (data.quiz_contents) {
-          try {
-            quizSlides = JSON.parse(data.quiz_contents);
-            if (!Array.isArray(quizSlides)) quizSlides = [];
-          } catch (error) {
-            console.error("Invalid quiz JSON:", error);
-            quizSlides = [];
-          }
-        }
-
-        const totalSlides = lessonSlides.length + quizSlides.length;
-
-        const progressRes = await fetch(
-          `http://localhost/puffybrain/getLessonProgress.php?user_id=1&lesson_id=${lessonId}`
-        );
-
-        const progressData = await progressRes.json();
-        const realProgress = progressData?.progress || progressData;
-
-        if (realProgress && realProgress.total_cards !== undefined) {
-          const studiedCards = Number(realProgress.studied_cards) || 0;
-          const lastViewedCard = Number(realProgress.last_viewed_card) || 0;
-
-          const computedPercent =
-            totalSlides > 0 ? (studiedCards / totalSlides) * 100 : 0;
-
-          setProgress({
-            total_cards: totalSlides,
-            studied_cards: Math.min(studiedCards, totalSlides),
-            progress_percent: Math.min(computedPercent, 100),
-            last_viewed_card: lastViewedCard,
-          });
-        } else {
-          setProgress({
-            total_cards: totalSlides,
-            studied_cards: 0,
-            progress_percent: 0,
-            last_viewed_card: 0,
-          });
-        }
-      } catch (err) {
-        console.error("Error loading lesson/progress:", err);
+        const parsed = JSON.parse(lessonData.quiz_contents);
+        quizSlides = Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        console.error("Invalid quiz JSON:", error);
+        quizSlides = [];
       }
-    };
-
-    loadLessonAndProgress();
-  }, [lessonId]);
-
-  const isCourseAdded = useMemo(() => {
-    return courses.some((course) => {
-      return (
-        String(course.lesson_id) === String(lessonId) ||
-        String(course.id) === String(lessonId)
-      );
-    });
-  }, [courses, lessonId]);
-
-  const addCurrentCourse = async () => {
-    const res = await fetch("http://localhost/puffybrain/addCourse.php", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        lesson_id: lessonId,
-      }),
-    });
-
-    const data = await res.json().catch(() => ({}));
-
-    if (!res.ok || data.success === false) {
-      throw new Error(data.message || "Failed to add course.");
     }
 
-    await fetchCourses();
+    return lessonSlides.length + quizSlides.length;
+  };
+
+useEffect(() => {
+  const loadLessonAndProgress = async () => {
+    setLoading(true);
+
+    try {
+      const lessonRes = await fetch(
+        `http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`
+      );
+
+      const lessonData = await lessonRes.json();
+
+      const finalLesson =
+        lessonData.lesson ||
+        lessonData.data ||
+        lessonData;
+
+      setLesson(finalLesson);
+
+      const totalSlides = getTotalSlides(finalLesson);
+
+      // ===== GET HOMEPAGE PROGRESS FIRST =====
+
+      const homepagePercentRaw =
+        currentCourse?.progress_percent ??
+        currentCourse?.progress ??
+        currentCourse?.study_progress ??
+        currentCourse?.percentage ??
+        currentCourse?.completion_percent ??
+        null;
+
+      const homepageStudied =
+        Number(currentCourse?.studied_cards) ||
+        Number(currentCourse?.completed_cards) ||
+        Number(currentCourse?.progress_count) ||
+        0;
+
+      const homepageTotal =
+        Number(currentCourse?.total_cards) ||
+        totalSlides;
+
+      // ===== USE HOMEPAGE PERCENT IF AVAILABLE =====
+
+      if (
+        homepagePercentRaw !== null &&
+        homepagePercentRaw !== undefined
+      ) {
+        const cleanPercent = Number(
+          String(homepagePercentRaw).replace("%", "")
+        );
+
+        setProgress({
+          total_cards: homepageTotal,
+          studied_cards:
+            homepageStudied || homepageTotal,
+          progress_percent: Math.min(
+            cleanPercent || 0,
+            100
+          ),
+          last_viewed_card: 0,
+        });
+
+        return;
+      }
+
+      // ===== COMPUTE FROM HOMEPAGE COUNTS =====
+
+      if (homepageStudied > 0 && homepageTotal > 0) {
+        const homepagePercent =
+          (homepageStudied / homepageTotal) * 100;
+
+        setProgress({
+          total_cards: homepageTotal,
+          studied_cards: homepageStudied,
+          progress_percent: Math.min(
+            homepagePercent,
+            100
+          ),
+          last_viewed_card: 0,
+        });
+
+        return;
+      }
+
+      // ===== FALLBACK =====
+
+      if (!user.id) {
+        setProgress({
+          total_cards: totalSlides,
+          studied_cards: 0,
+          progress_percent: 0,
+          last_viewed_card: 0,
+        });
+
+        setLoading(false);
+        return;
+      }
+
+      // ===== LOAD DATABASE PROGRESS =====
+
+      const progressRes = await fetch(
+        `http://localhost/puffybrain/getLessonProgress.php?user_id=${user.id}&lesson_id=${lessonId}`,
+        {
+          credentials: "include",
+        }
+      );
+
+      const progressData = await progressRes.json();
+
+      const realProgress =
+        progressData?.progress || progressData;
+
+      const studiedCards =
+        Number(realProgress?.studied_cards) || 0;
+
+      const lastViewedCard =
+        Number(realProgress?.last_viewed_card) || 0;
+
+      const safeStudiedCards = Math.min(
+        studiedCards,
+        totalSlides
+      );
+
+      const computedPercent =
+        totalSlides > 0
+          ? (safeStudiedCards / totalSlides) * 100
+          : 0;
+
+      setProgress({
+        total_cards: totalSlides,
+        studied_cards: safeStudiedCards,
+        progress_percent: Math.min(
+          computedPercent,
+          100
+        ),
+        last_viewed_card: lastViewedCard,
+      });
+
+    } catch (err) {
+      console.error(
+        "Error loading lesson/progress:",
+        err
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  loadLessonAndProgress();
+
+}, [lessonId, user.id, currentCourse]);
+
+  const quizzes = useMemo(() => {
+    if (!lesson?.quiz_contents) return [];
+
+    try {
+      const parsed = JSON.parse(lesson.quiz_contents);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      console.error("Invalid quiz JSON", e);
+      return [];
+    }
+  }, [lesson]);
+
+  const addCourseIfNeeded = async () => {
+    if (isCourseAdded) return true;
+
+    try {
+      const res = await fetch("http://localhost/puffybrain/addCourse.php", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          lesson_id: lessonId,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        Swal.fire({
+          title: "Could not add course",
+          text: data.message || "Something went wrong.",
+          imageUrl: "/images/error.png",
+          imageWidth: 170,
+          imageHeight: 170,
+          confirmButtonText: "Okay",
+        });
+
+        return false;
+      }
+
+      await fetchCourses();
+      return true;
+    } catch (err) {
+      console.error("addCourseIfNeeded error:", err);
+
+      Swal.fire({
+        title: "Server error",
+        text: "Could not add this course.",
+        imageUrl: "/images/error.png",
+        imageWidth: 170,
+        imageHeight: 170,
+        confirmButtonText: "Okay",
+      });
+
+      return false;
+    }
+  };
+
+  const handleStudy = () => {
+    if (isCourseAdded) {
+      navigate(`/introduction/${lessonId}`);
+      return;
+    }
+
+    Swal.fire({
+      customClass: {
+        popup: styles.swalPopup,
+        title: styles.swalTitle,
+        htmlContainer: styles.swalText,
+        confirmButton: styles.swalConfirmBtn,
+        cancelButton: styles.swalCancelBtn,
+        image: styles.swalImage,
+        actions: styles.swalActions,
+      },
+      buttonsStyling: false,
+      title: "Add this course?",
+      text: "You need to add this course to My Courses before studying.",
+      imageUrl: "/images/asking.png",
+      imageWidth: 180,
+      imageHeight: 180,
+      showCancelButton: true,
+      confirmButtonText: "Add Course",
+      cancelButtonText: "Cancel",
+    }).then(async (result) => {
+      if (!result.isConfirmed) return;
+
+      const added = await addCourseIfNeeded();
+
+      if (added) {
+        navigate(`/introduction/${lessonId}`);
+      }
+    });
+  };
+
+  const handlePractice = () => {
+    if (isCourseAdded) {
+      setOpenModes(true);
+      return;
+    }
+
+    Swal.fire({
+      customClass: {
+        popup: styles.swalPopup,
+        title: styles.swalTitle,
+        htmlContainer: styles.swalText,
+        confirmButton: styles.swalConfirmBtn,
+        cancelButton: styles.swalCancelBtn,
+        image: styles.swalImage,
+        actions: styles.swalActions,
+      },
+      buttonsStyling: false,
+      title: "Add this course?",
+      text: "You need to add this course to My Courses before practicing.",
+      imageUrl: "/images/asking.png",
+      imageWidth: 180,
+      imageHeight: 180,
+      showCancelButton: true,
+      allowOutsideClick: false,
+      confirmButtonText: "Add & Practice",
+      cancelButtonText: "Cancel",
+    }).then(async (result) => {
+      if (!result.isConfirmed) return;
+
+      const added = await addCourseIfNeeded();
+
+      if (added) {
+        Swal.fire({
+          title: "Course Added!",
+          text: "Added to My Courses successfully.",
+          imageUrl: "/images/success.png",
+          imageWidth: 170,
+          imageHeight: 170,
+          timer: 1200,
+          showConfirmButton: false,
+        });
+
+        setOpenModes(true);
+      }
+    });
   };
 
   const handleLogout = () => {
@@ -246,18 +493,6 @@ function LearningModule() {
   const openCourse = (courseId) => {
     navigate(`/learning/${courseId}`);
   };
-
-  const quizzes = useMemo(() => {
-    if (!lesson?.quiz_contents) return [];
-
-    try {
-      const parsed = JSON.parse(lesson.quiz_contents);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (e) {
-      console.error("Invalid quiz JSON", e);
-      return [];
-    }
-  }, [lesson]);
 
   const savedQuizResults =
     JSON.parse(localStorage.getItem("lessonQuizResults")) || null;
@@ -308,106 +543,12 @@ function LearningModule() {
     );
   }, [filteredQuizzes, correctQuestions]);
 
-  const handlePractice = () => {
-    if (isCourseAdded) {
-      setOpenModes(true);
-      return;
-    }
-
-    Swal.fire({
-      customClass: {
-        popup: styles.swalPopup,
-        title: styles.swalTitle,
-        htmlContainer: styles.swalText,
-        confirmButton: styles.swalConfirmBtn,
-        cancelButton: styles.swalCancelBtn,
-        image: styles.swalImage,
-        actions: styles.swalActions,
-      },
-      buttonsStyling: false,
-      title: "Add this course?",
-      text: "You need to add this course to My Courses before practicing.",
-      imageUrl: "/images/asking.png",
-      imageWidth: 180,
-      imageHeight: 180,
-      showCancelButton: true,
-      allowOutsideClick: false,
-      confirmButtonText: "Add & Practice",
-      cancelButtonText: "Cancel",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await addCurrentCourse();
-
-          Swal.fire({
-            title: "Course Added!",
-            text: "Added to My Courses successfully.",
-            imageUrl: "/images/success.png",
-            imageWidth: 170,
-            imageHeight: 170,
-            timer: 1500,
-            showConfirmButton: false,
-          });
-
-          setOpenModes(true);
-        } catch (err) {
-          console.error(err);
-
-          Swal.fire({
-            icon: "error",
-            title: "Add failed",
-            text: "Unable to add this course. Please try again.",
-          });
-        }
-      }
-    });
-  };
-
-  const handleStudy = () => {
-    if (isCourseAdded) {
-      navigate(`/introduction/${lessonId}`);
-      return;
-    }
-
-    Swal.fire({
-      customClass: {
-        popup: styles.swalPopup,
-        title: styles.swalTitle,
-        htmlContainer: styles.swalText,
-        confirmButton: styles.swalConfirmBtn,
-        cancelButton: styles.swalCancelBtn,
-        image: styles.swalImage,
-        actions: styles.swalActions,
-      },
-      buttonsStyling: false,
-      title: "Add this course?",
-      text: "You need to add this course to My Courses before studying.",
-      imageUrl: "/images/asking.png",
-      imageWidth: 180,
-      imageHeight: 180,
-      showCancelButton: true,
-      confirmButtonText: "Add Course",
-      cancelButtonText: "Cancel",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await addCurrentCourse();
-          navigate(`/introduction/${lessonId}`);
-        } catch (err) {
-          console.error(err);
-
-          Swal.fire({
-            icon: "error",
-            title: "Add failed",
-            text: "Unable to add this course. Please try again.",
-          });
-        }
-      }
-    });
-  };
+  if (loading) {
+    return <div style={{ padding: "40px" }}>Loading lesson...</div>;
+  }
 
   if (!lesson) {
-    return <div style={{ padding: "40px" }}>Loading lesson...</div>;
+    return <div style={{ padding: "40px" }}>Lesson not found.</div>;
   }
 
   return (
@@ -535,27 +676,23 @@ function LearningModule() {
                     No courses added yet
                   </li>
                 ) : (
-                  courses.slice(0, 3).map((course) => {
-                    const courseLessonId = course.lesson_id || course.id;
-
-                    return (
-                      <li
-                        key={course.id || course.lesson_id}
-                        className={styles.sidebarListItem}
+                  courses.slice(0, 3).map((course) => (
+                    <li
+                      key={course.id || course.lesson_id}
+                      className={styles.sidebarListItem}
+                    >
+                      <button
+                        type="button"
+                        onClick={() =>
+                          openCourse(course.id || course.lesson_id)
+                        }
+                        className={styles.menuItem}
                       >
-                        <button
-                          type="button"
-                          onClick={() => openCourse(courseLessonId)}
-                          className={styles.menuItem}
-                        >
-                          <i className="bx bx-book-open"></i>
-                          <span className={styles.menuText}>
-                            {course.title}
-                          </span>
-                        </button>
-                      </li>
-                    );
-                  })
+                        <i className="bx bx-book-open"></i>
+                        <span className={styles.menuText}>{course.title}</span>
+                      </button>
+                    </li>
+                  ))
                 )}
               </ul>
             </div>
@@ -625,7 +762,7 @@ function LearningModule() {
                   <h4>Notifications</h4>
 
                   <div className={styles.emptyNotification}>
-                    <p>You don't have any new notifications</p>
+                    <p>You don’t have any new notifications</p>
                   </div>
                 </div>
               </div>
@@ -815,7 +952,7 @@ function LearningModule() {
                             />
                             <p>
                               {search.trim()
-                                ? `No cards found for "${search}".`
+                                ? `No cards found for “${search}”.`
                                 : "No cards available yet."}
                             </p>
                           </div>
@@ -842,7 +979,7 @@ function LearningModule() {
                             />
                             <p>
                               {search.trim()
-                                ? `No not memorized cards found for "${search}".`
+                                ? `No not memorized cards found for “${search}”.`
                                 : "No cards to memorize yet."}
                             </p>
                           </div>
@@ -853,7 +990,7 @@ function LearningModule() {
                               alt="All memorized"
                               className={styles.emptyImage}
                             />
-                            <p>Congratulations! You memorized all cards.</p>
+                            <p>Congratulation! You memorized all cards 🎉</p>
                           </div>
                         ) : (
                           notMemorizedCards.map((quiz, index) => (
@@ -878,7 +1015,7 @@ function LearningModule() {
                             />
                             <p>
                               {search.trim()
-                                ? `No memorized cards found for "${search}".`
+                                ? `No memorized cards found for “${search}”.`
                                 : "No memorized cards yet."}
                             </p>
                           </div>
