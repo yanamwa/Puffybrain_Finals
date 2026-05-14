@@ -171,19 +171,19 @@ export default function AdminSettings() {
   };
 
   const openEditModal = () => {
-    setEditForm({
-      full_name: "",
-      username: "",
-      email: "",
-      signature: "",
-      role: "",
-      profile_image: "",
-    });
+  setEditForm({
+    full_name: admin.full_name || "",
+    username: admin.username || "",
+    email: admin.email || "",
+    signature: admin.signature || "",
+    role: admin.role || "Admin",
+    profile_image: admin.profile_image || "",
+  });
 
-    setSelectedImageFile(null);
-    setImagePreview("");
-    setIsEditModalOpen(true);
-  };
+  setSelectedImageFile(null);
+  setImagePreview("");
+  setIsEditModalOpen(true);
+};
 
   const closeEditModal = () => {
     setIsEditModalOpen(false);

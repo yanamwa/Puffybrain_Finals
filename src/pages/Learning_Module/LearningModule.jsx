@@ -1,6 +1,8 @@
 import { Link, NavLink, useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
 import Swal from "sweetalert2";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "boxicons/css/boxicons.min.css";
 import styles from "./Learning_Module.module.css";
 import "../../index.css";
@@ -190,28 +192,26 @@ function LearningModule() {
   };
 
   const handleShare = async () => {
-    const lessonLink = `${window.location.origin}/learning/${lessonId}`;
+  const lessonLink = `${window.location.origin}/learning/${lessonId}`;
 
-    try {
-      await navigator.clipboard.writeText(lessonLink);
+  try {
+    await navigator.clipboard.writeText(lessonLink);
 
-      Swal.fire({
-        icon: "success",
-        title: "Link copied!",
-        text: "Lesson link copied to clipboard.",
-        timer: 1500,
-        showConfirmButton: false,
-      });
-    } catch (error) {
-      console.error("Failed to copy link:", error);
+    toast.success("Lesson link copied!", {
+      className: styles.toastSuccess,
+      progressClassName: styles.toastSuccessProgress,
+      icon: <i className="bx bx-check-circle"></i>,
+    });
+  } catch (error) {
+    console.error("Failed to copy link:", error);
 
-      Swal.fire({
-        icon: "error",
-        title: "Copy failed",
-        text: "Unable to copy the link.",
-      });
-    }
-  };
+    toast.error("Unable to copy the lesson link.", {
+      className: styles.toastError,
+      progressClassName: styles.toastErrorProgress,
+      icon: <i className="bx bx-error-circle"></i>,
+    });
+  }
+};
 
   const openCourse = (courseId) => {
     navigate(`/learning/${courseId}`);
@@ -868,6 +868,14 @@ customClass: {
           </main>
         </div>
       </div>
+      <ToastContainer
+      position="top-right"
+      autoClose={2200}
+      hideProgressBar={false}
+      closeOnClick
+      pauseOnHover={false}
+      draggable={false}
+    />
     </div>
   );
 }

@@ -290,12 +290,29 @@
   font-family: inherit;
 }
 
-.searchBar i {
+.searchBtn {
+  border: none;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+  margin: 0;
+
+  width: 35px;
+  height: 35px;
+
   flex-shrink: 0;
-  font-size: 18px;
-  color: #000;
 }
 
+.searchBtn i {
+  font-size: 20px;
+  color: #555;
+}
 /* ===== NOTIFICATION ===== */
 
 .notificationWrapper {

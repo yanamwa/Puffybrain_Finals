@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Link, NavLink, useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import QuizModesModal from "../../components/QuizModesModal";
 import styles from "./userDecks.module.css";
 
@@ -597,6 +599,28 @@ export default function UserDecks() {
     });
   };
 
+  const handleShare = async () => {
+  const deckLink = `${window.location.origin}/deck/${deckId}`;
+
+  try {
+    await navigator.clipboard.writeText(deckLink);
+
+    toast.success("Deck link copied!", {
+      className: styles.toastSuccess,
+      progressClassName: styles.toastSuccessProgress,
+      icon: <i className="bx bx-check-circle"></i>,
+    });
+  } catch (error) {
+    console.error("Failed to copy deck link:", error);
+
+    toast.error("Unable to copy the deck link.", {
+      className: styles.toastError,
+      progressClassName: styles.toastErrorProgress,
+      icon: <i className="bx bx-error-circle"></i>,
+    });
+  }
+};
+
   return (
     <div
       className={`${styles.container} ${
@@ -937,6 +961,17 @@ export default function UserDecks() {
                 ) : (
                   <p>Loading deck...</p>
                 )}
+
+                <div className={styles.deckShareWrap}>
+                  <button
+                    type="button"
+                    className={styles.shareBtn}
+                    onClick={handleShare}
+                    title="Copy deck link"
+                  >
+                    <i className="bx bx-share-alt"></i>
+                  </button>
+                </div>
               </div>
             </section>
 
@@ -1245,6 +1280,15 @@ export default function UserDecks() {
           </div>
         </div>
       )}
+
+      <ToastContainer
+      position="top-right"
+      autoClose={2200}
+      hideProgressBar={false}
+      closeOnClick
+      pauseOnHover={false}
+      draggable={false}
+    />
 
       {showModes && (
         <QuizModesModal

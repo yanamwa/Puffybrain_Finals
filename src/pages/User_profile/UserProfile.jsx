@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "boxicons/css/boxicons.min.css";
 import styles from "./UserProfile.module.css";
 
@@ -197,6 +199,28 @@ function UserProfile() {
       }
     });
   };
+
+  const handleShare = async () => {
+  const profileLink = `${window.location.origin}/user-profile/${user.id}`;
+
+  try {
+    await navigator.clipboard.writeText(profileLink);
+
+    toast.success("Profile link copied!", {
+      className: styles.toastSuccess,
+      progressClassName: styles.toastSuccessProgress,
+      icon: <i className="bx bx-check-circle"></i>,
+    });
+  } catch (error) {
+    console.error("Failed to copy profile link:", error);
+
+    toast.error("Unable to copy the profile link.", {
+      className: styles.toastError,
+      progressClassName: styles.toastErrorProgress,
+      icon: <i className="bx bx-error-circle"></i>,
+    });
+  }
+};
 
   useEffect(() => {
     fetchUser();
@@ -474,9 +498,14 @@ function UserProfile() {
               <div className={styles.profileCardInner}>
                 <div className={styles.profileCardTop}>
                   <h1 className={styles.profileTitle}>Student ID Card</h1>
-                  <button className={styles.shareBtn} type="button">
-                    <i className="bx bx-share-alt"></i>
-                  </button>
+                  <button
+                      className={styles.shareBtn}
+                      type="button"
+                      onClick={handleShare}
+                      title="Copy profile link"
+                    >
+                      <i className="bx bx-share-alt"></i>
+                    </button>
                 </div>
 
                 <div className={styles.profileDivider}></div>
@@ -661,6 +690,14 @@ function UserProfile() {
           </main>
         </div>
       </div>
+      <ToastContainer
+  position="top-right"
+  autoClose={2200}
+  hideProgressBar={false}
+  closeOnClick
+  pauseOnHover={false}
+  draggable={false}
+/>
     </div>
   );
 }

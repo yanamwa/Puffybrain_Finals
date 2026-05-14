@@ -1067,3 +1067,44 @@
   background: #f1edff;
   color: #7b5cff;
 }
+
+.toastSuccess,
+.toastError {
+  background: #ffffff !important;
+  color: #6b6b6b !important;
+  border-radius: 4px !important;
+  min-height: 58px !important;
+  padding: 12px 14px !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.16) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
+.toastSuccess i {
+  color: #19c83f;
+  font-size: 20px;
+}
+
+.toastError i {
+  color: #ff1f1f;
+  font-size: 20px;
+}
+
+.toastSuccessProgress {
+  background: #19c83f !important;
+  height: 4px !important;
+}
+
+.toastErrorProgress {
+  background: #ff1f1f !important;
+  height: 4px !important;
+}
+
+:global(.Toastify__close-button) {
+  color: #aaa !important;
+  opacity: 1 !important;
+}
+
+:global(.Toastify__toast-icon) {
+  width: 22px !important;
+}
