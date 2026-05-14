@@ -610,14 +610,16 @@
 
 .add-cards {
   background: white;
-  color: black;
-  box-shadow: 0 4px 0 #ccc;
+  color: var(--font-color);
+  border: 1px solid  #7a7a7a;
+  box-shadow: 0 4px 0 #696969;
 }
 
 .practice {
   background: #ecb9e7;
-  color: black;
-  box-shadow: 0 4px 0 #cc61f0;
+  color: var(--font-color);
+  border: 1px solid  #c599c1;
+  box-shadow: 0 4px 0 #b88eb3;
 }
 
 .cards-tabs {
@@ -887,14 +889,6 @@ gap:8px;
 margin-bottom:6px;
 }
 
-.editBtn{
-background:none;
-border:none;
-cursor:pointer;
-font-size:18px;
-color:#3a7afe;
-}
-
 .deleteBtn{
 background:none;
 border:none;
@@ -1051,18 +1045,6 @@ color:#ff4d4f;
   display: none;
 }
 
-.uploadedFile {
-  margin: -8px 0 15px;
-  padding: 8px 12px;
-  background: #ffffff;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  color: #333;
-}
-
 
 .modal-overlay {
   z-index: 9999;
@@ -1138,37 +1120,6 @@ color:#ff4d4f;
   background: #ff5c5c;
 }
 
-.uploadedFile {
-  margin: 5px 0 15px;
-  padding: 12px 14px;
-  background: white;
-  border-radius: 18px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  font-size: 18px;
-  font-family: 'Jersey 15', sans-serif;
-  color: #333;
-
-  box-shadow: 0 4px 0 #ccc;
-  border: 2px solid #ececec;
-
-  animation: popIn 0.2s ease;
-}
-
-.uploadedFile i {
-  color: #7b5cff;
-  font-size: 22px;
-}
-
-.uploadedFile span {
-  flex: 1;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  text-align: left;
-}
 
 .practice:disabled {
   opacity: 0.5;
@@ -1310,8 +1261,25 @@ color:#ff4d4f;
   transform: translateY(-1px);
 }
 
+.uploadLessonBtn {
+  border: none;
+  border-radius: 20px;
+  padding: 8px 15px;
+  font-weight: normal;
+  cursor: pointer;
+  transition: 0.3s;
+  font-family: 'Jersey 15', sans-serif;
+  margin-left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  background: white;
+  color: var(--font-color);
+  border: 1px solid  #7a7a7a;
+  box-shadow: 0 4px 0 #696969;
+}
 
-.uploadLessonBtn,
 .deckEditBtn {
   border: none;
   border-radius: 20px;
@@ -1322,9 +1290,8 @@ color:#ff4d4f;
   font-family: 'Jersey 15', sans-serif;
   margin-left: 20px;
   box-shadow: 0 4px 0 #ccc;
-    background: white;
+  background: white;
   color: black;
-
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1471,33 +1438,6 @@ color:#ff4d4f;
   display: none;
 }
 
-.uploadedFile {
-  margin: 0 0 14px;
-  padding: 10px 14px;
-  background: white;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 17px;
-  font-family: "Jersey 15", sans-serif;
-  color: #333;
-  box-shadow: 0 4px 0 #ccc;
-}
-
-.uploadedFile i {
-  color: #7b5cff;
-  font-size: 20px;
-  margin-right: 10px;
-}
-
-.uploadedFile span {
-  flex: 1;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  text-align: left;
-}
 
 .image-preview {
   width: 100%;
@@ -1719,79 +1659,255 @@ color:#ff4d4f;
   font-family: "Jersey 15", sans-serif !important;
 }
 
-.editDeckCancel {
-  background: white !important;
-  color: black !important;
-  box-shadow: 0 5px 0 #ccc !important;
-}
-
+.editDeckCancel,
 .editDeckSave {
-  background: #d7a7ff !important;
-  color: black !important;
-  box-shadow: 0 5px 0 #cc61f0 !important;
+  min-width: 120px;
+  padding: 10px 22px !important;
+
+  border-radius: 18px !important;
+
+  font-family: "Jersey 15", sans-serif !important;
+  font-size: 20px !important;
+
+  cursor: pointer;
+  transition: 0.2s ease;
+
+  border-width: 1px !important;
+  border-style: solid !important;
 }
 
-.deckShareWrap {
-  margin-top: 18px;
+/* CANCEL */
+.editDeckCancel {
+  background: #ffffff !important;
+  color: #3b3b3b !important;
+
+  border-color: #7a7a7a !important;
+
+  box-shadow: 0 5px 0 #696969 !important;
+}
+
+.editDeckCancel:hover {
+  background: #f3f3f3 !important;
+  transform: translateY(-2px);
+}
+
+.editDeckCancel:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #696969 !important;
+}
+
+/* SAVE */
+.editDeckSave {
+  background: #d9a9e9 !important;
+  color: #2d1635 !important;
+
+  border-color: #744185 !important;
+
+  box-shadow: 0 5px 0 #80588d !important;
+}
+
+.editDeckSave:hover {
+  background: #e4b9f1 !important;
+  transform: translateY(-2px);
+}
+
+.editDeckSave:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #80588d !important;
+}
+
+.cards-actions {
   display: flex;
   justify-content: flex-end;
-}
-
-.shareBtn {
-  border: none;
-  background: transparent;
-  color: rgb(63, 63, 63);
-  padding: 10px 5px;
-  border-radius: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
   align-items: center;
-  gap:10px;
+  gap: 14px;
+  padding: 0 20px;
+  box-sizing: border-box;
 }
 
-.shareBtn i {
+.uploadLessonBtn,
+.add-cards,
+.practice,
+.deckEditBtn,
+.editBtn,
+.deleteBtn,
+.visitBtn,
+.modal-actions button {
+  background: white;
+  color: var(--font-color);
+  border: 1px solid #7a7a7a;
+  box-shadow: 0 4px 0 #696969;
+  border-radius: 20px;
+  font-family: "Jersey 15", sans-serif;
+  font-weight: normal;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.uploadLessonBtn,
+.add-cards,
+.practice {
+  height: 34px;
+  min-width: 105px;
+  padding: 6px 16px;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 15px;
+}
+
+.practice {
+  background: #ecb9e7;
+  border-color: #b989b5;
+  box-shadow: 0 4px 0 #9d7599;
+}
+
+.add-cards {
+  background: #ffffff;
+  border-color: #7a7a7a;
+  box-shadow: 0 4px 0 #696969;
+}
+
+.uploadLessonBtn {
+  background: #ffffff;
+  border-color: #7a7a7a;
+  box-shadow: 0 4px 0 #696969;
+}
+
+.editBtn {
+  background: #a7c7e7;
+  border-color: #6b91b5;
+  box-shadow: 0 4px 0 #5f7f9d;
+}
+
+.deleteBtn {
+  background: #ff9aa2;
+  border-color: #c65d66;
+  box-shadow: 0 4px 0 #a84f56;
+}
+
+.deckEditBtn {
+  background: #ffffff;
+  border-color: #7a7a7a;
+  box-shadow: 0 4px 0 #696969;
+}
+
+.visitBtn {
+  background: #ffffff;
+  border-color: #7a7a7a;
+  box-shadow: 0 4px 0 #696969;
+}
+
+.modal-actions button:first-child {
+  background: #ffffff;
+  color: var(--font-color);
+  border: 1px solid #7a7a7a;
+  box-shadow: 0 4px 0 #696969;
+}
+
+.modal-actions button:last-child {
+  background: #d7a7ff;
+  color: var(--font-color);
+  border: 1px solid #9f65c5;
+  box-shadow: 0 4px 0 #8c56ad;
+}
+
+.uploadLessonBtn:hover,
+.add-cards:hover,
+.practice:hover,
+.deckEditBtn:hover,
+.editBtn:hover,
+.deleteBtn:hover,
+.visitBtn:hover,
+.modal-actions button:hover {
+  transform: translateY(-2px);
+}
+
+.uploadLessonBtn:active,
+.add-cards:active,
+.practice:active,
+.deckEditBtn:active,
+.editBtn:active,
+.deleteBtn:active,
+.visitBtn:active,
+.modal-actions button:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #696969;
+}
+
+.deleteCardPopup {
+  border-radius: 14px !important;
+  font-family: "Jersey 15", sans-serif !important;
+}
+
+.deleteCardActions {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 14px !important;
+}
+
+.deleteCardConfirm,
+.deleteCardCancel {
+  min-width: 90px;
+  padding: 10px 18px !important;
+  border-radius: 6px !important;
+  font-size: 20px !important;
+  font-family: "Jersey 15", sans-serif !important;
+  color: white !important;
+  cursor: pointer !important;
+  transition: 0.2s ease;
+}
+
+.deleteCardConfirm {
+  background: #e74c3c !important;
+  border: 1px solid #b9362b !important;
+  box-shadow: 0 4px 0 #b9362b !important;
+}
+
+.deleteCardCancel {
+  background: #6c757d !important;
+  border: 1px solid #555d63 !important;
+  box-shadow: 0 4px 0 #555d63 !important;
+}
+
+.editCategorySelect,
+.editCustomCategory {
+  width: 100%;
+  height: 50px;
+  box-sizing: border-box;
+  border: none;
+  outline: none;
+  background: white;
+  border-radius: 16px;
+  padding: 10px 16px;
   font-size: 20px;
+  font-family: "Jersey 15", sans-serif;
 }
 
-
-.toastSuccess,
-.toastError {
-  background: #ffffff !important;
-  color: #6b6b6b !important;
-  border-radius: 4px !important;
-  min-height: 58px !important;
-  padding: 12px 14px !important;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.16) !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
+.deckCategoryText {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  max-width: 150px;
+  margin: 6px 0 4px;
+  padding: 4px 9px;
+  background: #efefef;
+  border: 1px solid #cfcfcf;
+  border-radius: 999px;
+  color: #4b4b4b;
+  font-size: 13px;
+  line-height: 1.2;
 }
 
-.toastSuccess i {
-  color: #19c83f;
-  font-size: 20px;
+.deckCategoryText i {
+  font-size: 14px;
+  color: #6a6a6a;
 }
 
-.toastError i {
-  color: #ff1f1f;
-  font-size: 20px;
-}
-
-.toastSuccessProgress {
-  background: #19c83f !important;
-  height: 4px !important;
-}
-
-.toastErrorProgress {
-  background: #ff1f1f !important;
-  height: 4px !important;
-}
-
-:global(.Toastify__close-button) {
-  color: #aaa !important;
-  opacity: 1 !important;
-}
-
-:global(.Toastify__toast-icon) {
-  width: 22px !important;
+.deckCategoryText span {
+  color: #4b4b4b;
+  white-space: nowrap;
 }

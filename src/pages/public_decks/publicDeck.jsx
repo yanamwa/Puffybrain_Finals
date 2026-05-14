@@ -11,6 +11,7 @@ function PublicDecks() {
   const [search, setSearch] = useState("");
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
 
   const [lessons, setLessons] = useState([]);
   const [publicDecks, setPublicDecks] = useState([]);
@@ -25,13 +26,24 @@ function PublicDecks() {
   const [deckSortOpen, setDeckSortOpen] = useState(false);
   const [deckYearOpen, setDeckYearOpen] = useState(false);
 
-  const notificationCount = 0;
+  const notificationCount = notifications.filter(
+    (notif) => notif.status === "unread"
+  ).length;
 
   const [user, setUser] = useState({
     username: "",
     year_level: "",
     profile_image: "/images/temporary profile.jpg",
   });
+
+  const swalClasses = {
+    popup: styles.swalPopup,
+    title: styles.swalTitle,
+    htmlContainer: styles.swalText,
+    confirmButton: styles.swalConfirmBtn,
+    cancelButton: styles.swalCancelBtn,
+    actions: styles.swalActions,
+  };
 
   const closeAllFilterDropdowns = () => {
     setCourseSortOpen(false);
@@ -66,7 +78,9 @@ function PublicDecks() {
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Yes",
-      confirmButtonColor: "#7b5cff",
+      cancelButtonText: "Cancel",
+      buttonsStyling: false,
+      customClass: swalClasses,
     }).then((result) => {
       if (result.isConfirmed) navigate("/login");
     });
@@ -90,6 +104,54 @@ function PublicDecks() {
       }
     } catch (err) {
       console.error("Fetch user error:", err);
+    }
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch(
+        "http://localhost/puffybrain/getUserNotifications.php",
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        setNotifications(data.notifications || []);
+      } else {
+        setNotifications([]);
+      }
+    } catch (err) {
+      console.error("Notification fetch error:", err);
+      setNotifications([]);
+    }
+  };
+
+  const markNotificationsAsRead = async () => {
+    try {
+      const res = await fetch(
+        "http://localhost/puffybrain/markNotificationsAsRead.php",
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        setNotifications((prev) =>
+          prev.map((notif) => ({
+            ...notif,
+            status: "read",
+          }))
+        );
+      }
+    } catch (err) {
+      console.error("Mark notifications as read error:", err);
     }
   };
 
@@ -158,6 +220,7 @@ function PublicDecks() {
 
   useEffect(() => {
     fetchUser();
+    fetchNotifications();
     fetchUserDecks();
     fetchCourses();
     fetchLessons();
@@ -167,7 +230,7 @@ function PublicDecks() {
   useEffect(() => {
     const handler = (e) => {
       const insideDropdown = e.target.closest(
-        `.${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}, .${styles.customDropdown}`
+        `.${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}, .${styles.customDropdown}, .${styles.searchBar}`
       );
 
       if (!insideDropdown) {
@@ -183,6 +246,15 @@ function PublicDecks() {
 
   const openCourse = (courseId) => {
     navigate(`/learning/${courseId}`);
+  };
+
+  const isCourseAdded = (lessonId) => {
+    return courses.some((course) => {
+      return (
+        String(course.lesson_id) === String(lessonId) ||
+        String(course.id) === String(lessonId)
+      );
+    });
   };
 
   const handleSearchSubmit = (e) => {
@@ -213,32 +285,50 @@ function PublicDecks() {
       icon: "info",
       title: "No results found",
       text: "No course or public deck matches your search.",
-      confirmButtonColor: "#7b5cff",
+      confirmButtonText: "Okay",
+      buttonsStyling: false,
+      customClass: swalClasses,
     });
   };
 
   const handleAddCourse = async (lesson) => {
+    if (isCourseAdded(lesson.id)) {
+      await Swal.fire({
+        title: "Already Added",
+        text: "This course has already been added to My Courses.",
+        icon: "info",
+        confirmButtonText: "Okay",
+        buttonsStyling: false,
+        customClass: swalClasses,
+      });
+
+      return;
+    }
+
     const result = await Swal.fire({
       title: "Add Course?",
       text: `Add "${lesson.title}" to My Courses?`,
       icon: "question",
       showCancelButton: true,
       confirmButtonText: "Yes, add it",
-      confirmButtonColor: "#7b5cff",
+      cancelButtonText: "Cancel",
+      buttonsStyling: false,
+      customClass: swalClasses,
     });
 
     if (!result.isConfirmed) return;
 
     try {
-      const res = await fetch("http://localhost/puffybrain/addDeck.php", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: `lesson_id=${lesson.id}`,
-      });
-
+    const res = await fetch("http://localhost/puffybrain/addCourse.php", {
+  method: "POST",
+  credentials: "include",
+  headers: {
+    "Content-Type": "application/x-www-form-urlencoded",
+  },
+  body: new URLSearchParams({
+    lesson_id: lesson.id,
+  }),
+});
       const data = await res.json();
 
       if (data.success) {
@@ -248,7 +338,9 @@ function PublicDecks() {
           text: "Course added successfully",
           timer: 2000,
           showConfirmButton: true,
-          confirmButtonColor: "#7b5cff",
+          confirmButtonText: "Okay",
+          buttonsStyling: false,
+          customClass: swalClasses,
         });
 
         await fetchCourses();
@@ -258,6 +350,9 @@ function PublicDecks() {
           icon: "error",
           title: "Failed",
           text: data.message || "Failed to add course",
+          confirmButtonText: "Okay",
+          buttonsStyling: false,
+          customClass: swalClasses,
         });
       }
     } catch (err) {
@@ -267,95 +362,98 @@ function PublicDecks() {
         icon: "error",
         title: "Error",
         text: "An error occurred while adding the course",
+        confirmButtonText: "Okay",
+        buttonsStyling: false,
+        customClass: swalClasses,
       });
     }
   };
 
   const filteredLessons = useMemo(() => {
-  const q = search.trim().toLowerCase();
+    const q = search.trim().toLowerCase();
 
-  let result = lessons.filter((lesson) => {
-    if (!q) return true;
-
-    const searchableText = [
-      lesson.title,
-      lesson.description,
-      lesson.subject,
-      lesson.category,
-    ]
-      .join(" ")
-      .toLowerCase();
-
-    return searchableText.includes(q);
-  });
-
-  if (courseSort === "az") {
-    result = [...result].sort((a, b) =>
-      (a.title || "").localeCompare(b.title || "")
-    );
-  }
-
-  if (courseSort === "recent") {
-    result = [...result].sort((a, b) => Number(b.id) - Number(a.id));
-  }
-
-  if (courseSort === "oldest") {
-    result = [...result].sort((a, b) => Number(a.id) - Number(b.id));
-  }
-
-  return result;
-}, [lessons, search, courseSort]);
-
-const filteredPublicDecks = useMemo(() => {
-  const q = search.trim().toLowerCase();
-
-  let result = publicDecks
-    .filter((deck) => {
+    let result = lessons.filter((lesson) => {
       if (!q) return true;
 
       const searchableText = [
-        deck.title,
-        deck.description,
-        deck.username,
-        deck.created_by,
-        deck.creator,
-        deck.creator_username,
-        deck.uploader_username,
+        lesson.title,
+        lesson.description,
+        lesson.subject,
+        lesson.category,
       ]
         .join(" ")
         .toLowerCase();
 
       return searchableText.includes(q);
-    })
-    .filter((deck) => {
-      const uploaderYear =
-        deck.uploader_year_level ||
-        deck.creator_year_level ||
-        deck.year_level ||
-        deck.level ||
-        "";
-
-      if (!deckYear) return true;
-
-      return normalizeYear(uploaderYear) === normalizeYear(deckYear);
     });
 
-  if (deckSort === "az") {
-    result = [...result].sort((a, b) =>
-      (a.title || "").localeCompare(b.title || "")
-    );
-  }
+    if (courseSort === "az") {
+      result = [...result].sort((a, b) =>
+        (a.title || "").localeCompare(b.title || "")
+      );
+    }
 
-  if (deckSort === "recent") {
-    result = [...result].sort((a, b) => Number(b.id) - Number(a.id));
-  }
+    if (courseSort === "recent") {
+      result = [...result].sort((a, b) => Number(b.id) - Number(a.id));
+    }
 
-  if (deckSort === "oldest") {
-    result = [...result].sort((a, b) => Number(a.id) - Number(b.id));
-  }
+    if (courseSort === "oldest") {
+      result = [...result].sort((a, b) => Number(a.id) - Number(b.id));
+    }
 
-  return result;
-}, [publicDecks, search, deckSort, deckYear]);
+    return result;
+  }, [lessons, search, courseSort]);
+
+  const filteredPublicDecks = useMemo(() => {
+    const q = search.trim().toLowerCase();
+
+    let result = publicDecks
+      .filter((deck) => {
+        if (!q) return true;
+
+        const searchableText = [
+          deck.title,
+          deck.description,
+          deck.username,
+          deck.created_by,
+          deck.creator,
+          deck.creator_username,
+          deck.uploader_username,
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        return searchableText.includes(q);
+      })
+      .filter((deck) => {
+        const uploaderYear =
+          deck.uploader_year_level ||
+          deck.creator_year_level ||
+          deck.year_level ||
+          deck.level ||
+          "";
+
+        if (!deckYear) return true;
+
+        return normalizeYear(uploaderYear) === normalizeYear(deckYear);
+      });
+
+    if (deckSort === "az") {
+      result = [...result].sort((a, b) =>
+        (a.title || "").localeCompare(b.title || "")
+      );
+    }
+
+    if (deckSort === "recent") {
+      result = [...result].sort((a, b) => Number(b.id) - Number(a.id));
+    }
+
+    if (deckSort === "oldest") {
+      result = [...result].sort((a, b) => Number(a.id) - Number(b.id));
+    }
+
+    return result;
+  }, [publicDecks, search, deckSort, deckYear]);
 
   return (
     <div
@@ -363,7 +461,9 @@ const filteredPublicDecks = useMemo(() => {
         isCollapsed ? styles.sidebarCollapsed : ""
       }`}
     >
-      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
+      <aside
+        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
+      >
         <div>
           <div
             className={styles.sidebarToggle}
@@ -373,8 +473,16 @@ const filteredPublicDecks = useMemo(() => {
           </div>
 
           <div className={styles.logo}>
-            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
-            <img className={styles.logoCollapsed} src="/images/logo_solo.png" alt="Logo" />
+            <img
+              className={styles.logoExpanded}
+              src="/images/logo1.png"
+              alt="Logo"
+            />
+            <img
+              className={styles.logoCollapsed}
+              src="/images/logo_solo.png"
+              alt="Logo"
+            />
           </div>
 
           <div className={styles.divider}></div>
@@ -440,7 +548,9 @@ const filteredPublicDecks = useMemo(() => {
 
               <ul className={styles.sectionList}>
                 {myDecks.length === 0 ? (
-                  <li className={styles.sidebarEmptyText}>Don't have decks yet</li>
+                  <li className={styles.sidebarEmptyText}>
+                    Don't have decks yet
+                  </li>
                 ) : (
                   myDecks.slice(0, 3).map((deck) => (
                     <li key={deck.id} className={styles.sidebarListItem}>
@@ -460,20 +570,31 @@ const filteredPublicDecks = useMemo(() => {
 
               <ul className={styles.sectionList}>
                 {courses.length === 0 ? (
-                  <li className={styles.sidebarEmptyText}>No courses added yet</li>
+                  <li className={styles.sidebarEmptyText}>
+                    No courses added yet
+                  </li>
                 ) : (
-                  courses.slice(0, 3).map((course) => (
-                    <li key={course.id} className={styles.sidebarListItem}>
-                      <button
-                        type="button"
-                        onClick={() => openCourse(course.id)}
-                        className={styles.menuItem}
+                  courses.slice(0, 3).map((course) => {
+                    const courseLessonId = course.lesson_id || course.id;
+
+                    return (
+                      <li
+                        key={course.id || course.lesson_id}
+                        className={styles.sidebarListItem}
                       >
-                        <i className="bx bx-book-open"></i>
-                        <span className={styles.menuText}>{course.title}</span>
-                      </button>
-                    </li>
-                  ))
+                        <button
+                          type="button"
+                          onClick={() => openCourse(courseLessonId)}
+                          className={styles.menuItem}
+                        >
+                          <i className="bx bx-book-open"></i>
+                          <span className={styles.menuText}>
+                            {course.title}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })
                 )}
               </ul>
             </div>
@@ -492,9 +613,20 @@ const filteredPublicDecks = useMemo(() => {
                 onChange={(e) => setSearch(e.target.value)}
               />
 
-              <button type="submit" className={styles.searchBtn}>
-                <i className="bx bx-search" />
-              </button>
+              {search.trim() ? (
+                <button
+                  type="button"
+                  className={styles.searchBtn}
+                  onClick={() => setSearch("")}
+                  aria-label="Clear search"
+                >
+                  <i className="bx bx-x" />
+                </button>
+              ) : (
+                <button type="submit" className={styles.searchBtn}>
+                  <i className="bx bx-search" />
+                </button>
+              )}
             </form>
 
             <div className={styles.profileWrapper}>
@@ -523,11 +655,52 @@ const filteredPublicDecks = useMemo(() => {
                     notificationOpen ? styles.show : ""
                   }`}
                 >
-                  <h4>Notifications</h4>
+                  <div className={styles.notificationHeader}>
+                    <h4>Notifications</h4>
 
-                  <div className={styles.emptyNotification}>
-                    <p>You don’t have any new notifications</p>
+                    {notificationCount > 0 && (
+                      <button
+                        type="button"
+                        className={styles.markReadBtn}
+                        onClick={markNotificationsAsRead}
+                      >
+                        Mark all as read
+                      </button>
+                    )}
                   </div>
+
+                  {notifications.length > 0 ? (
+                    notifications.slice(0, 5).map((notif) => (
+                      <div
+                        key={notif.notification_id}
+                        className={styles.notificationItem}
+                      >
+                        <div className={styles.notificationTop}>
+                          <h5>{notif.title}</h5>
+
+                          <span className={styles.notificationRole}>
+                            {notif.target_role}
+                          </span>
+                        </div>
+
+                        <p>{notif.message}</p>
+
+                        <small className={styles.notificationDate}>
+                          {new Date(notif.created_at).toLocaleString()}
+                        </small>
+                      </div>
+                    ))
+                  ) : (
+                    <div className={styles.emptyNotification}>
+                      <img
+                        src="/images/NoNotifcation.png"
+                        alt="No notifications"
+                        className={styles.emptyNotificationImg}
+                      />
+
+                      <p>You don't have any new notifications</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -627,7 +800,6 @@ const filteredPublicDecks = useMemo(() => {
                           >
                             A-Z
                           </button>
-
                           <button
                             type="button"
                             onClick={() => {
@@ -637,7 +809,6 @@ const filteredPublicDecks = useMemo(() => {
                           >
                             Recently Added
                           </button>
-
                           <button
                             type="button"
                             onClick={() => {
@@ -656,7 +827,9 @@ const filteredPublicDecks = useMemo(() => {
                 <div className={styles.lessons}>
                   {filteredLessons.length === 0 ? (
                     <p className={styles.emptyMain}>
-                      {search ? "No courses match your search." : "No courses available."}
+                      {search
+                        ? "No courses match your search."
+                        : "No courses available."}
                     </p>
                   ) : (
                     filteredLessons.map((lesson) => (
@@ -670,11 +843,15 @@ const filteredPublicDecks = useMemo(() => {
                           tabIndex={0}
                           onClick={() => navigate(`/learning/${lesson.id}`)}
                           onKeyDown={(e) => {
-                            if (e.key === "Enter") navigate(`/learning/${lesson.id}`);
+                            if (e.key === "Enter") {
+                              navigate(`/learning/${lesson.id}`);
+                            }
                           }}
                         >
                           <div className={styles.lessonHeader}>
-                            <h3 className={styles.lessonTitle}>{lesson.title}</h3>
+                            <h3 className={styles.lessonTitle}>
+                              {lesson.title}
+                            </h3>
 
                             <button
                               type="button"
@@ -753,7 +930,6 @@ const filteredPublicDecks = useMemo(() => {
                           >
                             A-Z
                           </button>
-
                           <button
                             type="button"
                             onClick={() => {
@@ -763,7 +939,6 @@ const filteredPublicDecks = useMemo(() => {
                           >
                             Recently Added
                           </button>
-
                           <button
                             type="button"
                             onClick={() => {
@@ -795,55 +970,24 @@ const filteredPublicDecks = useMemo(() => {
 
                       {deckYearOpen && (
                         <div className={styles.customDropdownMenu}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDeckYear("");
-                              setDeckYearOpen(false);
-                            }}
-                          >
-                            All Level
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDeckYear("First Year");
-                              setDeckYearOpen(false);
-                            }}
-                          >
-                            First year
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDeckYear("Second Year");
-                              setDeckYearOpen(false);
-                            }}
-                          >
-                            Second year
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDeckYear("Third Year");
-                              setDeckYearOpen(false);
-                            }}
-                          >
-                            Third year
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDeckYear("Fourth Year");
-                              setDeckYearOpen(false);
-                            }}
-                          >
-                            Fourth year
-                          </button>
+                          {[
+                            "",
+                            "First Year",
+                            "Second Year",
+                            "Third Year",
+                            "Fourth Year",
+                          ].map((year) => (
+                            <button
+                              key={year || "all"}
+                              type="button"
+                              onClick={() => {
+                                setDeckYear(year);
+                                setDeckYearOpen(false);
+                              }}
+                            >
+                              {year || "All Level"}
+                            </button>
+                          ))}
                         </div>
                       )}
                     </div>

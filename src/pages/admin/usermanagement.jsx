@@ -18,9 +18,14 @@ import {
 export default function UserManagement() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUserDecks, setSelectedUserDecks] = useState([]);
+  const [selectedUserCourses, setSelectedUserCourses] = useState([]);
+  const [userDetailsLoading, setUserDetailsLoading] = useState(false);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
+  const [rowsToShow, setRowsToShow] = useState(10);
 
   const [notificationOpen, setNotificationOpen] = useState(false);
   const notificationCount = 0;
@@ -29,49 +34,24 @@ export default function UserManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const usersPerPage = 5;
-
   const menuItems = [
-    {
-      label: "Dashboard",
-      path: "/admin/dashboard",
-      icon: <LayoutDashboard size={20} />,
-    },
-    {
-      label: "User Management",
-      path: "/admin/users",
-      icon: <Users size={20} />,
-    },
-    {
-      label: "Module Management",
-      path: "/admin/modules",
-      icon: <Layers size={20} />,
-    },
-    {
-      label: "Decks Management",
-      path: "/admin/decks",
-      icon: <LibraryBig size={20} />,
-    },
-    {
-      label: "Modes Management",
-      path: "/admin/modes",
-      icon: <Gamepad2 size={20} />,
-    },
+    { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
+    { label: "User Management", path: "/admin/users", icon: <Users size={20} /> },
+    { label: "Module Management", path: "/admin/modules", icon: <Layers size={20} /> },
+    { label: "Decks Management", path: "/admin/decks", icon: <LibraryBig size={20} /> },
+    { label: "Modes Management", path: "/admin/modes", icon: <Gamepad2 size={20} /> },
+    { label: "Notification Management", path: "/admin/notifications", icon: <i className="bx bx-bell"></i> },
   ];
 
   const handleLogout = (e) => {
     e.preventDefault();
-
     localStorage.clear();
     sessionStorage.clear();
-
     window.location.href = "/admin/login";
   };
 
   const formatUserId = (user) => {
-    const date = user.STDDateCreated
-      ? new Date(user.STDDateCreated)
-      : new Date();
+    const date = user.STDDateCreated ? new Date(user.STDDateCreated) : new Date();
 
     const mm = String(date.getMonth() + 1).padStart(2, "0");
     const yyyy = date.getFullYear();
@@ -85,45 +65,75 @@ export default function UserManagement() {
     return `STD${mm}${yyyy}${dd}${encrypted}`;
   };
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const response = await fetch("http://localhost/puffybrain/getUsers.php");
+      const response = await fetch("http://localhost/puffybrain/getUsers.php");
 
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-
-        const data = await response.json();
-
-        if (data.success) {
-          setUsers(data.users || []);
-        } else {
-          setError(data.message || "Failed to fetch users.");
-        }
-      } catch (err) {
-        console.error("Fetch error:", err);
-        setError("Server error. Check getUsers.php.");
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
       }
-    };
 
+      const data = await response.json();
+
+      if (data.success) {
+        setUsers(data.users || []);
+      } else {
+        setError(data.message || "Failed to fetch users.");
+      }
+    } catch (err) {
+      console.error("Fetch error:", err);
+      setError("Server error. Check getUsers.php.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewUser = async (user) => {
+    setSelectedUser(user);
+    setSelectedUserDecks([]);
+    setSelectedUserCourses([]);
+    setUserDetailsLoading(true);
+
+    try {
+      const res = await fetch(
+        `http://localhost/puffybrain/getUserDetailsAdmin.php?user_id=${user.id}`
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        setSelectedUserDecks(data.decks || []);
+        setSelectedUserCourses(data.courses || []);
+      } else {
+        setSelectedUserDecks([]);
+        setSelectedUserCourses([]);
+        alert(data.message || "Failed to fetch user details");
+      }
+    } catch (err) {
+      console.error(err);
+      setSelectedUserDecks([]);
+      setSelectedUserCourses([]);
+    } finally {
+      setUserDetailsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchUsers();
   }, []);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, sortBy]);
+  }, [searchQuery, sortBy, rowsToShow]);
 
   const filteredUsers = users.filter((user) => {
     const q = searchQuery.trim().toLowerCase();
 
     return (
-      String(user.id || "").includes(q) ||
+      String(user.id || "").toLowerCase().includes(q) ||
       String(user.username || "").toLowerCase().includes(q) ||
       String(user.email || "").toLowerCase().includes(q)
     );
@@ -144,15 +154,16 @@ export default function UserManagement() {
     return 0;
   });
 
-  const totalPages = Math.ceil(sortedUsers.length / usersPerPage);
-  const startIndex = (currentPage - 1) * usersPerPage;
-  const currentUsers = sortedUsers.slice(startIndex, startIndex + usersPerPage);
+  const totalPages = Math.ceil(sortedUsers.length / rowsToShow);
+
+  const currentUsers = sortedUsers.slice(
+    (currentPage - 1) * rowsToShow,
+    currentPage * rowsToShow
+  );
 
   return (
     <div className={styles.gridContainer}>
-      <aside
-        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
-      >
+      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
         <div className={styles.sidebarTop}>
           <div
             className={styles.sidebarToggle}
@@ -162,20 +173,11 @@ export default function UserManagement() {
           </div>
 
           <div className={styles.logo}>
-            <img
-              className={styles.logoExpanded}
-              src="/images/logo1.png"
-              alt="Logo"
-            />
-            <img
-              className={styles.logoCollapsed}
-              src="/images/logo_solo.png"
-              alt="Logo"
-            />
+            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
+            <img className={styles.logoCollapsed} src="/images/logo_solo.png" alt="Logo" />
           </div>
 
           <div className={styles.divider}></div>
-
           <p className={styles.menuLabel}>Menu</p>
 
           <nav className={styles.menu}>
@@ -194,7 +196,6 @@ export default function UserManagement() {
           </nav>
 
           <div className={styles.divider}></div>
-
           <p className={styles.menuLabel}>Others</p>
 
           <nav className={styles.menu}>
@@ -243,7 +244,10 @@ export default function UserManagement() {
             type="text"
             placeholder="Search users..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
           />
         </div>
 
@@ -259,9 +263,7 @@ export default function UserManagement() {
             <i className="bx bx-bell"></i>
 
             {notificationCount > 0 && (
-              <span className={styles.notificationBadge}>
-                {notificationCount}
-              </span>
+              <span className={styles.notificationBadge}>{notificationCount}</span>
             )}
           </button>
 
@@ -281,10 +283,14 @@ export default function UserManagement() {
 
       <main className={styles.main}>
         <div className={styles.pageTop}>
-          <h1 className={styles.pageTitle}>User Management</h1>
+          <div className={styles.titleSection}>
+            <h1 className={styles.pageTitle}>User Management</h1>
+            <p>Tracks the users of PuffyBrain.</p>
+          </div>
 
           <div className={styles.sortBox}>
             <label>Sort by:</label>
+
             <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
               <option value="newest">Newest User</option>
               <option value="oldest">Oldest User</option>
@@ -305,9 +311,7 @@ export default function UserManagement() {
           <div className={styles.tableContent}>
             {loading && <div className={styles.message}>Loading users...</div>}
 
-            {!loading && error && (
-              <div className={styles.errorMessage}>{error}</div>
-            )}
+            {!loading && error && <div className={styles.errorMessage}>{error}</div>}
 
             {!loading && !error && currentUsers.length === 0 && (
               <div className={styles.message}>No users found.</div>
@@ -324,63 +328,77 @@ export default function UserManagement() {
                   <button
                     type="button"
                     className={styles.viewBtn}
-                    onClick={() => setSelectedUser(user)}
+                    onClick={() => handleViewUser(user)}
                   >
                     View
                   </button>
                 </div>
               ))}
           </div>
-        </div>
 
-        {totalPages > 1 && (
-          <div className={styles.pagination}>
-            <button
-              type="button"
-              className={styles.pageBox}
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((p) => p - 1)}
-            >
-              Prev
-            </button>
-
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <div className={styles.paginationWrapper}>
+            <div className={styles.paginationCenter}>
               <button
                 type="button"
-                key={page}
-                className={`${styles.pageBox} ${
-                  currentPage === page ? styles.activePage : ""
-                }`}
-                onClick={() => setCurrentPage(page)}
+                className={styles.navBtn}
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
               >
-                {page}
+                {"<"}
               </button>
-            ))}
 
-            <button
-              type="button"
-              className={styles.pageBox}
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage((p) => p + 1)}
-            >
-              Next
-            </button>
+              {Array.from({ length: totalPages || 1 }, (_, i) => i + 1).map((page) => (
+                <button
+                  type="button"
+                  key={page}
+                  className={`${styles.pageBtn} ${
+                    currentPage === page ? styles.pageActive : ""
+                  }`}
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                className={styles.navBtn}
+                disabled={currentPage === totalPages || totalPages === 0}
+                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              >
+                {">"}
+              </button>
+            </div>
+
+            <div className={styles.rowsControl}>
+              <span>Show</span>
+
+              <select
+                value={rowsToShow}
+                onChange={(e) => {
+                  setRowsToShow(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+
+              <span>Row</span>
+            </div>
           </div>
-        )}
+        </div>
       </main>
 
       {selectedUser && (
-        <div
-          className={styles.modalOverlay}
-          onClick={() => setSelectedUser(null)}
-        >
+        <div className={styles.modalOverlay} onClick={() => setSelectedUser(null)}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               User Profile
-              <span
-                className={styles.close}
-                onClick={() => setSelectedUser(null)}
-              >
+
+              <span className={styles.close} onClick={() => setSelectedUser(null)}>
                 ×
               </span>
             </div>
@@ -389,14 +407,60 @@ export default function UserManagement() {
               <p>
                 <strong>ID:</strong> {formatUserId(selectedUser)}
               </p>
+
               <p>
-                <strong>Username:</strong>{" "}
-                {selectedUser.username || "No username"}
+                <strong>Username:</strong> {selectedUser.username || "No username"}
               </p>
+
               <p>
-                <strong>Email:</strong>{" "}
-                {selectedUser.email || "No email found"}
+                <strong>Email:</strong> {selectedUser.email || "No email found"}
               </p>
+
+              <div className={styles.userInfoSection}>
+                <h3>Decks Made</h3>
+
+                {userDetailsLoading ? (
+                  <p>Loading decks...</p>
+                ) : selectedUserDecks.length === 0 ? (
+                  <p>No decks made by this user.</p>
+                ) : (
+                  <div className={styles.infoList}>
+                    {selectedUserDecks.map((deck) => (
+                      <div className={styles.infoItem} key={deck.deck_id}>
+                        <p>
+                          <strong>{deck.title || "No title"}</strong>
+                        </p>
+                        <p>{deck.description || "No description"}</p>
+                        <p>Visibility: {deck.visibility || "Public"}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className={styles.userInfoSection}>
+                <h3>Courses Added</h3>
+
+                {userDetailsLoading ? (
+                  <p>Loading courses...</p>
+                ) : selectedUserCourses.length === 0 ? (
+                  <p>No courses added by this user.</p>
+                ) : (
+                  <div className={styles.infoList}>
+                    {selectedUserCourses.map((course) => (
+                      <div
+                        className={styles.infoItem}
+                        key={course.id || course.lesson_id}
+                      >
+                        <p>
+                          <strong>{course.title || "No title"}</strong>
+                        </p>
+                        <p>{course.subject || "No subject"}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

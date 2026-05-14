@@ -38,10 +38,21 @@ function TodoList() {
 
         <ul className={styles.todoList}>
           {todos.map((todo, index) => (
-            <li key={index}>
-              <span>{todo}</span>
-              <button onClick={() => removeTodo(index)}>×</button>
-            </li>
+          <li key={index} className={styles.todoItem}>
+  <label className={styles.checkboxContainer}>
+    <input type="checkbox" />
+    <span className={styles.customCheckbox}></span>
+  </label>
+
+  <span className={styles.todoText}>{todo}</span>
+
+  <button
+    className={styles.deleteBtn}
+    onClick={() => removeTodo(index)}
+  >
+    ×
+  </button>
+</li>
           ))}
         </ul>
       </div>

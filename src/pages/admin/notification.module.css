@@ -246,18 +246,47 @@
 
 /* ===== CARDS ===== */
 
-.formCard,
-.listCard {
+.formCard {
   background: #ffffff;
-  border-radius: 22px;
-  padding: 25px;
+  border-radius: 18px;
+  padding: 0;
+  overflow: hidden;
   box-shadow: 0 10px 28px rgba(82, 45, 140, 0.1);
 }
 
-.formCard h2,
-.listCard h2 {
-  margin: 0 0 18px;
-  font-size: 25px;
+.formCard::before {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 48px;
+  background: #c6a4e8;
+}
+
+.formContent {
+  padding: 24px 28px 28px;
+}
+
+.formContent {
+  padding: 24px 0 28px;
+}
+
+.formHeader {
+  display: flex;
+  align-items: center;
+  padding-bottom: 18px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid #d9d9d9;
+}
+
+.formGroup {
+  margin-left: 28px;
+  margin-right: 28px;
+}
+
+.formHeader h2 {
+  margin: 0;
+  font-size: 28px;
+  margin-left: 30px;
   color: var(--font-color);
 }
 
@@ -305,10 +334,16 @@
 /* ===== POST BUTTON ===== */
 
 .postBtn {
-  width: 100%;
+  width: calc(100% - 56px);
+
+  margin-left: 28px;
+  margin-right: 28px;
+  margin-top: 8px;
+
   border: none;
   border-radius: 16px;
   padding: 14px;
+
   color: white;
   font-size: 18px;
   font-family: inherit;
@@ -539,6 +574,180 @@
   color: #777;
   font-size: 15px;
   padding: 20px;
+}
+
+.notificationCreator {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #7b61c9;
+}
+
+/* ===== POSTED NOTIFICATIONS CARD ===== */
+
+.listCard {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 0 0 22px;
+  overflow: hidden;
+  box-shadow: 0 10px 28px rgba(82, 45, 140, 0.1);
+}
+
+.listCard::before {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 48px;
+  background: #c6a4e8;
+}
+
+.listTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 24px 28px 18px;
+
+  border-bottom: 1px solid #d9d9d9;
+}
+
+.listTop h2 {
+  margin: 0;
+  font-size: 28px;
+  color: #111;
+}
+
+/* ===== CUSTOM SORT ===== */
+
+.customSort {
+  position: relative;
+}
+
+.customSortBtn {
+  height: 34px;
+  min-width: 118px;
+
+  border: 1.5px solid #777;
+  border-radius: 999px;
+  background: #f7f7f7;
+
+  padding: 0 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: #222;
+
+  cursor: pointer;
+}
+
+.customSortBtn i {
+  font-size: 14px;
+}
+
+.customSortMenu {
+  position: absolute;
+  top: 42px;
+  right: 0;
+
+  width: 155px;
+
+  background: white;
+  border: 1px solid #d8d8d8;
+  border-radius: 14px;
+
+  padding: 6px;
+
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+
+  z-index: 100;
+}
+
+.customSortMenu button {
+  width: 100%;
+
+  border: none;
+  background: transparent;
+
+  border-radius: 10px;
+
+  padding: 10px 12px;
+
+  text-align: left;
+
+  font-family: inherit;
+  font-size: 13px;
+  color: #222;
+
+  cursor: pointer;
+}
+
+.customSortMenu button:hover {
+  background: #f2ebff;
+}
+
+
+.listTop input {
+  width: 280px;
+  border: 2px solid #decfff;
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: #ffffff;
+  outline: none;
+  font-family: inherit;
+  font-size: 16px;
+}
+
+.notificationsList {
+  padding: 22px 34px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.notificationCard {
+  border: none;
+  background: #f1f1f1;
+  border-radius: 16px;
+  padding: 20px;
+  min-height: 130px;
+}
+
+.paginationWrapper {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 22px;
+}
+
+.paginationWrapper button {
+  border: none;
+  border-radius: 999px;
+  min-width: 70px;
+  padding: 9px 18px;
+  background: #333;
+  color: white;
+  font-family: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.paginationWrapper button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.paginationWrapper span {
+  font-size: 14px;
+  font-weight: 700;
+  color: #222;
 }
 
 /* ===== RESPONSIVE ===== */

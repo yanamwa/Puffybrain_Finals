@@ -25,6 +25,7 @@ export default function UserDecks() {
   const [showUploadLesson, setShowUploadLesson] = useState(false);
   const [lessonFile, setLessonFile] = useState(null);
   const [questionCount, setQuestionCount] = useState(10);
+  const [trueFalseCount, setTrueFalseCount] = useState(5);
   const [difficulty, setDifficulty] = useState("easy");
 
   const [notificationOpen, setNotificationOpen] = useState(false);
@@ -46,6 +47,22 @@ export default function UserDecks() {
 
   const imageInputRef = useRef(null);
   const lessonInputRef = useRef(null);
+
+  const categories = [
+    "Reviewer",
+    "Mathematics",
+    "Science",
+    "English",
+    "Programming",
+    "History",
+    "Research",
+    "Networking",
+    "Database",
+    "Web Development",
+    "Cybersecurity",
+    "Business",
+    "Others",
+  ];
 
   const getCardImageSrc = (cardImage) => {
     if (!cardImage) return "";
@@ -73,6 +90,7 @@ export default function UserDecks() {
   const resetUploadForm = () => {
     setLessonFile(null);
     setQuestionCount(10);
+    setTrueFalseCount(5);
     setDifficulty("easy");
 
     if (lessonInputRef.current) {
@@ -92,7 +110,6 @@ export default function UserDecks() {
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
-
     if (!file) return;
 
     setImage(file);
@@ -136,7 +153,8 @@ export default function UserDecks() {
   const fetchCards = async () => {
     try {
       const res = await fetch(
-        `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`
+        `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`,
+        { credentials: "include" }
       );
 
       const data = await res.json();
@@ -250,6 +268,28 @@ export default function UserDecks() {
     setShowAddCard(true);
   };
 
+  const handleShare = async () => {
+    const deckLink = `${window.location.origin}/deck/${deckId}`;
+
+    try {
+      await navigator.clipboard.writeText(deckLink);
+
+      toast.success("Deck link copied!", {
+        className: styles.toastSuccess,
+        progressClassName: styles.toastSuccessProgress,
+        icon: <i className="bx bx-check-circle"></i>,
+      });
+    } catch (error) {
+      console.error("Failed to copy deck link:", error);
+
+      toast.error("Unable to copy the deck link.", {
+        className: styles.toastError,
+        progressClassName: styles.toastErrorProgress,
+        icon: <i className="bx bx-error-circle"></i>,
+      });
+    }
+  };
+
   const handleUploadLesson = async () => {
     if (!lessonFile) {
       Swal.fire("Missing file", "Please upload a lesson file.", "warning");
@@ -260,6 +300,7 @@ export default function UserDecks() {
     formData.append("deckId", deckId);
     formData.append("lessonFile", lessonFile);
     formData.append("questionCount", questionCount);
+    formData.append("trueFalseCount", trueFalseCount);
     formData.append("difficulty", difficulty);
 
     try {
@@ -283,14 +324,11 @@ export default function UserDecks() {
         },
       });
 
-      const res = await fetch(
-        "http://localhost/puffybrain/uploadLessonCards.php",
-        {
-          method: "POST",
-          body: formData,
-          credentials: "include",
-        }
-      );
+      const res = await fetch("http://localhost/puffybrain/uploadLessonCards.php", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
 
       const text = await res.text();
       let data;
@@ -323,11 +361,7 @@ export default function UserDecks() {
       }
     } catch (err) {
       console.error("UPLOAD LESSON FETCH ERROR:", err);
-      Swal.fire(
-        "Server Error",
-        err.message || "Failed to upload lesson.",
-        "error"
-      );
+      Swal.fire("Server Error", err.message || "Failed to upload lesson.", "error");
     }
   };
 
@@ -338,11 +372,7 @@ export default function UserDecks() {
     }
 
     if (!question.trim() || !answer.trim()) {
-      Swal.fire(
-        "Missing fields",
-        "Please fill in both question and answer.",
-        "warning"
-      );
+      Swal.fire("Missing fields", "Please fill in both question and answer.", "warning");
       return;
     }
 
@@ -388,11 +418,7 @@ export default function UserDecks() {
       }
     } catch (err) {
       console.error("handleAddCard error:", err);
-      Swal.fire(
-        "Server Error",
-        "Something went wrong while saving the card.",
-        "error"
-      );
+      Swal.fire("Server Error", "Something went wrong while saving the card.", "error");
     }
   };
 
@@ -406,13 +432,18 @@ export default function UserDecks() {
       title: "Delete this card?",
       text: "This action cannot be undone.",
       imageUrl: "/images/error.png",
-      imageWidth: 80,
-      imageHeight: 80,
+      imageWidth: 160,
+      imageHeight: 160,
       showCancelButton: true,
       confirmButtonText: "Delete",
       cancelButtonText: "Cancel",
-      confirmButtonColor: "#e74c3c",
-      cancelButtonColor: "#6c757d",
+      customClass: {
+        popup: styles.deleteCardPopup,
+        actions: styles.deleteCardActions,
+        confirmButton: styles.deleteCardConfirm,
+        cancelButton: styles.deleteCardCancel,
+      },
+      buttonsStyling: false,
     });
 
     if (!result.isConfirmed) return;
@@ -452,6 +483,9 @@ export default function UserDecks() {
   const handleEditDeck = async () => {
     if (!deck) return;
 
+    const currentCategory = deck.category || "Reviewer";
+    const isCustomCategory = !categories.includes(currentCategory);
+
     const { value: formValues } = await Swal.fire({
       html: `
         <div class="${styles.editDeckModal}">
@@ -477,9 +511,52 @@ export default function UserDecks() {
                 placeholder="Deck description"
               >${deck.description || ""}</textarea>
             </div>
+
+            <div class="${styles.editDeckGroup}">
+              <label>Category</label>
+
+              <select id="swal-category" class="${styles.editCategorySelect}">
+                ${categories
+                  .map(
+                    (cat) => `
+                      <option value="${cat}" ${
+                      currentCategory === cat ||
+                      (cat === "Others" && isCustomCategory)
+                        ? "selected"
+                        : ""
+                    }>
+                        ${cat}
+                      </option>
+                    `
+                  )
+                  .join("")}
+              </select>
+
+              <input
+                id="swal-custom-category"
+                class="${styles.editCustomCategory}"
+                type="text"
+                placeholder="Type category"
+                value="${isCustomCategory ? currentCategory : ""}"
+                style="display: ${
+                  currentCategory === "Others" || isCustomCategory
+                    ? "block"
+                    : "none"
+                }; margin-top: 10px;"
+              />
+            </div>
           </div>
         </div>
       `,
+      didOpen: () => {
+        const select = document.getElementById("swal-category");
+        const customInput = document.getElementById("swal-custom-category");
+
+        select.addEventListener("change", () => {
+          customInput.style.display =
+            select.value === "Others" ? "block" : "none";
+        });
+      },
       showCancelButton: true,
       confirmButtonText: "Save",
       cancelButtonText: "Cancel",
@@ -493,9 +570,35 @@ export default function UserDecks() {
       },
       buttonsStyling: false,
       preConfirm: () => {
+        const title = document.getElementById("swal-title").value.trim();
+        const description = document.getElementById("swal-desc").value.trim();
+        const selectedCategory = document.getElementById("swal-category").value;
+        const customCategory = document
+          .getElementById("swal-custom-category")
+          .value.trim();
+
+        const finalCategory =
+          selectedCategory === "Others" ? customCategory : selectedCategory;
+
+        if (!title) {
+          Swal.showValidationMessage("Deck title is required");
+          return false;
+        }
+
+        if (!finalCategory) {
+          Swal.showValidationMessage("Category is required");
+          return false;
+        }
+
+        if (!/^[A-Za-z0-9 ]+$/.test(finalCategory)) {
+          Swal.showValidationMessage("Only letters and numbers are allowed");
+          return false;
+        }
+
         return {
-          title: document.getElementById("swal-title").value,
-          description: document.getElementById("swal-desc").value,
+          title,
+          description,
+          category: finalCategory,
         };
       },
     });
@@ -507,6 +610,7 @@ export default function UserDecks() {
       formData.append("deckId", deckId);
       formData.append("title", formValues.title);
       formData.append("description", formValues.description);
+      formData.append("category", formValues.category);
 
       const res = await fetch("http://localhost/puffybrain/updateDeck.php", {
         method: "POST",
@@ -518,6 +622,7 @@ export default function UserDecks() {
 
       if (data.success) {
         await fetchDeck();
+        await fetchUserDecks();
 
         Swal.fire({
           title: "Updated!",
@@ -556,6 +661,15 @@ export default function UserDecks() {
 
     setImage(null);
     setImageName("");
+  };
+
+  const getOnlyAnswer = (rawAnswer = "") => {
+    const text = String(rawAnswer).trim();
+
+    const match = text.match(/Correct Answer:\s*(.+)$/i);
+    if (match) return match[1].trim();
+
+    return text;
   };
 
   const filteredCards = useMemo(() => {
@@ -598,28 +712,6 @@ export default function UserDecks() {
       }
     });
   };
-
-  const handleShare = async () => {
-  const deckLink = `${window.location.origin}/deck/${deckId}`;
-
-  try {
-    await navigator.clipboard.writeText(deckLink);
-
-    toast.success("Deck link copied!", {
-      className: styles.toastSuccess,
-      progressClassName: styles.toastSuccessProgress,
-      icon: <i className="bx bx-check-circle"></i>,
-    });
-  } catch (error) {
-    console.error("Failed to copy deck link:", error);
-
-    toast.error("Unable to copy the deck link.", {
-      className: styles.toastError,
-      progressClassName: styles.toastErrorProgress,
-      icon: <i className="bx bx-error-circle"></i>,
-    });
-  }
-};
 
   return (
     <div
@@ -880,19 +972,35 @@ export default function UserDecks() {
                     <div className={styles.deckTitleRow}>
                       <h3>{deck.title}</h3>
 
-                      {isOwner && (
+                      <div className={styles.deckActionBtns}>
                         <button
                           type="button"
-                          onClick={handleEditDeck}
-                          className={styles.deckEditBtn}
+                          onClick={handleShare}
+                          className={styles.deckShareBtn}
                         >
-                          <i className="bx bx-edit"></i>
-                          Edit
+                          <i className="bx bx-share-alt"></i>
+                          Share
                         </button>
-                      )}
+
+                        {isOwner && (
+                          <button
+                            type="button"
+                            onClick={handleEditDeck}
+                            className={styles.deckEditBtn}
+                          >
+                            <i className="bx bx-edit"></i>
+                            Edit
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     <p>{cards.length} cards</p>
+
+                    <p className={styles.deckCategoryText}>
+                      <i className="bx bxs-book"></i>
+                      <span>{deck.category || "Reviewer"}</span>
+                    </p>
 
                     <hr />
 
@@ -937,9 +1045,7 @@ export default function UserDecks() {
                           className={styles.visitBtn}
                           onClick={() => {
                             const creatorId =
-                              deck?.created_by ||
-                              deck?.creator_id ||
-                              deck?.user_id;
+                              deck?.created_by || deck?.creator_id || deck?.user_id;
 
                             if (!creatorId) {
                               Swal.fire(
@@ -961,17 +1067,6 @@ export default function UserDecks() {
                 ) : (
                   <p>Loading deck...</p>
                 )}
-
-                <div className={styles.deckShareWrap}>
-                  <button
-                    type="button"
-                    className={styles.shareBtn}
-                    onClick={handleShare}
-                    title="Copy deck link"
-                  >
-                    <i className="bx bx-share-alt"></i>
-                  </button>
-                </div>
               </div>
             </section>
 
@@ -1083,7 +1178,7 @@ export default function UserDecks() {
 
                         <hr />
 
-                        <p>{card.answer}</p>
+                        <p>{getOnlyAnswer(card.answer)}</p>
 
                         {card.image && (
                           <img
@@ -1129,9 +1224,7 @@ export default function UserDecks() {
                     ref={lessonInputRef}
                     className={styles.fileInput}
                     accept=".txt,.pdf,.doc,.docx"
-                    onChange={(e) =>
-                      setLessonFile(e.target.files?.[0] || null)
-                    }
+                    onChange={(e) => setLessonFile(e.target.files?.[0] || null)}
                   />
                 </label>
               ) : (
@@ -1165,6 +1258,17 @@ export default function UserDecks() {
                 max="50"
                 value={questionCount}
                 onChange={(e) => setQuestionCount(e.target.value)}
+              />
+            </div>
+
+            <div className={styles["form-group"]}>
+              <label>How many True or False questions?</label>
+              <input
+                type="number"
+                min="0"
+                max="50"
+                value={trueFalseCount}
+                onChange={(e) => setTrueFalseCount(e.target.value)}
               />
             </div>
 
@@ -1282,13 +1386,13 @@ export default function UserDecks() {
       )}
 
       <ToastContainer
-      position="top-right"
-      autoClose={2200}
-      hideProgressBar={false}
-      closeOnClick
-      pauseOnHover={false}
-      draggable={false}
-    />
+        position="top-right"
+        autoClose={2200}
+        hideProgressBar={false}
+        closeOnClick
+        pauseOnHover={false}
+        draggable={false}
+      />
 
       {showModes && (
         <QuizModesModal

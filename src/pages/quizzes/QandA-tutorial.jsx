@@ -1,125 +1,169 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import styles from "../quizzes/QandA-tutorial.module.css";
 import { useNavigate, useParams } from "react-router-dom";
 
 const slidesData = [
-  { question: 'What is the primary purpose of a "Router" in a home network?' },
-  { question: "Which network device is used to amplify a Wi-Fi signal to extend coverage?" },
-  { question: 'What does the acronym "LAN" commonly stand for?' },
+  {
+    question: 'What does the acronym "LAN" commonly stand for?',
+    type: "input",
+    placeholder: "Type your answer here",
+  },
+  {
+    question: 'What does the acronym "LAN" commonly stand for?',
+    type: "correct",
+    answer: "Local Area Network",
+  },
+  {
+    question: 'What does the acronym "LAN" commonly stand for?',
+    type: "wrong",
+    answer: "Large Access Node",
+  },
 ];
 
-const colors = [
-  { bg: "rgba(255, 16, 16, 0.24)", border: "rgba(83, 9, 9, 0.7)" },
-  { bg: "rgba(42, 180, 52, 0.24)", border: "rgba(16, 255, 32, 0.7)" },
+const qnaFrames = [
+  "/images/qna.png",
+  "/images/qna2.png",
+  "/images/qna3.png",
 ];
 
 export default function QandATutorial() {
-  const navigate = useNavigate();        
-  const { lessonId, deckId } = useParams();  
+  const navigate = useNavigate();
+  const { lessonId, deckId } = useParams();
+
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [colorIndex, setColorIndex] = useState(0);
-  const inputRef = useRef(null);
 
-  // Handle Enter key
-  const handleEnter = (event) => {
-    if (event.key === "Enter") {
-      alert("You submitted: " + event.target.value);
-      event.target.value = "";
-    }
-  };
+  const [showIntro, setShowIntro] = useState(true);
+  const [frameIndex, setFrameIndex] = useState(0);
+  const [showCircle, setShowCircle] = useState(false);
+  const [startLoading, setStartLoading] = useState(false);
 
-  // Slide rotation
   useEffect(() => {
+    const animationSequence = [0, 1, 2, 0, 1, 2, 0, 1, 2];
+    let current = 0;
+
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slidesData.length);
-    }, 5500);
+      setFrameIndex(animationSequence[current]);
+      current++;
+
+      if (current >= animationSequence.length) {
+        clearInterval(interval);
+        setShowCircle(true);
+
+        setTimeout(() => {
+          setShowIntro(false);
+          setShowCircle(false);
+        }, 700);
+      }
+    }, 220);
+
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
-    if (!inputRef.current) return;
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slidesData.length);
+    }, 3500);
 
-    const flash = setInterval(() => {
-      const color = colors[colorIndex];
-      inputRef.current.style.backgroundColor = color.bg;
-      inputRef.current.style.borderColor = color.border;
+    return () => clearInterval(interval);
+  }, []);
 
-      setColorIndex((prev) => (prev + 1) % colors.length);
-    }, 1900);
+  const handleStart = () => {
+    setStartLoading(true);
 
-    return () => clearInterval(flash);
-  }, [currentSlide]);
+    setTimeout(() => {
+      if (lessonId) {
+        navigate(`/qna/lesson/${lessonId}`);
+        return;
+      }
+
+      if (deckId) {
+        navigate(`/qna/deck/${deckId}`);
+      }
+    }, 700);
+  };
 
   return (
     <div className={styles.container}>
-      
-      {/* HEADER */}
-      <div className={styles.headerBox}>
-        <div className={styles.headerTop}>
-          <h1 className={styles.title}>Q&A</h1>
-        </div>
-
-        <div className={styles.subtitles}>
-          <p className={styles.subtitle}>Ask, Answer, and explore!</p>
-          <p className={styles.subtitle}>
-            Challenge your brain with interesting questions and discover something new every time you play!
-          </p>
-        </div>
-
-       <button
-          className={styles.startBtn}
-          onClick={() => {
-            if (lessonId) {
-              navigate(`/qna/lesson/${lessonId}`);
-              return;
-            }
-
-            if (deckId) {
-              navigate(`/qna/deck/${deckId}`);
-              return;
-            }
-          }}
-        >
-          Start
-        </button>
-      </div>
-
-      {/* SLIDESHOW */}
-      <div className={styles.slideshowBox}>
-        {slidesData.map((slide, i) => (
-          <div
-            key={i}
-            className={`${styles.slide} ${
-              currentSlide === i ? styles.active : ""
-            }`}
-          >
-            <p className={styles.question}>{slide.question}</p>
-
-            <input
-              type="text"
-              className={styles.placeholder}
-              placeholder="Type your answer and press Enter"
-              autoComplete="off"
-              disabled
-              ref={currentSlide === i ? inputRef : null}
+      {(showIntro || startLoading) && (
+        <div className={styles.introScreen}>
+          {!showCircle && !startLoading && (
+            <img
+              src={qnaFrames[frameIndex]}
+              alt="Q&A loading"
+              className={styles.qnaIntroImage}
             />
+          )}
 
-            <p className={styles.result}></p>
-          </div>
-        ))}
-
-        {/* DOTS */}
-        <div className={styles.dots}>
-          {slidesData.map((_, i) => (
-            <span
-              key={i}
-              className={`${styles.dot} ${
-                currentSlide === i ? styles.active : ""
-              }`}
-            ></span>
-          ))}
+          {(showCircle || startLoading) && (
+            <div className={styles.circleLoader}></div>
+          )}
         </div>
-      </div>
+      )}
+
+      {!showIntro && !startLoading && (
+        <>
+          <div className={styles.headerBox}>
+            <div className={styles.headerTop}>
+              <h1 className={styles.title}>Q&A</h1>
+            </div>
+
+            <div className={styles.subtitles}>
+              <p className={styles.subtitle}>Ask, Answer, and explore!</p>
+
+              <p className={styles.subtitle}>
+                Challenge your brain with interesting questions and discover
+                something new every time you play!
+              </p>
+            </div>
+
+            <button className={styles.startBtn} onClick={handleStart}>
+              Start
+            </button>
+          </div>
+
+          <div className={styles.slideshowBox}>
+            {slidesData.map((slide, i) => (
+              <div
+                key={i}
+                className={`${styles.slide} ${
+                  currentSlide === i ? styles.active : ""
+                }`}
+              >
+                <p className={styles.question}>{slide.question}</p>
+
+                {slide.type === "input" && (
+                  <div className={styles.inputPreview}>
+                    {slide.placeholder}
+                  </div>
+                )}
+
+                {slide.type === "correct" && (
+                  <div className={`${styles.answerBox} ${styles.correct}`}>
+                    {slide.answer}
+                  </div>
+                )}
+
+                {slide.type === "wrong" && (
+                  <div className={`${styles.answerBox} ${styles.wrong}`}>
+                    {slide.answer}
+                  </div>
+                )}
+              </div>
+            ))}
+
+            <div className={styles.dots}>
+              {slidesData.map((_, i) => (
+                <span
+                  key={i}
+                  className={`${styles.dot} ${
+                    currentSlide === i ? styles.active : ""
+                  }`}
+                ></span>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

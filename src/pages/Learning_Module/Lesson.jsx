@@ -1,5 +1,5 @@
 import styles from "./lesson.module.css";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
 import Swal from "sweetalert2";
 
@@ -11,6 +11,9 @@ function Lesson() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [quizResults, setQuizResults] = useState([]);
+  const [hasTakenQuiz, setHasTakenQuiz] = useState(false);
+
+  const quizResultKey = `lessonQuizResults_${lessonId}`;
 
   useEffect(() => {
     fetch(`http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`)
@@ -103,6 +106,47 @@ function Lesson() {
     return combined;
   }, [lessonSlides, quizSlides]);
 
+  useEffect(() => {
+    if (allSlides.length === 0) return;
+
+    const savedResults = localStorage.getItem(quizResultKey);
+
+    if (!savedResults) {
+      setHasTakenQuiz(false);
+      setQuizResults([]);
+      setSelectedAnswers({});
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(savedResults);
+      const savedAnswers = Array.isArray(parsed.answers) ? parsed.answers : [];
+
+      setHasTakenQuiz(true);
+      setQuizResults(savedAnswers);
+
+      const restoredAnswers = {};
+
+      allSlides.forEach((slide, index) => {
+        if (slide.type !== "quiz") return;
+
+        const savedAnswer = savedAnswers.find(
+          (item) => item.question === slide.content.question
+        );
+
+        if (savedAnswer) {
+          restoredAnswers[index] = savedAnswer.userAnswer;
+        }
+      });
+
+      setSelectedAnswers(restoredAnswers);
+    } catch {
+      setHasTakenQuiz(false);
+      setQuizResults([]);
+      setSelectedAnswers({});
+    }
+  }, [quizResultKey, allSlides]);
+
   const totalSlides = allSlides.length;
 
   const progressPercent = useMemo(() => {
@@ -135,11 +179,15 @@ function Lesson() {
     }
   };
 
+  const goBackToLearningModule = () => {
+    navigate(`/learningmodule/${lessonId}`);
+  };
+
   const saveLessonResultsAndGoReview = async (latestResults = quizResults) => {
     const finalScore = latestResults.filter((item) => item.isCorrect).length;
 
     localStorage.setItem(
-      "lessonQuizResults",
+      quizResultKey,
       JSON.stringify({
         lessonId: Number(lessonId),
         score: finalScore,
@@ -158,13 +206,14 @@ function Lesson() {
       })
     );
 
-    await saveProgress(totalSlides - 1);
+    setHasTakenQuiz(true);
 
+    await saveProgress(totalSlides - 1);
     navigate(`/review/${lessonId}`);
   };
 
   const handleOptionSelect = async (slideIndex, option) => {
-    if (selectedAnswers[slideIndex]) return;
+    if (hasTakenQuiz || selectedAnswers[slideIndex]) return;
 
     const quiz = currentItem?.content;
     const correctAnswer = quiz?.correct_answer || "";
@@ -182,9 +231,9 @@ function Lesson() {
     const newResult = {
       question: quiz?.question || "Question not available",
       userAnswer: option,
-      correctAnswer: correctAnswer,
-      explanation: explanation,
-      isCorrect: isCorrect,
+      correctAnswer,
+      explanation,
+      isCorrect,
     };
 
     const updatedResults = [
@@ -240,7 +289,11 @@ function Lesson() {
   const handleNext = async () => {
     const nextSlide = currentSlide + 1;
 
-    if (currentItem?.type === "quiz" && !selectedAnswers[currentSlide]) {
+    if (
+      currentItem?.type === "quiz" &&
+      !selectedAnswers[currentSlide] &&
+      !hasTakenQuiz
+    ) {
       Swal.fire({
         icon: "warning",
         title: "Answer first",
@@ -253,6 +306,12 @@ function Lesson() {
       await saveProgress(nextSlide);
       setCurrentSlide(nextSlide);
     } else {
+      if (hasTakenQuiz) {
+        await saveProgress(totalSlides - 1);
+        goBackToLearningModule();
+        return;
+      }
+
       await saveLessonResultsAndGoReview();
     }
   };
@@ -280,19 +339,15 @@ function Lesson() {
         <div className={styles.ribbon}></div>
 
         <div className={styles.tabs}>
-          <Link to={`/introduction/${lessonId}`}>
-            <button className={styles.welcome}>Introduction</button>
-          </Link>
+          <button className={styles.welcome} type="button" disabled>
+            Introduction
+          </button>
 
-          <Link to={`/lesson/${lessonId}`}>
-            <button className={styles.howitworksactive}>Lesson</button>
-          </Link>
+          <button className={styles.howitworksactive} type="button" disabled>
+            Lesson
+          </button>
 
-          <button
-            className={styles.aboutyou}
-            type="button"
-            onClick={() => saveLessonResultsAndGoReview()}
-          >
+          <button className={styles.aboutyou} type="button" disabled>
             Review
           </button>
         </div>
@@ -338,6 +393,12 @@ function Lesson() {
                   {currentItem.content.question || "No question available."}
                 </p>
 
+                {hasTakenQuiz && (
+                  <p className={styles.noOptions}>
+                    You already answered this quiz.
+                  </p>
+                )}
+
                 {hasOptions ? (
                   <div className={styles.optionsContainer}>
                     {currentItem.content.options.map((option, index) => (
@@ -348,6 +409,7 @@ function Lesson() {
                           selectedAnswer === option ? styles.selectedOption : ""
                         }`}
                         onClick={() => handleOptionSelect(currentSlide, option)}
+                        disabled={hasTakenQuiz || Boolean(selectedAnswer)}
                       >
                         {option}
                       </button>

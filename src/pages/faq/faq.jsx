@@ -1,6 +1,5 @@
-// src/pages/faq/FAQ.jsx
 import React, { useState } from "react";
-import styles from "./faq.module.css"; // Make sure this file exists
+import styles from "./faq.module.css";
 import { FaChevronDown, FaInstagram, FaFacebookF, FaEnvelope } from "react-icons/fa";
 
 const FAQ = () => {

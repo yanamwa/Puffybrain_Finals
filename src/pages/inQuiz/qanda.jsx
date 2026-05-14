@@ -10,6 +10,7 @@ export default function QandA() {
   const isDeckMode = Boolean(deckId);
 
   const [lesson, setLesson] = useState(null);
+  const [deckTitle, setDeckTitle] = useState("Deck Q&A");
   const [deckCards, setDeckCards] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -19,10 +20,18 @@ export default function QandA() {
   const [status, setStatus] = useState("");
   const [userResults, setUserResults] = useState([]);
 
+  const [ttsEnabled, setTtsEnabled] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [voiceSpeed, setVoiceSpeed] = useState(0.9);
+
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifImage, setNotifImage] = useState("/images/correct_answer.png");
+
   const inputRef = useRef(null);
+
   const shuffleArray = (array) => {
-  return [...array].sort(() => Math.random() - 0.5);
-};
+    return [...array].sort(() => Math.random() - 0.5);
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -38,11 +47,37 @@ export default function QandA() {
         }
 
         if (isDeckMode) {
-          const res = await fetch(
+          const cardsRes = await fetch(
             `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`
           );
-          const data = await res.json();
-          setDeckCards(data.success ? data.cards || [] : []);
+          const cardsData = await cardsRes.json();
+
+          setDeckCards(cardsData.success ? cardsData.cards || [] : []);
+
+          const titleFromCardsResponse =
+            cardsData.deck?.title ||
+            cardsData.deck_title ||
+            cardsData.deckTitle ||
+            cardsData.title ||
+            cardsData.cards?.[0]?.deck_title ||
+            cardsData.cards?.[0]?.deckTitle;
+
+          if (titleFromCardsResponse) {
+            setDeckTitle(titleFromCardsResponse);
+          } else {
+            const deckRes = await fetch(
+              `http://localhost/puffybrain/getDeckById.php?id=${deckId}`
+            );
+            const deckData = await deckRes.json();
+
+            setDeckTitle(
+              deckData.deck?.title ||
+                deckData.deck_title ||
+                deckData.deckTitle ||
+                deckData.title ||
+                "Deck Q&A"
+            );
+          }
         }
       } catch (err) {
         console.error("Error loading Q&A:", err);
@@ -54,46 +89,71 @@ export default function QandA() {
     loadData();
   }, [lessonId, deckId, isLessonMode, isDeckMode]);
 
-const questions = useMemo(() => {
-  if (isLessonMode && lesson?.quiz_contents) {
-    try {
-      const parsed = JSON.parse(lesson.quiz_contents);
-      if (!Array.isArray(parsed)) return [];
+  useEffect(() => {
+    return () => {
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
+  const questions = useMemo(() => {
+    if (isLessonMode && lesson?.quiz_contents) {
+      try {
+        const parsed = JSON.parse(lesson.quiz_contents);
+        if (!Array.isArray(parsed)) return [];
+
+        return shuffleArray(
+          parsed.map((item) => ({
+            q: item.question || "No question available.",
+            correctAnswer:
+              item.correct_answer || item.correctAnswer || item.answer || "",
+            explanation: item.explanation || item.answer || "",
+          }))
+        );
+      } catch {
+        return [];
+      }
+    }
+
+    if (isDeckMode) {
       return shuffleArray(
-        parsed.map((item) => ({
-          q: item.question || "No question available.",
-          correctAnswer:
-            item.correct_answer || item.correctAnswer || item.answer || "",
-          explanation: item.explanation || item.answer || "",
+        deckCards.map((card) => ({
+          q: card.question || "No question available.",
+          correctAnswer: card.answer || "",
+          explanation: card.answer || "",
         }))
       );
-    } catch {
-      return [];
     }
-  }
 
-  if (isDeckMode) {
-    return shuffleArray(
-      deckCards.map((card) => ({
-        q: card.question || "No question available.",
-        correctAnswer: card.answer || "",
-        explanation: card.answer || "",
-      }))
-    );
-  }
-
-  return [];
-}, [lesson, deckCards, isLessonMode, isDeckMode]);
+    return [];
+  }, [lesson, deckCards, isLessonMode, isDeckMode]);
 
   useEffect(() => {
     if (inputRef.current) inputRef.current.focus();
   }, [current]);
 
+  const speakText = (text) => {
+    if (!ttsEnabled) return;
+
+    if (!("speechSynthesis" in window)) {
+      alert("Text-to-speech is not supported in this browser.");
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    utterance.rate = voiceSpeed;
+    utterance.pitch = 1;
+
+    window.speechSynthesis.speak(utterance);
+  };
+
   const cleanAnswer = (text) =>
     String(text).toLowerCase().replace(/[^\w\s]/g, "").trim();
 
-  // ✅ ADD THIS (SAVE TO DB)
   async function saveQuizAttempt(finalScore) {
     try {
       await fetch("http://localhost/puffybrain/saveQuizAttempt.php", {
@@ -118,12 +178,21 @@ const questions = useMemo(() => {
   }
 
   async function checkAnswer() {
-    if (!questions[current]) return;
+    if (!questions[current] || notifOpen) return;
+
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
 
     const userClean = cleanAnswer(inputValue);
     const correctClean = cleanAnswer(questions[current].correctAnswer);
 
     const isCorrect = userClean === correctClean;
+
+    setNotifImage(
+      isCorrect ? "/images/correct_answer.png" : "/images/wrong_answer.png"
+    );
+    setNotifOpen(true);
 
     const newResult = {
       question: questions[current].q,
@@ -141,8 +210,9 @@ const questions = useMemo(() => {
     setStatus(isCorrect ? styles.correct : styles.wrong);
 
     setTimeout(() => {
+      setNotifOpen(false);
       nextQuestion(updatedScore, updatedResults);
-    }, 800);
+    }, 1100);
   }
 
   async function nextQuestion(updatedScore, updatedResults) {
@@ -153,7 +223,6 @@ const questions = useMemo(() => {
       return;
     }
 
-    // ✅ SAVE ATTEMPT FIRST
     await saveQuizAttempt(updatedScore);
 
     localStorage.setItem(
@@ -179,16 +248,104 @@ const questions = useMemo(() => {
   }
 
   if (loading) return <div className={styles.wrapper}>Loading Q&A...</div>;
-  if (questions.length === 0)
+
+  if (questions.length === 0) {
     return <div className={styles.wrapper}>No Q&A questions available.</div>;
+  }
 
   const progressWidth = ((current + 1) / questions.length) * 100;
 
   return (
     <div className={styles.wrapper}>
+      {notifOpen && (
+        <div className={styles.slideNotif}>
+          <img
+            src={notifImage}
+            alt="Answer feedback"
+            className={styles.notifImage}
+          />
+        </div>
+      )}
+
+      <button
+        type="button"
+        className={styles.settingsBtn}
+        onClick={() => setSettingsOpen(true)}
+      >
+        <i className="bx bx-cog"></i>
+        <span>settings</span>
+      </button>
+
+      {settingsOpen && (
+        <div className={styles.settingsOverlay}>
+          <div className={styles.settingsModal}>
+            <div className={styles.settingsHeader}>
+              <h2>Accessibility Settings</h2>
+
+              <button
+                type="button"
+                className={styles.closeSettings}
+                onClick={() => setSettingsOpen(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className={styles.settingsBody}>
+              <div className={styles.settingRow}>
+                <div className={styles.settingInfo}>
+                  <div className={styles.settingIcon}>🔊</div>
+                  <div className={styles.settingText}>
+                    <strong>Text to Speech</strong>
+                    <span>Read questions aloud</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className={`${styles.switchBtn} ${
+                    ttsEnabled ? styles.switchOn : ""
+                  }`}
+                  onClick={() => {
+                    setTtsEnabled((prev) => !prev);
+                    window.speechSynthesis?.cancel();
+                  }}
+                >
+                  {ttsEnabled ? "ON" : "OFF"}
+                </button>
+              </div>
+
+              <div className={styles.speedBox}>
+                <div className={styles.speedHeader}>
+                  <label>Voice Speed</label>
+                  <span className={styles.speedValue}>
+                    {voiceSpeed.toFixed(1)}x
+                  </span>
+                </div>
+
+                <input
+                  type="range"
+                  min="0.5"
+                  max="1.5"
+                  step="0.1"
+                  value={voiceSpeed}
+                  onChange={(e) => {
+                    setVoiceSpeed(Number(e.target.value));
+
+                    if ("speechSynthesis" in window) {
+                      window.speechSynthesis.cancel();
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className={styles.header}>
         <h1 className={styles.title}>
-          {isLessonMode ? lesson?.title || "Lesson Q&A" : "Deck Q&A"}
+          {isLessonMode ? lesson?.title || "Lesson Q&A" : deckTitle}
         </h1>
 
         <div className={styles.counter}>
@@ -204,7 +361,19 @@ const questions = useMemo(() => {
       </div>
 
       <div className={styles.questionBox}>
-        <p className={styles.question}>{questions[current].q}</p>
+        <div className={styles.questionRow}>
+          {ttsEnabled && (
+            <button
+              type="button"
+              className={styles.audioIconBtn}
+              onClick={() => speakText(questions[current].q)}
+            >
+              <i className="bx bx-volume-full"></i>
+            </button>
+          )}
+
+          <p className={styles.question}>{questions[current].q}</p>
+        </div>
 
         <div className={styles.typingContainer}>
           <input
@@ -215,6 +384,7 @@ const questions = useMemo(() => {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
+            disabled={notifOpen}
           />
         </div>
       </div>

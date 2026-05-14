@@ -13,8 +13,8 @@
   transition: all 0.2s ease;
 
   box-shadow:
-    0 10px 0 #A993D8,
-    10px 10px 0 #A993D8;
+    0 5px 0 #A993D8,
+    5px 5px 0 #A993D8;
 }
 
 .modeCard:hover {
@@ -34,15 +34,16 @@
 .title {
   margin: 0;
   font-size: 24px;
-  color: black;
+  color: var(--font-color);
   font-weight: normal;
   font-family: "Jersey 15", sans-serif;
 }
 
 .desc {
   margin-top: 10px;
-  color: black;
-  font-size: 12px;
+  color: var(--font-color);
+  font-size: 14px;
   font-weight: normal;
-  font-family: "Poppins", sans-serif;
+  font-style: normal;
+  font-family: "Jersey 15", sans-serif;
 }

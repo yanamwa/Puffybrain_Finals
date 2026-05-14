@@ -51,51 +51,73 @@
 }
 
 .flashcardWrapper {
-  background: #eeeeee;
-  width: 80%;
-  max-width: 1100px;
-  min-height: 520px;
-  border-radius: 30px;
-  padding: 35px 35px 25px;
+  width: 92%;
+  max-width: 1180px;
+  background: #f7f7f7;
+  height: 420px;
+  border-radius: 45px;
+  padding: 38px 70px 35px;
+  margin-top: 25px;
+  box-sizing: border-box;
+  box-shadow:
+    0 8px 18px rgba(0,0,0,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.7);
   display: flex;
   flex-direction: column;
+  align-items: center;
 }
 
+/* =========================
+   TABS
+========================= */
+
 .tab {
+  width: 100%;
+  max-width: 860px;
   display: flex;
   justify-content: space-between;
-  padding: 0 70px;
-  margin-bottom: 20px;
+  padding: 0 58px;
+  position: relative;
+  z-index: 5;
+  box-sizing: border-box;
 }
 
 .tab span {
-  background-image: url("../images/notebook line.png");
-  background-color: white;
+  background: #ffffff;
   min-width: 110px;
-  padding: 9px 20px;
-  border-radius: 13px 13px 0 0;
+  padding: 8px 0 6px;
+  border-radius: 12px 12px 0 0;
   text-align: center;
-  font-size: 18px;
-  border-bottom: 4px solid #dba8ff;
+  font-size: 16px;
+  border-bottom: 4px solid #c2c2c2;
   cursor: pointer;
-  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.15);
+  color: #111;
+
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
 }
 
-.tab .active {
-  min-width: 130px;
+.active {
+  border-bottom: 4px solid #696969 !important;
 }
+
+/* =========================
+   FLASHCARD
+========================= */
 
 .flashcard {
-  flex: 1;
-  min-height: 330px;
+  width: 100%;
+  max-width: 860px;
+  height: 238px;
   perspective: 1000px;
   cursor: pointer;
+  position: relative;
+  margin-top: -1px;
+  height: 500px;
 }
 
 .flashcardInner {
   width: 100%;
   height: 100%;
-  min-height: 330px;
   position: relative;
   transition: transform 0.6s ease;
   transform-style: preserve-3d;
@@ -105,106 +127,422 @@
   transform: rotateY(180deg);
 }
 
+/* =========================
+   CARD FACE
+========================= */
+
 .flashcardFace {
   position: absolute;
   inset: 0;
-  padding: 55px 70px;
-  border-radius: 20px;
+  padding: 45px 55px 72px;
+  border-radius: 26px;
   backface-visibility: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  font-size: 20px;
-  line-height: 1.4;
-  overflow-y: auto;
-
-  background-color: #848484a9;
-
-  background-image: url("/images/notebook line.png");
-  background-size: 100% 40px;
+  background-color: #ffffff;
+  background-size: 100% 24px;
   background-repeat: repeat-y;
   background-position: top left;
+  border: 1px solid #c2c2c2;
+  overflow: hidden;
 }
 
-
 .flashcardFace p {
-  max-width: 850px;
+  max-width: 760px;
+
   margin: 0;
-  color: var(--font-color);
+
+  color: #222;
+
+  font-family: "Jersey 15", sans-serif;
   font-size: 23px;
+  font-weight: normal;
+
+  line-height: 1.2;
 }
 
 .back {
   transform: rotateY(180deg);
 }
 
+/* =========================
+   AUDIO BUTTON
+========================= */
+
+.audioIconBtn {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #8d8d8d;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: 0.2s ease;
+  z-index: 5;
+
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.audioIconBtn i {
+  font-size: 19px;
+}
+
+.audioIconBtn:hover {
+  background: #f1f1f1;
+}
+
+/* =========================
+   DIFFICULTY BAR
+========================= */
+
 .difficulty {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  padding: 12px 20px;
   display: flex;
   justify-content: center;
-  gap: 22px;
+  gap: 30px;
   background: #efd9ff;
-  padding: 16px 20px;
-  border-radius: 0 0 22px 22px;
-  margin-top: 25px;
-  width: 100%;
+  border-radius: 0 0 26px 26px;
   box-sizing: border-box;
+  z-index: 4;
 }
 
 .difficulty button {
-  width: 100px;
-  padding: 8px 0;
-  border-radius: 20px;
-  font-size: 15px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 20px;
+  width: 95px;
+  padding: 6px 0;
+  border-radius: 18px;
+  font-family: "Jersey 15", sans-serif;
+  font-size: 16px;
   font-weight: normal;
-  font-style: normal;
+  color: #ffffff;
+  cursor: pointer;
+  transition: 0.2s ease;
 }
 
 .easy {
-  background: #8376be;
-  color: #fff;
-  border: 1px solid #6c2d9a;
-  box-shadow: 0px 4px 0 #6f63a8;
+  background: #a997dd;
+  border: 1px solid #8f7cc9;
+  box-shadow: 0 4px 0 #8f7cc9;
 }
 
 .good {
-  background: #3bb54a;
-  color: #fff;
-  border: 1px solid #0f4a16;
-  box-shadow: 0px 4px 0 #0f701c;
+  background: #15991f;
+  border: 1px solid #0b6412;
+  box-shadow: 0 4px 0 #0b6412;
 }
 
 .hard {
-  background: #b53131;
-  color: #fff;
-  border: 1px solid  #811d1d;
-  box-shadow: 0px 4px 0  #821919;
+  background: #b51f1f;
+  border: 1px solid #7f1414;
+  box-shadow: 0 4px 0 #7f1414;
 }
 
-.easy:hover {
-  background: #9789d8;
+.difficulty button:hover {
   transform: translateY(-2px);
-  box-shadow: 0px 6px 0 #6f63a8;
 }
 
-.good:hover {
-  background: #4dcb5d;
-  transform: translateY(-2px);
-  box-shadow: 0px 6px 0 #0f701c;
+.difficulty button:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.25);
 }
 
-.hard:hover {
-  background: #cf4444;
-  transform: translateY(-2px);
-  box-shadow: 0px 6px 0 #821919;
-}
+/* =========================
+   HINT
+========================= */
 
 .difficultyHint {
-  text-align: center;
-  margin-top: 10px;
+  margin-top: 18px;
+
   font-size: 16px;
-  color: #5f5f5f98;
+
+  color: #6e6e6e;
+
+  text-align: center;
+}
+
+.settingsBtn {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  height: 24px;
+  padding: 15px 50px 10px 40px;
+  border: 1.5px solid #acacac;
+  border-radius: 6px;
+  background: #e9e9e9;
+  color: #222;
+  font-size: 15px;
+  font-weight: 800;
+  font-family: "Jersey 15", sans-serif;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.12);
+}
+
+.settingsBtn i {
+  font-size: 15px;
+  color: #222;
+}
+
+.settingsBtn:hover {
+  background: #878787;
+}
+
+.audioIconBtn {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 10px;
+  background: #f8f8f8;
+  color: #8d8d8d;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: 0.2s ease;
+  z-index: 5;
+}
+
+.audioIconBtn i {
+  font-size: 19px;
+}
+
+.audioIconBtn:hover {
+  background: #808080;
+}
+
+.settingsOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 20, 25, 0.45);
+  backdrop-filter: blur(3px);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+}
+
+.settingsModal {
+  width: 430px;
+  background: #ffffff;
+  border: 2px solid #c9a2ff;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+}
+
+.settingsHeader {
+  background: #f3eaff;
+  padding: 20px 24px;
+  border-bottom: 2px solid #decaff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.settingsHeader h2 {
+  margin: 0;
+  font-size: 24px;
+  color: var(--font-color);
+  font-family: "Jersey 15", sans-serif;
+  font-weight: normal;
+}
+
+.closeSettings {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #5c4a7d;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+}
+
+.settingsBody {
+  padding: 22px 24px 26px;
+}
+
+.settingRow,
+.speedBox {
+  background: #fafafa;
+  border: 1.5px solid #e6e0f5;
+  border-radius: 16px;
+  padding: 15px 16px;
+  margin-bottom: 14px;
+}
+
+.settingRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.settingInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.settingIcon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: #f1e7ff;
+  color: #7c3cff;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+}
+
+.settingText strong,
+.settingText span,
+.speedHeader label,
+.speedValue {
+  font-family: "Jersey 15", sans-serif;
+  font-weight: normal;
+  color: var(--font-color);
+}
+
+.settingText strong {
+  display: block;
+  font-size: 20px;
+}
+
+.settingText span {
+  font-size: 16px;
+  color: #3f3f3f;
+}
+
+.switchBtn {
+  width: 74px;
+  height: 34px;
+  border-radius: 999px;
+  background: #b5b5b5;
+  color: #171717;
+  cursor: pointer;
+  font-family: "Jersey 15", sans-serif;
+  font-size: 20px;
+  border: 1px solid #353535;
+  box-shadow: 0 4px 0 #373737;
+}
+
+.switchOn {
+  background: #6b4baa;
+  color: #ffffff;
+  border-color: #5c4a7d;
+  box-shadow: 0 4px 0 #4d347e;
+}
+
+.speedHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.speedHeader label,
+.speedValue {
+  font-size: 20px;
+}
+
+.speedValue {
+  background: #b3b3b3;
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+
+.speedBox input {
+  width: 100%;
+  accent-color: #7c3cff;
+  cursor: pointer;
+}
+
+.slideNotif {
+  position: fixed;
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%, -50%);
+  z-index: 10000;
+  min-width: 260px;
+  padding: 18px 50px;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 4px 4px 0px rgb(211, 211, 211);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  font-family: "Jersey 15", sans-serif;
+  animation: slideNotifUp 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  border: 1px solid #b5b5b5;
+}
+
+
+.notifImage {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+}
+
+.slideNotif strong {
+  display: block;
+  font-size: 30px;
+  font-weight: normal;
+  color: var(--font-color);
+  text-align: center;
+}
+
+.slideNotif span {
+  display: block;
+  font-size: 18px;
+  color: #9a9a9a;
+  text-align: center;
+}
+
+@keyframes popNotif {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -42%) scale(0.86);
+  }
+
+  60% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.04);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes slideNotifUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 80px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
 }

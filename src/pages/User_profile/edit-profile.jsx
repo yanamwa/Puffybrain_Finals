@@ -11,26 +11,23 @@ function EditProfile() {
   const [search, setSearch] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
-
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otpEmail, setOtpEmail] = useState("");
   const [otpCode, setOtpCode] = useState(["", "", "", ""]);
   const [pendingSave, setPendingSave] = useState(false);
   const [resendingOtp, setResendingOtp] = useState(false);
-
   const [myDecks, setMyDecks] = useState([]);
   const [courses, setCourses] = useState([]);
-
   const [notificationOpen, setNotificationOpen] = useState(false);
-  const notificationCount = 0; // change this later when you have real data
-
+  const [notifications, setNotifications] = useState([]);
+  const notificationCount = notifications.filter(
+    (notif) => notif.status === "unread"
+  ).length;
   const [selectedImageFile, setSelectedImageFile] = useState(null);
-
   const [isOtherSchool, setIsOtherSchool] = useState(false);
 
   const showFeedback = (type, title, text) => {
@@ -42,10 +39,6 @@ function EditProfile() {
     text,
   });
 };
-
-
-
-
   const [user, setUser] = useState({
     username: "",
     email: "",
@@ -68,6 +61,54 @@ function EditProfile() {
     newPassword: "",
     confirmPassword: "",
   });
+
+  const fetchNotifications = async () => {
+  try {
+    const res = await fetch(
+      "http://localhost/puffybrain/getUserNotifications.php",
+      {
+        method: "GET",
+        credentials: "include",
+      }
+    );
+
+    const data = await res.json();
+
+    if (data.success) {
+      setNotifications(data.notifications || []);
+    } else {
+      setNotifications([]);
+    }
+  } catch (err) {
+    console.error("Notification fetch error:", err);
+    setNotifications([]);
+  }
+};
+
+const markNotificationsAsRead = async () => {
+  try {
+    const res = await fetch(
+      "http://localhost/puffybrain/markNotificationsAsRead.php",
+      {
+        method: "POST",
+        credentials: "include",
+      }
+    );
+
+    const data = await res.json();
+
+    if (data.success) {
+      setNotifications((prev) =>
+        prev.map((notif) => ({
+          ...notif,
+          status: "read",
+        }))
+      );
+    }
+  } catch (err) {
+    console.error("Mark notifications as read error:", err);
+  }
+};
 
   const fetchUserDecks = async () => {
     try {
@@ -130,11 +171,12 @@ function EditProfile() {
     }
   };
 
-  useEffect(() => {
-    fetchUserDecks();
-    fetchAddedCourses();
-    fetchUser();
-  }, []);
+useEffect(() => {
+  fetchUserDecks();
+  fetchAddedCourses();
+  fetchUser();
+  fetchNotifications();
+}, []);
 
   useEffect(() => {
     const handler = (e) => {
@@ -661,37 +703,78 @@ const handleOtpChange = (value, index) => {
 
             <div className={styles.profileWrapper}>
 
-              <div className={styles.notificationWrapper}>
-                                <button
-                                  type="button"
-                                  className={styles.notificationBtn}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setNotificationOpen((prev) => !prev);
-                                    setDropdownOpen(null);
-                                  }}
-                                >
-                                  <i className="bx bx-bell"></i>
-                                  {notificationCount > 0 && (
-                                      <span className={styles.notificationBadge}>
-                                        {notificationCount}
-                                      </span>
-                                    )}
-                                </button>
-              
-                                <div
-                                  className={`${styles.notificationDropdown} ${
-                                    notificationOpen ? styles.show : ""
-                                  }`}
-                                >
-                                  <h4>Notifications</h4>
-              
-                                  <div className={styles.emptyNotification}>
-                                    <p>You don’t have any new notifications</p>
-                                  </div>
-                                </div>
-                              </div>
+            <div className={styles.notificationWrapper}>
+  <button
+    type="button"
+    className={styles.notificationBtn}
+    onClick={(e) => {
+      e.stopPropagation();
+      setNotificationOpen((prev) => !prev);
+      setDropdownOpen(null);
+    }}
+  >
+    <i className="bx bx-bell"></i>
 
+    {notificationCount > 0 && (
+      <span className={styles.notificationBadge}>
+        {notificationCount}
+      </span>
+    )}
+  </button>
+
+  <div
+    className={`${styles.notificationDropdown} ${
+      notificationOpen ? styles.show : ""
+    }`}
+  >
+    <div className={styles.notificationHeader}>
+      <h4>Notifications</h4>
+
+      {notificationCount > 0 && (
+        <button
+          type="button"
+          className={styles.markReadBtn}
+          onClick={markNotificationsAsRead}
+        >
+          Mark all as read
+        </button>
+      )}
+    </div>
+
+    {notifications.length > 0 ? (
+      notifications.slice(0, 5).map((notif) => (
+        <div
+          key={notif.notification_id}
+          className={styles.notificationItem}
+        >
+          <div className={styles.notificationTop}>
+            <h5>{notif.title}</h5>
+
+            <span className={styles.notificationRole}>
+              {notif.target_role}
+            </span>
+          </div>
+
+          <p>{notif.message}</p>
+
+          <small className={styles.notificationDate}>
+            {new Date(notif.created_at).toLocaleString()}
+          </small>
+        </div>
+      ))
+    ) : (
+      <div className={styles.emptyNotification}>
+        <img
+          src="/images/NoNotifcation.png"
+          alt="No notifications"
+          className={styles.emptyNotificationImg}
+        />
+
+        <p>You don’t have any new notifications</p>
+      </div>
+    )}
+  </div>
+</div>
               <div className={styles.dpContainer}>
                 <img
                   src={user.profile_image}

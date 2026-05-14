@@ -39,18 +39,19 @@ function AdminLogin() {
         throw new Error("Server did not return valid JSON");
       }
 
-      if (data.success) {
-        localStorage.setItem("admin", JSON.stringify(data.admin));
+if (data.success) {
+  localStorage.setItem("admin", JSON.stringify(data.admin));
+  localStorage.setItem("admin_id", String(data.admin_id || data.admin.id));
 
-        Swal.fire({
-          imageUrl: "/images/success.png",
-          imageWidth: 170,
-          imageHeight: 170,
-          title: "Successfully Logged In",
-          text: data.message,
-        }).then(() => {
-          navigate("/admin/dashboard");
-        });
+  Swal.fire({
+    imageUrl: "/images/success.png",
+    imageWidth: 170,
+    imageHeight: 170,
+    title: "Successfully Logged In",
+    text: data.message,
+  }).then(() => {
+    navigate("/admin/dashboard");
+  });
       } else {
         Swal.fire({
           imageUrl: "/images/error.png",

@@ -1,10 +1,61 @@
-:root {
-  --color-primary: #ebd3fa;
-  --color-secondary: #e3aadd;
-  --color-third: #c8a8e9;
-  --color-fourth: #a993d8;
-  --color-fifth: #c3c7f3;
-  --font-color: #2f2f2f;
+.profilePage,
+.profileOuter,
+.profileInner,
+.profileCard,
+.profileContent,
+.profileForm,
+.formGroup,
+.formGroup label,
+.formGroup input,
+.imageHint,
+
+.settingsContent,
+.settingsCard,
+.settingsHeading,
+.settingsBody,
+.passwordGroup,
+.passwordGroup label,
+.passwordInputWrap,
+.passwordInputWrap input,
+.deleteText,
+
+.modalOverlay,
+.editModal,
+.modalCard,
+.modalTitle,
+.modalContent,
+.modalForm,
+.modalFormGroup,
+.modalFormGroup label,
+.modalFormGroup input,
+.modalFormGroup select,
+.modalPhotoSection,
+.uploadHint,
+
+.notificationDropdown,
+.notificationHeader,
+.notificationItem,
+.notificationItem p,
+.notificationTop h5,
+.notificationRole,
+.emptyNotification p,
+
+.passwordChecklist,
+.passwordChecklist p,
+.confirmBox,
+.validationMessage,
+.verifySubtext,
+.otpTimer,
+.backToList,
+
+.tabBtn,
+.modalTabBtn,
+.activeTab,
+.profileTitle,
+.sectionTitle,
+.userInfo p {
+  font-family: "Jersey 15", sans-serif !important;
+  color: var(--font-color);
 }
 
 .container {
@@ -13,8 +64,6 @@
   background: #f5f5f5;
   transition: all 0.3s ease;
 }
-
-/* SIDEBAR SAME AS MYCOURSE */
 
 .container.sidebarCollapsed .sidebar {
   width: 60px;
@@ -140,7 +189,7 @@
   text-align: left;
   cursor: pointer;
   transition: background 0.25s ease, transform 0.25s ease;
-  font-family: inherit;
+  font-family: "Jersey 15", sans-serif;
   font-size: inherit;
 }
 
@@ -378,41 +427,39 @@
 
 .show {
   display: block;
-}
-/*====notification ===*/
+}/* ===== NOTIFICATION ===== */
+
 .notificationWrapper {
   position: relative;
+  margin-left: auto;
+  margin-right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .notificationBtn {
   position: relative;
   width: 42px;
   height: 42px;
+  margin: 0;
   border: none;
-  background: transparent;   /* changed from grey to none */
+  background: transparent;
   border-radius: 50%;
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: transform 0.2s ease;
-  margin-right: 10px;
-  margin-top: 5px;
-}
-
-.notificationBtn:hover {
-  background: transparent;   /* no hover grey bg */
-  transform: translateY(-1px);
 }
 
 .notificationBtn i {
-  font-size: 25px;
-  color: #626262;
+  font-size: 24px;
+  color: #555;
 }
 
 .notificationBadge {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: 3px;
+  right: 3px;
   min-width: 17px;
   height: 17px;
   padding: 0 4px;
@@ -424,57 +471,148 @@
   display: grid;
   place-items: center;
 }
+
 .notificationDropdown {
   position: absolute;
   top: 52px;
   right: 0;
-  width: 280px;
-  max-width: calc(100vw - 20px);
-  background: #fff;
-  border: 1px solid #e5e5e5;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-  border-radius: 16px;
-  padding: 12px;
-  z-index: 99999;
 
+  width: 330px;
+  min-height: 240px;
+  max-height: 430px;
+  overflow-y: auto;
+
+  background: #ffffff;
+  border: 1px solid #eeeeee;
+  border-radius: 20px;
+  padding: 14px;
+
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.14);
+
+  z-index: 99999;
   display: none;
 }
 
-.notificationDropdown.show {
+.notificationDropdown.show,
+.show {
   display: block;
 }
 
-.notificationDropdown h4 {
-  margin: 0 0 10px;
-  font-size: 17px;
-  color: #2f2f2f;
+.notificationHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 12px;
 }
 
+.notificationHeader h4 {
+  margin: 0;
+  font-size: 20px;
+  color: var(--font-color);
+}
+
+.markReadBtn {
+  border: none;
+  background: #907ead;
+  border: 1px solid #6f5796;
+  box-shadow: 0 4px rgb(126, 107, 158);
+  color: rgb(255, 255, 255);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.markReadBtn:hover {
+  background: #decfff;
+}
+
+/* ===== EMPTY STATE ===== */
+
+.emptyNotification {
+  min-height: 180px;
+  padding: 22px 15px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+
+  text-align: center;
+}
+
+.emptyNotificationImg {
+  width: 165px;
+  height: auto;
+  object-fit: contain;
+}
+
+.emptyNotification p {
+  margin: 0;
+  color: #777;
+  font-size: 17px;
+  line-height: 1.4;
+}
+
+/* ===== NOTIFICATION ITEMS ===== */
+
 .notificationItem {
-  padding: 10px;
-  border-radius: 12px;
+  padding: 14px 4px;
+  border-bottom: 1px solid #eeeeee;
+  background: transparent;
+}
+
+.notificationItem:last-child {
+  border-bottom: none;
 }
 
 .notificationItem:hover {
-  background: #f5f5f5;
+  background: #faf7ff;
+  border-radius: 12px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.notificationTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.notificationTop h5 {
+  margin: 0;
+  font-size: 16px;
+  color: #5a0776;
+}
+
+.notificationRole {
+  background: #1515158b;
+  border: 1px solid #3d3d3d;
+  box-shadow: 0 2px 0px rgba(0, 0, 0, 0.563);
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 14px;
+  text-transform: capitalize;
 }
 
 .notificationItem p {
-  margin: 0;
-  font-size: 14px;
-  color: #222;
+  margin: 9px 0 6px;
+  color: var(--font-color);
+  font-size: 16px;
+  line-height: 1.4;
 }
 
-.notificationItem span {
-  font-size: 12px;
-  color: #888;
+.notificationDate,
+.notificationItem small {
+  color: #5454546d;
+  font-size: 16px;
 }
-.emptyNotification {
-  padding: 20px;
-  text-align: center;
-  color: #777;
-  font-size: 14px;
-}
+
 /* PAGE CONTENT */
 
 .main {
@@ -498,6 +636,7 @@
   color: #111;
   margin: 0;
   padding-left: 10px;
+  font-family: "Jersey 15", sans-serif;
 }
 
 .profilePage {
@@ -584,14 +723,19 @@
 }
 
 .editBtn {
-  border: none;
-  background: #d89add;
-  color: #111;
-  font-weight: 600;
   padding: 10px 26px;
   border-radius: 14px;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  font-family: "Jersey 15", sans-serif;
+  background: #d9a9e9;
+  border: 1px solid #744185;;
+  box-shadow: 0 4px 0 #80588d;
+  color: var(--font-color);
+  font-size: 16px;
+}
+
+.editBtn:hover{
+  background: #80588d9a;;
 }
 
 .profileContent {
@@ -615,8 +759,9 @@
 .formGroup label {
   font-size: 1rem;
   font-weight: 600;
-  color: #222;
+  color: var(--font-color);
   margin-bottom: 8px;
+  font-family: 'Jersey 15', sans-serif;
 }
 
 .formGroup input {
@@ -626,10 +771,11 @@
   border: 1px solid #b5b5b5;
   background: #efefef;
   padding: 0 16px;
-  font-size: 14px;
-  color: #444;
+  font-size: 16px;
+  color: var(--font-color);
   outline: none;
   box-sizing: border-box;
+  font-family: inherit;
 }
 
 .profileImageSection {
@@ -679,7 +825,8 @@
   padding: 26px 34px 18px;
   font-size: 2.1rem;
   font-weight: 800;
-  color: #111;
+  color: var(--font-color);
+  font-family: 'Jersey 15', sans-serif;
 }
 
 .deleteHeading {
@@ -703,8 +850,9 @@
   display: block;
   font-size: 1rem;
   font-weight: 500;
-  color: #111;
+  color: var(--font-color);
   margin-bottom: 10px;
+  font-family: inherit;
 }
 
 .passwordInputWrap {
@@ -727,7 +875,9 @@
   outline: none;
   font-size: 1rem;
   color: #666;
-  font-weight: 600;
+  font-weight: normal;
+  font-size: 18px;
+  font-family: inherit;
 }
 
 .eyeBtn {
@@ -741,21 +891,30 @@
 
 .eyeBtn i {
   font-size: 24px;
-  color: #b39bd9;
+  color: #79649b;
 }
 
 .changePasswordBtn {
   width: 100%;
   max-width: 520px;
   height: 42px;
-  border: none;
   border-radius: 24px;
-  background: #d9c2f5;
-  color: #111;
   font-size: 1rem;
-  font-weight: 700;
   cursor: pointer;
   box-shadow: 0 4px 0 #ba9ddd;
+  padding: 10px 26px;
+  border-radius: 14px;
+  cursor: pointer;
+  background: #d9a9e9;
+  border: 1px solid #744185;;
+  box-shadow: 0 4px 0 #80588d;
+  color: var(--font-color);
+  font-size: 16px;
+  font-family: inherit;
+}
+
+.changePasswordBtn:hover{
+  background: #785683cc;;
 }
 
 .deleteBody {
@@ -768,6 +927,7 @@
   color: #9a1c1c;
   font-size: 1rem;
   line-height: 1.5;
+  
 }
 
 .deleteAccountBtn {
@@ -777,10 +937,13 @@
   border-radius: 22px;
   background: #c91010;
   color: #fff;
-  font-size: 0.95rem;
+  font-size: 1.2rem;
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 4px 0 #7d0000;
+  font-family: inherit;
+  font-weight: normal;
+  font-style: normal;
 }
 
 /* MODAL */
@@ -813,7 +976,7 @@
   right: 18px;
   width: 42px;
   height: 42px;
-  border: none;
+  border: 1px solid #555;
   border-radius: 50%;
   background: white;
   cursor: pointer;
@@ -961,31 +1124,90 @@
 
 .modalActions {
   display: flex;
-  justify-content: center;   /* center horizontally */
-  gap: 12px;                 /* space between buttons */
+  justify-content: center;  
+  gap: 12px;                 
   margin-top: 15px;
 }
 
 .cancelBtn,
-.saveChangesBtn {
-  height: 42px;
-  min-width: 180px;
-  border: none;
-  border-radius: 24px;
-  font-size: 1rem;
-  font-weight: 700;
+.saveChangesBtn,
+.changePasswordBtn,
+.deleteAccountBtn,
+.verifyBtn,
+.resendBtn,
+.editBtn {
+  padding: 10px 26px;
+  border-radius: 14px;
   cursor: pointer;
+  font-family: "Jersey 15", sans-serif;
+  font-size: 18px;
+  transition: 0.15s ease;
 }
 
-.cancelBtn {
-  padding: 12px 24px;
-  border-radius: 23px;
+/* ===== PURPLE BUTTON ===== */
+
+.saveChangesBtn,
+.changePasswordBtn,
+.verifyBtn,
+.editBtn {
+  background: #d9a9e9;
+  border: 1px solid #744185;
+  box-shadow: 0 4px 0 #80588d;
+  color: var(--font-color);
 }
 
-.saveChangesBtn {
-  background: #d9c2f5;
-  color: #111;
-  box-shadow: 0 4px 0 #ba9ddd;
+.saveChangesBtn:hover,
+.changePasswordBtn:hover,
+.verifyBtn:hover,
+.editBtn:hover {
+  background: #cb92dd;
+}
+
+.saveChangesBtn:active,
+.changePasswordBtn:active,
+.verifyBtn:active,
+.editBtn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #80588d;
+}
+
+/* ===== CANCEL / GRAY BUTTON ===== */
+
+.cancelBtn,
+.resendBtn {
+  background: #d9d9d9;
+  border: 1px solid #7b7b7b;
+  box-shadow: 0 4px 0 #8e8e8e;
+  color: var(--font-color);
+}
+
+.cancelBtn:hover,
+.resendBtn:hover {
+  background: #c9c9c9;
+}
+
+.cancelBtn:active,
+.resendBtn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #8e8e8e;
+}
+
+/* ===== DELETE BUTTON ===== */
+
+.deleteAccountBtn {
+  background: #d95c5c;
+  border: 1px solid #8a2f2f;
+  box-shadow: 0 4px 0 #6f2525;
+  color: white;
+}
+
+.deleteAccountBtn:hover {
+  background: #ca4d4d;
+}
+
+.deleteAccountBtn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #6f2525;
 }
 /*change pass checklist*/
 
@@ -1031,7 +1253,6 @@
   font-weight: 600;
 }
 
-/* strength colors */
 .success {
   color: #2e7d32;
 }
@@ -1140,8 +1361,7 @@
   color: #555;
   box-shadow: 0 3px 0 #ccc;
   transition: 0.15s ease;
-
-  margin: 18px auto 20px; /* 👈 added bottom spacing */
+  margin: 18px auto 20px; 
   display: block;
 }
 
@@ -1162,12 +1382,11 @@
 .verifyBtn {
   padding: 12px 24px;
   background: #e7c1ff;
-  border: none;
-  border-radius: 23px;
+  border: 1px solid  #ba85cc;
   font-family: "Jersey 15", sans-serif;
   font-size: 18px;
   cursor: pointer;
-  box-shadow: 0 4px 0 #d59be8;
+  box-shadow: 0 4px 0 #a776b8;
   transition: 0.15s ease;
 }
 
@@ -1186,7 +1405,7 @@
   margin-top: 14px;
   margin-bottom: 22px;
   color: #555;
-  font-family: "Poppins", sans-serif;
+  font-family: "Jersey 15", sans-serif;
 }
 /* RESPONSIVE */
 
@@ -1364,4 +1583,76 @@
   .modalContent {
     padding: 22px 18px 24px;
   }
+}
+
+/* ===== BIGGER JERSEY 15 TEXT ===== */
+
+.profilePage,
+.profileOuter,
+.profileInner,
+.profileCard,
+.profileContent,
+.profileForm,
+.settingsContent,
+.settingsCard,
+.settingsBody,
+.modalOverlay,
+.editModal,
+.modalCard,
+.modalContent,
+.notificationDropdown {
+  font-size: 18px;
+}
+
+/* labels */
+
+.formGroup label,
+.modalFormGroup label,
+.passwordGroup label,
+.passwordChecklist p,
+.validationMessage,
+.verifySubtext,
+.otpTimer,
+.backToList,
+.notificationDate,
+.notificationItem small,
+.uploadHint,
+.imageHint,
+.deleteText {
+  font-size: 18px !important;
+}
+
+/* inputs */
+
+.formGroup input,
+.modalFormGroup input,
+.modalFormGroup select,
+.passwordInputWrap input,
+.otpInput {
+  font-size: 18px !important;
+}
+
+/* titles */
+
+.profileTitle {
+  font-size: 50px !important;
+}
+
+.settingsHeading,
+.modalTitle {
+  font-size: 38px !important;
+}
+
+/* tabs */
+
+.tabBtn,
+.modalTabBtn {
+  font-size: 20px !important;
+}
+
+/* dropdown */
+
+.dropdownContent a,
+.dropdownContent button {
+  font-size: 18px !important;
 }

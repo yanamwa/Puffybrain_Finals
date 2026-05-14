@@ -16,66 +16,78 @@ import styles from "./notification.module.css";
 import "boxicons/css/boxicons.min.css";
 
 export default function NotificationManagement() {
-  const [notifications, setNotifications] = useState([]);
+  const [bellNotifications, setBellNotifications] = useState([]);
+  const [historyNotifications, setHistoryNotifications] = useState([]);
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [targetRole, setTargetRole] = useState("all");
   const [search, setSearch] = useState("");
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const [sortBy, setSortBy] = useState("newest");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortOpen, setSortOpen] = useState(false);
+
+  const notificationsPerPage = 3;
+
   const menuItems = [
-    {
-      label: "Dashboard",
-      path: "/admin/dashboard",
-      icon: <LayoutDashboard size={20} />,
-    },
-    {
-      label: "User Management",
-      path: "/admin/users",
-      icon: <Users size={20} />,
-    },
-    {
-      label: "Module Management",
-      path: "/admin/modules",
-      icon: <Layers size={20} />,
-    },
-    {
-      label: "Decks Management",
-      path: "/admin/decks",
-      icon: <LibraryBig size={20} />,
-    },
-    {
-      label: "Modes Management",
-      path: "/admin/modes",
-      icon: <Gamepad2 size={20} />,
-    },
-    {
-      label: "Notification Management",
-      path: "/admin/notifications",
-      icon: <i className="bx bx-bell"></i>,
-    },
+    { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
+    { label: "User Management", path: "/admin/users", icon: <Users size={20} /> },
+    { label: "Module Management", path: "/admin/modules", icon: <Layers size={20} /> },
+    { label: "Decks Management", path: "/admin/decks", icon: <LibraryBig size={20} /> },
+    { label: "Modes Management", path: "/admin/modes", icon: <Gamepad2 size={20} /> },
+    { label: "Notification Management", path: "/admin/notifications", icon: <i className="bx bx-bell"></i> },
   ];
 
-  const fetchNotifications = async () => {
+  const fetchBellNotifications = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/getAdminNotifications.php", {
-        credentials: "include",
-      });
+      const res = await fetch(
+        "http://localhost/puffybrain/getAdminNotifications.php",
+        { credentials: "include" }
+      );
 
       const data = await res.json();
 
       if (data.success) {
-        setNotifications(data.notifications || []);
+        setBellNotifications(data.notifications || []);
+      } else {
+        setBellNotifications([]);
       }
     } catch (err) {
-      console.error("Notification fetch error:", err);
+      console.error("Bell notification fetch error:", err);
+      setBellNotifications([]);
+    }
+  };
+
+  const fetchHistoryNotifications = async () => {
+    try {
+      const res = await fetch(
+        "http://localhost/puffybrain/getAllNotifications.php",
+        { credentials: "include" }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        setHistoryNotifications(data.notifications || []);
+      } else {
+        setHistoryNotifications([]);
+      }
+    } catch (err) {
+      console.error("History notification fetch error:", err);
+      setHistoryNotifications([]);
     }
   };
 
   useEffect(() => {
-    fetchNotifications();
+    fetchBellNotifications();
+    fetchHistoryNotifications();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, sortBy]);
 
   const handleAddNotification = async (e) => {
     e.preventDefault();
@@ -98,11 +110,11 @@ export default function NotificationManagement() {
         headers: {
           "Content-Type": "application/json",
         },
-     body: JSON.stringify({
-  title: title.trim(),
-  message: message.trim(),
-  recipient_type: targetRole,
-}),
+        body: JSON.stringify({
+          title: title.trim(),
+          message: message.trim(),
+          recipient_type: targetRole,
+        }),
       });
 
       const data = await res.json();
@@ -119,11 +131,14 @@ export default function NotificationManagement() {
         setTitle("");
         setMessage("");
         setTargetRole("all");
-        fetchNotifications();
+
+        fetchBellNotifications();
+        fetchHistoryNotifications();
       } else {
         Swal.fire("Error", data.message || "Failed to add notification.", "error");
       }
     } catch (err) {
+      console.error("Add notification error:", err);
       Swal.fire("Server Error", "Failed to add notification.", "error");
     }
   };
@@ -165,41 +180,93 @@ export default function NotificationManagement() {
           text: "Notification removed successfully.",
         });
 
-        fetchNotifications();
+        fetchBellNotifications();
+        fetchHistoryNotifications();
       } else {
         Swal.fire("Error", data.message || "Failed to delete notification.", "error");
       }
     } catch (err) {
+      console.error("Delete notification error:", err);
       Swal.fire("Server Error", "Failed to delete notification.", "error");
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      const res = await fetch(
+        "http://localhost/puffybrain/markAdminNotificationsRead.php",
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        setBellNotifications([]);
+        setNotificationOpen(false);
+        fetchBellNotifications();
+        fetchHistoryNotifications();
+      } else {
+        Swal.fire("Error", data.message || "Failed to mark as read.", "error");
+      }
+    } catch (err) {
+      console.error("Mark all as read error:", err);
+      Swal.fire("Server Error", "Failed to mark as read.", "error");
     }
   };
 
   const handleLogout = (e) => {
     e.preventDefault();
-
     localStorage.clear();
     sessionStorage.clear();
-
     window.location.href = "/admin/login";
   };
 
-  const filteredNotifications = notifications.filter((item) => {
-    const q = search.toLowerCase();
+  const filteredNotifications = historyNotifications
+    .filter((item) => {
+      const q = search.toLowerCase();
 
-    return (
-      String(item.title || "").toLowerCase().includes(q) ||
-      String(item.message || "").toLowerCase().includes(q) ||
-      String(item.recipient_type || "").toLowerCase().includes(q)
-    );
-  });
+      return (
+        String(item.title || "").toLowerCase().includes(q) ||
+        String(item.message || "").toLowerCase().includes(q) ||
+        String(item.recipient_type || "").toLowerCase().includes(q) ||
+        String(item.created_by || "").toLowerCase().includes(q)
+      );
+    })
+    .sort((a, b) => {
+      if (sortBy === "newest") {
+        return new Date(b.created_at) - new Date(a.created_at);
+      }
 
-  const notificationCount = notifications.length;
+      if (sortBy === "oldest") {
+        return new Date(a.created_at) - new Date(b.created_at);
+      }
+
+      if (sortBy === "az") {
+        return String(a.title || "").localeCompare(String(b.title || ""));
+      }
+
+      if (sortBy === "za") {
+        return String(b.title || "").localeCompare(String(a.title || ""));
+      }
+
+      return 0;
+    });
+
+  const totalPages = Math.ceil(filteredNotifications.length / notificationsPerPage);
+
+  const paginatedNotifications = filteredNotifications.slice(
+    (currentPage - 1) * notificationsPerPage,
+    currentPage * notificationsPerPage
+  );
+
+  const notificationCount = bellNotifications.length;
 
   return (
     <div className={styles.gridContainer}>
-      <aside
-        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
-      >
+      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
         <div className={styles.sidebarTop}>
           <div
             className={styles.sidebarToggle}
@@ -209,21 +276,11 @@ export default function NotificationManagement() {
           </div>
 
           <div className={styles.logo}>
-            <img
-              className={styles.logoExpanded}
-              src="/images/logo1.png"
-              alt="Logo"
-            />
-
-            <img
-              className={styles.logoCollapsed}
-              src="/images/logo_solo.png"
-              alt="Logo"
-            />
+            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
+            <img className={styles.logoCollapsed} src="/images/logo_solo.png" alt="Logo" />
           </div>
 
           <div className={styles.divider}></div>
-
           <p className={styles.menuLabel}>Menu</p>
 
           <nav className={styles.menu}>
@@ -242,7 +299,6 @@ export default function NotificationManagement() {
           </nav>
 
           <div className={styles.divider}></div>
-
           <p className={styles.menuLabel}>Others</p>
 
           <nav className={styles.menu}>
@@ -295,146 +351,174 @@ export default function NotificationManagement() {
             onChange={(e) => {
               setSearchQuery(e.target.value);
               setSearch(e.target.value);
+              setCurrentPage(1);
             }}
           />
         </div>
-<div className={styles.headerRight}>
-  <div className={styles.notificationWrapper}>
-    <button
-      type="button"
-      className={styles.notificationBtn}
-      onClick={(e) => {
-        e.stopPropagation();
-        setNotificationOpen((prev) => !prev);
-      }}
-    >
-      <i className="bx bx-bell"></i>
 
-      {notificationCount > 0 && (
-        <span className={styles.notificationBadge}>
-          {notificationCount}
-        </span>
-      )}
-    </button>
+        <div className={styles.headerRight}>
+          <div className={styles.notificationWrapper}>
+            <button
+              type="button"
+              className={styles.notificationBtn}
+              onClick={(e) => {
+                e.stopPropagation();
+                setNotificationOpen((prev) => !prev);
+              }}
+            >
+              <i className="bx bx-bell"></i>
 
-    <div
-      className={`${styles.notificationDropdown} ${
-        notificationOpen ? styles.show : ""
-      }`}
-    >
-      <div className={styles.notificationHeader}>
-        <h4>Notifications</h4>
+              {notificationCount > 0 && (
+                <span className={styles.notificationBadge}>{notificationCount}</span>
+              )}
+            </button>
 
-        {notificationCount > 0 && (
-          <button
-            type="button"
-            className={styles.markReadBtn}
-            onClick={() => setNotifications([])}
-          >
-            Mark all as read
-          </button>
-        )}
-      </div>
+            <div
+              className={`${styles.notificationDropdown} ${
+                notificationOpen ? styles.show : ""
+              }`}
+            >
+              <div className={styles.notificationHeader}>
+                <h4>Notifications</h4>
 
-      {notifications.length > 0 ? (
-        notifications.slice(0, 5).map((item) => (
-          <div
-            className={styles.notificationItem}
-            key={item.notification_id}
-          >
-            <div className={styles.notificationTop}>
-              <h5>{item.title}</h5>
+                {notificationCount > 0 && (
+                  <button
+                    type="button"
+                    className={styles.markReadBtn}
+                    onClick={handleMarkAllAsRead}
+                  >
+                    Mark all as read
+                  </button>
+                )}
+              </div>
 
-              <span className={styles.notificationRole}>
-              {item.recipient_type}
-              </span>
+              {bellNotifications.length > 0 ? (
+                bellNotifications.slice(0, 5).map((item) => (
+                  <div
+                    className={styles.notificationItem}
+                    key={item.notification_id || item.id}
+                  >
+                    <div className={styles.notificationTop}>
+                      <h5>{item.title || "No title"}</h5>
+
+                      <span className={styles.notificationRole}>
+                        {item.recipient_type || "all"}
+                      </span>
+                    </div>
+
+                    <p className={styles.notificationMessage}>
+                      {item.message || "No message"}
+                    </p>
+
+                    <p className={styles.notificationCreator}>
+                      Posted by {item.created_by || "Admin"}
+                    </p>
+
+                    <small className={styles.notificationDate}>
+                      {item.created_at
+                        ? new Date(item.created_at).toLocaleString()
+                        : "No date"}
+                    </small>
+                  </div>
+                ))
+              ) : (
+                <div className={styles.emptyNotification}>
+                  <p>You don’t have any new notifications</p>
+                </div>
+              )}
             </div>
-
-            <p className={styles.notificationMessage}>
-              {item.message}
-            </p>
-
-            <small className={styles.notificationDate}>
-              {new Date(item.created_at).toLocaleString()}
-            </small>
           </div>
-        ))
-      ) : (
-        <div className={styles.emptyNotification}>
-          <p>You don’t have any new notifications</p>
         </div>
-      )}
-    </div>
-  </div>  
-</div>
-
       </header>
 
       <main className={styles.main}>
-          <div className={styles.pageHeader}>
+        <div className={styles.pageHeader}>
           <h1>Notification Management</h1>
           <p>Create and manage announcements for PuffyBrain users.</p>
         </div>
 
         <div className={styles.notificationGrid}>
           <form className={styles.formCard} onSubmit={handleAddNotification}>
-            <h2>Create Notification</h2>
+            <div className={styles.formContent}>
+              <div className={styles.formHeader}>
+                <h2>Create Notification</h2>
+              </div>
 
-            <div className={styles.formGroup}>
-              <label>Title</label>
-              <input
-                type="text"
-                placeholder="Enter notification title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              />
+              <div className={styles.formGroup}>
+                <label>Title</label>
+                <input
+                  type="text"
+                  placeholder="Enter notification title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Message</label>
+                <textarea
+                  placeholder="Write your notification message"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Send To</label>
+                <select
+                  value={targetRole}
+                  onChange={(e) => setTargetRole(e.target.value)}
+                >
+                  <option value="all">All</option>
+                  <option value="user">Users</option>
+                  <option value="admin">Admins</option>
+                </select>
+              </div>
+
+              <button className={styles.postBtn} type="submit">
+                Post Notification
+              </button>
             </div>
-
-            <div className={styles.formGroup}>
-              <label>Message</label>
-              <textarea
-                placeholder="Write your notification message"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label>Send To</label>
-           <select
-              value={targetRole}
-              onChange={(e) => setTargetRole(e.target.value)}
-            >
-              <option value="all">All</option>
-              <option value="user">Users</option>
-              <option value="admin">Admins</option>
-            </select>
-            </div>
-
-            <button className={styles.postBtn} type="submit">
-              Post Notification
-            </button>
           </form>
 
           <div className={styles.listCard}>
             <div className={styles.listTop}>
               <h2>Posted Notifications</h2>
 
-              <input
-                type="text"
-                placeholder="Search notification..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+              <div className={styles.customSort}>
+                <button
+                  type="button"
+                  className={styles.customSortBtn}
+                  onClick={() => setSortOpen((prev) => !prev)}
+                >
+                  <i className="bx bx-sort-alt-2"></i>
+                  <span>Sort by</span>
+                  <i className="bx bx-chevron-down"></i>
+                </button>
+
+                {sortOpen && (
+                  <div className={styles.customSortMenu}>
+                    <button type="button" onClick={() => { setSortBy("newest"); setSortOpen(false); }}>
+                      Recently Added
+                    </button>
+                    <button type="button" onClick={() => { setSortBy("oldest"); setSortOpen(false); }}>
+                      Oldest
+                    </button>
+                    <button type="button" onClick={() => { setSortBy("az"); setSortOpen(false); }}>
+                      A-Z
+                    </button>
+                    <button type="button" onClick={() => { setSortBy("za"); setSortOpen(false); }}>
+                      Z-A
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className={styles.notificationsList}>
               {filteredNotifications.length > 0 ? (
-                filteredNotifications.map((item) => (
-                  <div
-                    className={styles.notificationCard}
-                    key={item.notification_id}
-                  >
+                paginatedNotifications.map((item) => (
+                  <div className={styles.notificationCard} key={item.notification_id}>
                     <div className={styles.notificationCardTop}>
                       <h3>{item.title}</h3>
 
@@ -443,12 +527,12 @@ export default function NotificationManagement() {
                       </span>
                     </div>
 
-                    <p className={styles.notificationMessage}>
-                      {item.message}
-                    </p>
+                    <p className={styles.notificationMessage}>{item.message}</p>
 
                     <small className={styles.notificationDate}>
-                      {new Date(item.created_at).toLocaleString()}
+                      {item.created_at
+                        ? new Date(item.created_at).toLocaleString()
+                        : "No date"}
                     </small>
 
                     <br />
@@ -468,6 +552,30 @@ export default function NotificationManagement() {
                 </div>
               )}
             </div>
+
+            {totalPages > 1 && (
+              <div className={styles.paginationWrapper}>
+                <button
+                  type="button"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((prev) => prev - 1)}
+                >
+                  Prev
+                </button>
+
+                <span>
+                  Page {currentPage} of {totalPages}
+                </span>
+
+                <button
+                  type="button"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </main>

@@ -56,6 +56,7 @@ import DecksManagement from "./pages/admin/DecksManagement";
 import AdminProfile from "./pages/admin/AdminProfile";
 import AdminSettings from "./pages/admin/AdminSetting";
 import NotificationManagement from "./pages/admin/NotificationModule";
+import AdminBackupRestore from "./pages/admin/BackupRestore";
 
 /* Tutorials */
 import FlashcardsTutorial from "./pages/quizzes/flashcards-tutorial";
@@ -132,6 +133,8 @@ export default function App() {
       <Route path="/admin/profile" element={<AdminProfile />} />
       <Route path="/admin/settings" element={<AdminSettings />} />
       <Route path="/admin/notifications" element={<NotificationManagement />} />
+      <Route path="/admin/backup-restore" element={<AdminBackupRestore />} />
+
       
       {/* TUTORIAL — LESSON */}
       <Route path="/flashcards-tutorial/lesson/:lessonId" element={<FlashcardsTutorial />} />
