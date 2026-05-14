@@ -58,12 +58,12 @@ export default function AdminBackupRestore() {
   }, []);
 
  
-  const handleMarkAllAsRead = async (e) => {
+const handleMarkAllAsRead = async (e) => {
   e.stopPropagation();
 
-  const admin = JSON.parse(localStorage.getItem("admin") || "{}");
+  const adminId = localStorage.getItem("admin_id");
 
-  if (!admin.id) {
+  if (!adminId) {
     Swal.fire("Error", "No admin ID found. Please log in again.", "error");
     return;
   }
@@ -77,7 +77,7 @@ export default function AdminBackupRestore() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          admin_id: admin.id,
+          admin_id: adminId,
         }),
       }
     );
