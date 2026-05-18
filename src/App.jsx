@@ -20,11 +20,11 @@ import ChangeUsername from "./pages/useraccount/Changeusername";
 import EditProfile from "./pages/User_profile/edit-profile";
 
 /* Introduction */
-import Welcome from "./pages/introduction/Welcome";
-import HowItWorks from "./pages/introduction/HowItWorks";
-import School from "./pages/introduction/School";
-import Year from "./pages/introduction/Year";
-import Profile from "./pages/introduction/Profile";
+import Welcome from "./pages/Introduction/Welcome";
+import HowItWorks from "./pages/Introduction/HowItWorks";
+import School from "./pages/Introduction/School";
+import Year from "./pages/Introduction/Year";
+import Profile from "./pages/Introduction/Profile";
 
 /* Home */
 import Loading from "./pages/User/loading";
