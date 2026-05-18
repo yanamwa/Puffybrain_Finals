@@ -27,7 +27,7 @@ import Year from "./pages/Introduction/Year";
 import Profile from "./pages/Introduction/Profile";
 
 /* Home */
-import Loading from "./pages/User/loading";
+import Loading from "./pages/User/Loading";
 import Homepage from "./pages/User/Homepage";
 import PublicDeck from "./pages/public_decks/publicDeck";
 import UserProfile from "./pages/User_profile/UserProfile";
