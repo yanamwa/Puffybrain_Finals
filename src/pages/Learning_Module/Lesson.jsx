@@ -179,8 +179,8 @@ function Lesson() {
     }
   };
 
-  const goBackToLearningModule = () => {
-    navigate(`/learningmodule/${lessonId}`);
+  const goBackToLearning = () => {
+    navigate(`/learning/${lessonId}`);
   };
 
   const saveLessonResultsAndGoReview = async (latestResults = quizResults) => {
@@ -189,7 +189,11 @@ function Lesson() {
     localStorage.setItem(
       quizResultKey,
       JSON.stringify({
+        source: "lesson",
         lessonId: Number(lessonId),
+        deckId: null,
+        quizMode: "lesson",
+        isTimedOut: false,
         score: finalScore,
         total: latestResults.length,
         answers: latestResults,
@@ -305,15 +309,16 @@ function Lesson() {
     if (nextSlide < totalSlides) {
       await saveProgress(nextSlide);
       setCurrentSlide(nextSlide);
-    } else {
-      if (hasTakenQuiz) {
-        await saveProgress(totalSlides - 1);
-        goBackToLearningModule();
-        return;
-      }
-
-      await saveLessonResultsAndGoReview();
+      return;
     }
+
+    if (hasTakenQuiz) {
+      await saveProgress(totalSlides - 1);
+      goBackToLearning();
+      return;
+    }
+
+    await saveLessonResultsAndGoReview();
   };
 
   const handlePrevious = async () => {

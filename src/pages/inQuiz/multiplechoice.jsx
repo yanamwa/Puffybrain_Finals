@@ -196,6 +196,7 @@ export default function Quiz() {
               item.correct_answer || item.correctAnswer || item.answer || "";
 
             const isTrueFalse =
+              item.type === "true_false" ||
               String(rawQuestionText).toLowerCase().includes("true or false") ||
               ["true", "false"].includes(
                 String(correctAnswer).trim().toLowerCase()
@@ -239,7 +240,7 @@ export default function Quiz() {
             return;
           }
 
-          const geminiRes = await fetch(
+          const ollamaRes = await fetch(
             "http://localhost/puffybrain/generateDeckMCQ.php",
             {
               method: "POST",
@@ -250,15 +251,26 @@ export default function Quiz() {
             }
           );
 
-          const geminiData = await geminiRes.json();
+          const responseText = await ollamaRes.text();
+          let ollamaData;
 
-          if (!geminiData.success || !Array.isArray(geminiData.questions)) {
+          try {
+            ollamaData = JSON.parse(responseText);
+          } catch (error) {
+            console.error("generateDeckMCQ.php returned invalid JSON:", responseText);
             setTitle("Deck Quiz");
             setQuestions(shuffleArray(makeFallbackQuestions(cards)));
             return;
           }
 
-          const deckQuestions = geminiData.questions.map((item) => {
+          if (!ollamaData.success || !Array.isArray(ollamaData.questions)) {
+            console.error("Ollama quiz generation failed:", ollamaData);
+            setTitle("Deck Quiz");
+            setQuestions(shuffleArray(makeFallbackQuestions(cards)));
+            return;
+          }
+
+          const deckQuestions = ollamaData.questions.map((item) => {
             const rawQuestionText = item.question || "No question available.";
 
             const { questionOnly, extractedOptions } =
@@ -268,6 +280,7 @@ export default function Quiz() {
               item.correctAnswer || item.correct_answer || item.answer || "";
 
             const isTrueFalse =
+              item.type === "true_false" ||
               String(rawQuestionText).toLowerCase().includes("true or false") ||
               ["true", "false"].includes(
                 String(correctAnswer).trim().toLowerCase()
@@ -295,8 +308,17 @@ export default function Quiz() {
             };
           });
 
+          const validDeckQuestions = deckQuestions.filter(
+            (q) => q.q && Array.isArray(q.options) && q.options.length > 0
+          );
+
           setTitle("Deck Quiz");
-          setQuestions(shuffleArray(deckQuestions));
+
+          if (validDeckQuestions.length > 0) {
+            setQuestions(shuffleArray(validDeckQuestions));
+          } else {
+            setQuestions(shuffleArray(makeFallbackQuestions(cards)));
+          }
         }
       } catch (error) {
         console.error("Error loading multiple choice:", error);

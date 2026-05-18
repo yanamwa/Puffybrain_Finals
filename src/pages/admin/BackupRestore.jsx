@@ -57,13 +57,14 @@ export default function AdminBackupRestore() {
     fetchBellNotifications();
   }, []);
 
- 
-  const handleMarkAllAsRead = async (e) => {
+const handleMarkAllAsRead = async (e) => {
   e.stopPropagation();
 
   const admin = JSON.parse(localStorage.getItem("admin") || "{}");
+  const adminId = admin.id || admin.admin_id || admin.adminId;
 
-  if (!admin.id) {
+  if (!adminId) {
+    console.log("Stored admin:", admin);
     Swal.fire("Error", "No admin ID found. Please log in again.", "error");
     return;
   }
@@ -73,11 +74,12 @@ export default function AdminBackupRestore() {
       "http://localhost/puffybrain/markAdminNotificationsRead.php",
       {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          admin_id: admin.id,
+          admin_id: adminId,
         }),
       }
     );

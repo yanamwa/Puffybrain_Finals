@@ -21,10 +21,28 @@ function PublicDecks() {
   const [courseSort, setCourseSort] = useState("");
   const [deckSort, setDeckSort] = useState("");
   const [deckYear, setDeckYear] = useState("");
+  const [deckCategory, setDeckCategory] = useState("");
 
   const [courseSortOpen, setCourseSortOpen] = useState(false);
   const [deckSortOpen, setDeckSortOpen] = useState(false);
   const [deckYearOpen, setDeckYearOpen] = useState(false);
+  const [deckCategoryOpen, setDeckCategoryOpen] = useState(false);
+
+  const categories = [
+    "Reviewer",
+    "Mathematics",
+    "Science",
+    "English",
+    "Programming",
+    "History",
+    "Research",
+    "Networking",
+    "Database",
+    "Web Development",
+    "Cybersecurity",
+    "Business",
+    "Others",
+  ];
 
   const notificationCount = notifications.filter(
     (notif) => notif.status === "unread"
@@ -49,6 +67,7 @@ function PublicDecks() {
     setCourseSortOpen(false);
     setDeckSortOpen(false);
     setDeckYearOpen(false);
+    setDeckCategoryOpen(false);
   };
 
   const normalizeYear = (value) => {
@@ -69,6 +88,10 @@ function PublicDecks() {
     if (words.length <= limit) return text;
 
     return words.slice(0, limit).join(" ") + "...";
+  };
+
+  const getDeckCategory = (deck) => {
+    return deck.category || deck.deck_category || deck.subject || "Reviewer";
   };
 
   const handleLogout = () => {
@@ -319,16 +342,17 @@ function PublicDecks() {
     if (!result.isConfirmed) return;
 
     try {
-    const res = await fetch("http://localhost/puffybrain/addCourse.php", {
-  method: "POST",
-  credentials: "include",
-  headers: {
-    "Content-Type": "application/x-www-form-urlencoded",
-  },
-  body: new URLSearchParams({
-    lesson_id: lesson.id,
-  }),
-});
+      const res = await fetch("http://localhost/puffybrain/addCourse.php", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          lesson_id: lesson.id,
+        }),
+      });
+
       const data = await res.json();
 
       if (data.success) {
@@ -419,6 +443,7 @@ function PublicDecks() {
           deck.creator,
           deck.creator_username,
           deck.uploader_username,
+          getDeckCategory(deck),
         ]
           .join(" ")
           .toLowerCase();
@@ -436,6 +461,11 @@ function PublicDecks() {
         if (!deckYear) return true;
 
         return normalizeYear(uploaderYear) === normalizeYear(deckYear);
+      })
+      .filter((deck) => {
+        if (!deckCategory) return true;
+
+        return getDeckCategory(deck).toLowerCase() === deckCategory.toLowerCase();
       });
 
     if (deckSort === "az") {
@@ -453,7 +483,7 @@ function PublicDecks() {
     }
 
     return result;
-  }, [publicDecks, search, deckSort, deckYear]);
+  }, [publicDecks, search, deckSort, deckYear, deckCategory]);
 
   return (
     <div
@@ -553,8 +583,14 @@ function PublicDecks() {
                   </li>
                 ) : (
                   myDecks.slice(0, 3).map((deck) => (
-                    <li key={deck.id} className={styles.sidebarListItem}>
-                      <Link to={`/deck/${deck.id}`} className={styles.menuItem}>
+                    <li
+                      key={deck.id || deck.deck_id}
+                      className={styles.sidebarListItem}
+                    >
+                      <Link
+                        to={`/deck/${deck.id || deck.deck_id}`}
+                        className={styles.menuItem}
+                      >
                         <i className="bx bx-collection"></i>
                         <span className={styles.menuText}>{deck.title}</span>
                       </Link>
@@ -774,6 +810,7 @@ function PublicDecks() {
                           setCourseSortOpen((prev) => !prev);
                           setDeckSortOpen(false);
                           setDeckYearOpen(false);
+                          setDeckCategoryOpen(false);
                         }}
                       >
                         <i className="bx bx-message-square-dots"></i>
@@ -903,6 +940,7 @@ function PublicDecks() {
                           e.stopPropagation();
                           setDeckSortOpen((prev) => !prev);
                           setDeckYearOpen(false);
+                          setDeckCategoryOpen(false);
                           setCourseSortOpen(false);
                         }}
                       >
@@ -960,6 +998,7 @@ function PublicDecks() {
                           e.stopPropagation();
                           setDeckYearOpen((prev) => !prev);
                           setDeckSortOpen(false);
+                          setDeckCategoryOpen(false);
                           setCourseSortOpen(false);
                         }}
                       >
@@ -991,22 +1030,78 @@ function PublicDecks() {
                         </div>
                       )}
                     </div>
+
+                    <div className={styles.customDropdown}>
+                      <button
+                        type="button"
+                        className={styles.customDropdownBtn}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeckCategoryOpen((prev) => !prev);
+                          setDeckSortOpen(false);
+                          setDeckYearOpen(false);
+                          setCourseSortOpen(false);
+                        }}
+                      >
+                        <i className="bx bx-book"></i>
+                        <span>{deckCategory || "Categories"}</span>
+                        <i className="bx bx-chevron-down"></i>
+                      </button>
+
+                      {deckCategoryOpen && (
+                        <div className={styles.customDropdownMenu}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDeckCategory("");
+                              setDeckCategoryOpen(false);
+                            }}
+                          >
+                            All Categories
+                          </button>
+
+                          {categories
+                            .filter((cat) => cat !== "Others")
+                            .map((cat) => (
+                              <button
+                                key={cat}
+                                type="button"
+                                onClick={() => {
+                                  setDeckCategory(cat);
+                                  setDeckCategoryOpen(false);
+                                }}
+                              >
+                                {cat}
+                              </button>
+                            ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
                 <div className={styles.deckGrid}>
                   {filteredPublicDecks.length === 0 ? (
-                    <p className={styles.emptyMain}>
-                      {search || deckYear
-                        ? "No public decks match your search or filter."
+                   <div className={styles.emptyDeckState}>
+                    <img
+                      src="/images/cute1.png"
+                      alt="No public decks"
+                      className={styles.emptyDeckImg}
+                    />
+
+                    <p className={styles.emptyDeckText}>
+                      {search || deckYear || deckCategory
+                        ? `No decks found for "${search || deckYear || deckCategory}".`
                         : "No public decks available."}
                     </p>
+                  </div>
+
                   ) : (
                     filteredPublicDecks.map((deck, index) => (
                       <article
-                        key={deck.id}
+                        key={deck.id || deck.deck_id}
                         className={styles.deckCard}
-                        onClick={() => navigate(`/deck/${deck.id}`)}
+                        onClick={() => navigate(`/deck/${deck.id || deck.deck_id}`)}
                       >
                         <div className={styles.deckCardInner}>
                           <div
@@ -1027,7 +1122,14 @@ function PublicDecks() {
 
                           <div className={styles.deckBody}>
                             <h4>{deck.title}</h4>
-                            <span>{deck.description || "No description"}</span>
+
+                            <p className={styles.deckCategoryText}>
+                              <i className="bx bxs-book"></i>
+                              <span>{getDeckCategory(deck)}</span>
+                            </p>
+
+                          <span>{Number(deck.card_count || deck.cards || 0)} cards</span>
+
                           </div>
                         </div>
                       </article>

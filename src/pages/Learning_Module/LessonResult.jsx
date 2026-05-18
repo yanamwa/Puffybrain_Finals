@@ -22,7 +22,9 @@ export default function LessonResult() {
   const [showQuizModal, setShowQuizModal] = useState(false);
 
   useEffect(() => {
-    const savedResults = JSON.parse(localStorage.getItem("lessonQuizResults"));
+    const savedResults = JSON.parse(
+      localStorage.getItem(`lessonQuizResults_${lessonId}`)
+    );
 
     if (savedResults) {
       setResults({
@@ -44,7 +46,7 @@ export default function LessonResult() {
     try {
       const query = new URLSearchParams({
         source: savedResults.source || "lesson",
-        lessonId: savedResults.lessonId || "",
+        lessonId: savedResults.lessonId || lessonId || "",
         deckId: savedResults.deckId || "",
         quizMode: savedResults.quizMode || "",
       });
@@ -156,9 +158,10 @@ export default function LessonResult() {
       "Try again and manage your time better, or review the lesson before retrying.";
   }
 
-const retryQuiz = () => {
-  setShowQuizModal(true);
-};
+  const retryQuiz = () => {
+    setShowQuizModal(true);
+  };
+
   const goHome = () => {
     navigate("/homepage");
   };
@@ -183,9 +186,7 @@ const retryQuiz = () => {
           </div>
 
           {quizMode !== "timed" && (
-            <p className={styles.percentage}>
-              Score Percentage: {percentage}%
-            </p>
+            <p className={styles.percentage}>Score Percentage: {percentage}%</p>
           )}
 
           <h2>{feedbackTitle}</h2>
@@ -237,7 +238,9 @@ const retryQuiz = () => {
                 <p>No strong areas detected yet.</p>
               ) : (
                 correctAnswers.map((item, index) => (
-                  <p key={index}>✅ {item.question || "Question not available"}</p>
+                  <p key={index}>
+                    ✅ {item.question || "Question not available"}
+                  </p>
                 ))
               )}
             </div>
@@ -292,10 +295,8 @@ const retryQuiz = () => {
           ) : (
             results.answers.map((item, index) => {
               const question = item.question || "Question not available";
-
               const userAnswer =
                 item.userAnswer || item.selectedAnswer || "No answer";
-
               const correctAnswer =
                 item.correctAnswer ||
                 item.answer ||
@@ -336,17 +337,17 @@ const retryQuiz = () => {
           )}
         </div>
       </div>
-      {showQuizModal && (
-  <QuizModesModal
-    source={source}
-    lessonId={lessonId}
-    deckId={deckId}
-    quizzes={results.answers}
-    cards={results.answers}
-    onClose={() => setShowQuizModal(false)}
-  />
-)}
 
-    </div>    
+      {showQuizModal && (
+        <QuizModesModal
+          source={source}
+          lessonId={lessonId}
+          deckId={deckId}
+          quizzes={results.answers}
+          cards={results.answers}
+          onClose={() => setShowQuizModal(false)}
+        />
+      )}
+    </div>
   );
 }

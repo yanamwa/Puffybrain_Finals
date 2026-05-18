@@ -1950,3 +1950,188 @@
   border-color: #f0b278 !important;
   color: #f0b278 !important;
 }
+
+
+:global(.swal2-container) {
+  z-index: 99999 !important;
+}
+
+.editDeckPopup {
+  width: 620px !important;
+  max-width: calc(100vw - 28px) !important;
+  padding: 0 0 30px !important;
+  border-radius: 40px !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  background: #ffffff !important;
+}
+
+.editDeckTitle {
+  width: 100% !important;
+  height: 98px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #e3c2ff !important;
+  display: grid !important;
+  place-items: center !important;
+  color: var(--font-color) !important;
+  font-size: 34px !important;
+  font-weight: normal !important;
+  text-align: center !important;
+}
+
+.editDeckHtml {
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 30px 0 0 !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+.editDeckForm {
+  width: calc(100% - 88px);
+  max-width: 520px;
+  margin: 0 auto;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+
+.editDeckLabel {
+  display: block;
+  margin: 0 0 8px;
+  color: var(--font-color);
+  font-size: 18px;
+  font-weight: 700;
+  margin-top: 10px;
+}
+
+.editDeckInput,
+.editDeckTextarea,
+.editDeckSelect {
+  width: 100%;
+  box-sizing: border-box;
+  background: #ededed;
+  border: none;
+  border-radius: 30px;
+  outline: none;
+  color: var(--font-color);
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: normal;
+  margin: 0 0 20px;
+}
+
+.editDeckInput,
+.editDeckSelect {
+  height: 44px;
+  padding: 0 18px;
+}
+
+.editDeckTextarea {
+  min-height: 92px;
+  padding: 14px 18px;
+  resize: vertical;
+  border-radius: 22px;
+}
+
+.editDeckRadioRow {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin: 4px 0 20px;
+}
+
+.editDeckRadioRow label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #000;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.editDeckColorRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: center;
+  margin: 12px 0 20px;
+}
+
+.editDeckColorDot {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transform: scale(1.35);
+}
+
+.editDeckActions {
+  width: calc(100% - 88px);
+  max-width: 520px;
+  margin: 14px auto 0 !important;
+  padding-top: 20px;
+  border-top: 2px solid #f5f5f5;
+  display: flex !important;
+  justify-content: center;
+  gap: 18px;
+}
+
+
+.editDeckSaveBtn,
+.editDeckCancelBtn {
+  width: 130px;
+  height: 38px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--font-color);
+}
+
+.editDeckSaveBtn {
+  border: 1px solid #b276e6;
+  background: #e3aadd;
+  box-shadow: 0 4px 0 #a45de3;
+}
+
+.editDeckCancelBtn {
+  border: 1px solid #000;
+  background: #fff;
+  box-shadow: 0 4px 0 grey;
+}
+
+@media (max-width: 520px) {
+  .editDeckPopup {
+    width: calc(100vw - 24px) !important;
+    border-radius: 28px !important;
+  }
+
+  .editDeckTitle {
+    height: 82px !important;
+    font-size: 28px !important;
+  }
+
+  .editDeckHtml {
+    padding: 24px 0 0 !important;
+  }
+
+  .editDeckForm,
+  .editDeckActions {
+    width: calc(100% - 48px);
+  }
+
+  .editDeckActions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .editDeckSaveBtn,
+  .editDeckCancelBtn {
+    width: 100%;
+  }
+}
+

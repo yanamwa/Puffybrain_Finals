@@ -641,9 +641,10 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   padding: 0;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   margin-bottom: 50px;
 }
+
 
 .courseHead {
   position: absolute;
@@ -665,14 +666,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   width: 100%;
-  padding-top: 70px;
-  padding-left: 40px;
-  padding-right: 40px;
-  padding-bottom: 15px;
+  padding: 70px 40px 15px;
   border-bottom: 2px solid #ddd;
   box-sizing: border-box;
+  flex-wrap: wrap;
 }
+
 
 .innerhead h1 {
   font-size: 40px;
@@ -684,12 +685,13 @@
 
 .lessons {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 15px;
   margin-top: 10px;
   margin-bottom: 30px;
   padding: 20px 40px 30px;
 }
+
 
 .lessonBox {
   border-radius: 20px;
@@ -815,14 +817,15 @@
 
 .deckGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 230px);
+  grid-template-columns: repeat(auto-fill, minmax(210px, 230px));
   gap: 24px;
   padding: 20px 35px 30px;
   justify-content: start;
 }
 
 .deckCard {
-  width: 230px;
+  width: 100%;
+  max-width: 230px;
   height: 180px;
   background: #fff;
   border-radius: 18px;
@@ -831,6 +834,7 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
+
 
 .deckCard:hover {
   transform: translateY(-6px);
@@ -909,9 +913,12 @@
 .filterGroup {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 14px;
   margin-left: auto;
+  flex-wrap: wrap;
 }
+
 
 .customDropdown {
   position: relative;
@@ -970,6 +977,42 @@
 .customDropdownMenu button:hover {
   background: #f1f1f1;
 }
+
+.deckCategoryText {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  max-width: 150px;
+  margin: 2px 0 6px;
+  padding: 4px 9px;
+  background: #f1f1f1;
+  border: 1px solid #cfcfcf;
+  border-radius: 999px;
+  color: #c9c9c9;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  min-height: 20px;
+  box-sizing: border-box;
+}
+
+.deckCategoryText i {
+  font-size: 13px;
+  color: #6a6a6a;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.deckCategoryText span {
+  color: #8a8a8a;
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 
 /* SWEETALERT */
 
@@ -1098,18 +1141,262 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1100px) {
+  .deckGrid {
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  }
+
+  .deckCard {
+    max-width: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    width: 60px;
+  }
+
+  .sidebar .logoExpanded,
+  .sidebar .myDecksTitle,
+  .sidebar .sectionTitle,
+  .sidebar .sidebarEmptyText,
+  .sidebar .menuText {
+    display: none;
+  }
+
+  .sidebar .logoCollapsed {
+    display: block;
+  }
+
+  .mainArea {
+    margin-left: 60px;
+  }
+
   .headerContainer {
     justify-content: flex-start;
-    padding-left: 20px;
+    padding: 0 14px;
   }
 
   .searchBar {
-    width: calc(100% - 90px);
+    max-width: none;
+    width: calc(100% - 130px);
+    margin: 0;
+  }
+
+  .profileWrapper {
+    right: 10px;
+  }
+
+  .userInfo {
+    display: none;
+  }
+
+  .mainContent {
+    padding: 24px 18px 30px;
+  }
+
+  .innerhead {
+    padding: 68px 24px 15px;
+  }
+
+  .innerhead h1 {
+    font-size: 32px;
   }
 
   .lessons,
   .deckGrid {
+    padding: 22px 24px 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .gridContainer {
+    grid-template-rows: auto 1fr;
+  }
+
+  .headerContainer {
+    min-height: 70px;
+  }
+
+  .mainContent {
+    padding: 18px 12px 26px;
+  }
+
+  .courses {
+    border-radius: 14px;
+    margin-bottom: 28px;
+  }
+
+  .courseHead {
+    height: 42px;
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+  }
+
+  .innerhead {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 58px 18px 14px;
+  }
+
+  .innerhead h1 {
+    font-size: 28px;
+  }
+
+  .filterGroup {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .customDropdown {
+    flex: 1 1 145px;
+  }
+
+  .customDropdownBtn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .customDropdownMenu {
+    left: 0;
+    right: auto;
+    width: 100%;
+    min-width: 150px;
+    max-height: 230px;
+    overflow-y: auto;
+  }
+
+  .lessons {
     grid-template-columns: 1fr;
+    padding: 18px;
+  }
+
+  .deckGrid {
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    padding: 18px;
+  }
+}
+
+.deckGrid:has(.emptyDeckState) {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 260px;
+}
+
+.emptyDeckState {
+  width: 100%;
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.emptyDeckImg {
+  width: 140px;
+  height: auto;
+  object-fit: contain;
+}
+
+.emptyDeckText {
+  margin: 0;
+  color: #666;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+
+@media (max-width: 520px) {
+  .mainArea {
+    margin-left: 60px;
+  }
+
+  .headerContainer {
+    padding: 8px 10px;
+    align-items: center;
+  }
+
+  .searchBar {
+    width: calc(100% - 112px);
+    height: 34px;
+    padding-left: 12px;
+  }
+
+  .searchBar input {
+    font-size: 13px;
+  }
+
+  .profileWrapper {
+    right: 6px;
+    gap: 4px;
+  }
+
+  .notificationBtn,
+  .dpContainer,
+  .profilePic {
+    width: 34px;
+    height: 34px;
+  }
+
+  .dropdownBtn {
+    padding: 3px;
+  }
+
+  .notificationDropdown {
+    position: fixed;
+    top: 62px;
+    left: 10px;
+    right: 10px;
+    width: auto;
+    max-width: none;
+  }
+
+  .dropdownContent {
+    right: 0;
+    width: 170px;
+  }
+
+  .innerhead h1 {
+    font-size: 24px;
+  }
+
+  .filterGroup {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .customDropdown {
+    width: 100%;
+  }
+
+  .customDropdownBtn {
+    height: 34px;
+  }
+
+  .deckGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .deckCard {
+    max-width: 100%;
+  }
+
+  .lessonBox {
+    padding: 12px;
+    min-height: 230px;
+  }
+
+  .lessonContent {
+    left: 12px;
+    right: 12px;
+  }
+
+  .lessonPreview {
+    left: 24px;
+    right: 24px;
   }
 }

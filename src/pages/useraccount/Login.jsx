@@ -9,12 +9,11 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-
-  // NEW
   const [loginAttempts, setLoginAttempts] = useState(0);
+
   const MAX_ATTEMPTS = 10;
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!username || !password) {
       Swal.fire({
         imageUrl: "/images/error.png",
@@ -26,7 +25,6 @@ function Login() {
       return;
     }
 
-    // BLOCK LOGIN AFTER 10 TRIES
     if (loginAttempts >= MAX_ATTEMPTS) {
       Swal.fire({
         imageUrl: "/images/error.png",
@@ -38,63 +36,66 @@ function Login() {
       return;
     }
 
-    fetch("http://localhost/puffybrain/login.php", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (!data.success) {
-
-          // INCREASE ATTEMPTS
-          const newAttempts = loginAttempts + 1;
-          setLoginAttempts(newAttempts);
-
-          Swal.fire({
-            imageUrl: "/images/error.png",
-            imageWidth: 170,
-            imageHeight: 170,
-            title: "Login Failed",
-            text:
-              data.message ||
-              `Invalid credentials. Attempts left: ${
-                MAX_ATTEMPTS - newAttempts
-              }`,
-          });
-
-          return;
-        }
-
-        // RESET ATTEMPTS ON SUCCESS
-        setLoginAttempts(0);
-
-        localStorage.setItem("user_email", data.email);
-        localStorage.setItem("username", data.username);
-
-        if (data.isNewUser) {
-          Swal.fire({
-            imageUrl: "/images/success.png",
-            imageWidth: 170,
-            imageHeight: 170,
-            title: "Welcome!",
-            text: "Let's get you started",
-          }).then(() => navigate("/welcome"));
-        } else {
-          Swal.fire({
-            imageUrl: "/images/success.png",
-            imageWidth: 170,
-            imageHeight: 170,
-            title: "Welcome back!",
-            text: "Redirecting to homepage",
-          }).then(() => navigate("/homepage"));
-        }
-      })
-      .catch(() => {
-        Swal.fire("Error", "Server error", "error");
+    try {
+      const res = await fetch("http://localhost/puffybrain/login.php", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
       });
+
+      const data = await res.json();
+      console.log("LOGIN RESPONSE:", data);
+
+      if (!data.success) {
+        const newAttempts = loginAttempts + 1;
+        setLoginAttempts(newAttempts);
+
+        Swal.fire({
+          imageUrl: "/images/error.png",
+          imageWidth: 170,
+          imageHeight: 170,
+          title: "Login Failed",
+          text:
+            data.message ||
+            `Invalid credentials. Attempts left: ${
+              MAX_ATTEMPTS - newAttempts
+            }`,
+        });
+
+        return;
+      }
+
+      setLoginAttempts(0);
+
+      localStorage.setItem("user_email", data.email || "");
+      localStorage.setItem("username", data.username || "");
+
+      if (data.isNewUser) {
+        Swal.fire({
+          imageUrl: "/images/success.png",
+          imageWidth: 170,
+          imageHeight: 170,
+          title: "Welcome!",
+          text: "Let's get you started",
+        }).then(() => navigate("/welcome"));
+      } else {
+        Swal.fire({
+          imageUrl: "/images/success.png",
+          imageWidth: 170,
+          imageHeight: 170,
+          title: "Welcome back!",
+          text: "Redirecting to homepage",
+        }).then(() => navigate("/homepage"));
+      }
+    } catch (error) {
+      console.error("LOGIN ERROR:", error);
+      Swal.fire("Error", "Server error", "error");
+    }
   };
+
   return (
     <div className={styles.wrapper}>
       <section className={styles.container}>
@@ -106,10 +107,18 @@ function Login() {
           </div>
 
           <ul className={styles.navLinks}>
-            <li><Link to="/">Home</Link></li>
-            <li><Link to="/about">About</Link></li>
-            <li><Link to="/faq">FAQ</Link></li>
-            <li><Link to="/faq">Contact Us</Link></li>
+            <li>
+              <Link to="/">Home</Link>
+            </li>
+            <li>
+              <Link to="/about">About</Link>
+            </li>
+            <li>
+              <Link to="/faq">FAQ</Link>
+            </li>
+            <li>
+              <Link to="/faq">Contact Us</Link>
+            </li>
           </ul>
 
           <div className={styles.navActions}>
@@ -123,7 +132,7 @@ function Login() {
           <div className={styles.signupCard}>
             <h2>Login</h2>
 
-         <label>Username</label>
+            <label>Username</label>
             <input
               type="text"
               placeholder="Enter your username"
@@ -138,6 +147,9 @@ function Login() {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleLogin();
+                }}
               />
 
               <i
@@ -151,6 +163,7 @@ function Login() {
             <p className={styles.forgot}>
               <Link to="/forgot">Forgot your password?</Link>
             </p>
+
             <button className={styles.loginBtn} onClick={handleLogin}>
               Login
             </button>
@@ -158,9 +171,10 @@ function Login() {
             <p className={styles.signupText}>
               Don't have an account? <Link to="/signup">Signup</Link>
             </p>
-                <p className={styles.signupText}>
-          <Link to="/cant-signin">Can't sign in?</Link>      
-      </p>
+
+            <p className={styles.signupText}>
+              <Link to="/cant-signin">Can't sign in?</Link>
+            </p>
           </div>
         </div>
       </section>
