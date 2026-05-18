@@ -3,6 +3,10 @@
     {
       "source": "/api/:path*",
       "destination": "http://puffybrain.atwebpages.com/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
