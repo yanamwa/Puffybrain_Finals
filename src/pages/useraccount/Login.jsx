@@ -13,6 +13,11 @@ function Login() {
 
   const MAX_ATTEMPTS = 10;
 
+const API_BASE =
+  window.location.hostname === "localhost"
+    ? "http://localhost/puffybrain"
+    : "https://yourdomain.atwebpages.com";
+
   const handleLogin = async () => {
     if (!username || !password) {
       Swal.fire({
@@ -37,7 +42,7 @@ function Login() {
     }
 
     try {
-      const res = await fetch("http://localhost/puffybrain/login.php", {
+      const res = await fetch(`${API_BASE}/login.php`, {
         method: "POST",
         credentials: "include",
         headers: {
