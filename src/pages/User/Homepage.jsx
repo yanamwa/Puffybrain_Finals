@@ -8,6 +8,11 @@ import TodoList from "./TodoList";
 function Homepage() {
   const navigate = useNavigate();
 
+  const API_BASE =
+    window.location.hostname === "localhost"
+      ? "http://localhost/puffybrain"
+      : "/api";
+
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(null);
@@ -24,7 +29,6 @@ function Homepage() {
 
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
-
   const [searchQuery, setSearchQuery] = useState("");
 
   const categories = [
@@ -126,7 +130,7 @@ function Homepage() {
 
   const fetchUserDecks = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/userDecks.php", {
+      const res = await fetch(`${API_BASE}/userDecks.php`, {
         credentials: "include",
       });
 
@@ -140,7 +144,7 @@ function Homepage() {
 
   const fetchUser = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/getUser.php", {
+      const res = await fetch(`${API_BASE}/getUser.php`, {
         credentials: "include",
       });
 
@@ -161,7 +165,7 @@ function Homepage() {
 
   const fetchCourses = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/getMyCourses.php", {
+      const res = await fetch(`${API_BASE}/getMyCourses.php`, {
         credentials: "include",
       });
 
@@ -175,13 +179,10 @@ function Homepage() {
 
   const fetchNotifications = async () => {
     try {
-      const res = await fetch(
-        "http://localhost/puffybrain/getUserNotifications.php",
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
+      const res = await fetch(`${API_BASE}/getUserNotifications.php`, {
+        method: "GET",
+        credentials: "include",
+      });
 
       const data = await res.json();
 
@@ -198,13 +199,10 @@ function Homepage() {
 
   const markNotificationsAsRead = async () => {
     try {
-      const res = await fetch(
-        "http://localhost/puffybrain/markNotificationsAsRead.php",
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
+      const res = await fetch(`${API_BASE}/markNotificationsAsRead.php`, {
+        method: "POST",
+        credentials: "include",
+      });
 
       const data = await res.json();
 
@@ -280,7 +278,7 @@ function Homepage() {
       formData.append("visibility", deckVisibility);
       formData.append("deck_color", deckColor);
 
-      const res = await fetch("http://localhost/puffybrain/userDecks.php", {
+      const res = await fetch(`${API_BASE}/userDecks.php`, {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -318,228 +316,203 @@ function Homepage() {
   };
 
   const handleEditDeck = async (deck) => {
-  const deckId = deck.deck_id || deck.id;
+    const deckId = deck.deck_id || deck.id;
 
-  if (!deckId) {
-    Swal.fire({
-      icon: "error",
-      title: "Update failed",
-      text: "Missing deck ID.",
-    });
-    return;
-  }
-
-  const categoryOptions = categories
-    .filter((cat) => cat !== "Others")
-    .map(
-      (cat) =>
-        `<option value="${cat}" ${
-          deck.category === cat ? "selected" : ""
-        }>${cat}</option>`
-    )
-    .join("");
-
-  const { value: formValues } = await Swal.fire({
-    title: "Edit Deck",
-    customClass: {
-      popup: styles.editDeckPopup,
-      title: styles.editDeckTitle,
-      htmlContainer: styles.editDeckHtml,
-      actions: styles.editDeckActions,
-      confirmButton: styles.editDeckSaveBtn,
-      cancelButton: styles.editDeckCancelBtn,
-    },
-    buttonsStyling: false,
-    html: `
-      <div class="${styles.editDeckForm}">
-        <label class="${styles.editDeckLabel}">Deck Title</label>
-        <input
-          id="swal-title"
-          class="${styles.editDeckInput}"
-          placeholder="Enter your deck name"
-          value="${deck.title || ""}"
-        />
-
-        <label class="${styles.editDeckLabel}">Description</label>
-        <textarea
-          id="swal-desc"
-          class="${styles.editDeckTextarea}"
-          placeholder="Optional"
-        >${deck.description || ""}</textarea>
-
-        <label class="${styles.editDeckLabel}">Category</label>
-        <select id="swal-category" class="${styles.editDeckSelect}">
-          ${categoryOptions}
-        </select>
-
-        <label class="${styles.editDeckLabel}">Visibility</label>
-        <div class="${styles.editDeckRadioRow}">
-          <label>
-            <input
-              type="radio"
-              name="swal-visibility"
-              value="public"
-              ${deck.visibility === "public" ? "checked" : ""}
-            />
-            Public
-          </label>
-
-          <label>
-            <input
-              type="radio"
-              name="swal-visibility"
-              value="private"
-              ${deck.visibility !== "public" ? "checked" : ""}
-            />
-            Private
-          </label>
-        </div>
-
-        <label class="${styles.editDeckLabel}">Choose Deck Color</label>
-        <div class="${styles.editDeckColorRow}">
-          ${["#D7C9F7", "#B8F2D9", "#FFB7A5", "#B5A9FF", "#9EE7DD", "#F4A7C1"]
-            .map(
-              (color) => `
-                <button
-                  type="button"
-                  class="${styles.editDeckColorDot}"
-                  data-color="${color}"
-                  style="background:${color}; ${
-                    (deck.deck_color || deck.deckColor) === color
-                      ? "outline: 3px solid #111;"
-                      : ""
-                  }"
-                ></button>
-              `
-            )
-            .join("")}
-        </div>
-
-        <input
-          id="swal-color"
-          type="hidden"
-          value="${deck.deck_color || deck.deckColor || "#c9cdfa"}"
-        />
-      </div>
-    `,
-    didOpen: () => {
-      document
-        .querySelectorAll(`.${styles.editDeckColorDot}`)
-        .forEach((btn) => {
-          btn.addEventListener("click", () => {
-            document.getElementById("swal-color").value = btn.dataset.color;
-
-            document
-              .querySelectorAll(`.${styles.editDeckColorDot}`)
-              .forEach((dot) => {
-                dot.style.outline = "none";
-              });
-
-            btn.style.outline = "3px solid #111";
-          });
-        });
-    },
-    showCancelButton: true,
-    confirmButtonText: "Save",
-    cancelButtonText: "Cancel",
-    preConfirm: () => {
-      const title = document.getElementById("swal-title").value.trim();
-      const description = document.getElementById("swal-desc").value.trim();
-      const category = document.getElementById("swal-category").value;
-      const visibility = document.querySelector(
-        'input[name="swal-visibility"]:checked'
-      )?.value;
-      const deckColor = document.getElementById("swal-color").value;
-
-      if (!title) {
-        Swal.showValidationMessage("Deck title is required.");
-        return false;
-      }
-
-      return {
-        title,
-        description,
-        category,
-        visibility,
-        deckColor,
-      };
-    },
-  });
-
-  if (!formValues) return;
-
-  try {
-    const formData = new FormData();
-
-    formData.append("deckId", deckId);
-    formData.append("deck_id", deckId);
-    formData.append("title", formValues.title);
-    formData.append("description", formValues.description);
-    formData.append("category", formValues.category);
-    formData.append("visibility", formValues.visibility);
-    formData.append("deck_color", formValues.deckColor);
-
-    const res = await fetch("http://localhost/puffybrain/updateDeck.php", {
-      method: "POST",
-      credentials: "include",
-      body: formData,
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      await fetchUserDecks();
-
-      Swal.fire({
-        icon: "success",
-        title: "Deck updated!",
-        timer: 1500,
-        showConfirmButton: false,
-      });
-    } else {
+    if (!deckId) {
       Swal.fire({
         icon: "error",
         title: "Update failed",
-        text: data.message || "Something went wrong.",
+        text: "Missing deck ID.",
+      });
+      return;
+    }
+
+    const categoryOptions = categories
+      .filter((cat) => cat !== "Others")
+      .map(
+        (cat) =>
+          `<option value="${cat}" ${
+            deck.category === cat ? "selected" : ""
+          }>${cat}</option>`
+      )
+      .join("");
+
+    const { value: formValues } = await Swal.fire({
+      title: "Edit Deck",
+      customClass: {
+        popup: styles.editDeckPopup,
+        title: styles.editDeckTitle,
+        htmlContainer: styles.editDeckHtml,
+        actions: styles.editDeckActions,
+        confirmButton: styles.editDeckSaveBtn,
+        cancelButton: styles.editDeckCancelBtn,
+      },
+      buttonsStyling: false,
+      html: `
+        <div class="${styles.editDeckForm}">
+          <label class="${styles.editDeckLabel}">Deck Title</label>
+          <input id="swal-title" class="${styles.editDeckInput}" placeholder="Enter your deck name" value="${deck.title || ""}" />
+
+          <label class="${styles.editDeckLabel}">Description</label>
+          <textarea id="swal-desc" class="${styles.editDeckTextarea}" placeholder="Optional">${deck.description || ""}</textarea>
+
+          <label class="${styles.editDeckLabel}">Category</label>
+          <select id="swal-category" class="${styles.editDeckSelect}">
+            ${categoryOptions}
+          </select>
+
+          <label class="${styles.editDeckLabel}">Visibility</label>
+          <div class="${styles.editDeckRadioRow}">
+            <label>
+              <input type="radio" name="swal-visibility" value="public" ${deck.visibility === "public" ? "checked" : ""} />
+              Public
+            </label>
+
+            <label>
+              <input type="radio" name="swal-visibility" value="private" ${deck.visibility !== "public" ? "checked" : ""} />
+              Private
+            </label>
+          </div>
+
+          <label class="${styles.editDeckLabel}">Choose Deck Color</label>
+          <div class="${styles.editDeckColorRow}">
+            ${["#D7C9F7", "#B8F2D9", "#FFB7A5", "#B5A9FF", "#9EE7DD", "#F4A7C1"]
+              .map(
+                (color) => `
+                  <button
+                    type="button"
+                    class="${styles.editDeckColorDot}"
+                    data-color="${color}"
+                    style="background:${color}; ${
+                      (deck.deck_color || deck.deckColor) === color
+                        ? "outline: 3px solid #111;"
+                        : ""
+                    }"
+                  ></button>
+                `
+              )
+              .join("")}
+          </div>
+
+          <input id="swal-color" type="hidden" value="${deck.deck_color || deck.deckColor || "#c9cdfa"}" />
+        </div>
+      `,
+      didOpen: () => {
+        document
+          .querySelectorAll(`.${styles.editDeckColorDot}`)
+          .forEach((btn) => {
+            btn.addEventListener("click", () => {
+              document.getElementById("swal-color").value = btn.dataset.color;
+
+              document
+                .querySelectorAll(`.${styles.editDeckColorDot}`)
+                .forEach((dot) => {
+                  dot.style.outline = "none";
+                });
+
+              btn.style.outline = "3px solid #111";
+            });
+          });
+      },
+      showCancelButton: true,
+      confirmButtonText: "Save",
+      cancelButtonText: "Cancel",
+      preConfirm: () => {
+        const title = document.getElementById("swal-title").value.trim();
+        const description = document.getElementById("swal-desc").value.trim();
+        const category = document.getElementById("swal-category").value;
+        const visibility = document.querySelector(
+          'input[name="swal-visibility"]:checked'
+        )?.value;
+        const deckColor = document.getElementById("swal-color").value;
+
+        if (!title) {
+          Swal.showValidationMessage("Deck title is required.");
+          return false;
+        }
+
+        return {
+          title,
+          description,
+          category,
+          visibility,
+          deckColor,
+        };
+      },
+    });
+
+    if (!formValues) return;
+
+    try {
+      const formData = new FormData();
+
+      formData.append("deckId", deckId);
+      formData.append("deck_id", deckId);
+      formData.append("title", formValues.title);
+      formData.append("description", formValues.description);
+      formData.append("category", formValues.category);
+      formData.append("visibility", formValues.visibility);
+      formData.append("deck_color", formValues.deckColor);
+
+      const res = await fetch(`${API_BASE}/updateDeck.php`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        await fetchUserDecks();
+
+        Swal.fire({
+          icon: "success",
+          title: "Deck updated!",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Update failed",
+          text: data.message || "Something went wrong.",
+        });
+      }
+    } catch (err) {
+      console.error("handleEditDeck error:", err);
+
+      Swal.fire({
+        icon: "error",
+        title: "Server Error",
+        text: "Something went wrong while updating the deck.",
       });
     }
-  } catch (err) {
-    console.error("handleEditDeck error:", err);
-
-    Swal.fire({
-      icon: "error",
-      title: "Server Error",
-      text: "Something went wrong while updating the deck.",
-    });
-  }
-};
-
+  };
 
   const handleDeleteDeck = async (deckId) => {
     const result = await Swal.fire({
-  title: "Archive deck?",
-  text: "This deck will be removed from your list.",
-  icon: "warning",
-  showCancelButton: true,
-  confirmButtonText: "Yes, archive it",
-  cancelButtonText: "Cancel",
-  buttonsStyling: false,
-
-  customClass: {
-    popup: styles.swalPopup,
-    title: styles.swalTitle,
-    htmlContainer: styles.swalText,
-    actions: styles.swalActions,
-    confirmButton: styles.swalConfirm,
-    cancelButton: styles.swalCancel,
-    icon: styles.swalIcon,
-  },
-}); 
+      title: "Archive deck?",
+      text: "This deck will be removed from your list.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, archive it",
+      cancelButtonText: "Cancel",
+      buttonsStyling: false,
+      customClass: {
+        popup: styles.swalPopup,
+        title: styles.swalTitle,
+        htmlContainer: styles.swalText,
+        actions: styles.swalActions,
+        confirmButton: styles.swalConfirm,
+        cancelButton: styles.swalCancel,
+        icon: styles.swalIcon,
+      },
+    });
 
     if (!result.isConfirmed) return;
 
     try {
-      const res = await fetch("http://localhost/puffybrain/archiveDeck.php", {
+      const res = await fetch(`${API_BASE}/archiveDeck.php`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -818,9 +791,7 @@ function Homepage() {
               <div className={styles.decksGrid}>
                 {filteredCourses.length === 0 ? (
                   <p style={{ opacity: 0.6 }}>
-                    {searchQuery
-                      ? "No matching courses found"
-                      : "No courses yet"}
+                    {searchQuery ? "No matching courses found" : "No courses yet"}
                   </p>
                 ) : (
                   filteredCourses.slice(0, 3).map((course, index) => {
@@ -915,9 +886,7 @@ function Homepage() {
               <div className={styles.myDecksGrid}>
                 {filteredDecks.length === 0 ? (
                   <p style={{ opacity: 0.6 }}>
-                    {searchQuery
-                      ? "No matching decks found"
-                      : "Don’t have decks yet"}
+                    {searchQuery ? "No matching decks found" : "Don’t have decks yet"}
                   </p>
                 ) : (
                   filteredDecks.slice(0, 4).map((deck) => {
@@ -962,16 +931,17 @@ function Homepage() {
                                   e.stopPropagation();
                                 }}
                               >
-                        <button
-                              type="button"
-                              onClick={() => {
-                                handleEditDeck(deck);
-                                setDropdownOpen(null);
-                              }}
-                            >
-                              Edit
-                            </button>
-                                      <button
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    handleEditDeck(deck);
+                                    setDropdownOpen(null);
+                                  }}
+                                >
+                                  Edit
+                                </button>
+
+                                <button
                                   type="button"
                                   onClick={() => {
                                     console.log("Duplicate", deck.id);
