@@ -15,7 +15,7 @@ import Otp from "./pages/useraccount/Otp";
 import Forgot from "./pages/useraccount/Forgotpassword";
 import ChangePassword from "./pages/useraccount/Changepassword";
 import ForgotUsername from "./pages/useraccount/forgotuser";
-import CantSign from "./pages/useraccount/cant_sign";
+import CantSign from "./pages/useraccount/Cant_sign";
 import ChangeUsername from "./pages/useraccount/Changeusername";
 import EditProfile from "./pages/User_profile/edit-profile";
 
