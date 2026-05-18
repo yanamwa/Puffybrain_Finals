@@ -80,14 +80,19 @@ export default function AdminProfile() {
           return;
         }
 
-        setAdmin({
-          full_name: data.admin.full_name || "System Administrator",
-          email: data.admin.email || "Not set",
-          username: data.admin.username || "Admin",
-          role: data.admin.role || "Administrator",
-          profile_image:
-            data.admin.profile_image || "/images/temporary profile.jpg",
-        });
+        console.log(data.admin.profile_image);
+
+      const imagePath = data.admin.profile_image
+      ? data.admin.profile_image
+      : "/images/temporary profile.jpg";
+
+      setAdmin({
+        full_name: data.admin.full_name || "System Administrator",
+        email: data.admin.email || "Not set",
+        username: data.admin.username || "Admin",
+        role: data.admin.role || "Administrator",
+        profile_image: imagePath,
+      });
       } catch (err) {
         console.error("Failed to fetch admin:", err);
       }
@@ -255,10 +260,13 @@ export default function AdminProfile() {
           <div className={styles.idPhotoBox}>
             <div className={styles.idPhotoFrame}>
               <img
-                src={admin.profile_image}
-                alt="Admin Profile"
-                className={styles.idPhoto}
-              />
+                  src={admin.profile_image}
+                  alt="Admin Profile"
+                  className={styles.idPhoto}
+                  onError={(e) => {
+                    console.log("IMAGE FAILED:", e.target.src);
+                  }}
+                />
             </div>
 
             <div className={styles.idBarcode}></div>
