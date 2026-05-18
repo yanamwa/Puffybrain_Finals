@@ -17,7 +17,7 @@ const API_BASE =
   window.location.hostname === "localhost"
     ? "http://localhost/puffybrain"
     : "/api";
-    
+
   const handleLogin = async () => {
     if (!username || !password) {
       Swal.fire({
@@ -42,7 +42,7 @@ const API_BASE =
     }
 
     try {
-      const res = await fetch(`${API_BASE}/login.php`, {
+      const res = await fetch(`${API_BASE}/login.php`, {  
         method: "POST",
         credentials: "include",
         headers: {
