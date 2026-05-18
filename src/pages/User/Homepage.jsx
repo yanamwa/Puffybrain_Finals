@@ -151,12 +151,13 @@ function Homepage() {
       const data = await res.json();
 
       if (data.success) {
-        setUser({
-          username: data.user?.username || "",
-          year_level: data.user?.year_level || "",
-          profile_image:
-            data.user?.profile_image || "/images/temporary profile.jpg",
-        });
+   setUser({
+      username: data.user?.username || "",
+      year_level: data.user?.year_level || "",
+      profile_image: data.user?.profile_image
+        ? `${API_BASE}/${data.user.profile_image}`
+        : "/images/temporary profile.jpg",
+    });
       }
     } catch (err) {
       console.error("fetchUser error:", err);
