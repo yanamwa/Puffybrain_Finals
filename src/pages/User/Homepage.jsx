@@ -1,7 +1,7 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import styles from "./Homepage.module.css";
+import styles from "./homepage.module.css";
 import Calendar from "./Calendar";
 import TodoList from "./TodoList";
 
