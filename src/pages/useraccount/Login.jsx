@@ -16,7 +16,7 @@ function Login() {
 const API_BASE =
   window.location.hostname === "localhost"
     ? "http://localhost/puffybrain"
-    : "https://yourdomain.atwebpages.com";
+    : "https://puffybrain.atwebpages.com";
 
   const handleLogin = async () => {
     if (!username || !password) {
