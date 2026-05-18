@@ -27,7 +27,7 @@ import Year from "./pages/Introduction/Year";
 import Profile from "./pages/Introduction/Profile";
 
 /* Home */
-import Loading from "./pages/User/Loading";
+import Loading from "./pages/User/loading";
 import Homepage from "./pages/User/Homepage";
 import PublicDeck from "./pages/public_decks/publicDeck";
 import UserProfile from "./pages/User_profile/UserProfile";
@@ -51,7 +51,7 @@ import ModuleManagement from "./pages/admin/modulemanagement";
 import AddModule from "./pages/admin/AddModule";
 import EditModule from "./pages/admin/EditModule";
 import UserManagement from "./pages/admin/usermanagement";
-import ModesManagement from "./pages/admin/Modesmanagement";
+import ModesManagement from "./pages/admin/Modesmangement";
 import DecksManagement from "./pages/admin/DecksManagement";
 import AdminProfile from "./pages/admin/AdminProfile";
 import AdminSettings from "./pages/admin/AdminSetting";
@@ -77,9 +77,12 @@ import TimedQuiz from "./pages/inQuiz/timedinquiz";
 export default function App() {
   return (
     <Routes>
+
+      {/* LANDING */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/about" element={<Aboutus />} />
 
+      {/* USER ACCOUNT */}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/otp" element={<Otp />} />
@@ -90,29 +93,35 @@ export default function App() {
       <Route path="/change-username" element={<ChangeUsername />} />
       <Route path="/edit-profile" element={<EditProfile />} />
 
+      {/* INTRO */}
       <Route path="/welcome" element={<Welcome />} />
       <Route path="/how-it-works" element={<HowItWorks />} />
       <Route path="/school" element={<School />} />
       <Route path="/year" element={<Year />} />
       <Route path="/profile" element={<Profile />} />
 
+      {/* HOME */}
       <Route path="/loading" element={<Loading />} />
       <Route path="/homepage" element={<Homepage />} />
       <Route path="/mydecks" element={<MyDecks />} />
       <Route path="/public-decks" element={<PublicDeck />} />
       <Route path="/mycourse" element={<MyCourse />} />
 
+      {/* PROFILE */}
       <Route path="/user-profile" element={<UserProfile />} />
       <Route path="/user-profile/:userId" element={<UserProfile />} />
 
+      {/* DECKS */}
       <Route path="/deckpage" element={<DeckPage />} />
       <Route path="/deck/:deckId" element={<UserDecks />} />
 
+      {/* LEARNING */}
       <Route path="/learning/:lessonId" element={<LearningModule />} />
       <Route path="/introduction/:lessonId" element={<Introduction />} />
       <Route path="/lesson/:lessonId" element={<Lesson />} />
       <Route path="/review/:lessonId" element={<LessonResult />} />
 
+      {/* ADMIN */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
       <Route path="/admin/users" element={<UserManagement />} />
@@ -126,6 +135,8 @@ export default function App() {
       <Route path="/admin/notifications" element={<NotificationManagement />} />
       <Route path="/admin/backup-restore" element={<AdminBackupRestore />} />
 
+      
+      {/* TUTORIAL — LESSON */}
       <Route path="/flashcards-tutorial/lesson/:lessonId" element={<FlashcardsTutorial />} />
       <Route path="/multipleChoice-tutorial/lesson/:lessonId" element={<MultipleChoice />} />
       <Route path="/Matching-tutorial/lesson/:lessonId" element={<MatchingTutorial />} />
@@ -133,6 +144,7 @@ export default function App() {
       <Route path="/QandA-tutorial/lesson/:lessonId" element={<QandATutorial />} />
       <Route path="/timedquiz-tutorial/lesson/:lessonId" element={<TimedQuizTutorial />} />
 
+      {/* TUTORIAL — DECK */}
       <Route path="/flashcards-tutorial/deck/:deckId" element={<FlashcardsTutorial />} />
       <Route path="/multipleChoice-tutorial/deck/:deckId" element={<MultipleChoice />} />
       <Route path="/Matching-tutorial/deck/:deckId" element={<MatchingTutorial />} />
@@ -140,6 +152,7 @@ export default function App() {
       <Route path="/QandA-tutorial/deck/:deckId" element={<QandATutorial />} />
       <Route path="/timedquiz-tutorial/deck/:deckId" element={<TimedQuizTutorial />} />
 
+      {/* QUIZ — LESSON */}
       <Route path="/flashcard/lesson/:lessonId" element={<Flashcards />} />
       <Route path="/matching-type/lesson/:lessonId" element={<MatchingType />} />
       <Route path="/multiple-choice/lesson/:lessonId" element={<Multiple />} />
@@ -147,6 +160,7 @@ export default function App() {
       <Route path="/survival/lesson/:lessonId" element={<Survival />} />
       <Route path="/timedquiz/lesson/:lessonId" element={<TimedQuiz />} />
 
+      {/* QUIZ — DECK */}
       <Route path="/flashcard/deck/:deckId" element={<Flashcards />} />
       <Route path="/matching-type/deck/:deckId" element={<MatchingType />} />
       <Route path="/multiple-choice/deck/:deckId" element={<Multiple />} />
@@ -154,8 +168,12 @@ export default function App() {
       <Route path="/survival/deck/:deckId" element={<Survival />} />
       <Route path="/timedquiz/deck/:deckId" element={<TimedQuiz />} />
 
+      {/* NAV */}
       <Route path="/FAQ" element={<FAQ />} />
+
+      {/* FALLBACK */}
       <Route path="*" element={<h1>Page not found</h1>} />
+
     </Routes>
   );
 }
