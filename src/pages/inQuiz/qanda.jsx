@@ -29,8 +29,19 @@ export default function QandA() {
 
   const inputRef = useRef(null);
 
-  const shuffleArray = (array) => {
-    return [...array].sort(() => Math.random() - 0.5);
+  const shuffleArray = (array) => [...array].sort(() => Math.random() - 0.5);
+
+  const cleanQuestionText = (text = "") => {
+    return String(text)
+      .replace(/\s*A\..*/is, "")
+      .trim();
+  };
+
+  const cleanAnswerText = (text = "") => {
+    return String(text)
+      .replace(/^Correct Answer:\s*/i, "")
+      .replace(/^[A-D]\.\s*/i, "")
+      .trim();
   };
 
   useEffect(() => {
@@ -47,37 +58,26 @@ export default function QandA() {
         }
 
         if (isDeckMode) {
+          const deckRes = await fetch(
+            `http://localhost/puffybrain/getDeckById.php?deckId=${deckId}`,
+            { credentials: "include" }
+          );
+          const deckData = await deckRes.json();
+
+          setDeckTitle(
+            deckData?.deck?.title ||
+              deckData?.deck?.deck_title ||
+              deckData?.title ||
+              "Deck Q&A"
+          );
+
           const cardsRes = await fetch(
-            `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`
+            `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`,
+            { credentials: "include" }
           );
           const cardsData = await cardsRes.json();
 
           setDeckCards(cardsData.success ? cardsData.cards || [] : []);
-
-          const titleFromCardsResponse =
-            cardsData.deck?.title ||
-            cardsData.deck_title ||
-            cardsData.deckTitle ||
-            cardsData.title ||
-            cardsData.cards?.[0]?.deck_title ||
-            cardsData.cards?.[0]?.deckTitle;
-
-          if (titleFromCardsResponse) {
-            setDeckTitle(titleFromCardsResponse);
-          } else {
-            const deckRes = await fetch(
-              `http://localhost/puffybrain/getDeckById.php?id=${deckId}`
-            );
-            const deckData = await deckRes.json();
-
-            setDeckTitle(
-              deckData.deck?.title ||
-                deckData.deck_title ||
-                deckData.deckTitle ||
-                deckData.title ||
-                "Deck Q&A"
-            );
-          }
         }
       } catch (err) {
         console.error("Error loading Q&A:", err);
@@ -90,11 +90,7 @@ export default function QandA() {
   }, [lessonId, deckId, isLessonMode, isDeckMode]);
 
   useEffect(() => {
-    return () => {
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
-    };
+    return () => window.speechSynthesis?.cancel();
   }, []);
 
   const questions = useMemo(() => {
@@ -105,9 +101,10 @@ export default function QandA() {
 
         return shuffleArray(
           parsed.map((item) => ({
-            q: item.question || "No question available.",
-            correctAnswer:
-              item.correct_answer || item.correctAnswer || item.answer || "",
+            q: cleanQuestionText(item.question || "No question available."),
+            correctAnswer: cleanAnswerText(
+              item.correct_answer || item.correctAnswer || item.answer || ""
+            ),
             explanation: item.explanation || item.answer || "",
           }))
         );
@@ -119,8 +116,8 @@ export default function QandA() {
     if (isDeckMode) {
       return shuffleArray(
         deckCards.map((card) => ({
-          q: card.question || "No question available.",
-          correctAnswer: card.answer || "",
+          q: cleanQuestionText(card.question || "No question available."),
+          correctAnswer: cleanAnswerText(card.answer || ""),
           explanation: card.answer || "",
         }))
       );
@@ -130,7 +127,7 @@ export default function QandA() {
   }, [lesson, deckCards, isLessonMode, isDeckMode]);
 
   useEffect(() => {
-    if (inputRef.current) inputRef.current.focus();
+    inputRef.current?.focus();
   }, [current]);
 
   const speakText = (text) => {
@@ -151,12 +148,15 @@ export default function QandA() {
     window.speechSynthesis.speak(utterance);
   };
 
-  const cleanAnswer = (text) =>
+  const cleanAnswer = (text = "") =>
     String(text)
       .toLowerCase()
       .replace(/`/g, "")
       .replace(/\bcant\b/g, "cannot")
       .replace(/\bcan't\b/g, "cannot")
+      .replace(/\ba\b/g, "")
+      .replace(/\ban\b/g, "")
+      .replace(/\bthe\b/g, "")
       .replace(/[^\w\s]/g, "")
       .replace(/\s+/g, " ")
       .trim();
@@ -181,25 +181,58 @@ export default function QandA() {
     return dp[a.length][b.length];
   };
 
-  const isCloseEnough = (userAnswer, correctAnswer) => {
-    const userClean = cleanAnswer(userAnswer);
-    const correctClean = cleanAnswer(correctAnswer);
+const isCloseEnough = (userAnswer, correctAnswer) => {
+  const userClean = cleanAnswer(userAnswer);
+  const correctClean = cleanAnswer(correctAnswer);
 
-    if (userClean === correctClean) return true;
+  if (!userClean || !correctClean) return false;
 
-    const distance = levenshtein(userClean, correctClean);
-    const maxLength = Math.max(userClean.length, correctClean.length);
+  if (userClean === correctClean) return true;
 
-    return 1 - distance / maxLength >= 0.8;
-  };
+  // exact phrase contained
+  if (
+    correctClean.includes(userClean) &&
+    userClean.length >= 8
+  ) {
+    return true;
+  }
+
+  const userWords = userClean.split(" ").filter(Boolean);
+  const correctWords = correctClean.split(" ").filter(Boolean);
+
+  const matchingWords = userWords.filter((word) =>
+    correctWords.includes(word)
+  );
+
+  const wordRatio =
+    matchingWords.length /
+    Math.max(userWords.length, correctWords.length);
+
+  // enough important words matched
+  if (
+    matchingWords.length >= 3 &&
+    wordRatio >= 0.35
+  ) {
+    return true;
+  }
+
+  const distance = levenshtein(userClean, correctClean);
+
+  const maxLength = Math.max(
+    userClean.length,
+    correctClean.length
+  );
+
+  const similarity = 1 - distance / maxLength;
+
+  return similarity >= 0.75;
+};
 
   async function saveQuizAttempt(finalScore) {
     try {
       await fetch("http://localhost/puffybrain/saveQuizAttempt.php", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
           source: isDeckMode ? "deck" : "lesson",
@@ -219,9 +252,7 @@ export default function QandA() {
   async function checkAnswer() {
     if (!questions[current] || notifOpen) return;
 
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
+    window.speechSynthesis?.cancel();
 
     const isCorrect = isCloseEnough(
       inputValue,
@@ -277,7 +308,7 @@ export default function QandA() {
       })
     );
 
-    navigate(`/review/${lessonId || "deck"}`);
+    navigate(isDeckMode ? `/review/deck/${deckId}` : `/review/${lessonId}`);
   }
 
   function handleKeyDown(e) {
@@ -370,10 +401,7 @@ export default function QandA() {
                   value={voiceSpeed}
                   onChange={(e) => {
                     setVoiceSpeed(Number(e.target.value));
-
-                    if ("speechSynthesis" in window) {
-                      window.speechSynthesis.cancel();
-                    }
+                    window.speechSynthesis?.cancel();
                   }}
                 />
               </div>

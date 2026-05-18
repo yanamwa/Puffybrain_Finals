@@ -2,6 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import styles from "./timedinquiz.module.css";
 
+const timedFrames = [
+  "/images/timed1.png",
+  "/images/timed2.png",
+  "/images/timed3.png",
+];
+
 export default function TimedQuiz() {
   const navigate = useNavigate();
   const { lessonId, deckId } = useParams();
@@ -10,6 +16,7 @@ export default function TimedQuiz() {
   const isDeckMode = Boolean(deckId);
 
   const [loading, setLoading] = useState(true);
+  const [frameIndex, setFrameIndex] = useState(0);
   const [title, setTitle] = useState("Timed Quiz");
   const [questions, setQuestions] = useState([]);
 
@@ -33,12 +40,52 @@ export default function TimedQuiz() {
 
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
 
     return shuffled;
   }
+
+  function cleanQuestionText(text = "") {
+    return String(text).replace(/\s*A\..*/is, "").trim();
+  }
+
+  function cleanAnswer(text = "") {
+    return String(text)
+      .toLowerCase()
+      .replace(/^[a-d]\.\s*/i, "")
+      .replace(/[^\w\s]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function extractOptionsFromQuestion(questionText = "") {
+    const optionMatches = [
+      ...String(questionText).matchAll(
+        /([A-D])\.\s*(.*?)(?=\s+[A-D]\.\s+|$)/gi
+      ),
+    ];
+
+    return optionMatches.map((match) => match[2].trim()).filter(Boolean);
+  }
+
+  useEffect(() => {
+    if (!loading) return;
+
+    const animationSequence = [0, 1, 2, 0, 1, 2, 0, 1, 2];
+    let currentFrame = 0;
+
+    const interval = setInterval(() => {
+      setFrameIndex(animationSequence[currentFrame]);
+      currentFrame++;
+
+      if (currentFrame >= animationSequence.length) {
+        currentFrame = 0;
+      }
+    }, 220);
+
+    return () => clearInterval(interval);
+  }, [loading]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -51,20 +98,20 @@ export default function TimedQuiz() {
           );
 
           const lesson = await res.json();
-
           setTitle(lesson?.title || "Lesson Timed Quiz");
 
           let parsed = [];
 
           try {
             parsed = JSON.parse(lesson?.quiz_contents || "[]");
-          } catch (error) {
-            console.error("Invalid lesson quiz JSON:", error);
+          } catch {
             parsed = [];
           }
 
           const lessonQuestions = parsed
             .map((item) => {
+              const rawQuestion = item.question || "No question available.";
+
               const correctAnswer =
                 item.correct_answer ||
                 item.correctAnswer ||
@@ -72,30 +119,39 @@ export default function TimedQuiz() {
                 item.correct ||
                 "";
 
-              const rawOptions = [
-                ...(Array.isArray(item.options) ? item.options : []),
-                ...(Array.isArray(item.choices) ? item.choices : []),
+              const extractedOptions = extractOptionsFromQuestion(rawQuestion);
 
-                item.option_a,
-                item.option_b,
-                item.option_c,
-                item.option_d,
+              const rawOptions =
+                extractedOptions.length > 0
+                  ? extractedOptions
+                  : [
+                      ...(Array.isArray(item.options) ? item.options : []),
+                      ...(Array.isArray(item.choices) ? item.choices : []),
+                      item.option_a,
+                      item.option_b,
+                      item.option_c,
+                      item.option_d,
+                      item.choice_a,
+                      item.choice_b,
+                      item.choice_c,
+                      item.choice_d,
+                    ].filter(Boolean);
 
-                item.choice_a,
-                item.choice_b,
-                item.choice_c,
-                item.choice_d,
-              ]
-                .filter(Boolean)
-                .map(String);
+              const questionText = cleanQuestionText(rawQuestion);
+              const answerText = String(correctAnswer).trim().toLowerCase();
 
-              const options = shuffleArray([
-                ...new Set([...rawOptions, correctAnswer]),
-              ]);
+              const isTrueFalse =
+                answerText === "true" ||
+                answerText === "false" ||
+                questionText.toLowerCase().includes("true or false");
+
+              const options = isTrueFalse
+                ? ["True", "False"]
+                : shuffleArray([...new Set([...rawOptions, correctAnswer])]);
 
               return {
-                question: item.question || "No question available.",
-                options,
+                question: questionText,
+                options: options.filter(Boolean).map(String),
                 answer: String(correctAnswer),
                 explanation: item.explanation || correctAnswer,
               };
@@ -106,40 +162,63 @@ export default function TimedQuiz() {
         }
 
         if (isDeckMode) {
-          const res = await fetch(
-            `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`
+          const deckRes = await fetch(
+            `http://localhost/puffybrain/getDeckById.php?deckId=${deckId}`,
+            { credentials: "include" }
           );
 
-          const data = await res.json();
+          const deckData = await deckRes.json();
 
-          const cards = data.success ? data.cards || [] : [];
+          const cardsRes = await fetch(
+            `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`,
+            { credentials: "include" }
+          );
+
+          const cardsData = await cardsRes.json();
+          const cards = cardsData.success ? cardsData.cards || [] : [];
 
           setTitle(
-            data.deck?.title ||
-              data.deck_title ||
-              data.deckTitle ||
-              data.title ||
-              data.cards?.[0]?.deck_title ||
-              data.cards?.[0]?.deckTitle ||
+            deckData?.deck?.title ||
+              deckData?.deck?.deck_title ||
+              cardsData?.deck?.title ||
+              cardsData?.deck_title ||
               "Deck Timed Quiz"
           );
 
           const deckQuestions = cards
             .map((card) => {
+              const rawQuestion = card.question || "";
               const correctAnswer = card.answer || "";
 
-              const otherAnswers = shuffleArray(
-                cards
-                  .filter((c) => c.answer && c.answer !== correctAnswer)
-                  .map((c) => c.answer)
-              ).slice(0, 3);
+              const extractedOptions = extractOptionsFromQuestion(rawQuestion);
+              const questionText = cleanQuestionText(rawQuestion);
+              const answerText = String(correctAnswer).trim().toLowerCase();
 
-              const options = shuffleArray([correctAnswer, ...otherAnswers]);
+              const isTrueFalse =
+                answerText === "true" ||
+                answerText === "false" ||
+                questionText.toLowerCase().includes("true or false");
+
+              let options = [];
+
+              if (isTrueFalse) {
+                options = ["True", "False"];
+              } else if (extractedOptions.length > 0) {
+                options = extractedOptions;
+              } else {
+                const otherAnswers = shuffleArray(
+                  cards
+                    .filter((c) => c.answer && c.answer !== correctAnswer)
+                    .map((c) => c.answer)
+                ).slice(0, 3);
+
+                options = shuffleArray([correctAnswer, ...otherAnswers]);
+              }
 
               return {
-                question: card.question || "No question available.",
-                options: options.filter(Boolean),
-                answer: correctAnswer,
+                question: questionText,
+                options: options.filter(Boolean).map(String),
+                answer: String(correctAnswer),
                 explanation: correctAnswer,
               };
             })
@@ -160,9 +239,7 @@ export default function TimedQuiz() {
 
   useEffect(() => {
     return () => {
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
+      window.speechSynthesis?.cancel();
     };
   }, []);
 
@@ -173,9 +250,7 @@ export default function TimedQuiz() {
       setTime((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-
           finishQuiz(score, userResults, "timeout");
-
           return 0;
         }
 
@@ -204,23 +279,12 @@ export default function TimedQuiz() {
     window.speechSynthesis.speak(utterance);
   };
 
-  function cleanAnswer(text) {
-    return String(text)
-      .toLowerCase()
-      .replace(/^[a-d]\.\s*/i, "")
-      .replace(/[^\w\s]/g, "")
-      .replace(/\s+/g, " ")
-      .trim();
-  }
-
   function handleAnswer(selectedAnswerValue) {
     const currentQuestion = questions[questionIndex];
 
     if (!currentQuestion || selectedAnswer !== null) return;
 
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
+    window.speechSynthesis?.cancel();
 
     setSelectedAnswer(selectedAnswerValue);
 
@@ -275,18 +339,11 @@ export default function TimedQuiz() {
     }
   }
 
-  async function finishQuiz(
-    finalScore,
-    finalResults,
-    finishReason = "completed"
-  ) {
+  async function finishQuiz(finalScore, finalResults, finishReason = "completed") {
     if (finishedRef.current) return;
 
     finishedRef.current = true;
-
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
+    window.speechSynthesis?.cancel();
 
     await saveQuizAttempt(finalScore, finishReason);
 
@@ -307,30 +364,27 @@ export default function TimedQuiz() {
 
     localStorage.removeItem("timedQuizSeconds");
 
-    navigate(`/review/${lessonId || "deck"}`);
+    navigate(isDeckMode ? `/review/deck/${deckId}` : `/review/${lessonId}`);
   }
 
   if (loading) {
-    return <div className={styles.page}>Loading timed quiz...</div>;
-  }
-
-  if (questions.length === 0) {
     return (
-      <div className={styles.page}>
-        No timed quiz questions available.
-        <br />
-        Mode: {isLessonMode ? "Lesson" : isDeckMode ? "Deck" : "None"}
-        <br />
-        Lesson ID: {lessonId || "none"}
-        <br />
-        Deck ID: {deckId || "none"}
+      <div className={styles.introScreen}>
+        <img
+          src={timedFrames[frameIndex]}
+          alt="Loading timed quiz"
+          className={styles.timedLoadingImage}
+        />
       </div>
     );
   }
 
+  if (questions.length === 0) {
+    return <div className={styles.page}>No timed quiz questions available.</div>;
+  }
+
   const minutes = Math.floor(time / 60);
   const seconds = time % 60;
-
   const progress = ((questionIndex + 1) / questions.length) * 100;
 
   const isWarningTime = time <= 30;
@@ -374,6 +428,7 @@ export default function TimedQuiz() {
               <div className={styles.settingRow}>
                 <div className={styles.settingInfo}>
                   <div className={styles.settingIcon}>🔊</div>
+
                   <div className={styles.settingText}>
                     <strong>Text to Speech</strong>
                     <span>Read questions and choices aloud</span>
@@ -410,10 +465,7 @@ export default function TimedQuiz() {
                   value={voiceSpeed}
                   onChange={(e) => {
                     setVoiceSpeed(Number(e.target.value));
-
-                    if ("speechSynthesis" in window) {
-                      window.speechSynthesis.cancel();
-                    }
+                    window.speechSynthesis?.cancel();
                   }}
                 />
               </div>

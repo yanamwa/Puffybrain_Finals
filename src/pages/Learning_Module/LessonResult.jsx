@@ -5,7 +5,7 @@ import QuizModesModal from "../../components/QuizModesModal";
 
 export default function LessonResult() {
   const navigate = useNavigate();
-  const { lessonId } = useParams();
+  const { lessonId, deckId } = useParams();
 
   const [results, setResults] = useState({
     score: 0,
@@ -14,40 +14,19 @@ export default function LessonResult() {
   });
 
   const [attempts, setAttempts] = useState(0);
-  const [source, setSource] = useState("lesson");
-  const [deckId, setDeckId] = useState(null);
+  const [source, setSource] = useState(deckId ? "deck" : "lesson");
+  const [resultDeckId, setResultDeckId] = useState(deckId || null);
 
   const [quizMode, setQuizMode] = useState("");
   const [isTimedOut, setIsTimedOut] = useState(false);
   const [showQuizModal, setShowQuizModal] = useState(false);
 
-  useEffect(() => {
-    const savedResults = JSON.parse(
-      localStorage.getItem(`lessonQuizResults_${lessonId}`)
-    );
-
-    if (savedResults) {
-      setResults({
-        score: savedResults.score || 0,
-        total: savedResults.total || 0,
-        answers: savedResults.answers || [],
-      });
-
-      setSource(savedResults.source || "lesson");
-      setDeckId(savedResults.deckId || null);
-      setQuizMode(savedResults.quizMode || "");
-      setIsTimedOut(Boolean(savedResults.isTimedOut));
-
-      fetchAttempts(savedResults);
-    }
-  }, [lessonId]);
-
   const fetchAttempts = async (savedResults) => {
     try {
       const query = new URLSearchParams({
-        source: savedResults.source || "lesson",
+        source: savedResults.source || (deckId ? "deck" : "lesson"),
         lessonId: savedResults.lessonId || lessonId || "",
-        deckId: savedResults.deckId || "",
+        deckId: savedResults.deckId || deckId || "",
         quizMode: savedResults.quizMode || "",
       });
 
@@ -58,16 +37,31 @@ export default function LessonResult() {
 
       const data = await res.json();
 
-      if (data.success) {
-        setAttempts(data.attempts || 0);
-      } else {
-        setAttempts(0);
-      }
+      setAttempts(data.success ? data.attempts || 0 : 0);
     } catch (error) {
       console.error("Fetch attempts error:", error);
       setAttempts(0);
     }
   };
+
+  useEffect(() => {
+    const savedResults = JSON.parse(localStorage.getItem("lessonQuizResults"));
+
+    if (savedResults) {
+      setResults({
+        score: savedResults.score || 0,
+        total: savedResults.total || 0,
+        answers: savedResults.answers || [],
+      });
+
+      setSource(savedResults.source || (deckId ? "deck" : "lesson"));
+      setResultDeckId(savedResults.deckId || deckId || null);
+      setQuizMode(savedResults.quizMode || "");
+      setIsTimedOut(Boolean(savedResults.isTimedOut));
+
+      fetchAttempts(savedResults);
+    }
+  }, [lessonId, deckId]);
 
   useEffect(() => {
     const blockKeys = (e) => {
@@ -114,20 +108,20 @@ export default function LessonResult() {
   if (percentage >= 90) {
     feedbackTitle = "Excellent Performance!";
     feedbackMessage =
-      "You mastered this lesson and showed strong understanding of the topic.";
+      "You mastered this activity and showed strong understanding of the topic.";
     masteryLevel = "Outstanding (A)";
     recommendation =
-      "You can continue to the next lesson or try a more challenging quiz.";
+      "You can continue to the next activity or try a more challenging quiz.";
   } else if (percentage >= 80) {
     feedbackTitle = "Very Good!";
     feedbackMessage =
-      "You understood the lesson very well with only minor mistakes.";
+      "You understood the topic very well with only minor mistakes.";
     masteryLevel = "Very Satisfactory (B+)";
-    recommendation = "Review small mistakes and proceed to the next lesson.";
+    recommendation = "Review small mistakes and try another quiz mode.";
   } else if (percentage >= 70) {
     feedbackTitle = "Good Job!";
     feedbackMessage =
-      "You understood most of the lesson, but there are still areas to improve.";
+      "You understood most of the topic, but there are still areas to improve.";
     masteryLevel = "Satisfactory (B)";
     recommendation = "Review the missed questions before moving on.";
   } else if (percentage >= 60) {
@@ -140,13 +134,13 @@ export default function LessonResult() {
     feedbackMessage =
       "You are starting to understand, but more effort is needed.";
     masteryLevel = "Beginning (D)";
-    recommendation = "Review the lesson carefully before retrying.";
+    recommendation = "Review carefully before retrying.";
   } else {
     feedbackTitle = "Needs Review";
     feedbackMessage =
-      "You need to revisit the lesson and build your understanding.";
+      "You need to revisit the topic and build your understanding.";
     masteryLevel = "Below Basic (F)";
-    recommendation = "Go back to the lesson and focus on key concepts.";
+    recommendation = "Go back and focus on the key concepts.";
   }
 
   if (quizMode === "timed" && isTimedOut) {
@@ -155,7 +149,7 @@ export default function LessonResult() {
       "The timer ended before you finished the quiz. Your score is based only on the questions you answered before time ran out.";
     masteryLevel = "Incomplete";
     recommendation =
-      "Try again and manage your time better, or review the lesson before retrying.";
+      "Try again and manage your time better, or review before retrying.";
   }
 
   const retryQuiz = () => {
@@ -168,7 +162,7 @@ export default function LessonResult() {
 
   const goBack = () => {
     if (source === "deck") {
-      navigate(`/deck/${deckId}`);
+      navigate(`/deck/${resultDeckId || deckId}`);
     } else {
       navigate(`/lesson/${lessonId}`);
     }
@@ -238,9 +232,7 @@ export default function LessonResult() {
                 <p>No strong areas detected yet.</p>
               ) : (
                 correctAnswers.map((item, index) => (
-                  <p key={index}>
-                    ✅ {item.question || "Question not available"}
-                  </p>
+                  <p key={index}>✅ {item.question || "Question not available"}</p>
                 ))
               )}
             </div>
@@ -342,7 +334,7 @@ export default function LessonResult() {
         <QuizModesModal
           source={source}
           lessonId={lessonId}
-          deckId={deckId}
+          deckId={resultDeckId || deckId}
           quizzes={results.answers}
           cards={results.answers}
           onClose={() => setShowQuizModal(false)}

@@ -7,6 +7,36 @@ import styles from "./Mydecks.module.css";
 export default function Mydecks() {
   const navigate = useNavigate();
 
+  const swalStyle = {
+    popup: styles.swalPopup,
+    title: styles.swalTitle,
+    htmlContainer: styles.swalText,
+    confirmButton: styles.swalConfirmBtn,
+    cancelButton: styles.swalCancelBtn,
+    actions: styles.swalActions,
+    icon: styles.swalIcon,
+  };
+
+  const styledSwal = (config = {}) => {
+    return Swal.fire({
+      buttonsStyling: false,
+      confirmButtonText: "Okay",
+      customClass: swalStyle,
+      ...config,
+    });
+  };
+
+  const styledConfirmSwal = (config = {}) => {
+    return Swal.fire({
+      buttonsStyling: false,
+      showCancelButton: true,
+      confirmButtonText: "Confirm",
+      cancelButtonText: "Cancel",
+      customClass: swalStyle,
+      ...config,
+    });
+  };
+
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [search, setSearch] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(null);
@@ -67,32 +97,30 @@ export default function Mydecks() {
   };
 
   const handleLogout = () => {
-    Swal.fire({
+    styledConfirmSwal({
       title: "Logout?",
       text: "Are you sure you want to logout?",
       icon: "warning",
-      showCancelButton: true,
       confirmButtonText: "Yes",
-      confirmButtonColor: "#7b5cff",
     }).then((result) => {
       if (result.isConfirmed) navigate("/login");
     });
   };
 
-const normalizeDeck = (deck) => {
-  const visibilityValue = deck.visibility || "private";
+  const normalizeDeck = (deck) => {
+    const visibilityValue = deck.visibility || "private";
 
-  return {
-    id: deck.deck_id || deck.id,
-    title: deck.title || "",
-    description: deck.description || "",
-    category: deck.category || "Reviewer",
-    cards: Number(deck.card_count || deck.cards || 0),
-    type: visibilityValue === "public" ? "shared" : "private",
-    visibility: visibilityValue,
-    deckColor: deck.deck_color || deck.deckColor || "#c9cdfa",
+    return {
+      id: deck.deck_id || deck.id,
+      title: deck.title || "",
+      description: deck.description || "",
+      category: deck.category || "Reviewer",
+      cards: Number(deck.card_count || deck.cards || 0),
+      type: visibilityValue === "public" ? "shared" : "private",
+      visibility: visibilityValue,
+      deckColor: deck.deck_color || deck.deckColor || "#c9cdfa",
+    };
   };
-};
 
   const fetchUserDecks = async () => {
     try {
@@ -257,11 +285,10 @@ const normalizeDeck = (deck) => {
 
   const handleAddDeck = async () => {
     if (!deckTitle.trim()) {
-      Swal.fire({
+      styledSwal({
         icon: "warning",
         title: "Missing title",
         text: "Please enter a deck title.",
-        confirmButtonColor: "#7b5cff",
       });
       return;
     }
@@ -270,47 +297,44 @@ const normalizeDeck = (deck) => {
       deckCategory === "Others" ? customCategory.trim() : deckCategory;
 
     if (!finalCategory) {
-      Swal.fire({
+      styledSwal({
         icon: "warning",
         title: "Missing category",
         text: "Please enter a category.",
-        confirmButtonColor: "#7b5cff",
       });
       return;
     }
 
     if (!/^[A-Za-z0-9 ]+$/.test(finalCategory)) {
-      Swal.fire({
+      styledSwal({
         icon: "warning",
         title: "Invalid category",
         text: "Only letters and numbers are allowed.",
-        confirmButtonColor: "#7b5cff",
       });
       return;
     }
 
     if (!visibility) {
-      Swal.fire({
+      styledSwal({
         icon: "warning",
         title: "Missing visibility",
         text: "Please choose Public or Private.",
-        confirmButtonColor: "#7b5cff",
       });
       return;
     }
 
     if (!deckColor) {
-      Swal.fire({
+      styledSwal({
         icon: "warning",
         title: "Missing color",
         text: "Please choose a deck color.",
-        confirmButtonColor: "#7b5cff",
       });
       return;
     }
 
     try {
       const formData = new FormData();
+
       formData.append("title", deckTitle.trim());
       formData.append("description", deckDesc.trim());
       formData.append("category", finalCategory);
@@ -328,20 +352,20 @@ const normalizeDeck = (deck) => {
       if (data.success) {
         setAddPopupOpen(false);
 
-        Swal.fire({
+        styledSwal({
           title: "Deck Added!",
           text: "Your new deck has been successfully added.",
           imageUrl: "/images/success.png",
           imageWidth: 170,
           imageHeight: 170,
-          timer: 1100,
+          timer: 1200,
           showConfirmButton: false,
         });
 
         resetAddForm();
         fetchUserDecks();
       } else {
-        Swal.fire({
+        styledSwal({
           icon: "error",
           title: "Failed",
           text: data.message || "Failed to create deck.",
@@ -350,7 +374,7 @@ const normalizeDeck = (deck) => {
     } catch (err) {
       console.error("handleAddDeck error:", err);
 
-      Swal.fire({
+      styledSwal({
         icon: "error",
         title: "Server Error",
         text: "Something went wrong.",
@@ -358,252 +382,253 @@ const normalizeDeck = (deck) => {
     }
   };
 
-const handleEditDeck = async (deck) => {
-const deckId = deck.deck_id || deck.id;
+  const handleEditDeck = async (deck) => {
+    const deckId = deck.deck_id || deck.id;
 
-  if (!deckId) {
-    Swal.fire({
-      icon: "error",
-      title: "Update failed",
-      text: "Missing deck ID.",
-    });
-    return;
-  }
-
-  const categoryOptions = categories
-    .filter((cat) => cat !== "Others")
-    .map(
-      (cat) =>
-        `<option value="${cat}" ${
-          deck.category === cat ? "selected" : ""
-        }>${cat}</option>`
-    )
-    .join("");
-
-  const { value: formValues } = await Swal.fire({
-    title: "Edit Deck",
-    customClass: {
-      popup: styles.editDeckPopup,
-      title: styles.editDeckTitle,
-      htmlContainer: styles.editDeckHtml,
-      actions: styles.editDeckActions,
-      confirmButton: styles.editDeckSaveBtn,
-      cancelButton: styles.editDeckCancelBtn,
-    },
-    buttonsStyling: false,
-    html: `
-      <div class="${styles.editDeckForm}">
-        <label class="${styles.editDeckLabel}">Deck Title</label>
-        <input
-          id="swal-title"
-          class="${styles.editDeckInput}"
-          placeholder="Enter your deck name"
-          value="${deck.title || ""}"
-        />
-
-        <label class="${styles.editDeckLabel}">Description</label>
-        <textarea
-          id="swal-desc"
-          class="${styles.editDeckTextarea}"
-          placeholder="Optional"
-        >${deck.description || ""}</textarea>
-
-        <label class="${styles.editDeckLabel}">Category</label>
-        <select id="swal-category" class="${styles.editDeckSelect}">
-          ${categoryOptions}
-        </select>
-
-        <label class="${styles.editDeckLabel}">Visibility</label>
-        <div class="${styles.editDeckRadioRow}">
-          <label>
-            <input
-              type="radio"
-              name="swal-visibility"
-              value="public"
-              ${deck.visibility === "public" ? "checked" : ""}
-            />
-            Public
-          </label>
-
-          <label>
-            <input
-              type="radio"
-              name="swal-visibility"
-              value="private"
-              ${deck.visibility !== "public" ? "checked" : ""}
-            />
-            Private
-          </label>
-        </div>
-
-        <label class="${styles.editDeckLabel}">Choose Deck Color</label>
-        <div class="${styles.editDeckColorRow}">
-          ${["#D7C9F7", "#B8F2D9", "#FFB7A5", "#B5A9FF", "#9EE7DD", "#F4A7C1"]
-            .map(
-              (color) => `
-                <button
-                  type="button"
-                  class="${styles.editDeckColorDot}"
-                  data-color="${color}"
-                  style="background:${color}; ${
-                    deck.deckColor === color ? "outline: 3px solid #111;" : ""
-                  }"
-                ></button>
-              `
-            )
-            .join("")}
-        </div>
-
-        <input
-          id="swal-color"
-          type="hidden"
-          value="${deck.deckColor || "#c9cdfa"}"
-        />
-      </div>
-    `,
-    didOpen: () => {
-      document
-        .querySelectorAll(`.${styles.editDeckColorDot}`)
-        .forEach((btn) => {
-          btn.addEventListener("click", () => {
-            document.getElementById("swal-color").value = btn.dataset.color;
-
-            document
-              .querySelectorAll(`.${styles.editDeckColorDot}`)
-              .forEach((dot) => {
-                dot.style.outline = "none";
-              });
-
-            btn.style.outline = "3px solid #111";
-          });
-        });
-    },
-    showCancelButton: true,
-    confirmButtonText: "Save",
-    cancelButtonText: "Cancel",
-    preConfirm: () => {
-      const title = document.getElementById("swal-title").value.trim();
-      const description = document.getElementById("swal-desc").value.trim();
-      const category = document.getElementById("swal-category").value;
-      const visibility = document.querySelector(
-        'input[name="swal-visibility"]:checked'
-      )?.value;
-      const deckColor = document.getElementById("swal-color").value;
-
-      if (!title) {
-        Swal.showValidationMessage("Deck title is required.");
-        return false;
-      }
-
-      return {
-        title,
-        description,
-        category,
-        visibility,
-        deckColor,
-      };
-    },
-  });
-
-  if (!formValues) return;
-
-  try {
-    const formData = new FormData();
-
-    formData.append("deckId", deckId);
-    formData.append("deck_id", deckId);
-    formData.append("title", formValues.title);
-    formData.append("description", formValues.description);
-    formData.append("category", formValues.category);
-    formData.append("visibility", formValues.visibility);
-    formData.append("deck_color", formValues.deckColor);
-
-    const res = await fetch("http://localhost/puffybrain/updateDeck.php", {
-      method: "POST",
-      credentials: "include",
-      body: formData,
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      await fetchUserDecks();
-
-      Swal.fire({
-        icon: "success",
-        title: "Deck updated!",
-        timer: 1500,
-        showConfirmButton: false,
-      });
-    } else {
-      Swal.fire({
+    if (!deckId) {
+      styledSwal({
         icon: "error",
         title: "Update failed",
-        text: data.message || "Something went wrong.",
+        text: "Missing deck ID.",
       });
+      return;
     }
-  } catch (err) {
-    console.error("handleEditDeck error:", err);
 
-    Swal.fire({
-      icon: "error",
-      title: "Server Error",
-      text: "Something went wrong while updating the deck.",
+    const categoryOptions = categories
+      .filter((cat) => cat !== "Others")
+      .map(
+        (cat) =>
+          `<option value="${cat}" ${
+            deck.category === cat ? "selected" : ""
+          }>${cat}</option>`
+      )
+      .join("");
+
+    const { value: formValues } = await Swal.fire({
+      title: "Edit Deck",
+      customClass: {
+        popup: styles.editDeckPopup,
+        title: styles.editDeckTitle,
+        htmlContainer: styles.editDeckHtml,
+        actions: styles.editDeckActions,
+        confirmButton: styles.editDeckSaveBtn,
+        cancelButton: styles.editDeckCancelBtn,
+      },
+      buttonsStyling: false,
+      html: `
+        <div class="${styles.editDeckForm}">
+          <label class="${styles.editDeckLabel}">Deck Title</label>
+          <input
+            id="swal-title"
+            class="${styles.editDeckInput}"
+            placeholder="Enter your deck name"
+            value="${deck.title || ""}"
+          />
+
+          <label class="${styles.editDeckLabel}">Description</label>
+          <textarea
+            id="swal-desc"
+            class="${styles.editDeckTextarea}"
+            placeholder="Optional"
+          >${deck.description || ""}</textarea>
+
+          <label class="${styles.editDeckLabel}">Category</label>
+          <select id="swal-category" class="${styles.editDeckSelect}">
+            ${categoryOptions}
+          </select>
+
+          <label class="${styles.editDeckLabel}">Visibility</label>
+          <div class="${styles.editDeckRadioRow}">
+            <label>
+              <input
+                type="radio"
+                name="swal-visibility"
+                value="public"
+                ${deck.visibility === "public" ? "checked" : ""}
+              />
+              Public
+            </label>
+
+            <label>
+              <input
+                type="radio"
+                name="swal-visibility"
+                value="private"
+                ${deck.visibility !== "public" ? "checked" : ""}
+              />
+              Private
+            </label>
+          </div>
+
+          <label class="${styles.editDeckLabel}">Choose Deck Color</label>
+          <div class="${styles.editDeckColorRow}">
+            ${["#D7C9F7", "#B8F2D9", "#FFB7A5", "#B5A9FF", "#9EE7DD", "#F4A7C1"]
+              .map(
+                (color) => `
+                  <button
+                    type="button"
+                    class="${styles.editDeckColorDot}"
+                    data-color="${color}"
+                    style="background:${color}; ${
+                      deck.deckColor === color ? "outline: 3px solid #111;" : ""
+                    }"
+                  ></button>
+                `
+              )
+              .join("")}
+          </div>
+
+          <input
+            id="swal-color"
+            type="hidden"
+            value="${deck.deckColor || "#c9cdfa"}"
+          />
+        </div>
+      `,
+      didOpen: () => {
+        document
+          .querySelectorAll(`.${styles.editDeckColorDot}`)
+          .forEach((btn) => {
+            btn.addEventListener("click", () => {
+              document.getElementById("swal-color").value = btn.dataset.color;
+
+              document
+                .querySelectorAll(`.${styles.editDeckColorDot}`)
+                .forEach((dot) => {
+                  dot.style.outline = "none";
+                });
+
+              btn.style.outline = "3px solid #111";
+            });
+          });
+      },
+      showCancelButton: true,
+      confirmButtonText: "Save",
+      cancelButtonText: "Cancel",
+      preConfirm: () => {
+        const title = document.getElementById("swal-title").value.trim();
+        const description = document.getElementById("swal-desc").value.trim();
+        const category = document.getElementById("swal-category").value;
+        const visibility = document.querySelector(
+          'input[name="swal-visibility"]:checked'
+        )?.value;
+        const deckColor = document.getElementById("swal-color").value;
+
+        if (!title) {
+          Swal.showValidationMessage("Deck title is required.");
+          return false;
+        }
+
+        return {
+          title,
+          description,
+          category,
+          visibility,
+          deckColor,
+        };
+      },
     });
-  }
-};
-  
 
-const handleDuplicateDeck = async (deck) => {
-  try {
-    const formData = new FormData();
+    if (!formValues) return;
 
-    // Duplicate deck only, not the cards inside it
-    formData.append("title", `${deck.title} (Copy)`);
-    formData.append("description", deck.description || "");
-    formData.append("category", deck.category || "Reviewer");
-    formData.append("visibility", deck.visibility || "private");
-    formData.append("deck_color", deck.deckColor || "#c9cdfa");
+    try {
+      const formData = new FormData();
 
-    const res = await fetch("http://localhost/puffybrain/userDecks.php", {
-      method: "POST",
-      credentials: "include",
-      body: formData,
-    });
+      formData.append("deckId", deckId);
+      formData.append("deck_id", deckId);
+      formData.append("title", formValues.title);
+      formData.append("description", formValues.description);
+      formData.append("category", formValues.category);
+      formData.append("visibility", formValues.visibility);
+      formData.append("deck_color", formValues.deckColor);
 
-    const data = await res.json();
-
-    if (data.success) {
-      await fetchUserDecks();
-
-      Swal.fire({
-        icon: "success",
-        title: "Deck duplicated!",
-        text: "Only the deck was copied. Cards were not copied.",
-        timer: 1500,
-        showConfirmButton: false,
+      const res = await fetch("http://localhost/puffybrain/updateDeck.php", {
+        method: "POST",
+        credentials: "include",
+        body: formData,
       });
-    } else {
-      Swal.fire({
+
+      const data = await res.json();
+
+      if (data.success) {
+        await fetchUserDecks();
+
+        styledSwal({
+          icon: "success",
+          title: "Deck updated!",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      } else {
+        styledSwal({
+          icon: "error",
+          title: "Update failed",
+          text: data.message || "Something went wrong.",
+        });
+      }
+    } catch (err) {
+      console.error("handleEditDeck error:", err);
+
+      styledSwal({
         icon: "error",
-        title: "Duplicate failed",
-        text: data.message || "Something went wrong.",
+        title: "Server Error",
+        text: "Something went wrong while updating the deck.",
       });
     }
-  } catch (err) {
-    console.error("handleDuplicateDeck error:", err);
-  }
-};
+  };
+
+  const handleDuplicateDeck = async (deck) => {
+    try {
+      const formData = new FormData();
+
+      formData.append("title", `${deck.title} (Copy)`);
+      formData.append("description", deck.description || "");
+      formData.append("category", deck.category || "Reviewer");
+      formData.append("visibility", deck.visibility || "private");
+      formData.append("deck_color", deck.deckColor || "#c9cdfa");
+
+      const res = await fetch("http://localhost/puffybrain/userDecks.php", {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        await fetchUserDecks();
+
+        styledSwal({
+          icon: "success",
+          title: "Deck duplicated!",
+          text: "Only the deck was copied. Cards were not copied.",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      } else {
+        styledSwal({
+          icon: "error",
+          title: "Duplicate failed",
+          text: data.message || "Something went wrong.",
+        });
+      }
+    } catch (err) {
+      console.error("handleDuplicateDeck error:", err);
+
+      styledSwal({
+        icon: "error",
+        title: "Server Error",
+        text: "Something went wrong.",
+      });
+    }
+  };
 
   const handleArchiveDeck = async (deck) => {
-    const result = await Swal.fire({
+    const result = await styledConfirmSwal({
       title: "Archive this deck?",
       text: "You can restore it later.",
       icon: "warning",
-      showCancelButton: true,
       confirmButtonText: "Archive",
-      cancelButtonText: "Cancel",
-      confirmButtonColor: "#7b5cff",
     });
 
     if (!result.isConfirmed) return;
@@ -615,25 +640,27 @@ const handleDuplicateDeck = async (deck) => {
         headers: {
           "Content-Type": "application/json",
         },
-       body: JSON.stringify({ deck_id: deck.deck_id || deck.id }),
+        body: JSON.stringify({
+          deck_id: deck.deck_id || deck.id,
+        }),
       });
 
       const data = await res.json();
 
       if (data.success) {
-      const archivedDeckId = deck.deck_id || deck.id;
-    setDecks((prev) =>
-        prev.filter((d) => Number(d.id) !== Number(archivedDeckId))
-      );
+        const archivedDeckId = deck.deck_id || deck.id;
 
-      setMyDecks((prev) =>
-        prev.filter(
-          (d) => Number(d.deck_id || d.id) !== Number(archivedDeckId)
-        )
-      );
+        setDecks((prev) =>
+          prev.filter((d) => Number(d.id) !== Number(archivedDeckId))
+        );
 
+        setMyDecks((prev) =>
+          prev.filter(
+            (d) => Number(d.deck_id || d.id) !== Number(archivedDeckId)
+          )
+        );
 
-        Swal.fire({
+        styledSwal({
           icon: "success",
           title: "Archived!",
           text: "The deck was archived.",
@@ -641,17 +668,23 @@ const handleDuplicateDeck = async (deck) => {
           showConfirmButton: false,
         });
       } else {
-        Swal.fire({
+        styledSwal({
           icon: "error",
           title: "Archive failed",
-          text: data.message || "Something went wrong",
+          text: data.message || "Something went wrong.",
         });
       }
     } catch (err) {
       console.error("Archive error:", err);
+
+      styledSwal({
+        icon: "error",
+        title: "Server Error",
+        text: "Something went wrong while archiving.",
+      });
     }
   };
-
+  
   return (
     <div
       className={`${styles.container} ${

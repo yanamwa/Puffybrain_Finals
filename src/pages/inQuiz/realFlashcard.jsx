@@ -9,6 +9,7 @@ export default function Flashcards() {
   const isLessonMode = Boolean(lessonId);
   const isDeckMode = Boolean(deckId);
 
+  const [deck, setDeck] = useState(null);
   const [lesson, setLesson] = useState(null);
   const [deckCards, setDeckCards] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,6 +30,20 @@ export default function Flashcards() {
     return [...array].sort(() => Math.random() - 0.5);
   };
 
+  const getCleanQuestion = (rawQuestion = "") => {
+    return String(rawQuestion).replace(/\s*A\..*/is, "").trim();
+  };
+
+  const getCardImageSrc = (image) => {
+    if (!image) return "";
+
+    if (image.startsWith("http://") || image.startsWith("https://")) {
+      return image;
+    }
+
+    return `http://localhost/puffybrain/card_images/${image}`;
+  };
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -38,17 +53,28 @@ export default function Flashcards() {
           const res = await fetch(
             `http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`
           );
+
           const data = await res.json();
           setLesson(data);
         }
 
         if (isDeckMode) {
-          const res = await fetch(
-            `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`
-          );
-          const data = await res.json();
+          const [cardsRes, deckRes] = await Promise.all([
+            fetch(
+              `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`,
+              { credentials: "include" }
+            ),
+            fetch(
+              `http://localhost/puffybrain/getDeckById.php?deckId=${deckId}`,
+              { credentials: "include" }
+            ),
+          ]);
 
-          setDeckCards(data.success ? data.cards || [] : []);
+          const cardsData = await cardsRes.json();
+          const deckData = await deckRes.json();
+
+          setDeck(deckData.success ? deckData.deck : null);
+          setDeckCards(cardsData.success ? cardsData.cards || [] : []);
         }
       } catch (err) {
         console.error("Error loading flashcards:", err);
@@ -83,6 +109,7 @@ export default function Flashcards() {
               item.answer ||
               "No answer available.",
             explanation: item.explanation || "",
+            image: item.image || null,
           }))
         );
       } catch {
@@ -96,6 +123,7 @@ export default function Flashcards() {
           question: card.question || "No question available.",
           answer: card.answer || "No answer available.",
           explanation: "",
+          image: card.image || null,
         }))
       );
     }
@@ -123,7 +151,7 @@ export default function Flashcards() {
     window.speechSynthesis.speak(utterance);
   };
 
-  async function saveQuizAttempt(finalScore) {
+  const saveQuizAttempt = async (finalScore) => {
     try {
       await fetch("http://localhost/puffybrain/saveQuizAttempt.php", {
         method: "POST",
@@ -144,7 +172,7 @@ export default function Flashcards() {
     } catch (error) {
       console.error("Save flashcard attempt error:", error);
     }
-  }
+  };
 
   const loadNextCard = async (difficulty) => {
     if (!currentCard || notifOpen) return;
@@ -166,7 +194,7 @@ export default function Flashcards() {
     setNotifOpen(true);
 
     const newResult = {
-      question: currentCard.question,
+      question: getCleanQuestion(currentCard.question),
       userAnswer: difficulty,
       correctAnswer: currentCard.answer,
       explanation: currentCard.explanation || currentCard.answer,
@@ -255,6 +283,7 @@ export default function Flashcards() {
               <div className={styles.settingRow}>
                 <div className={styles.settingInfo}>
                   <div className={styles.settingIcon}>🔊</div>
+
                   <div className={styles.settingText}>
                     <strong>Text to Speech</strong>
                     <span>Read flashcards aloud</span>
@@ -307,7 +336,7 @@ export default function Flashcards() {
         <h2 className={styles.deckTitle}>
           {isLessonMode
             ? lesson?.title || "Lesson Flashcards"
-            : "Deck Flashcards"}
+            : deck?.title || "Deck Flashcards"}
         </h2>
 
         <div className={styles.progressBar}>
@@ -326,13 +355,11 @@ export default function Flashcards() {
 
       <div className={styles.flashcardWrapper}>
         <div className={styles.tab}>
-        <span className={styles.active}>
-  {flipped ? "Answer" : "Question"}
-</span>
+          <span className={styles.active}>
+            {flipped ? "Answer" : "Question"}
+          </span>
 
-<span onClick={() => setFlipped((prev) => !prev)}>
-  Flip
-</span>
+          <span onClick={() => setFlipped((prev) => !prev)}>Flip</span>
         </div>
 
         <div
@@ -347,14 +374,24 @@ export default function Flashcards() {
                   className={styles.audioIconBtn}
                   onClick={(e) => {
                     e.stopPropagation();
-                    speakText(currentCard.question);
+                    speakText(getCleanQuestion(currentCard.question));
                   }}
                 >
                   <i className="bx bx-volume-full"></i>
                 </button>
               )}
 
-              <p>{currentCard.question}</p>
+              <div className={styles.flashcardContent}>
+                <p>{getCleanQuestion(currentCard.question)}</p>
+
+                {currentCard.image && (
+                  <img
+                    src={getCardImageSrc(currentCard.image)}
+                    alt="Flashcard"
+                    className={styles.flashcardImage}
+                  />
+                )}
+              </div>
             </div>
 
             <div className={`${styles.flashcardFace} ${styles.back}`}>

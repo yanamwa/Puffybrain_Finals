@@ -24,12 +24,16 @@ export default function UserDecks() {
 
   const [showUploadLesson, setShowUploadLesson] = useState(false);
   const [lessonFile, setLessonFile] = useState(null);
-  const [questionCount, setQuestionCount] = useState(10);
-  const [trueFalseCount, setTrueFalseCount] = useState(5);
+  const [questionCount, setQuestionCount] = useState(1);
+  const [trueFalseCount, setTrueFalseCount] = useState(0);
   const [difficulty, setDifficulty] = useState("easy");
 
-  const [notificationOpen, setNotificationOpen] = useState(false);
-  const notificationCount = 0;
+const [notificationOpen, setNotificationOpen] = useState(false);
+const [notifications, setNotifications] = useState([]);
+
+const notificationCount = notifications.filter(
+  (notif) => notif.status !== "read"
+).length;
 
   const [user, setUser] = useState({
     id: "",
@@ -64,6 +68,25 @@ export default function UserDecks() {
     "Others",
   ];
 
+  const showUploadFailed = () => {
+    Swal.fire({
+      title: "Failed",
+      text: "Failed to make one. Try again later.",
+      imageUrl: "/images/error.png",
+      imageWidth: 160,
+      imageHeight: 160,
+      confirmButtonText: "OK",
+      customClass: {
+        popup: styles.uploadFailedPopup,
+        image: styles.uploadFailedImage,
+        title: styles.uploadFailedTitle,
+        htmlContainer: styles.uploadFailedText,
+        confirmButton: styles.uploadFailedBtn,
+      },
+      buttonsStyling: false,
+    });
+  };
+
   const getCardImageSrc = (cardImage) => {
     if (!cardImage) return "";
 
@@ -89,8 +112,8 @@ export default function UserDecks() {
 
   const resetUploadForm = () => {
     setLessonFile(null);
-    setQuestionCount(10);
-    setTrueFalseCount(5);
+    setQuestionCount(1);
+    setTrueFalseCount(0);
     setDifficulty("easy");
 
     if (lessonInputRef.current) {
@@ -131,6 +154,54 @@ export default function UserDecks() {
     navigate(`/learning/${courseId}`);
   };
 
+  const fetchNotifications = async () => {
+  try {
+    const res = await fetch(
+      "http://localhost/puffybrain/getUserNotifications.php",
+      {
+        method: "GET",
+        credentials: "include",
+      }
+    );
+
+    const data = await res.json();
+
+    if (data.success) {
+      setNotifications(data.notifications || []);
+    } else {
+      setNotifications([]);
+    }
+  } catch (err) {
+    console.error("Notification fetch error:", err);
+    setNotifications([]);
+  }
+};
+
+const markNotificationsAsRead = async () => {
+  try {
+    const res = await fetch(
+      "http://localhost/puffybrain/markNotificationsAsRead.php",
+      {
+        method: "POST",
+        credentials: "include",
+      }
+    );
+
+    const data = await res.json();
+
+    if (data.success) {
+      setNotifications((prev) =>
+        prev.map((notif) => ({
+          ...notif,
+          status: "read",
+        }))
+      );
+    }
+  } catch (err) {
+    console.error("Mark notifications error:", err);
+  }
+};
+
   const fetchDeck = async () => {
     try {
       const res = await fetch(
@@ -150,26 +221,29 @@ export default function UserDecks() {
     }
   };
 
-  const fetchCards = async () => {
-    try {
-      const res = await fetch(
-        `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`,
-        { credentials: "include" }
-      );
+const fetchCards = async () => {
+  try {
+    console.log("Current deckId:", deckId);
 
-      const data = await res.json();
+    const res = await fetch(
+      `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`,
+      { credentials: "include" }
+    );
 
-      if (data.success) {
-        setCards(data.cards || []);
-      } else {
-        setCards([]);
-      }
-    } catch (err) {
-      console.error("fetchCards error:", err);
+    const data = await res.json();
+
+    if (data.success) {
+      console.log("Fetched cards:", data.cards);
+      setCards(data.cards || []);
+    } else {
+      console.error("Cards fetch failed:", data.message);
       setCards([]);
     }
-  };
-
+  } catch (err) {
+    console.error("fetchCards error:", err);
+    setCards([]);
+  }
+};
   const fetchUserDecks = async () => {
     try {
       const res = await fetch("http://localhost/puffybrain/userDecks.php", {
@@ -231,6 +305,7 @@ export default function UserDecks() {
     fetchUserDecks();
     fetchCourses();
     fetchUser();
+    fetchNotifications();
   }, [deckId]);
 
   useEffect(() => {
@@ -290,17 +365,89 @@ export default function UserDecks() {
     }
   };
 
+  const handleAddToMyDecks = async () => {
+  if (!deckId) return;
+
+  try {
+    const res = await fetch("http://localhost/puffybrain/addDeckToMyDecks.php", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ deckId }),
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      toast.success("Deck added to My Decks!", {
+        className: styles.toastSuccess,
+        progressClassName: styles.toastSuccessProgress,
+        icon: <i className="bx bx-check-circle"></i>,
+      });
+
+      fetchUserDecks();
+    } else {
+      toast.error(data.message || "Deck is already in My Decks.", {
+        className: styles.toastError,
+        progressClassName: styles.toastErrorProgress,
+        icon: <i className="bx bx-error-circle"></i>,
+      });
+    }
+  } catch (err) {
+    console.error("Add deck error:", err);
+
+    toast.error("Unable to add deck. Try again later.", {
+      className: styles.toastError,
+      progressClassName: styles.toastErrorProgress,
+      icon: <i className="bx bx-error-circle"></i>,
+    });
+  }
+};
+
   const handleUploadLesson = async () => {
     if (!lessonFile) {
       Swal.fire("Missing file", "Please upload a lesson file.", "warning");
       return;
     }
 
+    const safeQuestionCount = Math.min(
+      100,
+      Math.max(1, Number(questionCount))
+    );
+
+    const safeTrueFalseCount = Math.min(
+      safeQuestionCount,
+      Math.max(0, Number(trueFalseCount))
+    );
+
+    if (safeTrueFalseCount > safeQuestionCount) {
+      Swal.fire({
+        title: "Check questions",
+        text: "True or False questions cannot be more than the total questions.",
+        imageUrl: "/images/error.png",
+        imageWidth: 160,
+        imageHeight: 160,
+        confirmButtonText: "OK",
+        customClass: {
+          popup: styles.uploadFailedPopup,
+          image: styles.uploadFailedImage,
+          title: styles.uploadFailedTitle,
+          htmlContainer: styles.uploadFailedText,
+          confirmButton: styles.uploadFailedBtn,
+        },
+        buttonsStyling: false,
+      });
+
+      return;
+    }
+
     const formData = new FormData();
     formData.append("deckId", deckId);
     formData.append("lessonFile", lessonFile);
-    formData.append("questionCount", questionCount);
-    formData.append("trueFalseCount", trueFalseCount);
+    formData.append("questionCount", safeQuestionCount);
+    formData.append("trueFalseCount", safeTrueFalseCount);
     formData.append("difficulty", difficulty);
 
     try {
@@ -324,11 +471,14 @@ export default function UserDecks() {
         },
       });
 
-      const res = await fetch("http://localhost/puffybrain/uploadLessonCards.php", {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-      });
+      const res = await fetch(
+        "http://localhost/puffybrain/uploadLessonCards.php",
+        {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+        }
+      );
 
       const text = await res.text();
       let data;
@@ -337,11 +487,7 @@ export default function UserDecks() {
         data = JSON.parse(text);
       } catch (jsonError) {
         console.error("Not valid JSON:", text);
-        Swal.fire(
-          "PHP Error",
-          "Your PHP returned HTML/error text instead of JSON. Check console.",
-          "error"
-        );
+        showUploadFailed();
         return;
       }
 
@@ -351,76 +497,107 @@ export default function UserDecks() {
 
         Swal.fire({
           title: "Cards Generated!",
-          text: `${data.inserted || questionCount} cards were added to your deck.`,
+          text: `${
+            data.inserted || safeQuestionCount
+          } cards were added to your deck.`,
           icon: "success",
           timer: 1600,
           showConfirmButton: false,
         });
       } else {
-        Swal.fire("Failed", data.message || "Could not generate cards.", "error");
+        console.error("Upload lesson failed:", data);
+        showUploadFailed();
       }
     } catch (err) {
       console.error("UPLOAD LESSON FETCH ERROR:", err);
-      Swal.fire("Server Error", err.message || "Failed to upload lesson.", "error");
+      showUploadFailed();
     }
   };
 
-  const handleAddCard = async () => {
-    if (!deckId) {
-      Swal.fire("Missing deck", "Deck ID is missing.", "error");
-      return;
-    }
+const handleAddCard = async () => {
+  if (!deckId) {
+    showUploadFailed();
+    return;
+  }
 
-    if (!question.trim() || !answer.trim()) {
-      Swal.fire("Missing fields", "Please fill in both question and answer.", "warning");
-      return;
-    }
+  if (!question.trim() || !answer.trim()) {
+    Swal.fire({
+      title: "Missing fields",
+      text: "Please fill in both question and answer.",
+      imageUrl: "/images/error.png",
+      imageWidth: 160,
+      imageHeight: 160,
+      confirmButtonText: "OK",
 
-    const formData = new FormData();
-    formData.append("deckId", deckId);
-    formData.append("question", question.trim());
-    formData.append("answer", answer.trim());
+      customClass: {
+        popup: styles.uploadFailedPopup,
+        image: styles.uploadFailedImage,
+        title: styles.uploadFailedTitle,
+        htmlContainer: styles.uploadFailedText,
+        confirmButton: styles.uploadFailedBtn,
+      },
 
-    if (image) formData.append("image", image);
-    if (editingCardId) formData.append("cardId", editingCardId);
+      buttonsStyling: false,
+    });
+
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("deckId", deckId);
+  formData.append("question", question.trim());
+  formData.append("answer", answer.trim());
+
+  if (image) formData.append("image", image);
+  if (editingCardId) formData.append("cardId", editingCardId);
+
+  try {
+    const url = editingCardId
+      ? "http://localhost/puffybrain/updateCard.php"
+      : "http://localhost/puffybrain/addCard.php";
+
+    const res = await fetch(url, {
+      method: "POST",
+      body: formData,
+      credentials: "include",
+    });
+
+    const text = await res.text();
+
+    let data;
 
     try {
-      const url = editingCardId
-        ? "http://localhost/puffybrain/updateCard.php"
-        : "http://localhost/puffybrain/addCard.php";
-
-      const res = await fetch(url, {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        const isEditing = editingCardId !== null;
-
-        resetCardForm();
-        setShowAddCard(false);
-        await fetchCards();
-
-        Swal.fire({
-          title: isEditing ? "Edit Successfully!" : "Card Added!",
-          text: isEditing
-            ? "The card was edited successfully."
-            : "The card was added successfully.",
-          icon: "success",
-          timer: 1500,
-          showConfirmButton: false,
-        });
-      } else {
-        Swal.fire("Failed", data.message || "Could not save the card.", "error");
-      }
-    } catch (err) {
-      console.error("handleAddCard error:", err);
-      Swal.fire("Server Error", "Something went wrong while saving the card.", "error");
+      data = JSON.parse(text);
+    } catch {
+      showUploadFailed();
+      return;
     }
-  };
+
+    if (data.success) {
+      const isEditing = editingCardId !== null;
+
+      resetCardForm();
+      setShowAddCard(false);
+
+      await fetchCards();
+
+      Swal.fire({
+        title: isEditing ? "Edit Successfully!" : "Card Added!",
+        text: isEditing
+          ? "The card was edited successfully."
+          : "The card was added successfully.",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+    } else {
+      showUploadFailed();
+    }
+  } catch (err) {
+    console.error("handleAddCard error:", err);
+    showUploadFailed();
+  }
+};
 
   const handleDeleteCard = async (cardId) => {
     if (!cardId) {
@@ -712,7 +889,6 @@ export default function UserDecks() {
       }
     });
   };
-
   return (
     <div
       className={`${styles.container} ${
@@ -874,87 +1050,133 @@ export default function UserDecks() {
                 <i className="bx bx-search" />
               )}
             </form>
-
             <div className={styles.profileWrapper}>
-              <div className={styles.notificationWrapper}>
-                <button
-                  type="button"
-                  className={styles.notificationBtn}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setNotificationOpen((prev) => !prev);
-                    setDropdownOpen(false);
-                  }}
-                >
-                  <i className="bx bx-bell"></i>
-                  {notificationCount > 0 && (
-                    <span className={styles.notificationBadge}>
-                      {notificationCount}
-                    </span>
-                  )}
-                </button>
+  <div className={styles.notificationWrapper}>
+    <button
+      type="button"
+      className={styles.notificationBtn}
+      onClick={(e) => {
+        e.stopPropagation();
+        setNotificationOpen((prev) => !prev);
+        setDropdownOpen(false);
+      }}
+    >
+      <i className="bx bx-bell"></i>
 
-                <div
-                  className={`${styles.notificationDropdown} ${
-                    notificationOpen ? styles.show : ""
-                  }`}
-                >
-                  <h4>Notifications</h4>
-                  <div className={styles.emptyNotification}>
-                    <p>You don’t have any new notifications</p>
-                  </div>
-                </div>
-              </div>
+      {notificationCount > 0 && (
+        <span className={styles.notificationBadge}>
+          {notificationCount}
+        </span>
+      )}
+    </button>
 
-              <Link to="/user-profile" className={styles.profileLink}>
-                <div className={styles.dpContainer}>
-                  <img
-                    src={user.profile_image || "/images/temporary profile.jpg"}
-                    alt="Profile"
-                    className={styles.profilePic}
-                  />
-                </div>
+    <div
+      className={`${styles.notificationDropdown} ${
+        notificationOpen ? styles.show : ""
+      }`}
+    >
+      <div className={styles.notificationHeader}>
+        <h4>Notifications</h4>
 
-                <div className={styles.userInfo}>
-                  <p>{user.username}</p>
-                </div>
-              </Link>
+        {notificationCount > 0 && (
+          <button
+            type="button"
+            className={styles.markReadBtn}
+            onClick={markNotificationsAsRead}
+          >
+            Mark all as read
+          </button>
+        )}
+      </div>
 
-              <div className={styles.dropdown}>
-                <button
-                  type="button"
-                  className={styles.dropdownBtn}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDropdownOpen((v) => !v);
-                    setNotificationOpen(false);
-                  }}
-                >
-                  <i className="bx bx-chevron-down" />
-                </button>
+      {notifications.length > 0 ? (
+        notifications.slice(0, 5).map((notif) => (
+          <div
+            key={notif.notification_id}
+            className={`${styles.notificationItem} ${
+              notif.status !== "read"
+                ? styles.unreadNotification
+                : ""
+            }`}
+          >
+            <div className={styles.notificationTop}>
+              <h5>{notif.title}</h5>
 
-                <div
-                  className={`${styles.dropdownContent} ${
-                    dropdownOpen ? styles.show : ""
-                  }`}
-                >
-                  <NavLink to="/user-profile">
-                    <i className="bx bx-cog" />
-                    <span>Settings</span>
-                  </NavLink>
-
-                  <NavLink to="/how-it-works">
-                    <i className="bx bx-help-circle" />
-                    <span>FAQs</span>
-                  </NavLink>
-
-                  <button type="button" onClick={handleLogout}>
-                    <i className="bx bx-log-out" />
-                    <span>Logout</span>
-                  </button>
-                </div>
-              </div>
+              <span className={styles.notificationRole}>
+                {notif.recipient_type || "user"}
+              </span>
             </div>
+
+            <p>{notif.message}</p>
+
+            <small className={styles.notificationDate}>
+              {new Date(notif.created_at).toLocaleString()}
+            </small>
+          </div>
+        ))
+      ) : (
+        <div className={styles.emptyNotification}>
+          <img
+            src="/images/NoNotifcation.png"
+            alt="No notifications"
+            className={styles.emptyNotificationImg}
+          />
+
+          <p>You don’t have any new notifications</p>
+        </div>
+      )}
+    </div>
+  </div>
+
+  <Link to="/user-profile" className={styles.profileLink}>
+    <div className={styles.dpContainer}>
+      <img
+        src={user.profile_image || "/images/temporary profile.jpg"}
+        alt="Profile"
+        className={styles.profilePic}
+      />
+    </div>
+
+    <div className={styles.userInfo}>
+      <p>{user.username}</p>
+    </div>
+  </Link>
+
+  <div className={styles.dropdown}>
+    <button
+      type="button"
+      className={styles.dropdownBtn}
+      onClick={(e) => {
+        e.stopPropagation();
+        setDropdownOpen((v) => !v);
+        setNotificationOpen(false);
+      }}
+    >
+      <i className="bx bx-chevron-down" />
+    </button>
+
+    <div
+      className={`${styles.dropdownContent} ${
+        dropdownOpen ? styles.show : ""
+      }`}
+    >
+      <NavLink to="/user-profile">
+        <i className="bx bx-cog" />
+        <span>Settings</span>
+      </NavLink>
+
+      <NavLink to="/how-it-works">
+        <i className="bx bx-help-circle" />
+        <span>FAQs</span>
+      </NavLink>
+
+      <button type="button" onClick={handleLogout}>
+        <i className="bx bx-log-out" />
+        <span>Logout</span>
+      </button>
+    </div>
+  </div>
+</div>   
           </div>
 
           <main className={styles.main}>
@@ -981,6 +1203,16 @@ export default function UserDecks() {
                           <i className="bx bx-share-alt"></i>
                           Share
                         </button>
+                        {!isOwner && (
+                          <button
+                            type="button"
+                            onClick={handleAddToMyDecks}
+                            className={styles.deckAddBtn}
+                            title="Add to My Decks"
+                          >
+                            <i className="bx bx-plus"></i>
+                          </button>
+                        )}
 
                         {isOwner && (
                           <button
@@ -1097,26 +1329,59 @@ export default function UserDecks() {
                     </button>
                   </>
                 )}
+<button
+  type="button"
+  className={styles.practice}
+  onClick={() => {
+    if (!cards || cards.length === 0) {
+      Swal.fire({
+        icon: "info",
+        title: "No Quiz Available",
+        text: "You need to add cards first before practicing.",
+        confirmButtonText: "OK",
 
-                <button
-                  type="button"
-                  className={styles.practice}
-                  onClick={() => {
-                    if (!cards || cards.length === 0) {
-                      Swal.fire({
-                        icon: "info",
-                        title: "No Quiz Available",
-                        text: "You need to add cards first before practicing.",
-                        confirmButtonColor: "#7b5cff",
-                      });
-                      return;
-                    }
+        customClass: {
+          popup: styles.noQuizPopup,
+          title: styles.noQuizTitle,
+          htmlContainer: styles.noQuizText,
+          confirmButton: styles.noQuizButton,
+          icon: styles.noQuizIcon,
+        },
 
-                    setShowModes(true);
-                  }}
-                >
-                  Practice
-                </button>
+        buttonsStyling: false,
+      });
+
+      return;
+    }
+
+    if (cards.length < 5) {
+      Swal.fire({
+        icon: "info",
+        title: "Not Enough Cards",
+        text: `You need at least 5 cards to start practicing. You currently have ${cards.length} card${
+          cards.length === 1 ? "" : "s"
+        }.`,
+        confirmButtonText: "OK",
+
+        customClass: {
+          popup: styles.noQuizPopup,
+          title: styles.noQuizTitle,
+          htmlContainer: styles.noQuizText,
+          confirmButton: styles.noQuizButton,
+          icon: styles.noQuizIcon,
+        },
+
+        buttonsStyling: false,
+      });
+
+      return;
+    }
+
+    setShowModes(true);
+  }}
+>
+  Practice
+</button>
               </div>
 
               <div className={styles["cards-tabs"]}>
@@ -1174,7 +1439,11 @@ export default function UserDecks() {
                           </div>
                         )}
 
-                        <p>{card.question}</p>
+                       <p>
+                          {String(card.question || "")
+                            .replace(/\s*A\..*/is, "")
+                            .trim()}
+                        </p>
 
                         <hr />
 
@@ -1249,28 +1518,77 @@ export default function UserDecks() {
                 </div>
               )}
             </div>
+<div className={styles["form-group"]}>
+  <label>How many questions?</label>
 
-            <div className={styles["form-group"]}>
-              <label>How many questions?</label>
-              <input
-                type="number"
-                min="1"
-                max="50"
-                value={questionCount}
-                onChange={(e) => setQuestionCount(e.target.value)}
-              />
-            </div>
+  <input
+    type="number"
+    min="1"
+    max="100"
+    value={questionCount}
+    onChange={(e) => {
+      const value = Math.min(100, Math.max(1, Number(e.target.value)));
 
-            <div className={styles["form-group"]}>
-              <label>How many True or False questions?</label>
-              <input
-                type="number"
-                min="0"
-                max="50"
-                value={trueFalseCount}
-                onChange={(e) => setTrueFalseCount(e.target.value)}
-              />
-            </div>
+      setQuestionCount(value);
+
+      // auto adjust true/false if exceeded
+      if (trueFalseCount > value) {
+        setTrueFalseCount(value);
+      }
+    }}
+  />
+
+  <small className={styles.questionHint}>
+    Multiple Choice Questions:{" "}
+    {Math.max(0, questionCount - trueFalseCount)}
+  </small>
+</div>
+
+<div className={styles["form-group"]}>
+  <label>How many True or False questions?</label>
+
+  <input
+    type="number"
+    min="0"
+    max={questionCount}
+    value={trueFalseCount}
+    onChange={(e) => {
+      let value = Number(e.target.value);
+
+      // prevent negatives
+      if (value < 0) value = 0;
+
+      // prevent exceeding total questions
+      if (value > questionCount) {
+        Swal.fire({
+          icon: "warning",
+          title: "Invalid Question Count",
+          text: `True or False questions cannot exceed the total number of questions (${questionCount}).`,
+          confirmButtonText: "OK",
+
+          customClass: {
+            popup: styles.noQuizPopup,
+            title: styles.noQuizTitle,
+            htmlContainer: styles.noQuizText,
+            confirmButton: styles.noQuizButton,
+            icon: styles.noQuizIcon,
+          },
+
+          buttonsStyling: false,
+        });
+
+        value = questionCount;
+      }
+
+      setTrueFalseCount(value);
+    }}
+  />
+
+  <small className={styles.questionHint}>
+    Remaining Multiple Choice Questions:{" "}
+    {Math.max(0, questionCount - trueFalseCount)}
+  </small>
+</div>
 
             <div className={styles["form-group"]}>
               <label>Difficulty</label>

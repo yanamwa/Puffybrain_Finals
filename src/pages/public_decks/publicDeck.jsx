@@ -1098,41 +1098,40 @@ function PublicDecks() {
 
                   ) : (
                     filteredPublicDecks.map((deck, index) => (
-                      <article
-                        key={deck.id || deck.deck_id}
-                        className={styles.deckCard}
-                        onClick={() => navigate(`/deck/${deck.id || deck.deck_id}`)}
-                      >
-                        <div className={styles.deckCardInner}>
-                          <div
-                            className={styles.deckTop}
-                            style={{
-                              backgroundColor:
-                                deck.deck_color ||
-                                [
-                                  "#D7C9F7",
-                                  "#B8F2D9",
-                                  "#FFB7A5",
-                                  "#B5A9FF",
-                                  "#9EE7DD",
-                                  "#F4A7C1",
-                                ][index % 6],
-                            }}
-                          ></div>
+                     <article
+  key={deck.deck_id}
+  className={styles.deckCard}
+  onClick={() => navigate(`/deck/${deck.deck_id}`)}
+>
+  <div className={styles.deckCardInner}>
+    <div
+      className={styles.deckTop}
+      style={{
+        backgroundColor:
+          deck.deck_color ||
+          [
+            "#D7C9F7",
+            "#B8F2D9",
+            "#FFB7A5",
+            "#B5A9FF",
+            "#9EE7DD",
+            "#F4A7C1",
+          ][index % 6],
+      }}
+    ></div>
 
-                          <div className={styles.deckBody}>
-                            <h4>{deck.title}</h4>
+    <div className={styles.deckBody}>
+      <h4>{deck.title}</h4>
 
-                            <p className={styles.deckCategoryText}>
-                              <i className="bx bxs-book"></i>
-                              <span>{getDeckCategory(deck)}</span>
-                            </p>
+      <p className={styles.deckCategoryText}>
+        <i className="bx bxs-book"></i>
+        <span>{getDeckCategory(deck)}</span>
+      </p>
 
-                          <span>{Number(deck.card_count || deck.cards || 0)} cards</span>
-
-                          </div>
-                        </div>
-                      </article>
+      <span>{Number(deck.card_count ?? 0)} cards</span>
+    </div>
+  </div>
+</article>
                     ))
                   )}
                 </div>

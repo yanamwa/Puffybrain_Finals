@@ -152,6 +152,9 @@ export default function App() {
       <Route path="/QandA-tutorial/deck/:deckId" element={<QandATutorial />} />
       <Route path="/timedquiz-tutorial/deck/:deckId" element={<TimedQuizTutorial />} />
 
+      <Route path="/review/:lessonId" element={<LessonResult />} />
+      <Route path="/review/deck/:deckId" element={<LessonResult />} />
+
       {/* QUIZ — LESSON */}
       <Route path="/flashcard/lesson/:lessonId" element={<Flashcards />} />
       <Route path="/matching-type/lesson/:lessonId" element={<MatchingType />} />

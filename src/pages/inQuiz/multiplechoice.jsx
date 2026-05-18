@@ -28,7 +28,6 @@ export default function Quiz() {
 
   const [ttsEnabled, setTtsEnabled] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [sttEnabled, setSttEnabled] = useState(false);
   const [voiceSpeed, setVoiceSpeed] = useState(0.9);
 
   const shuffleArray = (array) => {
@@ -65,14 +64,53 @@ export default function Quiz() {
       ...text.matchAll(/([A-D])\.\s*(.*?)(?=\s+[A-D]\.\s+|$)/gi),
     ];
 
-    const extractedOptions = optionMatches.map(
-      (m) => `${m[1].toUpperCase()}. ${m[2].trim()}`
-    );
+    const extractedOptions = optionMatches.map((m) => m[2].trim());
 
     return {
       questionOnly,
       extractedOptions,
     };
+  };
+
+  const isSameText = (a, b) => {
+    return cleanOptionText(a).toLowerCase() === cleanOptionText(b).toLowerCase();
+  };
+
+  const getUniqueOptions = (options) => {
+    const seen = new Set();
+
+    return options.filter((opt) => {
+      const clean = cleanOptionText(opt).toLowerCase();
+
+      if (!clean || seen.has(clean)) return false;
+
+      seen.add(clean);
+      return true;
+    });
+  };
+
+  const generateWrongOptions = (correctAnswer, allCards) => {
+    const otherAnswers = allCards
+      .map((card) => cleanOptionText(card.answer || ""))
+      .filter((answer) => answer.trim() !== "")
+      .filter((answer) => !isSameText(answer, correctAnswer));
+
+    let wrongOptions = shuffleArray(getUniqueOptions(otherAnswers)).slice(0, 3);
+
+    if (wrongOptions.length < 3) {
+      const fallbackOptions = [
+        "All of the above",
+        "None of the above",
+        "Not applicable",
+      ].filter((opt) => !isSameText(opt, correctAnswer));
+
+      wrongOptions = getUniqueOptions([...wrongOptions, ...fallbackOptions]).slice(
+        0,
+        3
+      );
+    }
+
+    return wrongOptions;
   };
 
   const speakText = (text) => {
@@ -91,66 +129,6 @@ export default function Quiz() {
     utterance.pitch = 1;
 
     window.speechSynthesis.speak(utterance);
-  };
-
-  const makeFallbackQuestions = (cards) => {
-    return cards.map((card) => {
-      const correctAnswer = card.answer || "No answer available.";
-      const rawQuestionText = card.question || "No question available.";
-
-      const { questionOnly, extractedOptions } =
-        splitQuestionAndOptions(rawQuestionText);
-
-      const isTrueFalseCard =
-        String(rawQuestionText).toLowerCase().includes("true or false") ||
-        ["true", "false"].includes(String(correctAnswer).trim().toLowerCase());
-
-      if (isTrueFalseCard) {
-        const options = ["True", "False"];
-        const correct = options.findIndex(
-          (opt) =>
-            String(opt).trim().toLowerCase() ===
-            String(correctAnswer).trim().toLowerCase()
-        );
-
-        return {
-          q: questionOnly,
-          options,
-          correct: correct >= 0 ? correct : 0,
-          correctAnswer,
-          explanation: correctAnswer,
-        };
-      }
-
-      const wrongOptions =
-        extractedOptions.length > 0
-          ? extractedOptions
-          : ["None of the above", "All of the above", "Not applicable"];
-
-      const hasCorrectAlready = wrongOptions.some(
-        (opt) =>
-          cleanOptionText(opt).toLowerCase() ===
-          cleanOptionText(correctAnswer).toLowerCase()
-      );
-
-      const options = hasCorrectAlready
-        ? wrongOptions.slice(0, 4)
-        : shuffleArray([...wrongOptions.slice(0, 3), correctAnswer]);
-
-      const correct = options.findIndex(
-        (opt) =>
-          cleanOptionText(opt).toLowerCase() ===
-          cleanOptionText(correctAnswer).toLowerCase()
-      );
-
-      return {
-        q: questionOnly,
-        options,
-        correct: correct >= 0 ? correct : 0,
-        correctAnswer,
-        explanation: correctAnswer,
-      };
-    });
   };
 
   useEffect(() => {
@@ -207,18 +185,13 @@ export default function Quiz() {
                 ? item.options.filter((opt) => opt && String(opt).trim() !== "")
                 : extractedOptions;
 
-            const options = isTrueFalse ? ["True", "False"] : rawOptions.slice(0, 4);
-
-            const correct = options.findIndex(
-              (opt) =>
-                cleanOptionText(opt).toLowerCase() ===
-                cleanOptionText(correctAnswer).toLowerCase()
-            );
+            const options = isTrueFalse
+              ? ["True", "False"]
+              : getUniqueOptions(rawOptions).slice(0, 4);
 
             return {
               q: questionOnly,
               options,
-              correct: correct >= 0 ? correct : 0,
               correctAnswer,
               explanation: item.explanation || correctAnswer,
             };
@@ -228,8 +201,26 @@ export default function Quiz() {
         }
 
         if (isDeckMode) {
+          const deckRes = await fetch(
+            `http://localhost/puffybrain/getDeckById.php?deckId=${deckId}`,
+            { credentials: "include" }
+          );
+
+          const deckData = await deckRes.json();
+
+          const deckTitle =
+            deckData?.deck?.title ||
+            deckData?.deck?.deck_title ||
+            deckData?.deck?.name ||
+            deckData?.title ||
+            deckData?.deck_title ||
+            "Deck Quiz";
+
+          setTitle(deckTitle);
+
           const cardsRes = await fetch(
-            `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`
+            `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`,
+            { credentials: "include" }
           );
 
           const cardsData = await cardsRes.json();
@@ -240,85 +231,44 @@ export default function Quiz() {
             return;
           }
 
-          const ollamaRes = await fetch(
-            "http://localhost/puffybrain/generateDeckMCQ.php",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ cards }),
-            }
-          );
-
-          const responseText = await ollamaRes.text();
-          let ollamaData;
-
-          try {
-            ollamaData = JSON.parse(responseText);
-          } catch (error) {
-            console.error("generateDeckMCQ.php returned invalid JSON:", responseText);
-            setTitle("Deck Quiz");
-            setQuestions(shuffleArray(makeFallbackQuestions(cards)));
-            return;
-          }
-
-          if (!ollamaData.success || !Array.isArray(ollamaData.questions)) {
-            console.error("Ollama quiz generation failed:", ollamaData);
-            setTitle("Deck Quiz");
-            setQuestions(shuffleArray(makeFallbackQuestions(cards)));
-            return;
-          }
-
-          const deckQuestions = ollamaData.questions.map((item) => {
-            const rawQuestionText = item.question || "No question available.";
+          const deckQuestions = cards.map((card) => {
+            const correctAnswer = card.answer || "No answer available.";
+            const rawQuestionText = card.question || "No question available.";
 
             const { questionOnly, extractedOptions } =
               splitQuestionAndOptions(rawQuestionText);
 
-            const correctAnswer =
-              item.correctAnswer || item.correct_answer || item.answer || "";
+            const answerText = String(correctAnswer).trim().toLowerCase();
 
-            const isTrueFalse =
-              item.type === "true_false" ||
-              String(rawQuestionText).toLowerCase().includes("true or false") ||
-              ["true", "false"].includes(
-                String(correctAnswer).trim().toLowerCase()
-              );
+            const isTrueFalseCard =
+              answerText === "true" ||
+              answerText === "false" ||
+              String(rawQuestionText).toLowerCase().includes("true or false");
 
-            const rawOptions =
-              Array.isArray(item.options) && item.options.length > 0
-                ? item.options.filter((opt) => opt && String(opt).trim() !== "")
-                : extractedOptions;
+            let options = [];
 
-            const options = isTrueFalse ? ["True", "False"] : rawOptions.slice(0, 4);
-
-            const correct = options.findIndex(
-              (opt) =>
-                cleanOptionText(opt).toLowerCase() ===
-                cleanOptionText(correctAnswer).toLowerCase()
-            );
+            if (isTrueFalseCard) {
+              options = ["True", "False"];
+            } else if (extractedOptions.length > 0) {
+              options = getUniqueOptions(extractedOptions);
+            } else {
+              options = shuffleArray(
+                getUniqueOptions([
+                  correctAnswer,
+                  ...generateWrongOptions(correctAnswer, cards),
+                ])
+              ).slice(0, 4);
+            }
 
             return {
               q: questionOnly,
               options,
-              correct: correct >= 0 ? correct : 0,
               correctAnswer,
-              explanation: item.explanation || correctAnswer,
+              explanation: correctAnswer,
             };
           });
 
-          const validDeckQuestions = deckQuestions.filter(
-            (q) => q.q && Array.isArray(q.options) && q.options.length > 0
-          );
-
-          setTitle("Deck Quiz");
-
-          if (validDeckQuestions.length > 0) {
-            setQuestions(shuffleArray(validDeckQuestions));
-          } else {
-            setQuestions(shuffleArray(makeFallbackQuestions(cards)));
-          }
+          setQuestions(shuffleArray(deckQuestions));
         }
       } catch (error) {
         console.error("Error loading multiple choice:", error);
@@ -385,11 +335,7 @@ export default function Quiz() {
     setLocked(true);
 
     const chosenAnswer = visibleOptions[index] || question.options[index] || "";
-
-    const isCorrect =
-      cleanOptionText(chosenAnswer).toLowerCase() ===
-      cleanOptionText(question.correctAnswer).toLowerCase();
-
+    const isCorrect = isSameText(chosenAnswer, question.correctAnswer);
     const newScore = score + (isCorrect ? 1 : 0);
 
     const newAnswer = {
@@ -401,6 +347,7 @@ export default function Quiz() {
     };
 
     const updatedAnswers = [...answers, newAnswer];
+
     setAnswers(updatedAnswers);
 
     if (isCorrect) {
@@ -432,81 +379,9 @@ export default function Quiz() {
       );
 
       window.speechSynthesis?.cancel();
-      navigate(`/review/${lessonId || "deck"}`);
+      navigate(isDeckMode ? `/review/deck/${deckId}` : `/review/${lessonId}`);
     }, 700);
   }
-
-  const startSpeechToText = () => {
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      alert("Speech-to-text is not supported in this browser. Try Google Chrome.");
-      setSttEnabled(false);
-      return;
-    }
-
-    if (!question || locked) {
-      setSttEnabled(false);
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.lang = "en-US";
-    recognition.interimResults = false;
-    recognition.continuous = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript.toLowerCase().trim();
-
-      const spokenMap = [
-        ["a", "option a", "letter a", "first", "first choice", "one", "1"],
-        ["b", "option b", "letter b", "second", "second choice", "two", "2"],
-        ["c", "option c", "letter c", "third", "third choice", "three", "3"],
-        ["d", "option d", "letter d", "fourth", "fourth choice", "four", "4"],
-      ];
-
-      let matchedIndex = -1;
-
-      for (let i = 0; i < visibleOptions.length; i++) {
-        const optionText = cleanOptionText(visibleOptions[i]).toLowerCase();
-
-        if (
-          transcript === optionText ||
-          transcript.includes(optionText) ||
-          optionText.includes(transcript)
-        ) {
-          matchedIndex = i;
-          break;
-        }
-
-        const commands = spokenMap[i] || [];
-
-        if (commands.some((cmd) => transcript === cmd || transcript.includes(cmd))) {
-          matchedIndex = i;
-          break;
-        }
-      }
-
-      if (matchedIndex !== -1) {
-        handleAnswer(matchedIndex);
-      } else {
-        alert(`I heard: "${transcript}". Say an option or the answer text.`);
-      }
-    };
-
-    recognition.onerror = (event) => {
-      console.error("Speech recognition error:", event.error);
-      setSttEnabled(false);
-    };
-
-    recognition.onend = () => {
-      setSttEnabled(false);
-    };
-
-    recognition.start();
-  };
 
   if (loading) {
     return (
@@ -597,37 +472,10 @@ export default function Quiz() {
                   </button>
                 </div>
 
-                <div className={styles.settingRow}>
-                  <div className={styles.settingInfo}>
-                    <div className={styles.settingIcon}>🎤</div>
-
-                    <div className={styles.settingText}>
-                      <strong>Speech to Text</strong>
-                      <span>Answer using your microphone</span>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    className={`${styles.switchBtn} ${
-                      sttEnabled ? styles.switchOn : ""
-                    }`}
-                    onClick={() => {
-                      if (!sttEnabled) {
-                        setSttEnabled(true);
-                        startSpeechToText();
-                      } else {
-                        setSttEnabled(false);
-                      }
-                    }}
-                  >
-                    {sttEnabled ? "ON" : "OFF"}
-                  </button>
-                </div>
-
                 <div className={styles.speedBox}>
                   <div className={styles.speedHeader}>
                     <label>Voice Speed</label>
+
                     <span className={styles.speedValue}>
                       {voiceSpeed.toFixed(1)}x
                     </span>
@@ -640,8 +488,7 @@ export default function Quiz() {
                     step="0.1"
                     value={voiceSpeed}
                     onChange={(e) => {
-                      const newSpeed = Number(e.target.value);
-                      setVoiceSpeed(newSpeed);
+                      setVoiceSpeed(Number(e.target.value));
                       window.speechSynthesis?.cancel();
                     }}
                   />
