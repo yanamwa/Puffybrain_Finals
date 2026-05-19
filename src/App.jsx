@@ -35,6 +35,7 @@ import PublicDeck from "./pages/public_decks/publicDeck";
 import UserProfile from "./pages/User_profile/UserProfile";
 import MyDecks from "./pages/User/Mydecks";
 import MyCourse from "./pages/User/MyCourse";
+import LoggedFaq from "./pages/User/loggedfaq";
 
 /* Decks */
 import DeckPage from "./pages/decks/DeckPage";
@@ -95,6 +96,7 @@ export default function App() {
       <Route path="/cant-signin" element={<CantSign />} />
       <Route path="/change-username" element={<ChangeUsername />} />
       <Route path="/edit-profile" element={<EditProfile />} />
+      <Route path="/FAQ" element={<LoggedFaq/>}/>
 
       {/* INTRO */}
       <Route path="/welcome" element={<Welcome />} />
@@ -175,7 +177,7 @@ export default function App() {
       <Route path="/timedquiz/deck/:deckId" element={<TimedQuiz />} />
 
       {/* NAV */}
-      <Route path="/FAQ" element={<FAQ />} />
+      <Route path="/Landing/FAQ" element={<FAQ />} />
 
       {/* FALLBACK */}
       <Route path="*" element={<h1>Page not found</h1>} />

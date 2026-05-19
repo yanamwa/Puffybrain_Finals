@@ -44,7 +44,7 @@ function LandingPage() {
               </li>
 
               <li>
-                <a href="/faq">FAQ</a>
+                <a href="/Landing/FAQ">FAQ</a>
               </li>
 
               <li>
