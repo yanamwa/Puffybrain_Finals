@@ -31,6 +31,8 @@ export default function UserDecks() {
 const [notificationOpen, setNotificationOpen] = useState(false);
 const [notifications, setNotifications] = useState([]);
 
+const [isDeckSaved, setIsDeckSaved] = useState(false);
+
 const notificationCount = notifications.filter(
   (notif) => notif.status !== "read"
 ).length;
@@ -338,6 +340,12 @@ const fetchCards = async () => {
     String(deck?.creator_username || "").toLowerCase() ===
       String(user?.username || "").toLowerCase();
 
+      const isAddedToMyDecks = myDecks.some(
+  (item) => Number(item.deck_id || item.id) === Number(deckId)
+);
+
+const heartSaved = isDeckSaved || isAddedToMyDecks;
+
   const openAddCard = () => {
     resetCardForm();
     setShowAddCard(true);
@@ -365,18 +373,66 @@ const fetchCards = async () => {
     }
   };
 
-  const handleAddToMyDecks = async () => {
+const handleAddToMyDecks = async () => {
   if (!deckId) return;
 
   try {
-    const res = await fetch("http://localhost/puffybrain/addDeckToMyDecks.php", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({ deckId }),
-    });
+    // IF ALREADY SAVED → UNSAVE
+    if (heartSaved) {
+      const res = await fetch(
+        "http://localhost/puffybrain/removeDeckFromMyDecks.php",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ deckId }),
+        }
+      );
+
+      const text = await res.text();
+        console.log("REMOVE RESPONSE:", text);
+        const data = JSON.parse(text);
+
+      if (data.success) {
+        toast.success("Removed from My Decks!", {
+          className: styles.toastSuccess,
+          progressClassName: styles.toastSuccessProgress,
+          icon: <i className="bx bx-check-circle"></i>,
+        });
+
+        setMyDecks((prev) =>
+          prev.filter(
+            (item) =>
+              Number(item.deck_id || item.id) !== Number(deckId)
+          )
+        );
+
+        setIsDeckSaved(false);
+      } else {
+        toast.error(data.message || "Failed to remove deck.", {
+          className: styles.toastError,
+          progressClassName: styles.toastErrorProgress,
+          icon: <i className="bx bx-error-circle"></i>,
+        });
+      }
+
+      return;
+    }
+
+    // IF NOT SAVED → SAVE
+    const res = await fetch(
+      "http://localhost/puffybrain/addDeckToMyDecks.php",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ deckId }),
+      }
+    );
 
     const data = await res.json();
 
@@ -387,18 +443,23 @@ const fetchCards = async () => {
         icon: <i className="bx bx-check-circle"></i>,
       });
 
-      fetchUserDecks();
+      setMyDecks((prev) => [
+        ...prev,
+        { deck_id: Number(deckId) },
+      ]);
+
+      setIsDeckSaved(true);
     } else {
-      toast.error(data.message || "Deck is already in My Decks.", {
+      toast.error(data.message || "Unable to save deck.", {
         className: styles.toastError,
         progressClassName: styles.toastErrorProgress,
         icon: <i className="bx bx-error-circle"></i>,
       });
     }
   } catch (err) {
-    console.error("Add deck error:", err);
+    console.error("Toggle deck error:", err);
 
-    toast.error("Unable to add deck. Try again later.", {
+    toast.error("Something went wrong.", {
       className: styles.toastError,
       progressClassName: styles.toastErrorProgress,
       icon: <i className="bx bx-error-circle"></i>,
@@ -1204,26 +1265,32 @@ const handleAddCard = async () => {
                           Share
                         </button>
                         {!isOwner && (
-                          <button
-                            type="button"
-                            onClick={handleAddToMyDecks}
-                            className={styles.deckAddBtn}
-                            title="Add to My Decks"
-                          >
-                            <i className="bx bx-plus"></i>
-                          </button>
-                        )}
+                            <button
+                              type="button"
+                              onClick={handleAddToMyDecks}
+                              className={`${styles.deckAddBtn} ${heartSaved ? styles.deckSavedBtn : ""}`}
+                              title="Save to My Decks"
+                            >
+                              <i
+                                className={`bx ${heartSaved ? "bxs-heart" : "bx-heart"}`}
+                                style={{
+                                  color: heartSaved ? "#ff1f3d" : "#999",
+                                  fontSize: "24px",
+                                }}
+                              ></i>
+                            </button>
+                          )}
 
-                        {isOwner && (
-                          <button
-                            type="button"
-                            onClick={handleEditDeck}
-                            className={styles.deckEditBtn}
-                          >
-                            <i className="bx bx-edit"></i>
-                            Edit
-                          </button>
-                        )}
+                          {isOwner && (
+                            <button
+                              type="button"
+                              onClick={handleEditDeck}
+                              className={styles.deckEditBtn}
+                            >
+                              <i className="bx bx-edit"></i>
+                              Edit
+                            </button>
+                          )}
                       </div>
                     </div>
 

@@ -108,19 +108,20 @@
     };
 
     const normalizeDeck = (deck) => {
-      const visibilityValue = deck.visibility || "private";
+    const visibilityValue = deck.visibility || "private";
 
-      return {
-        id: deck.deck_id || deck.id,
-        title: deck.title || "",
-        description: deck.description || "",
-        category: deck.category || "Reviewer",
-        cards: Number(deck.card_count || deck.cards || 0),
-        type: visibilityValue === "public" ? "shared" : "private",
-        visibility: visibilityValue,
-        deckColor: deck.deck_color || deck.deckColor || "#c9cdfa",
-      };
+    return {
+      id: deck.deck_id || deck.id,
+      title: deck.title || "",
+      description: deck.description || "",
+      category: deck.category || "Reviewer",
+      cards: Number(deck.card_count || deck.cards || 0),
+      type: visibilityValue === "public" ? "shared" : "private",
+      visibility: visibilityValue,
+      source: deck.deck_source || "created",
+      deckColor: deck.deck_color || deck.deckColor || "#c9cdfa",
     };
+  };
 
     const fetchUserDecks = async () => {
       try {
@@ -266,7 +267,24 @@
           deck.type.toLowerCase().includes(q) ||
           String(deck.cards).includes(q);
 
-        const matchesFilter = !selectedFilter || deck.type === selectedFilter;
+          const visibility = String(deck.visibility || "").trim().toLowerCase();
+            const source = String(deck.source || "").trim().toLowerCase();
+            const type = String(deck.type || "").trim().toLowerCase();
+
+            const matchesFilter =
+              selectedFilter === ""
+                ? true
+                : selectedFilter === "private"
+                ? source === "created" && visibility === "private"
+                : selectedFilter === "public"
+                ? source === "created" && visibility === "public"
+                : selectedFilter === "shared"
+                ? source === "created" && (visibility === "shared" || type === "shared")
+                : selectedFilter === "mydecks"
+                ? source === "created"
+                : selectedFilter === "publicdecks"
+                ? source === "saved_public"
+                : true;
 
         const matchesCategory =
           !selectedCategory || deck.category === selectedCategory;
@@ -684,6 +702,9 @@
         });
       }
     };
+
+
+
     
     return (
       <div
@@ -1026,47 +1047,85 @@
                       >
                         <i className="bx bx-user"></i>
                         <span>
-                          {selectedFilter === ""
-                            ? "All"
-                            : selectedFilter === "private"
-                            ? "Private"
-                            : "Shared"}
-                        </span>
+                            {selectedFilter === ""
+                              ? "All"
+                              : selectedFilter === "private"
+                              ? "Private"
+                              : selectedFilter === "public"
+                              ? "Public"
+                              : selectedFilter === "shared"
+                              ? "Shared"
+                              : selectedFilter === "mydecks"
+                              ? "My Decks"
+                              : selectedFilter === "publicdecks"
+                              ? "Public Decks"
+                              : "All"}
+                          </span>
                         <i className="bx bx-chevron-down"></i>
                       </button>
 
                       {openFilterDropdown === "deckType" && (
                         <div className={styles.customDropdownMenu}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedFilter("");
-                              setOpenFilterDropdown(null);
-                            }}
-                          >
-                            All
-                          </button>
+  <button
+    type="button"
+    onClick={() => {
+      setSelectedFilter("");
+      setOpenFilterDropdown(null);
+    }}
+  >
+    All
+  </button>
 
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedFilter("private");
-                              setOpenFilterDropdown(null);
-                            }}
-                          >
-                            Private
-                          </button>
+  <button
+    type="button"
+    onClick={() => {
+      setSelectedFilter("private");
+      setOpenFilterDropdown(null);
+    }}
+  >
+    Private
+  </button>
 
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedFilter("shared");
-                              setOpenFilterDropdown(null);
-                            }}
-                          >
-                            Shared
-                          </button>
-                        </div>
+  <button
+    type="button"
+    onClick={() => {
+      setSelectedFilter("public");
+      setOpenFilterDropdown(null);
+    }}
+  >
+    Public
+  </button>
+
+  <button
+    type="button"
+    onClick={() => {
+      setSelectedFilter("shared");
+      setOpenFilterDropdown(null);
+    }}
+  >
+    Shared
+  </button>
+
+  <button
+    type="button"
+    onClick={() => {
+      setSelectedFilter("mydecks");
+      setOpenFilterDropdown(null);
+    }}
+  >
+    My Decks
+  </button>
+
+  <button
+    type="button"
+    onClick={() => {
+      setSelectedFilter("publicdecks");
+      setOpenFilterDropdown(null);
+    }}
+  >
+    Public Decks
+  </button>
+</div>
                       )}
                     </div>
 

@@ -2350,31 +2350,23 @@ color:#ff4d4f;
 }
 
 .deckAddBtn {
-  width: 42px;
-  height: 38px;
-  border-radius: 999px;
-  border: 1px solid #8b8b8b;
-  background: white;
-  color: black;
-  box-shadow: 0 5px 0 #757575;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
   cursor: pointer;
-  font-family: inherit;
-  transition: 0.15s ease;
 }
 
 .deckAddBtn i {
-  font-size: 22px;
+  font-size: 24px;
+  color: #999 !important;
+  transition: 0.2s ease;
 }
 
-.deckAddBtn:hover {
-  transform: translateY(-2px);
-  background: #f3e9ff;
+.deckSavedBtn i {
+  color: #ff1f3d !important;
 }
 
-.deckAddBtn:active {
-  transform: translateY(3px);
-  box-shadow: 0 2px 0 #757575;
+.deckAddBtn:hover i {
+  transform: scale(1.15);
 }
