@@ -9,7 +9,7 @@ function LandingPage() {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add(styles.show);
+            entry.target.classList.add(styles.show);npm
           } else {
             entry.target.classList.remove(styles.show);
           }

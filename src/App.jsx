@@ -4,6 +4,7 @@ import "boxicons/css/boxicons.min.css";
 /* Landing */
 import LandingPage from "./pages/LandingPage";
 import Aboutus from "./pages/Landing_page/Aboutus";
+import ContactUs from "./pages/Landing_page/ContactUs/ContactUs";
 
 /* Nav */
 import FAQ from "./pages/faq/faq";
@@ -25,6 +26,7 @@ import HowItWorks from "./pages/Introduction/HowItWorks";
 import School from "./pages/Introduction/School";
 import Year from "./pages/Introduction/Year";
 import Profile from "./pages/Introduction/Profile";
+
 
 /* Home */
 import Loading from "./pages/User/Loading";
@@ -81,6 +83,7 @@ export default function App() {
       {/* LANDING */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/about" element={<Aboutus />} />
+      <Route path="/contact" element={<ContactUs />} />
 
       {/* USER ACCOUNT */}
       <Route path="/login" element={<Login />} />
