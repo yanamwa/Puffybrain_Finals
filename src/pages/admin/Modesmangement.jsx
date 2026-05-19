@@ -13,6 +13,7 @@ import {
   Search,
   User,
   Settings,
+  Database,
 } from "lucide-react";
 
 import Swal from "sweetalert2";
@@ -22,10 +23,9 @@ export default function ModeManagement() {
   const [modes, setModes] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const [bellNotifications, setBellNotifications] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsToShow, setRowsToShow] = useState(10);
-
-  const notificationCount = 0;
 
   const menuItems = [
     { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
@@ -34,11 +34,8 @@ export default function ModeManagement() {
     { label: "Decks Management", path: "/admin/decks", icon: <LibraryBig size={20} /> },
     { label: "Modes Management", path: "/admin/modes", icon: <Gamepad2 size={20} /> },
     { label: "Notification Management", path: "/admin/notifications", icon: <i className="bx bx-bell"></i> },
+    { label: "Backup & Restore", path: "/admin/backup-restore", icon: <Database size={20} /> },
   ];
-
-  useEffect(() => {
-    fetchModes();
-  }, []);
 
   const getModeId = (mode) => {
     return mode.id ?? mode.mode_id ?? mode.ModeID ?? mode.quiz_mode_id ?? "";
@@ -52,6 +49,14 @@ export default function ModeManagement() {
     }
   };
 
+  const [admin, setAdmin] = useState({
+  username: "Admin",
+  full_name: "",
+  email: "",
+  role: "",
+  profile_image: "/images/temporary profile.jpg",
+});
+
   const swalClasses = {
     popup: styles.swalPopup,
     title: styles.swalTitle,
@@ -61,12 +66,56 @@ export default function ModeManagement() {
     cancelButton: styles.swalCancelBtn,
   };
 
-  const handleLogout = (e) => {
-    e.preventDefault();
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.href = "/admin/login";
+  const fetchBellNotifications = async () => {
+    try {
+      const admin = JSON.parse(localStorage.getItem("admin") || "{}");
+
+      const res = await fetch(
+        `http://localhost/puffybrain/getAdminNotifications.php?admin_id=${admin.id}`,
+        { credentials: "include" }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        setBellNotifications(data.notifications || []);
+      } else {
+        setBellNotifications([]);
+      }
+    } catch (err) {
+      console.error("Bell notification fetch error:", err);
+      setBellNotifications([]);
+    }
   };
+
+  const fetchAdmin = async () => {
+  try {
+    const res = await fetch(
+      "http://localhost/puffybrain/getAdminProfile.php",
+      {
+        credentials: "include",
+      }
+    );
+
+    const data = await res.json();
+
+    if (!data.success) {
+      console.error(data.message || "Admin not found");
+      return;
+    }
+
+    setAdmin({
+      username: data.admin?.username || "Admin",
+      full_name: data.admin?.full_name || "",
+      email: data.admin?.email || "",
+      role: data.admin?.role || "Administrator",
+      profile_image:
+        data.admin?.profile_image || "/images/temporary profile.jpg",
+    });
+  } catch (err) {
+    console.error("Fetch admin error:", err);
+  }
+};
 
   const fetchModes = async () => {
     try {
@@ -82,6 +131,66 @@ export default function ModeManagement() {
     } catch {
       Swal.fire("Error", "Failed to load modes", "error");
     }
+  };
+
+  useEffect(() => {
+    fetchAdmin();
+    fetchModes();
+    fetchBellNotifications();
+
+    const handler = (e) => {
+      const insideDropdown = e.target.closest(`.${styles.notificationWrapper}`);
+
+      if (!insideDropdown) {
+        setNotificationOpen(false);
+      }
+    };
+
+    window.addEventListener("click", handler);
+    return () => window.removeEventListener("click", handler);
+  }, []);
+
+  const handleMarkAllAsRead = async (e) => {
+    e.stopPropagation();
+
+    const admin = JSON.parse(localStorage.getItem("admin") || "{}");
+    const adminId = admin.id;
+
+    if (!adminId) {
+      Swal.fire("Error", "Admin ID not found. Please log in again.", "error");
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        "http://localhost/puffybrain/markAdminNotificationsRead.php",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ admin_id: adminId }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        await fetchBellNotifications();
+        setNotificationOpen(true);
+      } else {
+        Swal.fire("Error", data.message || "Failed to mark as read.", "error");
+      }
+    } catch (err) {
+      console.error("Mark all as read error:", err);
+      Swal.fire("Server Error", "Failed to mark as read.", "error");
+    }
+  };
+
+  const handleLogout = (e) => {
+    e.preventDefault();
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.href = "/admin/login";
   };
 
   const handleAddMode = async () => {
@@ -187,7 +296,7 @@ export default function ModeManagement() {
   const handleEditMode = async (mode) => {
     const modeId = getModeId(mode);
 
-    if (modeId === "" || modeId === null || modeId === undefined) {
+    if (!modeId) {
       Swal.fire("Error", "Mode ID is missing.", "error");
       return;
     }
@@ -254,7 +363,7 @@ export default function ModeManagement() {
   };
 
   const deleteMode = async (id) => {
-    if (id === "" || id === null || id === undefined) {
+    if (!id) {
       Swal.fire("Error", "Mode ID is missing.", "error");
       return;
     }
@@ -310,6 +419,12 @@ export default function ModeManagement() {
     (currentPage - 1) * rowsToShow,
     currentPage * rowsToShow
   );
+
+  const unreadNotifications = bellNotifications.filter(
+    (notif) => notif.status === "unread"
+  );
+
+  const notificationCount = unreadNotifications.length;
 
   return (
     <div className={styles.gridContainer}>
@@ -370,6 +485,7 @@ export default function ModeManagement() {
 
         <div className={styles.sidebarBottom}>
           <div className={styles.divider}></div>
+
           <NavLink to="/" onClick={handleLogout} className={styles.menuItem}>
             <span className={styles.menuIcon}><LogOut size={20} /></span>
             <span className={styles.menuText}>Logout</span>
@@ -377,43 +493,107 @@ export default function ModeManagement() {
         </div>
       </aside>
 
-      <header className={styles.headerContainer}>
-        <div className={styles.searchBar}>
-          <Search size={19} />
-          <input
-            type="text"
-            placeholder="Search modes..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
-          />
+       <header className={styles.headerContainer}>
+  <div className={styles.searchBar}>
+    <Search size={19} />
+    <input
+      type="text"
+      placeholder="Search..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+    />
+  </div>
+
+  <div className={styles.headerRight}>
+    
+    {/* Notification */}
+    <div className={styles.notificationWrapper}>
+      <button
+        type="button"
+        className={styles.notificationBtn}
+        onClick={(e) => {
+          e.stopPropagation();
+          setNotificationOpen((prev) => !prev);
+        }}
+      >
+        <i className="bx bx-bell"></i>
+
+        {notificationCount > 0 && (
+          <span className={styles.notificationBadge}>
+            {notificationCount}
+          </span>
+        )}
+      </button>
+
+      <div
+        className={`${styles.notificationDropdown} ${
+          notificationOpen ? styles.show : ""
+        }`}
+      >
+        <div className={styles.notificationHeader}>
+          <h4>Notifications</h4>
+
+          {notificationCount > 0 && (
+            <button
+              type="button"
+              className={styles.markReadBtn}
+              onClick={handleMarkAllAsRead}
+            >
+              Mark all as read
+            </button>
+          )}
         </div>
 
-        <div className={styles.notificationWrapper}>
-          <button
-            type="button"
-            className={styles.notificationBtn}
-            onClick={(e) => {
-              e.stopPropagation();
-              setNotificationOpen((prev) => !prev);
-            }}
-          >
-            <i className="bx bx-bell"></i>
-            {notificationCount > 0 && (
-              <span className={styles.notificationBadge}>{notificationCount}</span>
-            )}
-          </button>
+        {bellNotifications.length > 0 ? (
+          bellNotifications.slice(0, 5).map((item) => (
+            <div
+              key={item.notification_id || item.id}
+              className={styles.notificationItem}
+            >
+              <div className={styles.notificationTop}>
+                <h5>{item.title || "No title"}</h5>
+                <span className={styles.notificationRole}>
+                  {item.recipient_type || "all"}
+                </span>
+              </div>
 
-          <div className={`${styles.notificationDropdown} ${notificationOpen ? styles.show : ""}`}>
-            <h4>Notifications</h4>
-            <div className={styles.emptyNotification}>
-              <p>You don’t have any new notifications</p>
+              <p className={styles.notificationMessage}>
+                {item.message || "No message"}
+              </p>
+
+              <p className={styles.notificationCreator}>
+                Posted by {item.created_by || "Admin"}
+              </p>
+
+              <small className={styles.notificationDate}>
+                {item.created_at
+                  ? new Date(item.created_at).toLocaleString()
+                  : "No date"}
+              </small>
             </div>
+          ))
+        ) : (
+          <div className={styles.emptyNotification}>
+            <p>You don’t have any new notifications</p>
           </div>
-        </div>
-      </header>
+        )}
+      </div>
+    </div>
+
+    {/* Admin Profile */}
+    <div className={styles.adminHeaderProfile}>
+      <img
+        src={admin.profile_image || "/images/temporary profile.jpg"}
+        alt="Admin"
+        className={styles.adminHeaderImg}
+      />
+
+      <span className={styles.adminHeaderName}>
+        {admin.username || "Admin"}
+      </span>
+    </div>
+  </div>
+</header>
 
       <main className={styles.main}>
         <div className={styles.pageTop}>
@@ -445,8 +625,20 @@ export default function ModeManagement() {
 
                 return (
                   <div className={styles.row} key={modeId}>
-                    <div className={styles.modeId}>MD{modeId}</div>
-                    <div>{mode.title}</div>
+             <div className={styles.modeId}>
+  {`MD${
+    mode.created_at
+      ? `/${new Date(mode.created_at)
+          .toLocaleDateString("en-GB")
+          .replace(/\//g, "")}`
+      : ""
+  }${
+    (Number(modeId) * 37) % 900 + 100
+  }${modeId}${
+    (Number(modeId) * 53) % 900 + 100
+  }`}
+</div>
+                 <div>{mode.title}</div>
                     <div className={styles.descCell}>{mode.description}</div>
                     <div>{mode.route}</div>
 
@@ -484,9 +676,7 @@ export default function ModeManagement() {
                 return (
                   <button
                     key={page}
-                    className={`${styles.pageBtn} ${
-                      currentPage === page ? styles.pageActive : ""
-                    }`}
+                    className={`${styles.pageBtn} ${currentPage === page ? styles.pageActive : ""}`}
                     type="button"
                     onClick={() => setCurrentPage(page)}
                   >

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -10,6 +10,7 @@ import {
   Search,
   User,
   Settings,
+  Database,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import styles from "./Addmodule.module.css";
@@ -73,7 +74,18 @@ export default function AddModule() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [notificationOpen, setNotificationOpen] = useState(false);
-  const notificationCount = 0;
+  const [bellNotifications, setBellNotifications] = useState([]);
+  const notificationCount = bellNotifications.filter(
+    (notif) => notif.status === "unread"
+  ).length;
+
+  const [admin, setAdmin] = useState({
+    username: "Admin",
+    full_name: "",
+    email: "",
+    role: "",
+    profile_image: "/images/temporary profile.jpg",
+  });
 
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
@@ -119,6 +131,11 @@ export default function AddModule() {
       path: "/admin/notifications",
       icon: <i className="bx bx-bell"></i>,
     },
+    {
+      label: "Backup & Restore",
+      path: "/admin/backup-restore",
+      icon: <Database size={20} />,
+    },
   ];
 
   const handleLogout = (e) => {
@@ -130,12 +147,134 @@ export default function AddModule() {
     window.location.href = "/admin/login";
   };
 
+  const fetchAdmin = async () => {
+    try {
+      const res = await fetch("http://localhost/puffybrain/getAdminProfile.php", {
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        console.error(data.message || "Admin not found");
+        return;
+      }
+
+      setAdmin({
+        username: data.admin?.username || "Admin",
+        full_name: data.admin?.full_name || "",
+        email: data.admin?.email || "",
+        role: data.admin?.role || "Administrator",
+        profile_image:
+          data.admin?.profile_image || "/images/temporary profile.jpg",
+      });
+    } catch (err) {
+      console.error("Fetch admin error:", err);
+    }
+  };
+
+  const fetchBellNotifications = async () => {
+    try {
+      const storedAdmin = JSON.parse(localStorage.getItem("admin") || "{}");
+
+      const res = await fetch(
+        `http://localhost/puffybrain/getAdminNotifications.php?admin_id=${
+          storedAdmin.id || ""
+        }`,
+        { credentials: "include" }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        setBellNotifications(data.notifications || []);
+      } else {
+        setBellNotifications([]);
+      }
+    } catch (err) {
+      console.error("Bell notification fetch error:", err);
+      setBellNotifications([]);
+    }
+  };
+
+  const handleMarkAllAsRead = async (e) => {
+    e.stopPropagation();
+
+    const storedAdmin = JSON.parse(localStorage.getItem("admin") || "{}");
+    const adminId = storedAdmin.id;
+
+    if (!adminId) {
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No admin ID found. Please log in again.",
+        buttonsStyling: false,
+      });
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        "http://localhost/puffybrain/markAdminNotificationsRead.php",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ admin_id: adminId }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        await fetchBellNotifications();
+        setNotificationOpen(true);
+      } else {
+        await Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: data.message || "Failed to mark as read.",
+          buttonsStyling: false,
+        });
+      }
+    } catch (err) {
+      console.error("Mark all as read error:", err);
+
+      await Swal.fire({
+        icon: "error",
+        title: "Server Error",
+        text: "Failed to mark as read.",
+        buttonsStyling: false,
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchAdmin();
+    fetchBellNotifications();
+
+    const handler = (e) => {
+      const insideDropdown = e.target.closest(`.${styles.notificationWrapper}`);
+
+      if (!insideDropdown) {
+        setNotificationOpen(false);
+      }
+    };
+
+    window.addEventListener("click", handler);
+
+    return () => window.removeEventListener("click", handler);
+  }, []);
+
   const handleUploadAndExtract = async () => {
     if (!uploadedFile) {
       await Swal.fire({
         icon: "warning",
         title: "No File Selected",
         text: "Please choose a PDF, DOCX, or TXT file first.",
+        buttonsStyling: false,
       });
       return;
     }
@@ -147,6 +286,14 @@ export default function AddModule() {
       showCancelButton: true,
       confirmButtonText: "Yes, replace it",
       cancelButtonText: "Cancel",
+      customClass: {
+        popup: styles.replacePopup,
+        title: styles.replaceTitle,
+        htmlContainer: styles.replaceHtml,
+        confirmButton: styles.replaceConfirmBtn,
+        cancelButton: styles.replaceCancelBtn,
+      },
+      buttonsStyling: false,
     });
 
     if (!confirm.isConfirmed) return;
@@ -217,6 +364,7 @@ export default function AddModule() {
         icon: "success",
         title: "Lesson Sorted",
         text: `${pages.length} lesson page(s) were created automatically.`,
+        buttonsStyling: false,
       });
     } catch (err) {
       console.error("UPLOAD EXTRACT ERROR:", err);
@@ -226,6 +374,7 @@ export default function AddModule() {
         icon: "error",
         title: "Extraction Failed",
         text: err.message || "Something went wrong while extracting the file.",
+        buttonsStyling: false,
       });
     } finally {
       setExtractingFile(false);
@@ -238,7 +387,17 @@ export default function AddModule() {
       .join("\n\n");
   };
 
-  const generateQuizFromAI = async ({ questionCount = 5, difficulty = "medium" }) => {
+  const generateQuizFromAI = async ({
+    questionCount = 5,
+    trueFalseCount = 0,
+    difficulty = "medium",
+  }) => {
+    const safeQuestionCount = Math.min(100, Math.max(1, Number(questionCount)));
+    const safeTrueFalseCount = Math.min(
+      safeQuestionCount,
+      Math.max(0, Number(trueFalseCount))
+    );
+
     const res = await fetch(AI_API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -246,7 +405,8 @@ export default function AddModule() {
         lesson_title: newTitle,
         learning_objectives: newLearningObjectives,
         lesson_content: getLessonContentForAI(),
-        question_count: questionCount,
+        question_count: safeQuestionCount,
+        true_false_count: safeTrueFalseCount,
         difficulty,
       }),
     });
@@ -294,43 +454,101 @@ export default function AddModule() {
         icon: "warning",
         title: "Missing Content",
         text: "Please enter learning objectives or lesson pages first.",
+        buttonsStyling: false,
       });
       return;
     }
 
     const { value: formValues } = await Swal.fire({
-      title: "Generate Quiz",
       html: `
-        <div style="display:flex; flex-direction:column; gap:12px; text-align:left;">
-          <label for="swal-question-count">How many questions?</label>
-          <input id="swal-question-count" type="number" min="1" max="50" value="5" class="swal2-input" style="margin:0;" />
+        <div class="${styles.quizGenerateModal}">
+          <div class="${styles.quizGenerateHeader}">
+            <span>Generate Quiz</span>
+          </div>
 
-          <label for="swal-difficulty">Difficulty</label>
-          <select id="swal-difficulty" class="swal2-select" style="margin:0;">
-            <option value="easy">Easy</option>
-            <option value="medium" selected>Medium</option>
-            <option value="hard">Hard</option>
-          </select>
+          <div class="${styles.quizGenerateBody}">
+            <div class="${styles.quizGenerateGroup}">
+              <label>How many questions?</label>
+              <input id="swal-question-count" type="number" min="1" max="100" value="5" />
+              <small>Maximum: 100 questions only</small>
+            </div>
+
+            <div class="${styles.quizGenerateGroup}">
+              <label>How many True or False questions?</label>
+              <input id="swal-truefalse-count" type="number" min="0" max="100" value="0" />
+              <small id="mc-hint">Multiple Choice Questions: 5</small>
+            </div>
+
+            <div class="${styles.quizGenerateGroup}">
+              <label>Difficulty</label>
+              <select id="swal-difficulty">
+                <option value="easy">Easy</option>
+                <option value="medium" selected>Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+            </div>
+          </div>
         </div>
       `,
-      focusConfirm: false,
       showCancelButton: true,
+      buttonsStyling: false,
       confirmButtonText: "Generate",
       cancelButtonText: "Cancel",
+      customClass: {
+        popup: styles.quizGeneratePopup,
+        htmlContainer: styles.quizGenerateHtml,
+        actions: styles.quizGenerateActions,
+        confirmButton: styles.quizGenerateConfirm,
+        cancelButton: styles.quizGenerateCancel,
+      },
+      didOpen: () => {
+        const questionInput = document.getElementById("swal-question-count");
+        const tfInput = document.getElementById("swal-truefalse-count");
+        const mcHint = document.getElementById("mc-hint");
+
+        const updateCounts = () => {
+          let total = Number(questionInput.value) || 1;
+          let trueFalse = Number(tfInput.value) || 0;
+
+          total = Math.min(100, Math.max(1, total));
+          trueFalse = Math.min(total, Math.max(0, trueFalse));
+
+          questionInput.value = total;
+          tfInput.value = trueFalse;
+
+          mcHint.textContent = `Multiple Choice Questions: ${total - trueFalse}`;
+        };
+
+        questionInput.addEventListener("input", updateCounts);
+        tfInput.addEventListener("input", updateCounts);
+        updateCounts();
+      },
       preConfirm: () => {
         const questionCount = Number(
           document.getElementById("swal-question-count").value
         );
+        const trueFalseCount = Number(
+          document.getElementById("swal-truefalse-count").value
+        );
         const difficulty = document.getElementById("swal-difficulty").value;
 
-        if (!questionCount || questionCount < 1 || questionCount > 50) {
+        if (!questionCount || questionCount < 1 || questionCount > 100) {
+          Swal.showValidationMessage("Questions must be between 1 and 100 only.");
+          return false;
+        }
+
+        if (trueFalseCount < 0 || trueFalseCount > questionCount) {
           Swal.showValidationMessage(
-            "Please enter a valid number between 1 and 50."
+            "True or False questions cannot be higher than total questions."
           );
           return false;
         }
 
-        return { questionCount, difficulty };
+        return {
+          questionCount,
+          trueFalseCount,
+          difficulty,
+        };
       },
     });
 
@@ -341,6 +559,7 @@ export default function AddModule() {
     try {
       const quizItems = await generateQuizFromAI({
         questionCount: formValues.questionCount,
+        trueFalseCount: formValues.trueFalseCount,
         difficulty: formValues.difficulty,
       });
 
@@ -350,6 +569,7 @@ export default function AddModule() {
         icon: "success",
         title: "Quiz Generated",
         text: `${quizItems.length} quiz item(s) generated successfully.`,
+        buttonsStyling: false,
       });
     } catch (err) {
       console.error("AI GENERATE NEW ERROR:", err);
@@ -358,6 +578,7 @@ export default function AddModule() {
         icon: "error",
         title: "Generation Failed",
         text: err.message || "Something went wrong while generating quiz.",
+        buttonsStyling: false,
       });
     } finally {
       setGeneratingNewQuiz(false);
@@ -365,29 +586,42 @@ export default function AddModule() {
   };
 
   const generateOptionsForItem = async (item) => {
-  const res = await fetch(
-    "http://localhost/puffybrain/generateOptions.php",
-    {
+    const res = await fetch("http://localhost/puffybrain/generateOptions.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         question: item.question,
         correct_answer: item.correct_answer,
       }),
+    });
+
+    const data = await res.json();
+
+    if (!data.success || !Array.isArray(data.wrong_options)) {
+      throw new Error(data.message || "Could not generate wrong options.");
     }
-  );
 
-  const data = await res.json();
-
-  if (!data.success || !Array.isArray(data.options)) {
-    throw new Error(data.message || "Could not generate options.");
-  }
-
-  return {
-    ...item,
-    options: data.options.slice(0, 4),
+    return {
+      ...item,
+      options: [...data.wrong_options].slice(0, 4),
+      explanation: item.explanation?.trim()
+        ? item.explanation
+        : data.explanation || "",
+    };
   };
-};
+
+  const isTrueFalseQuestion = (item) => {
+    const answer = String(item.correct_answer || "").trim().toLowerCase();
+    const options = Array.isArray(item.options)
+      ? item.options.map((opt) => String(opt || "").trim().toLowerCase())
+      : [];
+
+    return (
+      ["true", "false"].includes(answer) &&
+      options.includes("true") &&
+      options.includes("false")
+    );
+  };
 
   const handleAddModule = async () => {
     if (!newTitle.trim()) {
@@ -395,20 +629,59 @@ export default function AddModule() {
         icon: "warning",
         title: "Missing Title",
         text: "Module title is required.",
+        buttonsStyling: false,
       });
       return;
     }
 
+    const completedQuizItems = [];
+
+    for (const item of newQuizItems) {
+      const hasQuestion = String(item.question || "").trim();
+      const hasAnswer = String(item.correct_answer || "").trim();
+
+      const hasEnoughOptions =
+        isTrueFalseQuestion(item) ||
+        item.options.slice(0, 4).every((opt) => String(opt || "").trim());
+
+      if (hasQuestion && hasAnswer && !hasEnoughOptions) {
+        try {
+          const generatedItem = await generateOptionsForItem(item);
+          completedQuizItems.push(generatedItem);
+        } catch (err) {
+          console.error("OPTION GENERATE ERROR:", err);
+
+          await Swal.fire({
+            icon: "error",
+            title: "Options Not Generated",
+            text: "Please fill all options before publishing.",
+            buttonsStyling: false,
+          });
+
+          return;
+        }
+      } else {
+        completedQuizItems.push(item);
+      }
+    }
+
     const hasLessons = newLessonPages.some(
-      (page) => page.title.trim() && page.content.trim()
+      (page) =>
+        String(page.title || "").trim() && String(page.content || "").trim()
     );
 
-    const hasQuiz = newQuizItems.some(
-      (item) =>
-        item.question.trim() &&
-        item.correct_answer.trim() &&
-        item.options.some((opt) => opt.trim())
-    );
+    const hasQuiz =
+      completedQuizItems.length > 0 &&
+      completedQuizItems.every((item) => {
+        const hasQuestion = String(item.question || "").trim();
+        const hasAnswer = String(item.correct_answer || "").trim();
+
+        if (!hasQuestion || !hasAnswer) return false;
+
+        if (isTrueFalseQuestion(item)) return true;
+
+        return item.options.slice(0, 4).every((opt) => String(opt || "").trim());
+      });
 
     const hasRequiredContent =
       newDesc.trim() &&
@@ -426,7 +699,7 @@ export default function AddModule() {
       learning_objectives: newLearningObjectives.trim(),
       lesson_content: serializeLessonPages(newLessonPages),
       status: finalStatus,
-      quiz_contents: serializeQuizItems(newQuizItems),
+      quiz_contents: serializeQuizItems(completedQuizItems),
     };
 
     console.log("ADDING PAYLOAD:", payload);
@@ -445,34 +718,54 @@ export default function AddModule() {
       console.log("ADD RAW RESPONSE:", text);
 
       let data;
+
       try {
         data = JSON.parse(text);
       } catch {
         throw new Error("PHP did not return valid JSON.");
       }
 
-if (data.success) {
-  if (!hasRequiredContent && newStatus === "publish") {
-    await Swal.fire({
-      icon: "warning",
-      title: "Incomplete Input",
-      text: "Some required module content is missing. Module was automatically saved as Draft.",
-    });
-  } else {
-    await Swal.fire({
-      icon: "success",
-      title: "Added!",
-      text: `Module successfully saved as ${
-        finalStatus === "publish" ? "Published" : "Draft"
-      }.`,
-    });
-  }
-  navigate("/admin/modules");
+      if (data.success) {
+        if (!hasRequiredContent && newStatus === "publish") {
+          const missingFields = [];
+
+          if (!newDesc.trim()) missingFields.push("• Module Description");
+          if (!newSubject.trim()) missingFields.push("• Subject");
+          if (!newLearningObjectives.trim())
+            missingFields.push("• Learning Objectives");
+          if (!hasLessons) missingFields.push("• Lesson Pages");
+          if (!hasQuiz) missingFields.push("• Quiz Module");
+
+          await Swal.fire({
+            icon: "warning",
+            title: "Incomplete Input",
+            html: `
+              <p>Some required module content is missing.</p>
+              <div style="text-align:left; display:inline-block;">
+                ${missingFields.join("<br>")}
+              </div>
+              <p>Module was automatically saved as <b>Draft</b>.</p>
+            `,
+            buttonsStyling: false,
+          });
+        } else {
+          await Swal.fire({
+            icon: "success",
+            title: "Added!",
+            text: `Module successfully saved as ${
+              finalStatus === "publish" ? "Published" : "Draft"
+            }.`,
+            buttonsStyling: false,
+          });
+        }
+
+        navigate("/admin/modules");
       } else {
         await Swal.fire({
           icon: "error",
           title: "Add Failed",
           text: data.message || "Failed to add module.",
+          buttonsStyling: false,
         });
       }
     } catch (err) {
@@ -482,6 +775,7 @@ if (data.success) {
         icon: "error",
         title: "Error",
         text: err.message || "Error adding module.",
+        buttonsStyling: false,
       });
     }
   };
@@ -659,34 +953,90 @@ if (data.success) {
           />
         </div>
 
-        <div className={styles.notificationWrapper}>
-          <button
-            type="button"
-            className={styles.notificationBtn}
-            onClick={(e) => {
-              e.stopPropagation();
-              setNotificationOpen((prev) => !prev);
-            }}
-          >
-            <i className="bx bx-bell"></i>
+        <div className={styles.headerRight}>
+          <div className={styles.notificationWrapper}>
+            <button
+              type="button"
+              className={styles.notificationBtn}
+              onClick={(e) => {
+                e.stopPropagation();
+                setNotificationOpen((prev) => !prev);
+              }}
+            >
+              <i className="bx bx-bell"></i>
 
-            {notificationCount > 0 && (
-              <span className={styles.notificationBadge}>
-                {notificationCount}
-              </span>
-            )}
-          </button>
+              {notificationCount > 0 && (
+                <span className={styles.notificationBadge}>
+                  {notificationCount}
+                </span>
+              )}
+            </button>
 
-          <div
-            className={`${styles.notificationDropdown} ${
-              notificationOpen ? styles.show : ""
-            }`}
-          >
-            <h4>Notifications</h4>
+            <div
+              className={`${styles.notificationDropdown} ${
+                notificationOpen ? styles.show : ""
+              }`}
+            >
+              <div className={styles.notificationHeader}>
+                <h4>Notifications</h4>
 
-            <div className={styles.emptyNotification}>
-              <p>You don’t have any new notifications</p>
+                {notificationCount > 0 && (
+                  <button
+                    type="button"
+                    className={styles.markReadBtn}
+                    onClick={handleMarkAllAsRead}
+                  >
+                    Mark all as read
+                  </button>
+                )}
+              </div>
+
+              {bellNotifications.length > 0 ? (
+                bellNotifications.slice(0, 5).map((item) => (
+                  <div
+                    key={item.notification_id || item.id}
+                    className={styles.notificationItem}
+                  >
+                    <div className={styles.notificationTop}>
+                      <h5>{item.title || "No title"}</h5>
+                      <span className={styles.notificationRole}>
+                        {item.recipient_type || "all"}
+                      </span>
+                    </div>
+
+                    <p className={styles.notificationMessage}>
+                      {item.message || "No message"}
+                    </p>
+
+                    <p className={styles.notificationCreator}>
+                      Posted by {item.created_by || "Admin"}
+                    </p>
+
+                    <small className={styles.notificationDate}>
+                      {item.created_at
+                        ? new Date(item.created_at).toLocaleString()
+                        : "No date"}
+                    </small>
+                  </div>
+                ))
+              ) : (
+                <div className={styles.emptyNotification}>
+                  <p>You don’t have any new notifications</p>
+                </div>
+              )}
             </div>
+          </div>
+
+          <div className={styles.adminHeaderProfile}>
+            <img
+              src={admin.profile_image || "/images/temporary profile.jpg"}
+              alt="Admin"
+              className={styles.adminHeaderImg}
+            />
+
+            <span className={styles.adminHeaderName}>
+              {admin.username || "Admin"}
+            </span>
           </div>
         </div>
       </header>
@@ -737,7 +1087,9 @@ if (data.success) {
           </div>
 
           <div className={styles.popupSection}>
-            <label className={styles.popupLabel}>Subject</label>
+            <label className={styles.popupLabel}>
+              Subject <span className={styles.required}>*Required</span>
+            </label>
 
             <input
               className={styles.popupInput}

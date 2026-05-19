@@ -785,3 +785,243 @@
     width: 100%;
   }
 }
+
+.headerRight {
+  display: flex;
+  align-items: center;
+}
+
+.notificationWrapper {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notificationBtn {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.notificationBtn:hover {
+  background: #f5efff;
+}
+
+.notificationBtn i {
+  font-size: 25px;
+  color: #555;
+}
+
+.notificationBadge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #e74c3c;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+
+.notificationDropdown {
+  position: absolute;
+  top: 52px;
+  right: 0;
+  width: 340px;
+  max-height: 430px;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid #eee6ff;
+  border-radius: 22px;
+  padding: 16px;
+  box-shadow: 0 16px 40px rgba(82, 45, 140, 0.18);
+  z-index: 99999;
+  display: none;
+}
+
+.notificationDropdown.show {
+  display: block;
+}
+
+.notificationHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee6ff;
+  margin-bottom: 12px;
+}
+
+.notificationHeader h4 {
+  margin: 0;
+  font-size: 18px;
+  color: #111;
+}
+
+.markReadBtn {
+  background: #8966c2;
+  border: 1px solid #593e85;
+  box-shadow: 0 3px #6b558f;
+  color: white;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.markReadBtn:hover {
+  background: #593e85;
+}
+
+.notificationItem {
+  padding: 14px;
+  border-radius: 16px;
+  background: #f8f4ff;
+  margin-bottom: 12px;
+}
+
+.notificationTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.notificationTop h5 {
+  margin: 0;
+  font-size: 16px;
+  color: #4b2aad;
+}
+
+.notificationRole {
+  background: #777;
+  border: 1px solid #444;
+  box-shadow: 0 2px 0 #444;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  text-transform: capitalize;
+}
+
+.notificationMessage {
+  margin: 8px 0;
+  color: #666;
+  line-height: 1.4;
+  font-size: 15px;
+}
+
+.notificationCreator {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #7b61c9;
+}
+
+.notificationDate {
+  color: #999;
+  font-size: 12px;
+}
+
+.emptyNotification {
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #777;
+  font-size: 15px;
+  padding: 20px;
+}
+
+
+.swalPopup {
+  border-radius: 24px !important;
+  padding: 28px 24px !important;
+}
+
+.swalImage {
+  width: 190px !important;
+  height: 190px !important;
+  object-fit: contain !important;
+  margin: 0 auto 12px auto !important;
+}
+
+.swalActions {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 18px !important;
+  margin-top: 22px !important;
+}
+
+.confirmBtnSwal {
+  min-width: 135px !important;
+  height: 52px !important;
+  background: #d9a9e9 !important;
+  color: black !important;
+  border: 1px solid #744185 !important;
+  box-shadow: 0 4px 0 #80588d !important;
+  border-radius: 16px !important;
+  font-family: "Jersey 15", sans-serif !important;
+  font-size: 18px !important;
+  padding: 10px 24px !important;
+}
+
+.cancelBtnSwal {
+  min-width: 125px !important;
+  height: 52px !important;
+  background: white !important;
+  color: black !important;
+  border: 1px solid #797c7e !important;
+  box-shadow: 0 4px 0 #757575 !important;
+  border-radius: 16px !important;
+  font-family: "Jersey 15", sans-serif !important;
+  font-size: 18px !important;
+  padding: 10px 24px !important;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.adminHeaderProfile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 16px;
+  border-left: 1px solid #e7dff7;
+}
+
+.adminHeaderImg {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0px 3px 0px #aaa7a7;
+}
+
+.adminHeaderName {
+  font-family: "Jersey 15", sans-serif;
+  font-size: 22px;
+  color: #333;
+  white-space: nowrap;
+}

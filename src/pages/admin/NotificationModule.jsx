@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -10,6 +10,7 @@ import {
   Search,
   User,
   Settings,
+  Database,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import styles from "./notification.module.css";
@@ -30,6 +31,16 @@ export default function NotificationManagement() {
   const [sortOpen, setSortOpen] = useState(false);
 
   const notificationsPerPage = 3;
+  const fetchedOnce = useRef(false);
+
+  const [admin, setAdmin] = useState({
+    full_name: "",
+    username: "",
+    email: "",
+    role: "",
+    profile_image: "/images/temporary profile.jpg",
+  });
+
 
   const menuItems = [
     { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
@@ -38,12 +49,50 @@ export default function NotificationManagement() {
     { label: "Decks Management", path: "/admin/decks", icon: <LibraryBig size={20} /> },
     { label: "Modes Management", path: "/admin/modes", icon: <Gamepad2 size={20} /> },
     { label: "Notification Management", path: "/admin/notifications", icon: <i className="bx bx-bell"></i> },
+    { label: "Backup & Restore", path: "/admin/backup-restore", icon: <Database size={20} /> },
   ];
+
+  const showNotifSwal = (config = {}) => {
+    return Swal.fire({
+      buttonsStyling: false,
+      customClass: {
+        popup: styles.swalPopup,
+        image: styles.swalImage,
+        actions: styles.swalActions,
+        confirmButton: styles.confirmBtnSwal,
+        cancelButton: styles.cancelBtnSwal,
+        ...(config.customClass || {}),
+      },
+      ...config,
+    });
+  };
+
+const fetchAdmin = async () => {
+  try {
+    const res = await fetch("http://localhost/puffybrain/getAdminProfile.php", {
+      credentials: "include",
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setAdmin({
+        username: data.admin?.username || "Admin",
+        profile_image:
+          data.admin?.profile_image || "/images/temporary profile.jpg",
+      });
+    }
+  } catch (err) {
+    console.error("Fetch admin error:", err);
+  }
+};
 
   const fetchBellNotifications = async () => {
     try {
+      const admin = JSON.parse(localStorage.getItem("admin") || "{}");
+
       const res = await fetch(
-        "http://localhost/puffybrain/getAdminNotifications.php",
+        `http://localhost/puffybrain/getAdminNotifications.php?admin_id=${admin.id}`,
         { credentials: "include" }
       );
 
@@ -62,10 +111,9 @@ export default function NotificationManagement() {
 
   const fetchHistoryNotifications = async () => {
     try {
-      const res = await fetch(
-        "http://localhost/puffybrain/getAllNotifications.php",
-        { credentials: "include" }
-      );
+      const res = await fetch("http://localhost/puffybrain/getAllNotifications.php", {
+        credentials: "include",
+      });
 
       const data = await res.json();
 
@@ -80,10 +128,32 @@ export default function NotificationManagement() {
     }
   };
 
-  useEffect(() => {
-    fetchBellNotifications();
-    fetchHistoryNotifications();
-  }, []);
+useEffect(() => {
+  if (fetchedOnce.current) return;
+
+  fetchedOnce.current = true;
+
+  fetchAdmin();
+  fetchBellNotifications();
+  fetchHistoryNotifications();
+
+  const handler = (e) => {
+    const insideDropdown = e.target.closest(
+      `.${styles.notificationWrapper}, .${styles.customSort}`
+    );
+
+    if (!insideDropdown) {
+      setNotificationOpen(false);
+      setSortOpen(false);
+    }
+  };
+
+  window.addEventListener("click", handler);
+
+  return () => {
+    window.removeEventListener("click", handler);
+  };
+}, []);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -93,12 +163,13 @@ export default function NotificationManagement() {
     e.preventDefault();
 
     if (!title.trim() || !message.trim()) {
-      Swal.fire({
+      await showNotifSwal({
         imageUrl: "/images/error.png",
-        imageWidth: 150,
-        imageHeight: 150,
+        imageWidth: 190,
+        imageHeight: 190,
         title: "Missing Fields",
         text: "Please enter both title and message.",
+        confirmButtonText: "OK",
       });
       return;
     }
@@ -120,12 +191,13 @@ export default function NotificationManagement() {
       const data = await res.json();
 
       if (data.success) {
-        Swal.fire({
+        await showNotifSwal({
           imageUrl: "/images/success.png",
-          imageWidth: 150,
-          imageHeight: 150,
+          imageWidth: 190,
+          imageHeight: 190,
           title: "Notification Added",
           text: "Your notification has been posted.",
+          confirmButtonText: "OK",
         });
 
         setTitle("");
@@ -135,19 +207,34 @@ export default function NotificationManagement() {
         fetchBellNotifications();
         fetchHistoryNotifications();
       } else {
-        Swal.fire("Error", data.message || "Failed to add notification.", "error");
+        await showNotifSwal({
+          imageUrl: "/images/error.png",
+          imageWidth: 190,
+          imageHeight: 190,
+          title: "Error",
+          text: data.message || "Failed to add notification.",
+          confirmButtonText: "OK",
+        });
       }
     } catch (err) {
       console.error("Add notification error:", err);
-      Swal.fire("Server Error", "Failed to add notification.", "error");
+
+      await showNotifSwal({
+        imageUrl: "/images/error.png",
+        imageWidth: 190,
+        imageHeight: 190,
+        title: "Server Error",
+        text: "Failed to add notification.",
+        confirmButtonText: "OK",
+      });
     }
   };
 
   const handleDelete = async (notificationId) => {
-    const result = await Swal.fire({
-      imageUrl: "/images/question.png",
-      imageWidth: 150,
-      imageHeight: 150,
+    const result = await showNotifSwal({
+      imageUrl: "/images/asking.png",
+      imageWidth: 190,
+      imageHeight: 190,
       title: "Delete notification?",
       text: "This cannot be undone.",
       showCancelButton: true,
@@ -172,48 +259,101 @@ export default function NotificationManagement() {
       const data = await res.json();
 
       if (data.success) {
-        Swal.fire({
+        await showNotifSwal({
           imageUrl: "/images/success.png",
-          imageWidth: 150,
-          imageHeight: 150,
+          imageWidth: 190,
+          imageHeight: 190,
           title: "Deleted",
           text: "Notification removed successfully.",
+          confirmButtonText: "OK",
         });
 
         fetchBellNotifications();
         fetchHistoryNotifications();
       } else {
-        Swal.fire("Error", data.message || "Failed to delete notification.", "error");
+        await showNotifSwal({
+          imageUrl: "/images/error.png",
+          imageWidth: 190,
+          imageHeight: 190,
+          title: "Error",
+          text: data.message || "Failed to delete notification.",
+          confirmButtonText: "OK",
+        });
       }
     } catch (err) {
       console.error("Delete notification error:", err);
-      Swal.fire("Server Error", "Failed to delete notification.", "error");
+
+      await showNotifSwal({
+        imageUrl: "/images/error.png",
+        imageWidth: 190,
+        imageHeight: 190,
+        title: "Server Error",
+        text: "Failed to delete notification.",
+        confirmButtonText: "OK",
+      });
     }
   };
 
-  const handleMarkAllAsRead = async () => {
+  const handleMarkAllAsRead = async (e) => {
+    e.stopPropagation();
+
+    const admin = JSON.parse(localStorage.getItem("admin") || "{}");
+    const adminId = admin.id;
+
+    if (!adminId) {
+      await showNotifSwal({
+        imageUrl: "/images/error.png",
+        imageWidth: 190,
+        imageHeight: 190,
+        title: "Error",
+        text: "Admin ID not found. Please log in again.",
+        confirmButtonText: "OK",
+      });
+      return;
+    }
+
     try {
       const res = await fetch(
         "http://localhost/puffybrain/markAdminNotificationsRead.php",
         {
           method: "POST",
           credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            admin_id: adminId,
+          }),
         }
       );
 
       const data = await res.json();
 
       if (data.success) {
-        setBellNotifications([]);
-        setNotificationOpen(false);
-        fetchBellNotifications();
-        fetchHistoryNotifications();
+        await fetchBellNotifications();
+        await fetchHistoryNotifications();
+        setNotificationOpen(true);
       } else {
-        Swal.fire("Error", data.message || "Failed to mark as read.", "error");
+        await showNotifSwal({
+          imageUrl: "/images/error.png",
+          imageWidth: 190,
+          imageHeight: 190,
+          title: "Error",
+          text: data.message || "Failed to mark as read.",
+          confirmButtonText: "OK",
+        });
       }
     } catch (err) {
       console.error("Mark all as read error:", err);
-      Swal.fire("Server Error", "Failed to mark as read.", "error");
+
+      await showNotifSwal({
+        imageUrl: "/images/error.png",
+        imageWidth: 190,
+        imageHeight: 190,
+        title: "Server Error",
+        text: "Failed to mark as read.",
+        confirmButtonText: "OK",
+      });
     }
   };
 
@@ -236,22 +376,10 @@ export default function NotificationManagement() {
       );
     })
     .sort((a, b) => {
-      if (sortBy === "newest") {
-        return new Date(b.created_at) - new Date(a.created_at);
-      }
-
-      if (sortBy === "oldest") {
-        return new Date(a.created_at) - new Date(b.created_at);
-      }
-
-      if (sortBy === "az") {
-        return String(a.title || "").localeCompare(String(b.title || ""));
-      }
-
-      if (sortBy === "za") {
-        return String(b.title || "").localeCompare(String(a.title || ""));
-      }
-
+      if (sortBy === "newest") return new Date(b.created_at) - new Date(a.created_at);
+      if (sortBy === "oldest") return new Date(a.created_at) - new Date(b.created_at);
+      if (sortBy === "az") return String(a.title || "").localeCompare(String(b.title || ""));
+      if (sortBy === "za") return String(b.title || "").localeCompare(String(a.title || ""));
       return 0;
     });
 
@@ -262,7 +390,11 @@ export default function NotificationManagement() {
     currentPage * notificationsPerPage
   );
 
-  const notificationCount = bellNotifications.length;
+  const unreadNotifications = bellNotifications.filter(
+    (notif) => notif.status === "unread"
+  );
+
+  const notificationCount = unreadNotifications.length;
 
   return (
     <div className={styles.gridContainer}>
@@ -340,96 +472,107 @@ export default function NotificationManagement() {
         </div>
       </aside>
 
-      <header className={styles.headerContainer}>
-        <div className={styles.searchBar}>
-          <Search size={19} />
+   <header className={styles.headerContainer}>
+  <div className={styles.searchBar}>
+    <Search size={19} />
+    <input
+      type="text"
+      placeholder="Search..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+    />
+  </div>
 
-          <input
-            type="text"
-            placeholder="Search notifications..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setSearch(e.target.value);
-              setCurrentPage(1);
-            }}
-          />
-        </div>
+  <div className={styles.headerRight}>
+    
+    {/* Notification */}
+    <div className={styles.notificationWrapper}>
+      <button
+        type="button"
+        className={styles.notificationBtn}
+        onClick={(e) => {
+          e.stopPropagation();
+          setNotificationOpen((prev) => !prev);
+        }}
+      >
+        <i className="bx bx-bell"></i>
 
-        <div className={styles.headerRight}>
-          <div className={styles.notificationWrapper}>
+        {notificationCount > 0 && (
+          <span className={styles.notificationBadge}>
+            {notificationCount}
+          </span>
+        )}
+      </button>
+
+      <div
+        className={`${styles.notificationDropdown} ${
+          notificationOpen ? styles.show : ""
+        }`}
+      >
+        <div className={styles.notificationHeader}>
+          <h4>Notifications</h4>
+
+          {notificationCount > 0 && (
             <button
               type="button"
-              className={styles.notificationBtn}
-              onClick={(e) => {
-                e.stopPropagation();
-                setNotificationOpen((prev) => !prev);
-              }}
+              className={styles.markReadBtn}
+              onClick={handleMarkAllAsRead}
             >
-              <i className="bx bx-bell"></i>
-
-              {notificationCount > 0 && (
-                <span className={styles.notificationBadge}>{notificationCount}</span>
-              )}
+              Mark all as read
             </button>
+          )}
+        </div>
 
+        {bellNotifications.length > 0 ? (
+          bellNotifications.slice(0, 5).map((item) => (
             <div
-              className={`${styles.notificationDropdown} ${
-                notificationOpen ? styles.show : ""
-              }`}
+              key={item.notification_id || item.id}
+              className={styles.notificationItem}
             >
-              <div className={styles.notificationHeader}>
-                <h4>Notifications</h4>
-
-                {notificationCount > 0 && (
-                  <button
-                    type="button"
-                    className={styles.markReadBtn}
-                    onClick={handleMarkAllAsRead}
-                  >
-                    Mark all as read
-                  </button>
-                )}
+              <div className={styles.notificationTop}>
+                <h5>{item.title || "No title"}</h5>
+                <span className={styles.notificationRole}>
+                  {item.recipient_type || "all"}
+                </span>
               </div>
 
-              {bellNotifications.length > 0 ? (
-                bellNotifications.slice(0, 5).map((item) => (
-                  <div
-                    className={styles.notificationItem}
-                    key={item.notification_id || item.id}
-                  >
-                    <div className={styles.notificationTop}>
-                      <h5>{item.title || "No title"}</h5>
+              <p className={styles.notificationMessage}>
+                {item.message || "No message"}
+              </p>
 
-                      <span className={styles.notificationRole}>
-                        {item.recipient_type || "all"}
-                      </span>
-                    </div>
+              <p className={styles.notificationCreator}>
+                Posted by {item.created_by || "Admin"}
+              </p>
 
-                    <p className={styles.notificationMessage}>
-                      {item.message || "No message"}
-                    </p>
-
-                    <p className={styles.notificationCreator}>
-                      Posted by {item.created_by || "Admin"}
-                    </p>
-
-                    <small className={styles.notificationDate}>
-                      {item.created_at
-                        ? new Date(item.created_at).toLocaleString()
-                        : "No date"}
-                    </small>
-                  </div>
-                ))
-              ) : (
-                <div className={styles.emptyNotification}>
-                  <p>You don’t have any new notifications</p>
-                </div>
-              )}
+              <small className={styles.notificationDate}>
+                {item.created_at
+                  ? new Date(item.created_at).toLocaleString()
+                  : "No date"}
+              </small>
             </div>
+          ))
+        ) : (
+          <div className={styles.emptyNotification}>
+            <p>You don’t have any new notifications</p>
           </div>
-        </div>
-      </header>
+        )}
+      </div>
+    </div>
+
+    {/* Admin Profile */}
+    <div className={styles.adminHeaderProfile}>
+      <img
+        src={admin.profile_image || "/images/temporary profile.jpg"}
+        alt="Admin"
+        className={styles.adminHeaderImg}
+      />
+
+      <span className={styles.adminHeaderName}>
+        {admin.username || "Admin"}
+      </span>
+    </div>
+  </div>
+</header>
 
       <main className={styles.main}>
         <div className={styles.pageHeader}>
@@ -489,7 +632,10 @@ export default function NotificationManagement() {
                 <button
                   type="button"
                   className={styles.customSortBtn}
-                  onClick={() => setSortOpen((prev) => !prev)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSortOpen((prev) => !prev);
+                  }}
                 >
                   <i className="bx bx-sort-alt-2"></i>
                   <span>Sort by</span>
@@ -498,16 +644,43 @@ export default function NotificationManagement() {
 
                 {sortOpen && (
                   <div className={styles.customSortMenu}>
-                    <button type="button" onClick={() => { setSortBy("newest"); setSortOpen(false); }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSortBy("newest");
+                        setSortOpen(false);
+                      }}
+                    >
                       Recently Added
                     </button>
-                    <button type="button" onClick={() => { setSortBy("oldest"); setSortOpen(false); }}>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSortBy("oldest");
+                        setSortOpen(false);
+                      }}
+                    >
                       Oldest
                     </button>
-                    <button type="button" onClick={() => { setSortBy("az"); setSortOpen(false); }}>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSortBy("az");
+                        setSortOpen(false);
+                      }}
+                    >
                       A-Z
                     </button>
-                    <button type="button" onClick={() => { setSortBy("za"); setSortOpen(false); }}>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSortBy("za");
+                        setSortOpen(false);
+                      }}
+                    >
                       Z-A
                     </button>
                   </div>

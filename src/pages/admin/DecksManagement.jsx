@@ -13,12 +13,13 @@ import {
   Search,
   User,
   Settings,
+  Database,
 } from "lucide-react";
 
 export default function DeckManagement() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
-  const notificationCount = 0;
+  const [bellNotifications, setBellNotifications] = useState([]);
 
   const [selectedDeck, setSelectedDeck] = useState(null);
   const [selectedDeckCards, setSelectedDeckCards] = useState([]);
@@ -40,7 +41,16 @@ export default function DeckManagement() {
     { label: "Decks Management", path: "/admin/decks", icon: <LibraryBig size={20} /> },
     { label: "Modes Management", path: "/admin/modes", icon: <Gamepad2 size={20} /> },
     { label: "Notification Management", path: "/admin/notifications", icon: <i className="bx bx-bell"></i> },
+    { label: "Backup & Restore", path: "/admin/backup-restore", icon: <Database size={20} /> },
   ];
+  const [admin, setAdmin] = useState({
+  username: "Admin",
+  full_name: "",
+  email: "",
+  role: "",
+  profile_image: "/images/temporary profile.jpg",
+});
+
 
   const handleLogout = (e) => {
     e.preventDefault();
@@ -61,6 +71,94 @@ export default function DeckManagement() {
       day: "2-digit",
       year: "numeric",
     });
+  };
+
+  const fetchAdmin = async () => {
+  try {
+    const res = await fetch(
+      "http://localhost/puffybrain/getAdminProfile.php",
+      {
+        credentials: "include",
+      }
+    );
+
+    const data = await res.json();
+
+    if (!data.success) {
+      console.error(data.message || "Admin not found");
+      return;
+    }
+
+    setAdmin({
+      username: data.admin?.username || "Admin",
+      full_name: data.admin?.full_name || "",
+      email: data.admin?.email || "",
+      role: data.admin?.role || "Administrator",
+      profile_image:
+        data.admin?.profile_image || "/images/temporary profile.jpg",
+    });
+  } catch (err) {
+    console.error("Fetch admin error:", err);
+  }
+};
+
+  const fetchBellNotifications = async () => {
+    try {
+      const admin = JSON.parse(localStorage.getItem("admin") || "{}");
+
+      const res = await fetch(
+        `http://localhost/puffybrain/getAdminNotifications.php?admin_id=${admin.id}`,
+        { credentials: "include" }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        setBellNotifications(data.notifications || []);
+      } else {
+        setBellNotifications([]);
+      }
+    } catch (err) {
+      console.error("Bell notification fetch error:", err);
+      setBellNotifications([]);
+    }
+  };
+
+  const handleMarkAllAsRead = async (e) => {
+    e.stopPropagation();
+
+    const admin = JSON.parse(localStorage.getItem("admin") || "{}");
+    const adminId = admin.id;
+
+    if (!adminId) {
+      alert("Admin ID not found. Please log in again.");
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        "http://localhost/puffybrain/markAdminNotificationsRead.php",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            admin_id: adminId,
+          }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        await fetchBellNotifications();
+        setNotificationOpen(true);
+      }
+    } catch (err) {
+      console.error("Mark all as read error:", err);
+    }
   };
 
   const fetchDecks = async () => {
@@ -113,6 +211,20 @@ export default function DeckManagement() {
 
   useEffect(() => {
     fetchDecks();
+    fetchAdmin();
+    fetchBellNotifications();
+
+    const handler = (e) => {
+      const insideDropdown = e.target.closest(`.${styles.notificationWrapper}`);
+
+      if (!insideDropdown) {
+        setNotificationOpen(false);
+      }
+    };
+
+    window.addEventListener("click", handler);
+
+    return () => window.removeEventListener("click", handler);
   }, []);
 
   useEffect(() => {
@@ -155,13 +267,21 @@ export default function DeckManagement() {
     return 0;
   });
 
-  const isDeckArchived = (deck) => {
-    return (
-      Number(deck.archived) === 1 ||
-      String(deck.archived || "").toLowerCase() === "1" ||
-      String(deck.status || "").toLowerCase() === "archived"
-    );
-  };
+const isDeckArchived = (deck) => {
+  const archived = String(deck.archived ?? "").toLowerCase();
+  const isArchived = String(deck.is_archived ?? "").toLowerCase();
+  const status = String(deck.status ?? "").toLowerCase();
+
+  return (
+    archived === "1" ||
+    archived === "true" ||
+    archived === "archived" ||
+    isArchived === "1" ||
+    isArchived === "true" ||
+    isArchived === "archived" ||
+    status === "archived"
+  );
+};
 
   const totalPages = Math.ceil(sortedDecks.length / rowsToShow);
 
@@ -169,6 +289,12 @@ export default function DeckManagement() {
     (currentPage - 1) * rowsToShow,
     currentPage * rowsToShow
   );
+
+  const unreadNotifications = bellNotifications.filter(
+    (notif) => notif.status === "unread"
+  );
+
+  const notificationCount = unreadNotifications.length;
 
   return (
     <div className={styles.gridContainer}>
@@ -260,36 +386,96 @@ export default function DeckManagement() {
             }}
           />
         </div>
+  <div className={styles.headerRight}>
+    
+    {/* Notification */}
+    <div className={styles.notificationWrapper}>
+      <button
+        type="button"
+        className={styles.notificationBtn}
+        onClick={(e) => {
+          e.stopPropagation();
+          setNotificationOpen((prev) => !prev);
+        }}
+      >
+        <i className="bx bx-bell"></i>
 
-        <div className={styles.notificationWrapper}>
-          <button
-            type="button"
-            className={styles.notificationBtn}
-            onClick={(e) => {
-              e.stopPropagation();
-              setNotificationOpen((prev) => !prev);
-            }}
-          >
-            <i className="bx bx-bell"></i>
+        {notificationCount > 0 && (
+          <span className={styles.notificationBadge}>
+            {notificationCount}
+          </span>
+        )}
+      </button>
 
-            {notificationCount > 0 && (
-              <span className={styles.notificationBadge}>{notificationCount}</span>
-            )}
-          </button>
+      <div
+        className={`${styles.notificationDropdown} ${
+          notificationOpen ? styles.show : ""
+        }`}
+      >
+        <div className={styles.notificationHeader}>
+          <h4>Notifications</h4>
 
-          <div
-            className={`${styles.notificationDropdown} ${
-              notificationOpen ? styles.show : ""
-            }`}
-          >
-            <h4>Notifications</h4>
-
-            <div className={styles.emptyNotification}>
-              <p>You don’t have any new notifications</p>
-            </div>
-          </div>
+          {notificationCount > 0 && (
+            <button
+              type="button"
+              className={styles.markReadBtn}
+              onClick={handleMarkAllAsRead}
+            >
+              Mark all as read
+            </button>
+          )}
         </div>
-      </header>
+
+        {bellNotifications.length > 0 ? (
+          bellNotifications.slice(0, 5).map((item) => (
+            <div
+              key={item.notification_id || item.id}
+              className={styles.notificationItem}
+            >
+              <div className={styles.notificationTop}>
+                <h5>{item.title || "No title"}</h5>
+                <span className={styles.notificationRole}>
+                  {item.recipient_type || "all"}
+                </span>
+              </div>
+
+              <p className={styles.notificationMessage}>
+                {item.message || "No message"}
+              </p>
+
+              <p className={styles.notificationCreator}>
+                Posted by {item.created_by || "Admin"}
+              </p>
+
+              <small className={styles.notificationDate}>
+                {item.created_at
+                  ? new Date(item.created_at).toLocaleString()
+                  : "No date"}
+              </small>
+            </div>
+          ))
+        ) : (
+          <div className={styles.emptyNotification}>
+            <p>You don’t have any new notifications</p>
+          </div>
+        )}
+      </div>
+    </div>
+
+    {/* Admin Profile */}
+    <div className={styles.adminHeaderProfile}>
+      <img
+        src={admin.profile_image || "/images/temporary profile.jpg"}
+        alt="Admin"
+        className={styles.adminHeaderImg}
+      />
+
+      <span className={styles.adminHeaderName}>
+        {admin.username || "Admin"}
+      </span>
+    </div>
+  </div>
+</header>
 
       <main className={styles.main}>
         <div className={styles.pageTop}>
@@ -351,19 +537,17 @@ export default function DeckManagement() {
                       {deck.visibility || "Public"}
                     </span>
                   </div>
-
-                  <div>
-                    <span
-                      className={`${styles.badge} ${
-                        isDeckArchived(deck)
-                          ? styles.archivedBadge
-                          : styles.activeBadge
-                      }`}
-                    >
-                      {Number(deck.archived) === 1 ? "Archived" : "Active"}
-                    </span>
-                  </div>
-
+<div>
+  <span
+    className={`${styles.badge} ${
+      isDeckArchived(deck)
+        ? styles.archivedBadge
+        : styles.activeBadge
+    }`}
+  >
+    {isDeckArchived(deck) ? "Archived" : "Active"}
+  </span>
+</div>
                   <button
                     className={styles.viewBtn}
                     type="button"

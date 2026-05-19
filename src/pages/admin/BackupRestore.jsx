@@ -34,11 +34,67 @@ export default function AdminBackupRestore() {
     { label: "Backup & Restore", path: "/admin/backup-restore", icon: <Database size={20} /> },
   ];
 
+
+  const [admin, setAdmin] = useState({
+  username: "Admin",
+  full_name: "",
+  email: "",
+  role: "",
+  profile_image: "/images/temporary profile.jpg",
+});
+
+  const showBackupSwal = (config = {}) => {
+    return Swal.fire({
+      buttonsStyling: false,
+      customClass: {
+        popup: styles.swalPopup,
+        image: styles.swalImage,
+        actions: styles.swalActions,
+        confirmButton: styles.restoreBtnSwal,
+        cancelButton: styles.cancelBtnSwal,
+        ...(config.customClass || {}),
+      },
+      ...config,
+    });
+  };
+
+  const fetchAdmin = async () => {
+  try {
+    const res = await fetch(
+      "http://localhost/puffybrain/getAdminProfile.php",
+      {
+        credentials: "include",
+      }
+    );
+
+    const data = await res.json();
+
+    if (!data.success) {
+      console.error(data.message || "Admin not found");
+      return;
+    }
+
+    setAdmin({
+      username: data.admin?.username || "Admin",
+      full_name: data.admin?.full_name || "",
+      email: data.admin?.email || "",
+      role: data.admin?.role || "Administrator",
+      profile_image:
+        data.admin?.profile_image || "/images/temporary profile.jpg",
+    });
+  } catch (err) {
+    console.error("Fetch admin error:", err);
+  }
+};
+
   const fetchBellNotifications = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/getAdminNotifications.php", {
-        credentials: "include",
-      });
+      const admin = JSON.parse(localStorage.getItem("admin") || "{}");
+
+      const res = await fetch(
+        `http://localhost/puffybrain/getAdminNotifications.php?admin_id=${admin.id}`,
+        { credentials: "include" }
+      );
 
       const data = await res.json();
 
@@ -53,50 +109,82 @@ export default function AdminBackupRestore() {
     }
   };
 
-  useEffect(() => {
-    fetchBellNotifications();
+ useEffect(() => {
+  fetchAdmin();
+  fetchBellNotifications();
+
+    const handler = (e) => {
+      const insideDropdown = e.target.closest(`.${styles.notificationWrapper}`);
+
+      if (!insideDropdown) {
+        setNotificationOpen(false);
+      }
+    };
+
+    window.addEventListener("click", handler);
+
+    return () => window.removeEventListener("click", handler);
   }, []);
 
-const handleMarkAllAsRead = async (e) => {
-  e.stopPropagation();
+  const handleMarkAllAsRead = async (e) => {
+    e.stopPropagation();
 
-  const admin = JSON.parse(localStorage.getItem("admin") || "{}");
-  const adminId = admin.id || admin.admin_id || admin.adminId;
+    const admin = JSON.parse(localStorage.getItem("admin") || "{}");
+    const adminId = admin.id;
 
-  if (!adminId) {
-    console.log("Stored admin:", admin);
-    Swal.fire("Error", "No admin ID found. Please log in again.", "error");
-    return;
-  }
-
-  try {
-    const res = await fetch(
-      "http://localhost/puffybrain/markAdminNotificationsRead.php",
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          admin_id: adminId,
-        }),
-      }
-    );
-
-    const data = await res.json();
-
-    if (data.success) {
-      setBellNotifications([]);
-      setNotificationOpen(true);
-    } else {
-      Swal.fire("Error", data.message || "Failed to mark as read.", "error");
+    if (!adminId) {
+      showBackupSwal({
+        imageUrl: "/images/error.png",
+        imageWidth: 190,
+        imageHeight: 190,
+        title: "Error",
+        text: "Admin ID not found. Please log in again.",
+        confirmButtonText: "OK",
+      });
+      return;
     }
-  } catch (err) {
-    console.error("Mark all as read error:", err);
-    Swal.fire("Server Error", "Failed to mark as read.", "error");
-  }
-};
+
+    try {
+      const res = await fetch(
+        "http://localhost/puffybrain/markAdminNotificationsRead.php",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            admin_id: adminId,
+          }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        await fetchBellNotifications();
+        setNotificationOpen(true);
+      } else {
+        showBackupSwal({
+          imageUrl: "/images/error.png",
+          imageWidth: 190,
+          imageHeight: 190,
+          title: "Error",
+          text: data.message || "Failed to mark as read.",
+          confirmButtonText: "OK",
+        });
+      }
+    } catch (err) {
+      showBackupSwal({
+        imageUrl: "/images/error.png",
+        imageWidth: 190,
+        imageHeight: 190,
+        title: "Server Error",
+        text: "Failed to mark as read.",
+        confirmButtonText: "OK",
+      });
+    }
+  };
 
   const handleBackup = () => {
     window.location.href = "http://localhost/puffybrain/backupDatabase.php";
@@ -104,30 +192,28 @@ const handleMarkAllAsRead = async (e) => {
 
   const handleRestore = async () => {
     if (!restoreFile) {
-      Swal.fire({
+      await showBackupSwal({
         imageUrl: "/images/error.png",
-        imageWidth: 150,
-        imageHeight: 150,
+        imageWidth: 190,
+        imageHeight: 190,
+        imageAlt: "Missing File",
         title: "Missing File",
         text: "Please choose a .sql backup file.",
+        confirmButtonText: "OK",
       });
       return;
     }
 
-    const result = await Swal.fire({
-      imageUrl: "/images/question.png",
-      imageWidth: 150,
-      imageHeight: 150,
+    const result = await showBackupSwal({
+      imageUrl: "/images/asking.png",
+      imageWidth: 190,
+      imageHeight: 190,
+      imageAlt: "Restore Warning",
       title: "Restore Database?",
       text: "This will overwrite current database data.",
       showCancelButton: true,
       confirmButtonText: "Yes, restore",
       cancelButtonText: "Cancel",
-      customClass: {
-        confirmButton: styles.restoreBtnSwal,
-        cancelButton: styles.cancelBtnSwal,
-      },
-      buttonsStyling: false,
     });
 
     if (!result.isConfirmed) return;
@@ -147,21 +233,40 @@ const handleMarkAllAsRead = async (e) => {
       const data = await res.json();
 
       if (data.success) {
-        Swal.fire({
+        await showBackupSwal({
           imageUrl: "/images/success.png",
-          imageWidth: 150,
-          imageHeight: 150,
+          imageWidth: 190,
+          imageHeight: 190,
+          imageAlt: "Success",
           title: "Success",
           text: data.message,
+          confirmButtonText: "OK",
         });
 
         setRestoreFile(null);
       } else {
-        Swal.fire("Failed", data.message || "Restore failed.", "error");
+        await showBackupSwal({
+          imageUrl: "/images/error.png",
+          imageWidth: 190,
+          imageHeight: 190,
+          imageAlt: "Restore Failed",
+          title: "Failed",
+          text: data.message || "Restore failed.",
+          confirmButtonText: "OK",
+        });
       }
     } catch (err) {
       console.error(err);
-      Swal.fire("Server Error", "Could not restore database.", "error");
+
+      await showBackupSwal({
+        imageUrl: "/images/error.png",
+        imageWidth: 190,
+        imageHeight: 190,
+        imageAlt: "Server Error",
+        title: "Server Error",
+        text: "Could not restore database.",
+        confirmButtonText: "OK",
+      });
     } finally {
       setIsRestoring(false);
     }
@@ -174,13 +279,20 @@ const handleMarkAllAsRead = async (e) => {
     window.location.href = "/admin/login";
   };
 
-  const notificationCount = bellNotifications.length;
+  const unreadNotifications = bellNotifications.filter(
+    (notif) => notif.status === "unread"
+  );
+
+  const notificationCount = unreadNotifications.length;
 
   return (
     <div className={styles.gridContainer}>
       <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
         <div className={styles.sidebarTop}>
-          <div className={styles.sidebarToggle} onClick={() => setIsCollapsed(!isCollapsed)}>
+          <div
+            className={styles.sidebarToggle}
+            onClick={() => setIsCollapsed(!isCollapsed)}
+          >
             <i className="bx bx-sidebar"></i>
           </div>
 
@@ -217,7 +329,9 @@ const handleMarkAllAsRead = async (e) => {
                 `${styles.menuItem} ${isActive ? styles.active : ""}`
               }
             >
-              <span className={styles.menuIcon}><User size={20} /></span>
+              <span className={styles.menuIcon}>
+                <User size={20} />
+              </span>
               <span className={styles.menuText}>Profile</span>
             </NavLink>
 
@@ -227,7 +341,9 @@ const handleMarkAllAsRead = async (e) => {
                 `${styles.menuItem} ${isActive ? styles.active : ""}`
               }
             >
-              <span className={styles.menuIcon}><Settings size={20} /></span>
+              <span className={styles.menuIcon}>
+                <Settings size={20} />
+              </span>
               <span className={styles.menuText}>Settings</span>
             </NavLink>
           </nav>
@@ -237,93 +353,115 @@ const handleMarkAllAsRead = async (e) => {
           <div className={styles.divider}></div>
 
           <NavLink to="/" onClick={handleLogout} className={styles.menuItem}>
-            <span className={styles.menuIcon}><LogOut size={20} /></span>
+            <span className={styles.menuIcon}>
+              <LogOut size={20} />
+            </span>
             <span className={styles.menuText}>Logout</span>
           </NavLink>
         </div>
-      </aside>
+ </aside>
 
-      <header className={styles.headerContainer}>
-        <div className={styles.searchBar}>
-          <Search size={19} />
-          <input
-            type="text"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
+<header className={styles.headerContainer}>
+  <div className={styles.searchBar}>
+    <Search size={19} />
+    <input
+      type="text"
+      placeholder="Search..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+    />
+  </div>
 
-        <div className={styles.headerRight}>
-          <div className={styles.notificationWrapper}>
+  <div className={styles.headerRight}>
+    
+    {/* Notification */}
+    <div className={styles.notificationWrapper}>
+      <button
+        type="button"
+        className={styles.notificationBtn}
+        onClick={(e) => {
+          e.stopPropagation();
+          setNotificationOpen((prev) => !prev);
+        }}
+      >
+        <i className="bx bx-bell"></i>
+
+        {notificationCount > 0 && (
+          <span className={styles.notificationBadge}>
+            {notificationCount}
+          </span>
+        )}
+      </button>
+
+      <div
+        className={`${styles.notificationDropdown} ${
+          notificationOpen ? styles.show : ""
+        }`}
+      >
+        <div className={styles.notificationHeader}>
+          <h4>Notifications</h4>
+
+          {notificationCount > 0 && (
             <button
               type="button"
-              className={styles.notificationBtn}
-              onClick={(e) => {
-                e.stopPropagation();
-                setNotificationOpen((prev) => !prev);
-              }}
+              className={styles.markReadBtn}
+              onClick={handleMarkAllAsRead}
             >
-              <i className="bx bx-bell"></i>
-
-              {notificationCount > 0 && (
-                <span className={styles.notificationBadge}>{notificationCount}</span>
-              )}
+              Mark all as read
             </button>
+          )}
+        </div>
 
-            <div className={`${styles.notificationDropdown} ${notificationOpen ? styles.show : ""}`}>
-              <div className={styles.notificationHeader}>
-                <h4>Notifications</h4>
-
-                {notificationCount > 0 && (
-             <button
-                type="button"
-                className={styles.markReadBtn}
-                onClick={handleMarkAllAsRead}
-              >
-                Mark all as read
-              </button>
-                )}
+        {bellNotifications.length > 0 ? (
+          bellNotifications.slice(0, 5).map((item) => (
+            <div
+              key={item.notification_id || item.id}
+              className={styles.notificationItem}
+            >
+              <div className={styles.notificationTop}>
+                <h5>{item.title || "No title"}</h5>
+                <span className={styles.notificationRole}>
+                  {item.recipient_type || "all"}
+                </span>
               </div>
 
-              {bellNotifications.length > 0 ? (
-                bellNotifications.slice(0, 5).map((item) => (
-                  <div
-                    className={styles.notificationItem}
-                    key={item.notification_id || item.id}
-                  >
-                    <div className={styles.notificationTop}>
-                      <h5>{item.title || "No title"}</h5>
-                      <span className={styles.notificationRole}>
-                        {item.recipient_type || "all"}
-                      </span>
-                    </div>
+              <p className={styles.notificationMessage}>
+                {item.message || "No message"}
+              </p>
 
-                    <p className={styles.notificationMessage}>
-                      {item.message || "No message"}
-                    </p>
+              <p className={styles.notificationCreator}>
+                Posted by {item.created_by || "Admin"}
+              </p>
 
-                    <p className={styles.notificationCreator}>
-                      Posted by {item.created_by || "Admin"}
-                    </p>
-
-                    <small className={styles.notificationDate}>
-                      {item.created_at
-                        ? new Date(item.created_at).toLocaleString()
-                        : "No date"}
-                    </small>
-                  </div>
-                ))
-              ) : (
-                <div className={styles.emptyNotification}>
-                  <p>You don’t have any new notifications</p>
-                </div>
-              )}
+              <small className={styles.notificationDate}>
+                {item.created_at
+                  ? new Date(item.created_at).toLocaleString()
+                  : "No date"}
+              </small>
             </div>
+          ))
+        ) : (
+          <div className={styles.emptyNotification}>
+            <p>You don’t have any new notifications</p>
           </div>
-        </div>
-      </header>
+        )}
+      </div>
+    </div>
 
+    {/* Admin Profile */}
+    <div className={styles.adminHeaderProfile}>
+      <img
+        src={admin.profile_image || "/images/temporary profile.jpg"}
+        alt="Admin"
+        className={styles.adminHeaderImg}
+      />
+
+      <span className={styles.adminHeaderName}>
+        {admin.username || "Admin"}
+      </span>
+    </div>
+  </div>
+</header>
       <main className={styles.main}>
         <div className={styles.pageHeader}>
           <h1>Backup & Restore</h1>

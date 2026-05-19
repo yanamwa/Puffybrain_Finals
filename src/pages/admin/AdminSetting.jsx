@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -6,6 +6,7 @@ import {
   Layers,
   LibraryBig,
   Gamepad2,
+  Database,
   LogOut,
   Search,
   User,
@@ -17,26 +18,26 @@ import "boxicons/css/boxicons.min.css";
 
 export default function AdminSettings() {
   const navigate = useNavigate();
-
+  const [activitySortOpen, setActivitySortOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const [bellNotifications, setBellNotifications] = useState([]);
   const [activeTab, setActiveTab] = useState("personal");
-  const notificationCount = 0;
-
+  const fetchedOnce = useRef(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
-
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otpEmail, setOtpEmail] = useState("");
   const [otpCode, setOtpCode] = useState(["", "", "", ""]);
   const [resendingOtp, setResendingOtp] = useState(false);
-
+  const [activitySort, setActivitySort] = useState("recent");
+  const [activityPage, setActivityPage] = useState(1);
+  const actionsPerPage = 5;
   const [admin, setAdmin] = useState({
     full_name: "",
     username: "",
@@ -60,38 +61,24 @@ export default function AdminSettings() {
     newPassword: "",
     confirmPassword: "",
   });
+
+  const [adminActivity, setAdminActivity] = useState({
+    last_login: "Loading...",
+    modules_created: 0,
+    recent_actions: [],
+  });
+
   const menuItems = [
-    {
-      label: "Dashboard",
-      path: "/admin/dashboard",
-      icon: <LayoutDashboard size={20} />,
-    },
-    {
-      label: "User Management",
-      path: "/admin/users",
-      icon: <Users size={20} />,
-    },
-    {
-      label: "Module Management",
-      path: "/admin/modules",
-      icon: <Layers size={20} />,
-    },
-    {
-      label: "Decks Management",
-      path: "/admin/decks",
-      icon: <LibraryBig size={20} />,
-    },
-    {
-      label: "Modes Management",
-      path: "/admin/modes",
-      icon: <Gamepad2 size={20} />,
-    },
-    {
-      label: "Notification Management",
-      path: "/admin/notifications",
-      icon: <i className="bx bx-bell"></i>,
-    },
+    { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
+    { label: "User Management", path: "/admin/users", icon: <Users size={20} /> },
+    { label: "Module Management", path: "/admin/modules", icon: <Layers size={20} /> },
+    { label: "Decks Management", path: "/admin/decks", icon: <LibraryBig size={20} /> },
+    { label: "Modes Management", path: "/admin/modes", icon: <Gamepad2 size={20} /> },
+    { label: "Notification Management", path: "/admin/notifications", icon: <i className="bx bx-bell"></i> },
+     { label: "Backup & Restore", path: "/admin/backup-restore", icon: <Database size={20} /> },
+
   ];
+
   const showFeedback = (type, title, text) => {
     Swal.fire({
       imageUrl: type === "success" ? "/images/success.png" : "/images/error.png",
@@ -100,6 +87,63 @@ export default function AdminSettings() {
       title,
       text,
     });
+  };
+
+  const fetchBellNotifications = async () => {
+    try {
+      const adminData = JSON.parse(localStorage.getItem("admin") || "{}");
+
+      const res = await fetch(
+        `http://localhost/puffybrain/getAdminNotifications.php?admin_id=${adminData.id}`,
+        { credentials: "include" }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        setBellNotifications(data.notifications || []);
+      } else {
+        setBellNotifications([]);
+      }
+    } catch (err) {
+      console.error("Bell notification fetch error:", err);
+      setBellNotifications([]);
+    }
+  };
+
+  const handleMarkAllAsRead = async (e) => {
+    e.stopPropagation();
+
+    const adminData = JSON.parse(localStorage.getItem("admin") || "{}");
+    const adminId = adminData.id;
+
+    if (!adminId) {
+      Swal.fire("Error", "No admin ID found. Please log in again.", "error");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost/puffybrain/markAdminNotificationsRead.php", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ admin_id: adminId }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        await fetchBellNotifications();
+        setNotificationOpen(true);
+      } else {
+        Swal.fire("Error", data.message || "Failed to mark as read.", "error");
+      }
+    } catch (err) {
+      console.error("Mark all as read error:", err);
+      Swal.fire("Server Error", "Failed to mark as read.", "error");
+    }
   };
 
   const fetchAdmin = async () => {
@@ -129,11 +173,35 @@ export default function AdminSettings() {
     }
   };
 
-  useEffect(() => {
-    fetchAdmin();
-  }, []);
+  const fetchAdminActivity = async () => {
+    try {
+      const res = await fetch("http://localhost/puffybrain/getAdminActivity.php", {
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setAdminActivity({
+          last_login: data.activity?.last_login || "Not recorded yet",
+          modules_created: data.activity?.modules_created || 0,
+          recent_actions: data.activity?.recent_actions || [],
+        });
+      }
+    } catch (err) {
+      console.error("Fetch admin activity error:", err);
+    }
+  };
 
   useEffect(() => {
+    if (fetchedOnce.current) return;
+
+    fetchedOnce.current = true;
+
+    fetchAdmin();
+    fetchBellNotifications();
+    fetchAdminActivity();
+
     const handler = (e) => {
       const insideDropdown = e.target.closest(`.${styles.notificationWrapper}`);
 
@@ -143,8 +211,29 @@ export default function AdminSettings() {
     };
 
     window.addEventListener("click", handler);
-    return () => window.removeEventListener("click", handler);
+
+    return () => {
+      window.removeEventListener("click", handler);
+    };
   }, []);
+
+  const sortedActions = [...adminActivity.recent_actions].sort((a, b) => {
+  const dateA = new Date(a.date).getTime();
+  const dateB = new Date(b.date).getTime();
+
+  if (activitySort === "recent") {
+    return dateB - dateA;
+  }
+
+  return dateA - dateB;
+});
+
+const totalActivityPages = Math.ceil(sortedActions.length / actionsPerPage);
+
+const paginatedActions = sortedActions.slice(
+  (activityPage - 1) * actionsPerPage,
+  activityPage * actionsPerPage
+);
 
   useEffect(() => {
     return () => {
@@ -174,19 +263,19 @@ export default function AdminSettings() {
   };
 
   const openEditModal = () => {
-  setEditForm({
-    full_name: admin.full_name || "",
-    username: admin.username || "",
-    email: admin.email || "",
-    signature: admin.signature || "",
-    role: admin.role || "Admin",
-    profile_image: admin.profile_image || "",
-  });
+    setEditForm({
+      full_name: admin.full_name || "",
+      username: admin.username || "",
+      email: admin.email || "",
+      signature: admin.signature || "",
+      role: admin.role || "Admin",
+      profile_image: admin.profile_image || "",
+    });
 
-  setSelectedImageFile(null);
-  setImagePreview("");
-  setIsEditModalOpen(true);
-};
+    setSelectedImageFile(null);
+    setImagePreview("");
+    setIsEditModalOpen(true);
+  };
 
   const closeEditModal = () => {
     setIsEditModalOpen(false);
@@ -479,26 +568,24 @@ export default function AdminSettings() {
       );
     }
   };
+  const unreadNotifications = bellNotifications.filter(
+    (notif) => notif.status === "unread"
+  );
 
-  const handleDeleteAccount = () => {
-    Swal.fire({
-      imageUrl: "/images/error.png",
-      imageWidth: 170,
-      imageHeight: 170,
-      title: "Delete Account?",
-      text: "This action is irreversible.",
-      showCancelButton: true,
-      confirmButtonText: "Yes, delete",
-      cancelButtonText: "Cancel",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        showFeedback(
-          "success",
-          "Deleted",
-          "Admin account deletion logic goes here."
-        );
-      }
-    });
+  const notificationCount = unreadNotifications.length;
+
+  const formatActivityDate = (dateValue) => {
+    if (!dateValue || dateValue === "Not recorded yet") {
+      return "Not recorded yet";
+    }
+
+    const date = new Date(dateValue);
+
+    if (Number.isNaN(date.getTime())) {
+      return dateValue;
+    }
+
+    return date.toLocaleString();
   };
 
   return (
@@ -589,50 +676,107 @@ export default function AdminSettings() {
           </NavLink>
         </div>
       </aside>
+<header className={styles.headerContainer}>
+  <div className={styles.searchBar}>
+    <Search size={19} />
+    <input
+      type="text"
+      placeholder="Search..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+    />
+  </div>
 
-      <header className={styles.headerContainer}>
-        <div className={styles.searchBar}>
-          <Search size={19} />
+  <div className={styles.headerRight}>
+    
+    {/* Notification */}
+    <div className={styles.notificationWrapper}>
+      <button
+        type="button"
+        className={styles.notificationBtn}
+        onClick={(e) => {
+          e.stopPropagation();
+          setNotificationOpen((prev) => !prev);
+        }}
+      >
+        <i className="bx bx-bell"></i>
 
-          <input
-            type="text"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+        {notificationCount > 0 && (
+          <span className={styles.notificationBadge}>
+            {notificationCount}
+          </span>
+        )}
+      </button>
+
+      <div
+        className={`${styles.notificationDropdown} ${
+          notificationOpen ? styles.show : ""
+        }`}
+      >
+        <div className={styles.notificationHeader}>
+          <h4>Notifications</h4>
+
+          {notificationCount > 0 && (
+            <button
+              type="button"
+              className={styles.markReadBtn}
+              onClick={handleMarkAllAsRead}
+            >
+              Mark all as read
+            </button>
+          )}
         </div>
 
-        <div className={styles.notificationWrapper}>
-          <button
-            type="button"
-            className={styles.notificationBtn}
-            onClick={(e) => {
-              e.stopPropagation();
-              setNotificationOpen((prev) => !prev);
-            }}
-          >
-            <i className="bx bx-bell"></i>
+        {bellNotifications.length > 0 ? (
+          bellNotifications.slice(0, 5).map((item) => (
+            <div
+              key={item.notification_id || item.id}
+              className={styles.notificationItem}
+            >
+              <div className={styles.notificationTop}>
+                <h5>{item.title || "No title"}</h5>
+                <span className={styles.notificationRole}>
+                  {item.recipient_type || "all"}
+                </span>
+              </div>
 
-            {notificationCount > 0 && (
-              <span className={styles.notificationBadge}>
-                {notificationCount}
-              </span>
-            )}
-          </button>
+              <p className={styles.notificationMessage}>
+                {item.message || "No message"}
+              </p>
 
-          <div
-            className={`${styles.notificationDropdown} ${
-              notificationOpen ? styles.show : ""
-            }`}
-          >
-            <h4>Notifications</h4>
+              <p className={styles.notificationCreator}>
+                Posted by {item.created_by || "Admin"}
+              </p>
 
-            <div className={styles.emptyNotification}>
-              <p>You don’t have any new notifications</p>
+              <small className={styles.notificationDate}>
+                {item.created_at
+                  ? new Date(item.created_at).toLocaleString()
+                  : "No date"}
+              </small>
             </div>
+          ))
+        ) : (
+          <div className={styles.emptyNotification}>
+            <p>You don’t have any new notifications</p>
           </div>
-        </div>
-      </header>
+        )}
+      </div>
+    </div>
+
+    {/* Admin Profile */}
+    <div className={styles.adminHeaderProfile}>
+      <img
+        src={admin.profile_image || "/images/temporary profile.jpg"}
+        alt="Admin"
+        className={styles.adminHeaderImg}
+      />
+
+      <span className={styles.adminHeaderName}>
+        {admin.username || "Admin"}
+      </span>
+    </div>
+  </div>
+</header>
 
       <main className={styles.main}>
         <div className={styles.pageHeader}>
@@ -720,7 +864,7 @@ export default function AdminSettings() {
                   </>
                 ) : (
                   <div className={styles.settingsContent}>
-                    <div className={styles.settingsCard}>
+                     <div className={styles.settingsCard}>
                       <h2 className={styles.settingsHeading}>
                         Change Password
                       </h2>
@@ -906,30 +1050,6 @@ export default function AdminSettings() {
                       </form>
                     </div>
 
-                    <div className={styles.settingsCard}>
-                      <h2
-                        className={`${styles.settingsHeading} ${styles.deleteHeading}`}
-                      >
-                        Delete Account
-                      </h2>
-
-                      <div className={styles.settingsDivider}></div>
-
-                      <div className={styles.deleteBody}>
-                        <p className={styles.deleteText}>
-                          Are you sure you want to delete this admin account?
-                          This action is irreversible.
-                        </p>
-
-                        <button
-                          type="button"
-                          className={styles.deleteAccountBtn}
-                          onClick={handleDeleteAccount}
-                        >
-                          Delete Account
-                        </button>
-                      </div>
-                    </div>
                   </div>
                 )}
               </div>
@@ -997,30 +1117,25 @@ export default function AdminSettings() {
                     <div className={styles.modalFormGroup}>
                       <label>Email Address</label>
 
-                      <input
-                        type="email"
-                        name="email"
-                        value={editForm.email}
-                        onChange={handleEditInputChange}
-                        placeholder="Enter email address"
-                      />
+                   <input
+                    type="email"
+                    name="email"
+                    value={editForm.email}
+                    readOnly
+                    className={styles.disabledInput}
+                  />
                     </div>
 
                     <div className={styles.modalFormGroup}>
                       <label>Role</label>
 
-                      <select
+                      <input
+                        type="text"
                         name="role"
                         value={editForm.role}
-                        onChange={handleEditInputChange}
-                      >
-                        <option value="">Select role</option>
-                        <option value="Super Admin">Super Admin</option>
-                        <option value="Content Admin">Content Admin</option>
-                        <option value="User Manager">User Manager</option>
-                        <option value="Moderator">Moderator</option>
-                        <option value="Admin">Admin</option>
-                      </select>
+                        readOnly
+                        className={styles.disabledInput}
+                      />
                     </div>
 
                     <div className={styles.modalActions}>

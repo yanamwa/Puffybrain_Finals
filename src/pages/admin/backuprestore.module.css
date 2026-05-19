@@ -669,3 +669,93 @@
   font-size: 15px;
   padding: 20px;
 }
+
+.swalPopup {
+  border-radius: 24px !important;
+  padding: 28px 24px !important;
+}
+
+.swalImage {
+  width: 190px !important;
+  height: 190px !important;
+  object-fit: contain !important;
+  margin: 0 auto 12px auto !important;
+}
+
+.swalActions {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 18px !important;  
+  margin-top: 22px !important;
+}
+
+.restoreBtnSwal {
+  min-width: 165px !important;
+  height: 52px !important;
+  background: #d9a9e9 !important;
+  color: black !important;
+  border: 1px solid #744185 !important;
+  box-shadow: 0 4px 0 #80588d !important;
+  border-radius: 16px !important;
+  font-family: inherit !important;
+  font-size: 18px !important;
+}
+
+.cancelBtnSwal {
+  min-width: 125px !important;
+  height: 52px !important;
+  background: white !important;
+  color: black !important;
+  border: 1px solid #797c7e !important;
+  box-shadow: 0 4px 0 #757575 !important;
+  border-radius: 16px !important;
+  font-family: inherit !important;
+  font-size: 18px !important;
+}
+
+.restoreBtnSwal,
+.cancelBtnSwal {
+  min-width: 135px !important;
+  height: 52px !important;
+  border-radius: 16px !important;
+  font-family: "Jersey 15", sans-serif !important;
+  font-size: 18px !important;
+  padding: 10px 24px !important;
+}
+
+.restoreBtnSwal {
+  background: #d9a9e9 !important;
+  color: black !important;
+  border: 1px solid #744185 !important;
+  box-shadow: 0 4px 0 #80588d !important;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.adminHeaderProfile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 16px;
+  border-left: 1px solid #e7dff7;
+}
+
+.adminHeaderImg {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0px 3px 0px #aaa7a7;
+}
+
+.adminHeaderName {
+  font-family: "Jersey 15", sans-serif;
+  font-size: 22px;
+  color: #333;
+  white-space: nowrap;
+}

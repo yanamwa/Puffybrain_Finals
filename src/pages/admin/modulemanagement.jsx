@@ -10,6 +10,7 @@ import {
   Search,
   User,
   Settings,
+  Database,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import "boxicons/css/boxicons.min.css";
@@ -37,10 +38,12 @@ function parseDeckCards(raw) {
         .map((x, i) => ({
           id: i + 1,
           question: String(x.question ?? x.q ?? "").trim(),
-          answer: String(x.correct_answer ?? x.correctAnswer ?? x.answer ?? x.a ?? "").trim(),        }))
+          answer: String(x.correct_answer ?? x.correctAnswer ?? x.answer ?? x.a ?? "").trim(),
+        }))
         .filter((c) => c.question || c.answer);
     }
   } catch {}
+  
 
   const blocks = text
     .split(/\n\s*\n+/g)
@@ -79,13 +82,14 @@ export default function ModuleManagement() {
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
-  const notificationCount = 0;
+  const [bellNotifications, setBellNotifications] = useState([]);
 
   const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [rowsToShow, setRowsToShow] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const [viewOpen, setViewOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
@@ -96,51 +100,118 @@ export default function ModuleManagement() {
   const [textViewOpen, setTextViewOpen] = useState(false);
   const [textViewTitle, setTextViewTitle] = useState("");
   const [textViewContent, setTextViewContent] = useState("");
-  
-
-
 
   const fetchedOnce = useRef(false);
 
   const menuItems = [
-    {
-      label: "Dashboard",
-      path: "/admin/dashboard",
-      icon: <LayoutDashboard size={20} />,
-    },
-    {
-      label: "User Management",
-      path: "/admin/users",
-      icon: <Users size={20} />,
-    },
-    {
-      label: "Module Management",
-      path: "/admin/modules",
-      icon: <Layers size={20} />,
-    },
-    {
-      label: "Decks Management",
-      path: "/admin/decks",
-      icon: <LibraryBig size={20} />,
-    },
-    {
-      label: "Modes Management",
-      path: "/admin/modes",
-      icon: <Gamepad2 size={20} />,
-    },
-    {
-      label: "Notification Management",
-      path: "/admin/notifications",
-      icon: <i className="bx bx-bell"></i>,
-    },
+    { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
+    { label: "User Management", path: "/admin/users", icon: <Users size={20} /> },
+    { label: "Module Management", path: "/admin/modules", icon: <Layers size={20} /> },
+    { label: "Decks Management", path: "/admin/decks", icon: <LibraryBig size={20} /> },
+    { label: "Modes Management", path: "/admin/modes", icon: <Gamepad2 size={20} /> },
+    { label: "Notification Management", path: "/admin/notifications", icon: <i className="bx bx-bell"></i> },
+    { label: "Backup & Restore", path: "/admin/backup-restore", icon: <Database size={20} /> },
   ];
-  
+
+  const [admin, setAdmin] = useState({
+  username: "Admin",
+  full_name: "",
+  email: "",
+  role: "",
+  profile_image: "/images/temporary profile.jpg",
+});
+
+  const fetchBellNotifications = async () => {
+    try {
+      const admin = JSON.parse(localStorage.getItem("admin") || "{}");
+
+      const res = await fetch(
+        `http://localhost/puffybrain/getAdminNotifications.php?admin_id=${admin.id}`,
+        { credentials: "include" }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        setBellNotifications(data.notifications || []);
+      } else {
+        setBellNotifications([]);
+      }
+    } catch (err) {
+      console.error("Bell notification fetch error:", err);
+      setBellNotifications([]);
+    }
+  };
+
+  const fetchAdmin = async () => {
+  try {
+    const res = await fetch(
+      "http://localhost/puffybrain/getAdminProfile.php",
+      {
+        credentials: "include",
+      }
+    );
+
+    const data = await res.json();
+
+    if (!data.success) {
+      console.error(data.message || "Admin not found");
+      return;
+    }
+
+    setAdmin({
+      username: data.admin?.username || "Admin",
+      full_name: data.admin?.full_name || "",
+      email: data.admin?.email || "",
+      role: data.admin?.role || "Administrator",
+      profile_image:
+        data.admin?.profile_image || "/images/temporary profile.jpg",
+    });
+  } catch (err) {
+    console.error("Fetch admin error:", err);
+  }
+};
+
+
+  const handleMarkAllAsRead = async (e) => {
+    e.stopPropagation();
+
+    const admin = JSON.parse(localStorage.getItem("admin") || "{}");
+    const adminId = admin.id;
+
+    if (!adminId) {
+      Swal.fire("Error", "No admin ID found. Please log in again.", "error");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost/puffybrain/markAdminNotificationsRead.php", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ admin_id: adminId }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        await fetchBellNotifications();
+        setNotificationOpen(true);
+      } else {
+        Swal.fire("Error", data.message || "Failed to mark as read.", "error");
+      }
+    } catch (err) {
+      console.error("Mark all as read error:", err);
+      Swal.fire("Server Error", "Failed to mark as read.", "error");
+    }
+  };
+
   const handleLogout = (e) => {
     e.preventDefault();
-
     localStorage.clear();
     sessionStorage.clear();
-
     window.location.href = "/admin/login";
   };
 
@@ -260,8 +331,28 @@ export default function ModuleManagement() {
     if (fetchedOnce.current) return;
 
     fetchedOnce.current = true;
+    fetchAdmin();
     fetchModules();
+    fetchBellNotifications();
+
+    const handler = (e) => {
+      const insideDropdown = e.target.closest(`.${styles.notificationWrapper}`);
+
+      if (!insideDropdown) {
+        setNotificationOpen(false);
+      }
+    };
+
+    window.addEventListener("click", handler);
+
+    return () => {
+      window.removeEventListener("click", handler);
+    };
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, rowsToShow]);
 
   const filteredModules = useMemo(
     () =>
@@ -274,14 +365,13 @@ export default function ModuleManagement() {
   );
 
   const totalPages = Math.ceil(filteredModules.length / rowsToShow);
-  const [currentPage, setCurrentPage] = useState(1);
 
   const shownModules = useMemo(() => {
-  const start = (currentPage - 1) * rowsToShow;
-  const end = start + rowsToShow;
+    const start = (currentPage - 1) * rowsToShow;
+    const end = start + rowsToShow;
 
-  return filteredModules.slice(start, end);
-}, [filteredModules, currentPage, rowsToShow]);
+    return filteredModules.slice(start, end);
+  }, [filteredModules, currentPage, rowsToShow]);
 
   const selectedModule = useMemo(
     () => modules.find((m) => m.id === selectedId) || null,
@@ -292,6 +382,12 @@ export default function ModuleManagement() {
     () => (selectedModule ? parseDeckCards(selectedModule.quizModule) : []),
     [selectedModule]
   );
+
+  const unreadNotifications = bellNotifications.filter(
+    (notif) => notif.status === "unread"
+  );
+
+  const notificationCount = unreadNotifications.length;
 
   const openView = (mod) => {
     setSelectedId(mod.id);
@@ -313,9 +409,7 @@ export default function ModuleManagement() {
 
   return (
     <div className={styles.layout}>
-      <aside
-        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
-      >
+      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
         <div className={styles.sidebarTop}>
           <div
             className={styles.sidebarToggle}
@@ -325,11 +419,7 @@ export default function ModuleManagement() {
           </div>
 
           <div className={styles.logo}>
-            <img
-              className={styles.logoExpanded}
-              src="/images/logo1.png"
-              alt="Logo"
-            />
+            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
 
             <img
               className={styles.logoCollapsed}
@@ -411,50 +501,111 @@ export default function ModuleManagement() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
+       
+  <div className={styles.headerRight}>
+    
+    {/* Notification */}
+    <div className={styles.notificationWrapper}>
+      <button
+        type="button"
+        className={styles.notificationBtn}
+        onClick={(e) => {
+          e.stopPropagation();
+          setNotificationOpen((prev) => !prev);
+        }}
+      >
+        <i className="bx bx-bell"></i>
 
-        <div className={styles.notificationWrapper}>
-          <button
-            type="button"
-            className={styles.notificationBtn}
-            onClick={(e) => {
-              e.stopPropagation();
-              setNotificationOpen((prev) => !prev);
-            }}
-          >
-            <i className="bx bx-bell"></i>
+        {notificationCount > 0 && (
+          <span className={styles.notificationBadge}>
+            {notificationCount}
+          </span>
+        )}
+      </button>
 
-            {notificationCount > 0 && (
-              <span className={styles.notificationBadge}>
-                {notificationCount}
-              </span>
-            )}
-          </button>
+      <div
+        className={`${styles.notificationDropdown} ${
+          notificationOpen ? styles.show : ""
+        }`}
+      >
+        <div className={styles.notificationHeader}>
+          <h4>Notifications</h4>
 
-          <div
-            className={`${styles.notificationDropdown} ${
-              notificationOpen ? styles.show : ""
-            }`}
-          >
-            <h4>Notifications</h4>
+          {notificationCount > 0 && (
+            <button
+              type="button"
+              className={styles.markReadBtn}
+              onClick={handleMarkAllAsRead}
+            >
+              Mark all as read
+            </button>
+          )}
+        </div>
 
-            <div className={styles.emptyNotification}>
-              <p>You don’t have any new notifications</p>
+        {bellNotifications.length > 0 ? (
+          bellNotifications.slice(0, 5).map((item) => (
+            <div
+              key={item.notification_id || item.id}
+              className={styles.notificationItem}
+            >
+              <div className={styles.notificationTop}>
+                <h5>{item.title || "No title"}</h5>
+                <span className={styles.notificationRole}>
+                  {item.recipient_type || "all"}
+                </span>
+              </div>
+
+              <p className={styles.notificationMessage}>
+                {item.message || "No message"}
+              </p>
+
+              <p className={styles.notificationCreator}>
+                Posted by {item.created_by || "Admin"}
+              </p>
+
+              <small className={styles.notificationDate}>
+                {item.created_at
+                  ? new Date(item.created_at).toLocaleString()
+                  : "No date"}
+              </small>
             </div>
+          ))
+        ) : (
+          <div className={styles.emptyNotification}>
+            <p>You don’t have any new notifications</p>
           </div>
-        </div>
-      </header>
-
-    <main className={styles.main}>
-      <div className={styles.pageTop}>
-        <div className={styles.titleSection}>
-          <h1 className={styles.pageTitle}>Module Management</h1>
-          <p> Create and manage learning modules for PuffyBrain users. </p>
-        </div>
-
-        <button type="button" className={styles.addBtn} onClick={openAdd}>
-          + Add new module
-        </button>
+        )}
       </div>
+    </div>
+
+    {/* Admin Profile */}
+    <div className={styles.adminHeaderProfile}>
+      <img
+        src={admin.profile_image || "/images/temporary profile.jpg"}
+        alt="Admin"
+        className={styles.adminHeaderImg}
+      />
+
+      <span className={styles.adminHeaderName}>
+        {admin.username || "Admin"}
+      </span>
+    </div>
+  </div>
+</header>
+
+
+
+      <main className={styles.main}>
+        <div className={styles.pageTop}>
+          <div className={styles.titleSection}>
+            <h1 className={styles.pageTitle}>Module Management</h1>
+            <p>Create and manage learning modules for PuffyBrain users.</p>
+          </div>
+
+          <button type="button" className={styles.addBtn} onClick={openAdd}>
+            + Add new module
+          </button>
+        </div>
 
         <div className={styles.tableCard}>
           <table className={styles.table}>
@@ -484,23 +635,25 @@ export default function ModuleManagement() {
               ) : (
                 shownModules.map((mod) => (
                   <tr key={mod.id}>
-                  <td>
-                    {`MOD${String(mod.date)
-                      .replace(/[-/: ]/g, "")
-                      .slice(2, 10)}${String(mod.id).padStart(3, "0")}`}
-                  </td>   
-                 <td>{mod.title}</td>
-                    <td>{mod.date}</td>
                     <td>
-                  <span 
-                      className={
-                        mod.status === "publish"
-                          ? styles.statusActive
-                          : styles.statusInactive
-                      }
-                    >
-                      ● {mod.status === "publish" ? "Publish" : "Draft"}
-                    </span>
+                      {`MOD${String(mod.date)
+                        .replace(/[-/: ]/g, "")
+                        .slice(2, 10)}${String(mod.id).padStart(3, "0")}`}
+                    </td>
+
+                    <td>{mod.title}</td>
+                    <td>{mod.date}</td>
+
+                    <td>
+                      <span
+                        className={
+                          mod.status === "publish"
+                            ? styles.statusActive
+                            : styles.statusInactive
+                        }
+                      >
+                        ● {mod.status === "publish" ? "Publish" : "Draft"}
+                      </span>
                     </td>
 
                     <td className={styles.actions}>
@@ -509,8 +662,8 @@ export default function ModuleManagement() {
                         className={styles.actionEdit}
                         onClick={() => openEdit(mod)}
                       >
-                      <i className='bx bx-pencil'></i>
-                      <span>Edit</span>                  
+                        <i className="bx bx-pencil"></i>
+                        <span>Edit</span>
                       </button>
 
                       <button
@@ -518,18 +671,18 @@ export default function ModuleManagement() {
                         className={styles.actionDelete}
                         onClick={() => openDelete(mod)}
                       >
-                    <i className='bx bx-trash'></i>
-                    <span>Delete</span>   
-                   </button>
+                        <i className="bx bx-trash"></i>
+                        <span>Delete</span>
+                      </button>
 
                       <button
                         type="button"
                         className={styles.actionView}
                         onClick={() => openView(mod)}
                       >
-                    <i className='bx bx-show'></i>
-                    <span>View</span>   
-                   </button>
+                        <i className="bx bx-show"></i>
+                        <span>View</span>
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -539,41 +692,41 @@ export default function ModuleManagement() {
 
           <div className={styles.paginationWrapper}>
             <div className={styles.paginationCenter}>
-                <button
-                  className={styles.navBtn}
-                  type="button"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage((prev) => prev - 1)}
-                >
-                  {"<"}
-                </button>
+              <button
+                className={styles.navBtn}
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((prev) => prev - 1)}
+              >
+                {"<"}
+              </button>
 
-                {[...Array(totalPages)].map((_, index) => {
-                  const page = index + 1;
+              {[...Array(totalPages || 1)].map((_, index) => {
+                const page = index + 1;
 
-                  return (
-                    <button
-                      key={page}
-                      className={`${styles.pageBtn} ${
-                        currentPage === page ? styles.pageActive : ""
-                      }`}
-                      type="button"
-                      onClick={() => setCurrentPage(page)}
-                    >
-                      {page}
-                    </button>
-                  );
-                })}
+                return (
+                  <button
+                    key={page}
+                    className={`${styles.pageBtn} ${
+                      currentPage === page ? styles.pageActive : ""
+                    }`}
+                    type="button"
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
 
-                <button
-                  className={styles.navBtn}
-                  type="button"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage((prev) => prev + 1)}
-                >
-                  {">"}
-                </button>
-              </div>
+              <button
+                className={styles.navBtn}
+                type="button"
+                disabled={currentPage === totalPages || totalPages === 0}
+                onClick={() => setCurrentPage((prev) => prev + 1)}
+              >
+                {">"}
+              </button>
+            </div>
 
             <div className={styles.rowsControl}>
               <span>Show</span>
@@ -607,11 +760,7 @@ export default function ModuleManagement() {
                 Edit
               </button>
 
-              <button
-                type="button"
-                className={styles.mmClose}
-                onClick={closeView}
-              >
+              <button type="button" className={styles.mmClose} onClick={closeView}>
                 ✕
               </button>
             </div>
@@ -668,44 +817,45 @@ export default function ModuleManagement() {
                         type="button"
                         className={styles.mmViewBtn}
                         onClick={() =>
-                        openTextView(
-                          "Lessons",
-                          (() => {
-                            try {
-                              const parsed = JSON.parse(selectedModule.lessonContent);
+                          openTextView(
+                            "Lessons",
+                            (() => {
+                              try {
+                                const parsed = JSON.parse(
+                                  selectedModule.lessonContent
+                                );
 
-                              if (Array.isArray(parsed)) {
-                                return parsed
-                                  .map((page) => page.content || "")
-                                  .join("\n\n");
-                              }
-                            } catch {}
+                                if (Array.isArray(parsed)) {
+                                  return parsed
+                                    .map((page) => page.content || "")
+                                    .join("\n\n");
+                                }
+                              } catch {}
 
-                            return selectedModule.lessonContent;
-                          })()
-                        )                        }
+                              return selectedModule.lessonContent;
+                            })()
+                          )
+                        }
                       >
                         View
                       </button>
                     </div>
 
-              <div className={styles.mmValue}>
-                  {(() => {
-                    try {
-                      const parsed = JSON.parse(selectedModule.lessonContent);
+                    <div className={styles.mmValue}>
+                      {(() => {
+                        try {
+                          const parsed = JSON.parse(selectedModule.lessonContent);
 
-                      if (Array.isArray(parsed)) {
-                        return getPreviewText(
-                          parsed
-                            .map((page) => page.content || "")
-                            .join(" ")
-                        );
-                      }
-                    } catch {}
+                          if (Array.isArray(parsed)) {
+                            return getPreviewText(
+                              parsed.map((page) => page.content || "").join(" ")
+                            );
+                          }
+                        } catch {}
 
-                    return getPreviewText(selectedModule.lessonContent);
-                  })()}
-                </div>
+                        return getPreviewText(selectedModule.lessonContent);
+                      })()}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -732,18 +882,11 @@ export default function ModuleManagement() {
 
       {textViewOpen && (
         <div className={styles.popupOverlay} onClick={closeTextView}>
-          <div
-            className={styles.textViewModal}
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className={styles.textViewModal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.popupHeader}>
               <h2 className={styles.popupTitle}>{textViewTitle}</h2>
 
-              <button
-                type="button"
-                className={styles.popupClose}
-                onClick={closeTextView}
-              >
+              <button type="button" className={styles.popupClose} onClick={closeTextView}>
                 ✕
               </button>
             </div>
@@ -755,33 +898,24 @@ export default function ModuleManagement() {
 
       {deleteOpen && deleteTarget && (
         <div className={styles.popupOverlay} onClick={closeDelete}>
-          <div
-            className={styles.popupDeleteModal}
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className={styles.popupDeleteModal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.popupHeader}>
               <h2 className={styles.popupTitle}>Delete Module</h2>
 
-              <button
-                type="button"
-                className={styles.popupClose}
-                onClick={closeDelete}
-              >
+              <button type="button" className={styles.popupClose} onClick={closeDelete}>
                 ✕
               </button>
             </div>
 
             <div className={styles.popupBody}>
               <p className={styles.popupDeleteText}>
-                Are you sure you want to delete{" "}
-                <strong>{deleteTarget.title}</strong>?
+                Are you sure you want to delete <strong>{deleteTarget.title}</strong>?
               </p>
 
-            <div className={styles.warningBox}>
-              <i className='bx bx-error-circle'></i>
-
-              <span>This action cannot be undone.</span>
-            </div>
+              <div className={styles.warningBox}>
+                <i className="bx bx-error-circle"></i>
+                <span>This action cannot be undone.</span>
+              </div>
 
               <div className={styles.popupActions}>
                 <button
