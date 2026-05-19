@@ -115,18 +115,28 @@ function Homepage() {
     });
   };
 
-  const handleLogout = () => {
-    Swal.fire({
-      title: "Logout?",
-      text: "Are you sure you want to logout?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes",
-      confirmButtonColor: "#7b5cff",
-    }).then((result) => {
-      if (result.isConfirmed) navigate("/login");
-    });
-  };
+const handleLogout = () => {
+  Swal.fire({
+    title: "Logout?",
+    text: "Are you sure you want to logout?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes",
+    cancelButtonText: "Cancel",
+    buttonsStyling: false,
+    customClass: {
+      popup: styles.logoutSwalPopup,
+      title: styles.logoutSwalTitle,
+      htmlContainer: styles.logoutSwalText,
+      actions: styles.logoutSwalActions,
+      confirmButton: styles.logoutSwalConfirm,
+      cancelButton: styles.logoutSwalCancel,
+      icon: styles.logoutSwalIcon,
+    },
+  }).then((result) => {
+    if (result.isConfirmed) navigate("/login");
+  });
+};
 
   const fetchUserDecks = async () => {
     try {

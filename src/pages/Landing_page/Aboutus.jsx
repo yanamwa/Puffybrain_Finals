@@ -140,7 +140,7 @@ useEffect(() => {
 
          <div className={styles["card-container"]}>
             <div className={styles.photo}>
-              <img src="/images/anika.png" alt="Belle"/>
+              <img src="/images/belle.png" alt="Belle"/>
               <div className={styles.barcode}></div>
             </div>
             <div className={styles["id-details"]}>
@@ -167,50 +167,7 @@ useEffect(() => {
 
         </div>
 
-
-        {/* SECOND SECTION */}
-        <h2
-          className={styles["section-title2"]}
-          style={{
-            marginTop: "120px",
-            fontWeight: "normal",
-            color: "var(--font-color)",
-            fontSize: "50px",
-            textAlign: "center"
-          }}
-        >
-          Meet the previous developers
-        </h2>
-
-        <div className={styles["dev-grid-2"]}>
-
-          {[
-            ["Diana-Icon.png","Diana Mae","UI/UX Designer | Frontend Developer","Diana M."],
-            ["Railee-Icon.png","Railee Babiano","Frontend Developer","Railee B."],
-            ["Mj-Icon.png","Marjess Villamor","Frontend Developer","Marjess V."],
-            ["Patrick-Icon.png","Patrick Joseph Ibañez","Frontend Developer","Patrick I."],
-            ["Andrie-Icon.png","Andrei Kurt Mangco","Frontend Developer","Andrei M."],
-            ["Jeann-Icon.png","Jeann Desalit","Frontend Developer","Jeann D."],
-            ["shaina.png","Shaina May Yusores","Frontend Developer","Shaina Y."]
-          ].map((dev,index)=>(
-            <div key={index} className={`${styles["card-container"]} ${styles.show}`}>
-              <div className={styles.photo}>
-                <img src={`/images/${dev[0]}`} alt={dev[1]} />
-                <div className={styles.barcode}></div>
-              </div>
-              <div className={styles["id-details"]}>
-                <h3>Student ID Card</h3>
-                <p className={styles.info}><b>Name:</b> {dev[1]}</p>
-                <p className={styles.info}><b>Role:</b> {dev[2]}</p>
-                <p className={styles.info}><b>Signature:</b> <span className={styles.signature}>{dev[3]}</span></p>
-              </div>
-            </div>
-          ))}
-
-        </div>
-
       </section>
-
       {/* FOOTER */}
       <footer className={styles.footer}>
         <div className={styles["footer-menu"]}>

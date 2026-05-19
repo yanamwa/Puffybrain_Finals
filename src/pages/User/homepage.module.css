@@ -1955,6 +1955,83 @@
   color: #f0b278 !important;
 }
 
+/* ===== LOGOUT SWAL STYLES ===== */
+.logoutSwalPopup {
+  border-radius: 22px !important;
+  padding: 25px 20px 30px !important;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.18) !important;
+  font-family: inherit !important;
+  text-align: center !important;
+}
+
+.logoutSwalTitle {
+  font-size: 28px !important;
+  color: #222 !important;
+  margin-top: 10px !important;
+  text-align: center !important;
+}
+
+.logoutSwalText {
+  font-size: 16px !important;
+  color: #666 !important;
+  margin-top: 10px !important;
+  text-align: center !important;
+}
+
+.logoutSwalActions {
+  gap: 12px !important;
+  margin-top: 20px !important;
+  justify-content: center !important;
+}
+
+.logoutSwalConfirm {
+  background: #7b57ff !important;
+  border: 1px solid #6848db !important;
+  box-shadow: 0 5px 0 #5a3fc2 !important;
+  color: white !important;
+  border-radius: 10px !important;
+  padding: 10px 30px !important;
+  font-size: 16px !important;
+  font-family: inherit !important;
+  transition: 0.15s ease;
+}
+
+.logoutSwalConfirm:hover {
+  transform: translateY(-2px);
+  background: #8d6cff !important;
+}
+
+.logoutSwalConfirm:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 #5a3fc2 !important;
+}
+
+.logoutSwalCancel {
+  background: #757d86 !important;
+  border: 1px solid #656b73 !important;
+  box-shadow: 0 5px 0 #5a5f66 !important;
+  color: white !important;
+  border-radius: 10px !important;
+  padding: 10px 30px !important;
+  font-size: 16px !important;
+  font-family: inherit !important;
+  transition: 0.15s ease;
+}
+
+.logoutSwalCancel:hover {
+  transform: translateY(-2px);
+  background: #8a939c !important;
+}
+
+.logoutSwalCancel:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 #5a5f66 !important;
+}
+
+.logoutSwalIcon {
+  border-color: #f0b278 !important;
+  color: #f0b278 !important;
+}
 
 :global(.swal2-container) {
   z-index: 99999 !important;

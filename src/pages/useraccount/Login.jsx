@@ -2,6 +2,7 @@ import styles from "./login.module.css";
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { useNavigate, Link } from "react-router-dom";
+import { API_BASE } from "../../config.js";
 
 function Login() {
   const navigate = useNavigate();
@@ -10,14 +11,7 @@ function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loginAttempts, setLoginAttempts] = useState(0);
-
   const MAX_ATTEMPTS = 10;
-
-const API_BASE =
-  window.location.hostname === "localhost"
-    ? "http://localhost/puffybrain"
-    : "/api";
-
   const handleLogin = async () => {
     if (!username || !password) {
       Swal.fire({

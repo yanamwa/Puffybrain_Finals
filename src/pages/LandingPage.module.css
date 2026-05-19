@@ -82,6 +82,7 @@
     text-decoration: none;
     font-weight: 500;
     text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    border: 1px solid transparent;
     transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
@@ -121,14 +122,13 @@
 .startBtn {
     padding: 10px 26px;
     background: white;
-    color: var(--color-third);
-    border: none;
+    color: #bb67dd;
+    border: 1px solid #d78fed;
     border-radius: 25px;
     font-family: "Jersey 15", sans-serif;
     font-size: 20px;
     cursor: pointer;
-    box-shadow: 0 4px 0 var(--color-secondary);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0px 3px 0px #8e32aa;
 }
 
 .startBtn:hover {
@@ -177,8 +177,8 @@
     margin-top: 25px;
     padding: 10px 26px;
     background: white;
-    color: var(--color-third);
-    border: none;
+    color: #bb67dd;
+    border: 1px solid #d78fed;
     border-radius: 25px;
     font-family: "Jersey 15", sans-serif;
     font-size: 20px;

@@ -2,28 +2,23 @@ import styles from './login.module.css';
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { useNavigate, Link } from "react-router-dom";
+import { API_BASE } from "../../config.js";
 
 function Signup() {
   const navigate = useNavigate();
-
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
-
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
   const [showPassword, setShowPassword] = useState(false);
-
-  /* PASSWORD RULES */
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const hasLength = password.length >= 12;
   const hasUpper = /[A-Z]/.test(password);
   const hasLower = /[a-z]/.test(password);
   const hasNumber = /[0-9]/.test(password);
   const hasSymbol = /[^A-Za-z0-9]/.test(password);
-
   const isPasswordValid =
     hasLength && hasUpper && hasLower && hasNumber && hasSymbol;
-
   const passwordsMatch = password === confirmPassword;
 
   const handleSignup = () => {
@@ -100,7 +95,7 @@ function Signup() {
       });
     }
 
-    fetch("http://localhost/puffybrain/signup.php", {
+    fetch(`${API_BASE}/signup.php`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -272,14 +267,14 @@ function Signup() {
             <label>Confirm Password</label>
             <div className={styles.passwordWrapper}>
               <input
-                type={showPassword ? "text" : "password"}
+                type={showConfirmPassword ? "text" : "password"}
                 placeholder="Confirm your password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
               <i
-                className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"} ${styles.toggleEye}`}
-                onClick={() => setShowPassword(!showPassword)}
+                className={`fa-solid ${showConfirmPassword ? "fa-eye-slash" : "fa-eye"} ${styles.toggleEye}`}
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               ></i>
             </div>
 

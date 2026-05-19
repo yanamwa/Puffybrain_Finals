@@ -293,7 +293,7 @@
   padding: 0 18px !important;   /* FIX LEFT/RIGHT SPACE */
   width: 100% !important;
   box-sizing: border-box !important;
-  text-align: left !important;
+  text-align: center !important;
 }
 
 :global(.quiz-popup-title) {

@@ -22,3 +22,27 @@ html, body {
     font-family: "Jersey 15", sans-serif;
 
 }
+
+/* Center SweetAlert content globally */
+.swal2-popup,
+.swal2-popup .swal2-title,
+.swal2-popup .swal2-html-container,
+.swal2-popup .swal2-actions,
+.swal2-popup .swal2-text,
+.swal2-popup .swal2-content {
+    text-align: center !important;
+}
+
+.swal2-html-container,
+.swal2-text,
+.swal2-content {
+    margin: 0 auto !important;
+}
+
+.swal2-html-container p,
+.swal2-text p,
+.swal2-content p {
+    margin: 0 auto !important;
+    text-align: center !important;
+}
+
