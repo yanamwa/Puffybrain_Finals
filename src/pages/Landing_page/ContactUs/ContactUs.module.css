@@ -1,5 +1,6 @@
 .contactPage{
 width:100%;
+font-family:"Jersey 15", sans-serif;
 }
 
 /* HEADER */
@@ -10,74 +11,151 @@ min-height:70vh;
 background:url("/images/background.png") no-repeat center;
 background-size:cover;
 padding-bottom:50px;
-padding-top: 5px;
+padding-top:20px;
+position:relative;
+font-family:"Jersey 15", sans-serif;
+  --color-primary: #EBD3FA;
+    --color-secondary: #E3AADD;
+    --color-third: #C8A8E9;
+    --color-fourth: #A993D8;
+    --color-fifth: #C3C7F3;
+    --font-color: #2F2F2F;
+    --card-color1: #C8BBD0;
+    --card-color2: #E0BBD4;
+     --card-color3: #C3C7F3;
+     --card-color4: #90F897;
+    --card-color5: #CF8686;
+     --card-color6: #EECB99;
+     --color-shadow: #DDDDDD;
 }
 
 /* NAVBAR */
 
 .navBox{
+width:85%;              /* dati 90% */
+height:75px;           /* dati 90px */
+background:rgba(54, 48, 138, 0.2);
+backdrop-filter:blur(20px);
+-webkit-backdrop-filter:blur(20px);
+
 display:flex;
-justify-content:space-between;
 align-items:center;
-width:90%;
-margin:auto;
-padding:15px 30px;
-background:rgba(255,255,255,0.3);
-border-radius:50px;
-margin-top:20px;
+justify-content:center;
+gap:70px;
+
+margin:25px auto 0;
+border-radius:45px;
+padding:0 30px;
+
+position:relative;
+z-index:10;
 }
 
 .logoImg{
-height:60px;
+height:100px;
+width:auto;
 }
 
 .navMenu{
 display:flex;
-gap:80px;
+justify-content:center;
+align-items:center;
+gap:40px;
 list-style:none;
+margin:0;
+padding:0;
+
+font-family:"Jersey 15", sans-serif;
+font-size:25px;
 }
 
 .navMenu a{
 text-decoration:none;
-color:white;
-font-family:"Jersey 15";
-font-size:20px;
+color:#ffffff;
+font-weight:500;
+text-shadow:0 1px 3px rgba(0,0,0,0.4);
+transition:transform 0.15s ease, opacity 0.15s ease;
+}
+
+.navMenu a:hover{
+transform:scale(1.06);
+opacity:0.75;
+}
+
+.navMenu a:active{
+transform:scale(0.92);
 }
 
 .startBtn{
 background:white;
-padding:10px 25px;
+padding:10px 26px;
 border-radius:25px;
 text-decoration:none;
-color:black;
+color:#C8A8E9;
 box-shadow:0 4px 0 #E3AADD;
+font-family:"Jersey 15", sans-serif;
+font-size:20px;
+cursor:pointer;
+transition:transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.startBtn:hover{
+transform:scale(1.05);
+}
+
+.startBtn:active{
+transform:translateY(3px);
+box-shadow:0 1px 0 #E3AADD;
 }
 
 /* HEADER TEXT */
+.header{
+width:100%;
+min-height:85vh;   /* from 70vh */
+background:url("/images/background.png") no-repeat center;
+background-size:cover;
+padding-top:20px;
+padding-bottom:100px;
+position:relative;
+font-family:"Jersey 15", sans-serif;
+}
+
+.headerContent{
+width:90%;
+max-width:1200px;
+margin:200px auto 0;   /* push text lower */
+
+display:flex;
+justify-content:space-between;
+align-items:flex-start;
+position:relative;
+z-index:2;
+}
 
 .headerText{
-max-width:700px;
-margin-left:120px;
-margin-top:80px;
+max-width:650px;
+margin-left:150px;
+margin-top:80px;   /* baba pa */
+text-align:left;
 }
 
-.headerText h1{
-font-size:36px;
-font-family:"Jersey 15";
-}
 
-/* SOCIAL */
+.headerText p{
+font-size:20px;
+line-height:1.6;
+max-width:620px;
+}
 
 .socials{
 position:absolute;
-right:120px;
-top:250px;
+right:160px;
+top:250px;   /* baba konti */
+
 display:flex;
 flex-direction:column;
-gap:25px;
-font-size:22px;
+gap:28px;
+font-size:24px;
 }
-
 /* FORM */
 
 .contactSection{
@@ -99,25 +177,33 @@ align-items:center;
 
 .contactRow{
 display:flex;
-gap:40px;
+gap:70px;   /* dati 40px */
 justify-content:center;
-margin-bottom:20px;
+margin-bottom:25px;
+width:100%;
 }
 
 .contactField{
 display:flex;
-align-items:center;
-gap:10px;
+flex-direction:column;   /* label sa taas */
+gap:8px;
 width:500px;
 }
 
+.contactField label{
+font-family:"Jersey 15", sans-serif;
+font-size:20px;
+font-weight:normal;   /* normal lang */
+}
 
 .contactField input{
-flex:1;
-padding:12px 20px;
+width:100%;
+padding:14px 20px;
 border-radius:30px;
 border:none;
 background:#e9e9e9;
+font-family:"Jersey 15", sans-serif;
+font-size:18px;
 }
 
 textarea{
@@ -136,20 +222,20 @@ padding:10px 40px;
 background:#EBD3FA;
 border:none;
 border-radius:30px;
-font-family:"Jersey 15";
+font-family:"Jersey 15", sans-serif;
 box-shadow:0 4px 0 #C8A8E9;
 cursor:pointer;
 }
 
 /* CONTACT INFO */
+
 .contactInfo{
 width:100%;
-
 display:flex;
 justify-content:space-between;
-align-items:center;
+align-items:flex-start;
 
-padding:100px 120px;
+padding:55px 120px 30px;
 
 background-image:url("lines.png");
 background-repeat:no-repeat;
@@ -157,23 +243,60 @@ background-size:cover;
 background-position:center;
 
 gap:40px;
+font-family:"Jersey 15", sans-serif;
+}
+
+.contactLeft{
+flex:1;
+min-width:700px;
 }
 
 .contactLeft h1{
-font-family:"Jersey 15";
-font-size:40px;
+font-family:"Jersey 15", sans-serif;
+font-size:36px;
+font-weight:normal;
+line-height:1;
+margin:12px 0 0;
+white-space:nowrap;
+}
+
+.contactLeft p{
+font-family:"Jersey 15", sans-serif;
+font-size:18px;
+line-height:1.3;
+margin:0 0 12px;
 }
 
 .contactRight{
-margin-right:200px;
+margin-right:220px;   /* push left */
+font-family:"Jersey 15", sans-serif;
+max-width:420px;
+}
+
+.contactRight h2{
+font-family:"Jersey 15", sans-serif;
+font-size:32px;
+font-weight:normal;
+line-height:1.1;
+margin:0 0 8px;
+}
+
+.contactRight h3,
+.contactRight p,
+.contactRight span{
+font-family:"Jersey 15", sans-serif;
+font-size:18px;
+font-weight:normal;
+line-height:1.35;
+margin:8px 0;
 }
 
 .contactRight hr{
-width:30px;
+width:45px;
 height:3px;
 background:black;
 border:none;
-margin:10px 0;
+margin:8px 0 18px;
 }
 
 /* FOOTER */
@@ -182,7 +305,8 @@ margin:10px 0;
 background:#A993D8;
 color:white;
 text-align:center;
-padding:40px;
+padding:20px;
+font-family:"Jersey 15", sans-serif;
 }
 
 .footerMenu{
@@ -195,6 +319,7 @@ margin-bottom:20px;
 .footerMenu a{
 color:white;
 text-decoration:none;
+font-family:"Jersey 15", sans-serif;
 }
 
 .socialIcons{
@@ -208,37 +333,30 @@ font-size:22px;
 text-align:center;
 padding:10px;
 background:white;
+font-family:"Jersey 15", sans-serif;
 }
-.headerContent{
-width:90%;
-max-width:1200px;
-margin:80px auto 0;
-
-display:flex;
-justify-content:space-between;
-align-items:flex-start;
-}
-
-.headerText{
-max-width:650px;
-text-align:left;
-}
-
-.headerText h1{
-font-family:"Jersey 15";
-font-size:36px;
-margin-bottom:15px;
-}
-
-.headerText p{
-font-size:18px;
-line-height:1.6;
-}
-
-.socials{
+.messageField{
+width:100%;
 display:flex;
 flex-direction:column;
-gap:25px;
+gap:8px;
+margin-top:5px;
+}
+
+.messageField label{
+font-family:"Jersey 15", sans-serif;
 font-size:20px;
-margin-top:10px;
+font-weight:normal;
+}
+
+.messageField textarea{
+width:100%;
+height:230px;
+padding:18px;
+border:none;
+background:#ededed;
+border-radius:15px;
+font-family:"Jersey 15", sans-serif;
+font-size:18px;
+resize:none;
 }
