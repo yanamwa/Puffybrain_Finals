@@ -79,23 +79,24 @@ function ContactUs() {
 
         <form className={styles.contactForm} onSubmit={handleSubmit}>
 
-          <div className={styles.contactRow}>
+       <div className={styles.contactRow}>
 
-            <div className={styles.contactField}>
-              <label>Name: </label>
-              <input type="text" placeholder="Enter your name" required />
-            </div>
+  <div className={styles.contactField}>
+    <label>Name: </label>
+    <input type="text" placeholder="Enter your name" required />
+  </div>
 
-            <div className={styles.contactField}>
-              <label>Email: </label>
-              <input type="email" placeholder="Enter your email" required />
-            </div>
+  <div className={styles.contactField}>
+    <label>Email: </label>
+    <input type="email" placeholder="Enter your email" required />
+  </div>
 
-          </div>
+</div>
 
-          <label>Message </label>
-
-          <textarea placeholder="Enter your message" required></textarea>
+<div className={styles.messageField}>
+  <label>Message: </label>
+  <textarea placeholder="Enter your message" required></textarea>
+</div>
 
           <button className={styles.submitBtn}>
             Submit
@@ -109,11 +110,9 @@ function ContactUs() {
       <section className={styles.contactInfo}>
 
         <div className={styles.contactLeft}>
-          <p>Contact Info</p>
-          <h1>We are always happy to assist</h1>
-          <h1>you</h1>
-        </div>
-
+  <p>Contact Info</p>
+  <h1>We are always happy to assist you</h1>
+</div>
         <div className={styles.contactRight}>
 
           <h2>Email Address</h2>
