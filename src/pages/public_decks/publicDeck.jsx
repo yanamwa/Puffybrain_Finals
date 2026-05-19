@@ -474,13 +474,21 @@ function PublicDecks() {
       );
     }
 
-    if (deckSort === "recent") {
-      result = [...result].sort((a, b) => Number(b.id) - Number(a.id));
-    }
+if (deckSort === "recent") {
+  result = [...result].sort(
+    (a, b) =>
+      Number(b.deck_id || b.id) -
+      Number(a.deck_id || a.id)
+  );
+}
 
-    if (deckSort === "oldest") {
-      result = [...result].sort((a, b) => Number(a.id) - Number(b.id));
-    }
+if (deckSort === "oldest") {
+  result = [...result].sort(
+    (a, b) =>
+      Number(a.deck_id || a.id) -
+      Number(b.deck_id || b.id)
+  );
+}
 
     return result;
   }, [publicDecks, search, deckSort, deckYear, deckCategory]);
@@ -1098,10 +1106,10 @@ function PublicDecks() {
 
                   ) : (
                     filteredPublicDecks.map((deck, index) => (
-                     <article
-  key={deck.deck_id}
+                <article
+  key={deck.deck_id || deck.id}
   className={styles.deckCard}
-  onClick={() => navigate(`/deck/${deck.deck_id}`)}
+  onClick={() => navigate(`/deck/${deck.deck_id || deck.id}`)}
 >
   <div className={styles.deckCardInner}>
     <div
