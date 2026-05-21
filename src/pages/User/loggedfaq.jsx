@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import "boxicons/css/boxicons.min.css";
 import styles from "./loggedfaq.module.css";
 import { FaChevronDown } from "react-icons/fa";
+import { API_BASE } from "../../config.js";
 
 export default function LoggedFaq() {
   const navigate = useNavigate();

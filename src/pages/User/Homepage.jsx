@@ -28,6 +28,7 @@ function Homepage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const [user, setUser] = useState({
+    id: "",
     username: "",
     year_level: "",
     profile_image: "/images/temporary profile.jpg",
@@ -70,12 +71,32 @@ function Homepage() {
     }
 
     const cleanPath = imagePath.replace(/^\/+/, "");
-
     return `https://puffybrain.fun/${cleanPath}`;
   };
 
   const getDeckId = (deck) => {
     return deck?.deck_id || deck?.id || deck?.DeckID || "";
+  };
+
+  const isDeckOwner = (deck) => {
+    const source = String(deck?.deck_source || deck?.source || "").toLowerCase();
+
+    if (source && source !== "created") {
+      return false;
+    }
+
+    const ownerId =
+      deck?.created_by ||
+      deck?.creator_id ||
+      deck?.user_id ||
+      deck?.UserID ||
+      deck?.owner_id;
+
+    if (!ownerId) {
+      return true;
+    }
+
+    return Number(ownerId) === Number(user.id);
   };
 
   const filteredDecks = myDecks.filter((deck) =>
@@ -127,42 +148,42 @@ function Homepage() {
     });
   };
 
-const handleLogout = async () => {
-  const result = await Swal.fire({
-    title: "Logout?",
-    text: "Are you sure you want to logout?",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Yes",
-    cancelButtonText: "Cancel",
-    buttonsStyling: false,
-    customClass: {
-      popup: styles.logoutSwalPopup,
-      title: styles.logoutSwalTitle,
-      htmlContainer: styles.logoutSwalText,
-      actions: styles.logoutSwalActions,
-      confirmButton: styles.logoutSwalConfirm,
-      cancelButton: styles.logoutSwalCancel,
-      icon: styles.logoutSwalIcon,
-    },
-  });
-
-  if (!result.isConfirmed) return;
-
-  try {
-    await fetch(`${API_BASE}/logout.php`, {
-      method: "POST",
-      credentials: "include",
+  const handleLogout = async () => {
+    const result = await Swal.fire({
+      title: "Logout?",
+      text: "Are you sure you want to logout?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes",
+      cancelButtonText: "Cancel",
+      buttonsStyling: false,
+      customClass: {
+        popup: styles.logoutSwalPopup,
+        title: styles.logoutSwalTitle,
+        htmlContainer: styles.logoutSwalText,
+        actions: styles.logoutSwalActions,
+        confirmButton: styles.logoutSwalConfirm,
+        cancelButton: styles.logoutSwalCancel,
+        icon: styles.logoutSwalIcon,
+      },
     });
-  } catch (err) {
-    console.error("Logout error:", err);
-  }
 
-localStorage.clear();
-sessionStorage.clear();
+    if (!result.isConfirmed) return;
 
-window.location.replace("/login");
-};
+    try {
+      await fetch(`${API_BASE}/logout.php`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+
+    localStorage.clear();
+    sessionStorage.clear();
+
+    window.location.replace("/login");
+  };
 
   const fetchUserDecks = async () => {
     try {
@@ -200,10 +221,15 @@ window.location.replace("/login");
         const loadedUser = data.user || data;
 
         setUser({
+          id: loadedUser.id || loadedUser.user_id || "",
           username: loadedUser.username || "",
           year_level: loadedUser.year_level || "",
           profile_image: getImageUrl(loadedUser.profile_image),
         });
+
+        if (loadedUser.id || loadedUser.user_id) {
+          localStorage.setItem("user_id", loadedUser.id || loadedUser.user_id);
+        }
       }
     } catch (err) {
       console.error("fetchUser error:", err);
@@ -418,7 +444,7 @@ window.location.replace("/login");
 
           <label class="${styles.editDeckLabel}">Choose Deck Color</label>
           <div class="${styles.editDeckColorRow}">
-            ${["#D7C9F7", "#B8F2D9", "#FFB7A5", "#B5A9FF", "#9EE7DD", "#F4A7C1"]
+            ${deckColors
               .map(
                 (color) => `
                   <button
@@ -797,7 +823,7 @@ window.location.replace("/login");
                       <h5>{notif.title}</h5>
 
                       <span className={styles.notificationRole}>
-                        {notif.target_role}
+                        {notif.target_role || notif.recipient_type || "user"}
                       </span>
                     </div>
 
@@ -938,6 +964,7 @@ window.location.replace("/login");
                   filteredDecks.slice(0, 4).map((deck) => {
                     const deckId = getDeckId(deck);
                     const deckColorValue = deck.deck_color || "#C3C7F3";
+                    const canEdit = isDeckOwner(deck);
 
                     return (
                       <Link
@@ -978,32 +1005,44 @@ window.location.replace("/login");
                                   e.stopPropagation();
                                 }}
                               >
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    handleEditDeck(deck);
-                                    setDropdownOpen(null);
-                                  }}
-                                >
-                                  Edit
-                                </button>
+                                {canEdit ? (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        handleEditDeck(deck);
+                                        setDropdownOpen(null);
+                                      }}
+                                    >
+                                      Edit
+                                    </button>
 
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    console.log("Duplicate", deckId);
-                                    setDropdownOpen(null);
-                                  }}
-                                >
-                                  Duplicate
-                                </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        console.log("Duplicate", deckId);
+                                        setDropdownOpen(null);
+                                      }}
+                                    >
+                                      Duplicate
+                                    </button>
 
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeleteDeck(deckId)}
-                                >
-                                  Archive
-                                </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteDeck(deckId)}
+                                    >
+                                      Archive
+                                    </button>
+                                  </>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    disabled
+                                    className={styles.notEditableBtn}
+                                  >
+                                    Not editable
+                                  </button>
+                                )}
                               </div>
                             )}
                           </div>

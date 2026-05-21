@@ -15,6 +15,7 @@ import {
 import Swal from "sweetalert2";
 import styles from "./Addmodule.module.css";
 import "boxicons/css/boxicons.min.css";
+import { API_BASE } from "../../config.js";
 
 function serializeQuizItems(items) {
   return JSON.stringify(
@@ -101,49 +102,19 @@ export default function AddModule() {
   const [extractingFile, setExtractingFile] = useState(false);
 
   const menuItems = [
-    {
-      label: "Dashboard",
-      path: "/admin/dashboard",
-      icon: <LayoutDashboard size={20} />,
-    },
-    {
-      label: "User Management",
-      path: "/admin/users",
-      icon: <Users size={20} />,
-    },
-    {
-      label: "Module Management",
-      path: "/admin/modules",
-      icon: <Layers size={20} />,
-    },
-    {
-      label: "Decks Management",
-      path: "/admin/decks",
-      icon: <LibraryBig size={20} />,
-    },
-    {
-      label: "Modes Management",
-      path: "/admin/modes",
-      icon: <Gamepad2 size={20} />,
-    },
-    {
-      label: "Notification Management",
-      path: "/admin/notifications",
-      icon: <i className="bx bx-bell"></i>,
-    },
-    {
-      label: "Backup & Restore",
-      path: "/admin/backup-restore",
-      icon: <Database size={20} />,
-    },
+    { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
+    { label: "User Management", path: "/admin/users", icon: <Users size={20} /> },
+    { label: "Module Management", path: "/admin/modules", icon: <Layers size={20} /> },
+    { label: "Decks Management", path: "/admin/decks", icon: <LibraryBig size={20} /> },
+    { label: "Modes Management", path: "/admin/modes", icon: <Gamepad2 size={20} /> },
+    { label: "Notification Management", path: "/admin/notifications", icon: <i className="bx bx-bell"></i> },
+    { label: "Backup & Restore", path: "/admin/backup-restore", icon: <Database size={20} /> },
   ];
 
   const handleLogout = (e) => {
     e.preventDefault();
-
     localStorage.clear();
     sessionStorage.clear();
-
     window.location.href = "/admin/login";
   };
 
@@ -165,8 +136,7 @@ export default function AddModule() {
         full_name: data.admin?.full_name || "",
         email: data.admin?.email || "",
         role: data.admin?.role || "Administrator",
-        profile_image:
-          data.admin?.profile_image || "/images/temporary profile.jpg",
+        profile_image: data.admin?.profile_image || "/images/temporary profile.jpg",
       });
     } catch (err) {
       console.error("Fetch admin error:", err);
@@ -178,9 +148,7 @@ export default function AddModule() {
       const storedAdmin = JSON.parse(localStorage.getItem("admin") || "{}");
 
       const res = await fetch(
-        `${API_BASE}/getAdminNotifications.php?admin_id=${
-          storedAdmin.id || ""
-        }`,
+        `${API_BASE}/getAdminNotifications.php?admin_id=${storedAdmin.id || ""}`,
         { credentials: "include" }
       );
 
@@ -214,17 +182,14 @@ export default function AddModule() {
     }
 
     try {
-      const res = await fetch(
-        `${API_BASE}/markAdminNotificationsRead.php`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ admin_id: adminId }),
-        }
-      );
+      const res = await fetch(`${API_BASE}/markAdminNotificationsRead.php`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ admin_id: adminId }),
+      });
 
       const data = await res.json();
 
@@ -326,6 +291,7 @@ export default function AddModule() {
     try {
       const res = await fetch(EXTRACT_API_URL, {
         method: "POST",
+        credentials: "include",
         body: formData,
       });
 
@@ -400,7 +366,10 @@ export default function AddModule() {
 
     const res = await fetch(AI_API_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         lesson_title: newTitle,
         learning_objectives: newLearningObjectives,
@@ -435,7 +404,7 @@ export default function AddModule() {
       questions = data.questions;
     }
 
-    return questions.map((item, index) => ({
+    return questions.slice(0, 10).map((item, index) => ({
       id: index + 1,
       question: String(item.question || "").trim(),
       options: Array.isArray(item.options)
@@ -470,7 +439,7 @@ export default function AddModule() {
             <div class="${styles.quizGenerateGroup}">
               <label>How many questions?</label>
               <input id="swal-question-count" type="number" min="1" max="100" value="5" />
-              <small>Maximum: 100 questions only</small>
+              <small>Maximum displayed after generation: 10 questions</small>
             </div>
 
             <div class="${styles.quizGenerateGroup}">
@@ -588,7 +557,10 @@ export default function AddModule() {
   const generateOptionsForItem = async (item) => {
     const res = await fetch(`${API_BASE}/generateOptions.php`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         question: item.question,
         correct_answer: item.correct_answer,
@@ -854,9 +826,7 @@ export default function AddModule() {
 
   return (
     <div className={styles.gridContainer}>
-      <aside
-        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
-      >
+      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
         <div className={styles.sidebarTop}>
           <div
             className={styles.sidebarToggle}
@@ -866,17 +836,8 @@ export default function AddModule() {
           </div>
 
           <div className={styles.logo}>
-            <img
-              className={styles.logoExpanded}
-              src="/images/logo1.png"
-              alt="Logo"
-            />
-
-            <img
-              className={styles.logoCollapsed}
-              src="/images/logo_solo.png"
-              alt="Logo"
-            />
+            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
+            <img className={styles.logoCollapsed} src="/images/logo_solo.png" alt="Logo" />
           </div>
 
           <div className={styles.divider}></div>
@@ -1049,9 +1010,10 @@ export default function AddModule() {
         <div className={styles.formCard}>
           <div className={styles.popupInfoGrid}>
             <div className={styles.popupField}>
-            <label className={styles.popupLabel}>
-              Module Title <span className={styles.required}>*Required</span>
-            </label>
+              <label className={styles.popupLabel}>
+                Module Title <span className={styles.required}>*Required</span>
+              </label>
+
               <input
                 className={styles.popupInput}
                 value={newTitle}
@@ -1075,9 +1037,10 @@ export default function AddModule() {
           </div>
 
           <div className={styles.popupSection}>
-<label className={styles.popupLabel}>
-  Module Description <span className={styles.required}>*Required</span>
-</label>
+            <label className={styles.popupLabel}>
+              Module Description <span className={styles.required}>*Required</span>
+            </label>
+
             <textarea
               className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
               value={newDesc}
@@ -1128,9 +1091,10 @@ export default function AddModule() {
           </div>
 
           <div className={styles.popupSection}>
-<label className={styles.popupLabel}>
-  Learning Objectives <span className={styles.required}>*Required</span>
-</label>
+            <label className={styles.popupLabel}>
+              Learning Objectives <span className={styles.required}>*Required</span>
+            </label>
+
             <textarea
               className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
               value={newLearningObjectives}
@@ -1141,9 +1105,10 @@ export default function AddModule() {
 
           <div className={styles.popupSection}>
             <div className={styles.popupSectionRow}>
-<label className={styles.popupLabel}>
-  Lesson Pages <span className={styles.required}>*Required</span>
-</label>
+              <label className={styles.popupLabel}>
+                Lesson Pages <span className={styles.required}>*Required</span>
+              </label>
+
               <button
                 type="button"
                 className={styles.popupAddBtn}
@@ -1192,9 +1157,10 @@ export default function AddModule() {
 
           <div className={styles.popupSection}>
             <div className={styles.popupSectionRow}>
-          <label className={styles.popupLabel}>
-            Quiz Module <span className={styles.required}>*Required</span>
-          </label>
+              <label className={styles.popupLabel}>
+                Quiz Module <span className={styles.required}>*Required</span>
+              </label>
+
               <div className={styles.quizActions}>
                 <button
                   type="button"
@@ -1237,9 +1203,7 @@ export default function AddModule() {
                   <input
                     className={styles.popupInput}
                     value={item.question}
-                    onChange={(e) =>
-                      updateNewQuizQuestion(index, e.target.value)
-                    }
+                    onChange={(e) => updateNewQuizQuestion(index, e.target.value)}
                     placeholder="Question"
                   />
 
@@ -1250,11 +1214,7 @@ export default function AddModule() {
                         className={styles.popupInput}
                         value={option}
                         onChange={(e) =>
-                          updateNewQuizOption(
-                            index,
-                            optionIndex,
-                            e.target.value
-                          )
+                          updateNewQuizOption(index, optionIndex, e.target.value)
                         }
                         placeholder={`Option ${optionIndex + 1}`}
                       />
@@ -1264,18 +1224,14 @@ export default function AddModule() {
                   <input
                     className={styles.popupInput}
                     value={item.correct_answer}
-                    onChange={(e) =>
-                      updateNewCorrectAnswer(index, e.target.value)
-                    }
+                    onChange={(e) => updateNewCorrectAnswer(index, e.target.value)}
                     placeholder="Correct Answer"
                   />
 
                   <textarea
                     className={`${styles.popupTextarea} ${styles.popupAnswerBox}`}
                     value={item.explanation}
-                    onChange={(e) =>
-                      updateNewExplanation(index, e.target.value)
-                    }
+                    onChange={(e) => updateNewExplanation(index, e.target.value)}
                     placeholder="Explanation"
                   />
                 </div>

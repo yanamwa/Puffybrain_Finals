@@ -1605,112 +1605,88 @@ color:#ff4d4f;
   color: #a40000;
 }
 
-/* ===== EDIT DECK MODAL - AddDeck style ===== */
-
 .editDeckPopup {
-  width: 620px !important;
+  width: 600px !important;
+  max-width: 92vw !important;
   padding: 0 !important;
-  border-radius: 14px !important;
+  border-radius: 16px !important;
   overflow: hidden !important;
   background: #ffffff !important;
   font-family: "Jersey 15", sans-serif !important;
 }
 
+.editDeckHtml {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
 .editDeckModal {
+  margin: 0 !important;
+  padding: 0 !important;
   width: 100%;
-  background: #ffffff;
 }
 
 .editDeckHeader {
-  height: 96px;
-  background: #d7a7ff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  height: 118px !important;
+  background: #d7a7ff !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .editDeckHeader span {
-  font-size: 30px;
-  color: #2f2f2f;
+  font-size: 32px !important;
+  color: #000 !important;
 }
 
 .editDeckBody {
-  padding: 28px 50px 20px;
-  text-align: left;
+  padding: 0 40px 24px !important;
+  text-align: left !important;
 }
 
 .editDeckGroup {
-  margin-bottom: 24px;
+  margin-bottom: 18px !important;
 }
 
 .editDeckGroup label {
-  display: block;
-  margin-bottom: 10px;
-  font-size: 18px;
-  color: #333;
+  display: block !important;
+  margin-bottom: 8px !important;
+  font-size: 18px !important;
+  color: #111 !important;
 }
 
 .editDeckGroup input,
 .editDeckGroup textarea,
 .editCategorySelect,
 .editCustomCategory {
-  width: 100%;
-  box-sizing: border-box;
-  border: none;
-  outline: none;
-  background: #eeeeee;
-  border-radius: 20px;
-  padding: 14px 18px;
-  font-family: "Jersey 15", sans-serif;
-  font-size: 18px;
-  color: #111;
+  width: 100% !important;
+  height: 42px !important;
+  box-sizing: border-box !important;
+  border: none !important;
+  outline: none !important;
+  border-radius: 14px !important;
+  background: #f3f3f3 !important;
+  padding: 0 16px !important;
+  font-family: "Jersey 15", sans-serif !important;
+  font-size: 16px !important;
+  color: #111 !important;
 }
 
 .editDeckGroup textarea {
-  min-height: 92px;
-  resize: vertical;
+  height: 74px !important;
+  min-height: 74px !important;
+  padding-top: 13px !important;
+  resize: none !important;
 }
 
 .editCategorySelect {
-  height: 46px;
-  cursor: pointer;
+  cursor: pointer !important;
 }
 
 .editDeckActions {
-  border-top: 1px solid #e5e5e5;
-  padding: 20px 0 24px !important;
-  margin: 0 50px !important;
-  display: flex !important;
-  justify-content: center !important;
-  gap: 14px !important;
-}
-
-.editDeckSave,
-.editDeckCancel {
-  width: 130px;
-  height: 44px;
-  border-radius: 6px !important;
-  border: none !important;
-  font-family: "Jersey 15", sans-serif !important;
-  font-size: 17px !important;
-  cursor: pointer;
-}
-
-.editDeckSave {
-  background: #805eb1 !important;
-  color: #ffffff !important;
-  box-shadow: 0 5px 0 #5b4285 !important;
-}
-
-.editDeckCancel {
-  background: #5d5d5d !important;
-  color: #ffffff !important;
-  box-shadow: 0 5px 0 #2f2f2f !important;
-}
-
-.editDeckSave:hover,
-.editDeckCancel:hover {
-  transform: translateY(-1px);
+  border-top: 1px solid #eeeeee !important;
+  padding: 18px 0 28px !important;
+  margin: 0 40px !important;
 }
 
 .cards-actions {
@@ -1867,20 +1843,6 @@ color:#ff4d4f;
   background: #6c757d !important;
   border: 1px solid #555d63 !important;
   box-shadow: 0 4px 0 #555d63 !important;
-}
-
-.editCategorySelect,
-.editCustomCategory {
-  width: 100%;
-  height: 50px;
-  box-sizing: border-box;
-  border: none;
-  outline: none;
-  background: white;
-  border-radius: 16px;
-  padding: 10px 16px;
-  font-size: 20px;
-  font-family: "Jersey 15", sans-serif;
 }
 
 .deckCategoryText {
@@ -2317,4 +2279,63 @@ color:#ff4d4f;
 
 .deckAddBtn:hover i {
   transform: scale(1.15);
+}
+.notEditableBtn {
+  opacity: 0.55;
+  cursor: not-allowed !important;
+  color: #777 !important;
+}
+
+.editVisibilityRow {
+  display: flex !important;
+  align-items: center !important;
+  gap: 34px !important;
+  margin-top: 12px !important;
+  width: 100% !important;
+}
+
+.editVisibilityOption {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  width: auto !important;
+  min-width: 90px !important;
+  max-width: none !important;
+  white-space: nowrap !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+}
+
+.editVisibilityOption input {
+  width: 18px !important;
+  height: 18px !important;
+  margin: 0 !important;
+  flex: 0 0 auto !important;
+}
+
+.editVisibilityOption span {
+  display: inline-block !important;
+  width: auto !important;
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+}
+
+:global(.swal2-popup.editDeckPopup) {
+  padding: 0 !important;
+  overflow: hidden !important;
+  border-radius: 16px !important;
+}
+
+:global(.swal2-popup.editDeckPopup .swal2-html-container) {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+:global(.swal2-popup.editDeckPopup .swal2-actions) {
+  margin: 0 40px 20px !important;
 }

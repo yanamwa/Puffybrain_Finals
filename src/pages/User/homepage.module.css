@@ -2225,3 +2225,9 @@
   }
 }
 
+
+.notEditableBtn {
+  opacity: 0.55;
+  cursor: not-allowed !important;
+  color: #777 !important;
+}

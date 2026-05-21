@@ -464,8 +464,12 @@ function MyDecks() {
           cancelButton: styles.editDeckCancelBtn,
         },
         buttonsStyling: false,
-        html: `
-          <div class="${styles.editDeckForm}">
+      html: `
+  <div class="${styles.editDeckModal}">
+    <div class="${styles.editDeckHeader}">
+      <span>Edit Deck</span>
+    </div>
+    <div class="${styles.editDeckBody}">
             <label class="${styles.editDeckLabel}">Deck Title</label>
             <input
               id="swal-title"

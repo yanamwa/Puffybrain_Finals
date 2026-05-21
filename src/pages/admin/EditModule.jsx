@@ -15,6 +15,10 @@ import {
 import Swal from "sweetalert2";
 import styles from "./editmodule.module.css";
 import "boxicons/css/boxicons.min.css";
+import { API_BASE } from "../../config.js";
+
+const GENERATE_COOLDOWN_MS = 5 * 60 * 60 * 1000;
+const GENERATE_COOLDOWN_KEY = "editModuleQuizGenerateCooldown";
 
 function parseDeckCards(raw) {
   if (!raw) return [];
@@ -300,22 +304,22 @@ export default function EditModule() {
       return;
     }
 
-const confirm = await Swal.fire({
-  icon: "question",
-  title: "Replace Current Module Content?",
-  text: "This will replace the current title, description, subject, objectives, and lesson pages.",
-  showCancelButton: true,
-  confirmButtonText: "Yes, replace it",
-  cancelButtonText: "Cancel",
-  customClass: {
-    popup: styles.replacePopup,
-    title: styles.replaceTitle,
-    htmlContainer: styles.replaceHtml,
-    confirmButton: styles.replaceConfirmBtn,
-    cancelButton: styles.replaceCancelBtn,
-  },
-  buttonsStyling: false,
-});
+    const confirm = await Swal.fire({
+      icon: "question",
+      title: "Replace Current Module Content?",
+      text: "This will replace the current title, description, subject, objectives, and lesson pages.",
+      showCancelButton: true,
+      confirmButtonText: "Yes, replace it",
+      cancelButtonText: "Cancel",
+      customClass: {
+        popup: styles.replacePopup,
+        title: styles.replaceTitle,
+        htmlContainer: styles.replaceHtml,
+        confirmButton: styles.replaceConfirmBtn,
+        cancelButton: styles.replaceCancelBtn,
+      },
+      buttonsStyling: false,
+    });
 
     if (!confirm.isConfirmed) return;
 
@@ -345,6 +349,7 @@ const confirm = await Swal.fire({
     try {
       const res = await fetch(EXTRACT_API_URL, {
         method: "POST",
+        credentials: "include",
         body: formData,
       });
 
@@ -411,7 +416,10 @@ const confirm = await Swal.fire({
   }) => {
     const res = await fetch(AI_API_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         lesson_title: editTitle,
         learning_objectives: editLearningObjectives,
@@ -445,7 +453,7 @@ const confirm = await Swal.fire({
       questions = data.questions;
     }
 
-    return questions.map((item, index) => ({
+    return questions.slice(0, 10).map((item, index) => ({
       id: index + 1,
       question: String(item.question || "").trim(),
       options: Array.isArray(item.options)
@@ -456,150 +464,168 @@ const confirm = await Swal.fire({
     }));
   };
 
-const handleGenerateQuizForEdit = async () => {
-  if (!editLearningObjectives.trim() && editLessonPages.length === 0) {
-    await Swal.fire({
-      icon: "warning",
-      title: "Missing Content",
-      text: "Please enter learning objectives or lesson pages first.",
+  const handleGenerateQuizForEdit = async () => {
+    const lastGeneratedAt = Number(localStorage.getItem(GENERATE_COOLDOWN_KEY) || 0);
+    const now = Date.now();
+    const timeLeft = GENERATE_COOLDOWN_MS - (now - lastGeneratedAt);
+
+    if (lastGeneratedAt && timeLeft > 0) {
+      const hoursLeft = Math.ceil(timeLeft / (60 * 60 * 1000));
+
+      await Swal.fire({
+        icon: "warning",
+        title: "Generate Cooldown",
+        text: `You can generate again in about ${hoursLeft} hour(s).`,
+        buttonsStyling: false,
+      });
+      return;
+    }
+
+    if (!editLearningObjectives.trim() && editLessonPages.length === 0) {
+      await Swal.fire({
+        icon: "warning",
+        title: "Missing Content",
+        text: "Please enter learning objectives or lesson pages first.",
+        buttonsStyling: false,
+      });
+      return;
+    }
+
+    const { value: formValues } = await Swal.fire({
+      html: `
+        <div class="${styles.quizGenerateModal}">
+          <div class="${styles.quizGenerateHeader}">
+            <span>Generate Quiz</span>
+          </div>
+
+          <div class="${styles.quizGenerateBody}">
+            <div class="${styles.quizGenerateGroup}">
+              <label>How many questions?</label>
+              <input id="swal-question-count" type="number" min="1" max="100" value="5" />
+              <small id="total-hint">Only 10 generated items will be shown</small>
+            </div>
+
+            <div class="${styles.quizGenerateGroup}">
+              <label>How many True or False questions?</label>
+              <input id="swal-truefalse-count" type="number" min="0" max="100" value="0" />
+              <small id="mc-hint">Multiple Choice Questions: 5</small>
+            </div>
+
+            <div class="${styles.quizGenerateGroup}">
+              <label>Difficulty</label>
+              <select id="swal-difficulty">
+                <option value="easy">Easy</option>
+                <option value="medium" selected>Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
       buttonsStyling: false,
-    });
-    return;
-  }
+      confirmButtonText: "Generate",
+      cancelButtonText: "Cancel",
+      customClass: {
+        popup: styles.quizGeneratePopup,
+        htmlContainer: styles.quizGenerateHtml,
+        actions: styles.quizGenerateActions,
+        confirmButton: styles.quizGenerateConfirm,
+        cancelButton: styles.quizGenerateCancel,
+      },
+      didOpen: () => {
+        const questionInput = document.getElementById("swal-question-count");
+        const tfInput = document.getElementById("swal-truefalse-count");
+        const mcHint = document.getElementById("mc-hint");
 
-  const { value: formValues } = await Swal.fire({
-    html: `
-      <div class="${styles.quizGenerateModal}">
-        <div class="${styles.quizGenerateHeader}">
-          <span>Generate Quiz</span>
-        </div>
+        const updateCounts = () => {
+          let total = Number(questionInput.value) || 1;
+          let trueFalse = Number(tfInput.value) || 0;
 
-        <div class="${styles.quizGenerateBody}">
-          <div class="${styles.quizGenerateGroup}">
-            <label>How many questions?</label>
-            <input id="swal-question-count" type="number" min="1" max="100" value="5" />
-            <small id="total-hint">Maximum: 100 questions only</small>
-          </div>
+          total = Math.min(100, Math.max(1, total));
+          trueFalse = Math.min(total, Math.max(0, trueFalse));
 
-          <div class="${styles.quizGenerateGroup}">
-            <label>How many True or False questions?</label>
-            <input id="swal-truefalse-count" type="number" min="0" max="100" value="0" />
-            <small id="mc-hint">Multiple Choice Questions: 5</small>
-          </div>
+          questionInput.value = total;
+          tfInput.value = trueFalse;
 
-          <div class="${styles.quizGenerateGroup}">
-            <label>Difficulty</label>
-            <select id="swal-difficulty">
-              <option value="easy">Easy</option>
-              <option value="medium" selected>Medium</option>
-              <option value="hard">Hard</option>
-            </select>
-          </div>
-        </div>
-      </div>
-    `,
-    showCancelButton: true,
-    buttonsStyling: false,
-    confirmButtonText: "Generate",
-    cancelButtonText: "Cancel",
-    customClass: {
-      popup: styles.quizGeneratePopup,
-      htmlContainer: styles.quizGenerateHtml,
-      actions: styles.quizGenerateActions,
-      confirmButton: styles.quizGenerateConfirm,
-      cancelButton: styles.quizGenerateCancel,
-    },
-    didOpen: () => {
-      const questionInput = document.getElementById("swal-question-count");
-      const tfInput = document.getElementById("swal-truefalse-count");
-      const mcHint = document.getElementById("mc-hint");
+          const multipleChoice = total - trueFalse;
+          mcHint.textContent = `Multiple Choice Questions: ${multipleChoice}`;
+        };
 
-      const updateCounts = () => {
-        let total = Number(questionInput.value) || 1;
-        let trueFalse = Number(tfInput.value) || 0;
+        questionInput.addEventListener("input", updateCounts);
+        tfInput.addEventListener("input", updateCounts);
 
-        total = Math.min(100, Math.max(1, total));
-        trueFalse = Math.min(total, Math.max(0, trueFalse));
-
-        questionInput.value = total;
-        tfInput.value = trueFalse;
-
-        const multipleChoice = total - trueFalse;
-        mcHint.textContent = `Multiple Choice Questions: ${multipleChoice}`;
-      };
-
-      questionInput.addEventListener("input", updateCounts);
-      tfInput.addEventListener("input", updateCounts);
-
-      updateCounts();
-    },
-    preConfirm: () => {
-      const questionCount = Number(
-        document.getElementById("swal-question-count").value
-      );
-
-      const trueFalseCount = Number(
-        document.getElementById("swal-truefalse-count").value
-      );
-
-      const difficulty = document.getElementById("swal-difficulty").value;
-
-      if (!questionCount || questionCount < 1 || questionCount > 100) {
-        Swal.showValidationMessage("Questions must be between 1 and 100 only.");
-        return false;
-      }
-
-      if (trueFalseCount < 0 || trueFalseCount > questionCount) {
-        Swal.showValidationMessage(
-          "True or False questions cannot be higher than total questions."
+        updateCounts();
+      },
+      preConfirm: () => {
+        const questionCount = Number(
+          document.getElementById("swal-question-count").value
         );
-        return false;
-      }
 
-      return {
-        questionCount,
-        trueFalseCount,
-        difficulty,
-      };
-    },
-  });
+        const trueFalseCount = Number(
+          document.getElementById("swal-truefalse-count").value
+        );
 
-  if (!formValues) return;
+        const difficulty = document.getElementById("swal-difficulty").value;
 
-  setGeneratingEditQuiz(true);
+        if (!questionCount || questionCount < 1 || questionCount > 100) {
+          Swal.showValidationMessage("Questions must be between 1 and 100 only.");
+          return false;
+        }
 
-  try {
-    const quizItems = await generateQuizFromAI({
-      questionCount: formValues.questionCount,
-      trueFalseCount: formValues.trueFalseCount,
-      difficulty: formValues.difficulty,
+        if (trueFalseCount < 0 || trueFalseCount > questionCount) {
+          Swal.showValidationMessage(
+            "True or False questions cannot be higher than total questions."
+          );
+          return false;
+        }
+
+        return {
+          questionCount,
+          trueFalseCount,
+          difficulty,
+        };
+      },
     });
 
-    setEditQuizItems(quizItems);
+    if (!formValues) return;
 
-    await Swal.fire({
-      icon: "success",
-      title: "Quiz Generated",
-      text: `${quizItems.length} quiz item(s) generated successfully.`,
-      buttonsStyling: false,
-    });
-  } catch (err) {
-    console.error("AI GENERATE EDIT ERROR:", err);
+    setGeneratingEditQuiz(true);
 
-    await Swal.fire({
-      icon: "error",
-      title: "Generation Failed",
-      text: err.message || "Something went wrong while generating quiz.",
-      buttonsStyling: false,
-    });
-  } finally {
-    setGeneratingEditQuiz(false);
-  }
-};
+    try {
+      const quizItems = await generateQuizFromAI({
+        questionCount: formValues.questionCount,
+        trueFalseCount: formValues.trueFalseCount,
+        difficulty: formValues.difficulty,
+      });
+
+      setEditQuizItems(quizItems);
+      localStorage.setItem(GENERATE_COOLDOWN_KEY, String(Date.now()));
+
+      await Swal.fire({
+        icon: "success",
+        title: "Quiz Generated",
+        text: `${quizItems.length} quiz item(s) generated successfully.`,
+        buttonsStyling: false,
+      });
+    } catch (err) {
+      console.error("AI GENERATE EDIT ERROR:", err);
+
+      await Swal.fire({
+        icon: "error",
+        title: "Generation Failed",
+        text: err.message || "Something went wrong while generating quiz.",
+        buttonsStyling: false,
+      });
+    } finally {
+      setGeneratingEditQuiz(false);
+    }
+  };
 
   const generateOptionsForItem = async (item) => {
     const res = await fetch(`${API_BASE}/generateOptions.php`, {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         question: item.question,
@@ -616,7 +642,9 @@ const handleGenerateQuizForEdit = async () => {
     return {
       ...item,
       options: [...data.wrong_options].slice(0, 4),
-      explanation: item.explanation?.trim() ? item.explanation : data.explanation || "",
+      explanation: item.explanation?.trim()
+        ? item.explanation
+        : data.explanation || "",
     };
   };
 
@@ -674,7 +702,9 @@ const handleGenerateQuizForEdit = async () => {
     }
 
     const hasLessons = editLessonPages.some(
-      (page) => String(page.title || "").trim() && String(page.content || "").trim()
+      (page) =>
+        String(page.title || "").trim() &&
+        String(page.content || "").trim()
     );
 
     const hasQuiz =
@@ -732,37 +762,14 @@ const handleGenerateQuizForEdit = async () => {
       }
 
       if (data.success) {
-        if (!hasRequiredContent && editStatus === "publish") {
-          const missingFields = [];
-
-          if (!editDesc.trim()) missingFields.push("• Module Description");
-          if (!editSubject.trim()) missingFields.push("• Subject");
-          if (!editLearningObjectives.trim()) missingFields.push("• Learning Objectives");
-          if (!hasLessons) missingFields.push("• Lesson Pages");
-          if (!hasQuiz) missingFields.push("• Quiz Module");
-
-          await Swal.fire({
-            icon: "warning",
-            title: "Incomplete Input",
-            html: `
-              <p>Some required module content is missing.</p>
-              <div style="text-align:left; display:inline-block;">
-                ${missingFields.join("<br>")}
-              </div>
-              <p>Module was automatically saved as <b>Draft</b>.</p>
-            `,
-          });
-        } else {
-          await Swal.fire({
-            icon: "success",
-            title: "Updated!",
-            text: `Module successfully saved as ${
-              finalStatus === "publish" ? "Published" : "Draft"
-              
-            }.`,
-              buttonsStyling: false,
-          });
-        }
+        await Swal.fire({
+          icon: "success",
+          title: "Updated!",
+          text: `Module successfully saved as ${
+            finalStatus === "publish" ? "Published" : "Draft"
+          }.`,
+          buttonsStyling: false,
+        });
 
         navigate("/admin/modules");
       } else {
@@ -848,7 +855,9 @@ const handleGenerateQuizForEdit = async () => {
 
   const updateEditExplanation = (index, value) => {
     setEditQuizItems((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, explanation: value } : item))
+      prev.map((item, i) =>
+        i === index ? { ...item, explanation: value } : item
+      )
     );
   };
 
@@ -972,60 +981,6 @@ const handleGenerateQuizForEdit = async () => {
                 </span>
               )}
             </button>
-
-            <div
-              className={`${styles.notificationDropdown} ${
-                notificationOpen ? styles.show : ""
-              }`}
-            >
-              <div className={styles.notificationHeader}>
-                <h4>Notifications</h4>
-
-                {notificationCount > 0 && (
-                  <button
-                    type="button"
-                    className={styles.markReadBtn}
-                    onClick={handleMarkAllAsRead}
-                  >
-                    Mark all as read
-                  </button>
-                )}
-              </div>
-
-              {bellNotifications.length > 0 ? (
-                bellNotifications.slice(0, 5).map((item) => (
-                  <div
-                    key={item.notification_id || item.id}
-                    className={styles.notificationItem}
-                  >
-                    <div className={styles.notificationTop}>
-                      <h5>{item.title || "No title"}</h5>
-                      <span className={styles.notificationRole}>
-                        {item.recipient_type || "all"}
-                      </span>
-                    </div>
-
-                    <p className={styles.notificationMessage}>
-                      {item.message || "No message"}
-                    </p>
-
-                    <p className={styles.notificationCreator}>
-                      Posted by {item.created_by || "Admin"}
-                    </p>
-
-                    <small className={styles.notificationDate}>
-                      {item.created_at
-                        ? new Date(item.created_at).toLocaleString()
-                        : "No date"}
-                    </small>
-                  </div>
-                ))
-              ) : (
-                <div className={styles.emptyNotification}>
-                  <p>You don’t have any new notifications</p>
-                </div>
-              )}
-            </div>
           </div>
 
           <div className={styles.adminHeaderProfile}>
@@ -1296,4 +1251,4 @@ const handleGenerateQuizForEdit = async () => {
       </main>
     </div>
   );
-} 
+}

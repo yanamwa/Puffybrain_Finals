@@ -71,10 +71,10 @@ const notificationCount = notifications.filter(
     "Others",
   ];
 
-  const showUploadFailed = (message = "Failed to make one. Try again later.") => {
+const showUploadFailed = () => {
   Swal.fire({
     title: "Failed",
-    text: message,
+    text: "Can't generate for now, Try again Later",
     imageUrl: "/images/error.png",
     imageWidth: 160,
     imageHeight: 160,
@@ -598,8 +598,7 @@ const handleAddToMyDecks = async () => {
     return;
   }
 
-  showUploadFailed(data.message);
-}
+showUploadFailed();}
     } catch (err) {
       console.error("UPLOAD LESSON FETCH ERROR:", err);
       showUploadFailed();
@@ -829,30 +828,29 @@ const handleEditDeck = async () => {
           <div class="${styles.editDeckGroup}">
             <label>Visibility</label>
 
-            <div style="display:flex; gap:28px; align-items:center; margin-top:12px;">
-              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                <input
-                  type="radio"
-                  name="swal-visibility"
-                  value="public"
-                  ${currentVisibility === "public" ? "checked" : ""}
-                />
-                Public
-              </label>
+          <div class="${styles.editVisibilityRow}">
+  <label class="${styles.editVisibilityOption}">
+    <input
+      type="radio"
+      name="swal-visibility"
+      value="public"
+      ${currentVisibility === "public" ? "checked" : ""}
+    />
+    <span>Public</span>
+  </label>
 
-              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                <input
-                  type="radio"
-                  name="swal-visibility"
-                  value="private"
-                  ${currentVisibility === "private" ? "checked" : ""}
-                />
-                Private
-              </label>
-            </div>
-          </div>
+  <label class="${styles.editVisibilityOption}">
+    <input
+      type="radio"
+      name="swal-visibility"
+      value="private"
+      ${currentVisibility === "private" ? "checked" : ""}
+    />
+    <span>Private</span>
+  </label>
+</div>
 
-          <div class="${styles.editDeckGroup}">
+          <div class="${styles.a}">
             <label>Choose Deck Color</label>
 
             <div id="swal-color-picker" style="display:flex; gap:12px; margin-top:12px;">
@@ -914,12 +912,13 @@ const handleEditDeck = async () => {
     cancelButtonText: "Cancel",
     reverseButtons: true,
     focusConfirm: false,
-    customClass: {
-      popup: styles.editDeckPopup,
-      actions: styles.editDeckActions,
-      confirmButton: styles.editDeckSave,
-      cancelButton: styles.editDeckCancel,
-    },
+customClass: {
+  popup: styles.editDeckPopup,
+  htmlContainer: styles.editDeckHtml,
+  actions: styles.editDeckActions,
+  confirmButton: styles.editDeckSave,
+  cancelButton: styles.editDeckCancel,
+},
     buttonsStyling: false,
 
     preConfirm: () => {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -83,7 +83,7 @@ export default function AdminDashboard() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [bellNotifications, setBellNotifications] = useState([]);
-
+    const navigate = useNavigate();
   const fetchedOnce = useRef(false);
 
   const [admin, setAdmin] = useState({

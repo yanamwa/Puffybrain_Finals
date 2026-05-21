@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import styles from "./decksM.module.css";
 import "boxicons/css/boxicons.min.css";
 import { API_BASE } from "../../config.js";
@@ -17,6 +18,8 @@ import {
 } from "lucide-react";
 
 export default function DeckManagement() {
+  const navigate = useNavigate();
+
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [bellNotifications, setBellNotifications] = useState([]);
@@ -34,6 +37,14 @@ export default function DeckManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [admin, setAdmin] = useState({
+    username: "Admin",
+    full_name: "",
+    email: "",
+    role: "",
+    profile_image: "/images/temporary profile.jpg",
+  });
+
   const menuItems = [
     { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
     { label: "User Management", path: "/admin/users", icon: <Users size={20} /> },
@@ -43,47 +54,40 @@ export default function DeckManagement() {
     { label: "Notification Management", path: "/admin/notifications", icon: <i className="bx bx-bell"></i> },
     { label: "Backup & Restore", path: "/admin/backup-restore", icon: <Database size={20} /> },
   ];
-  const [admin, setAdmin] = useState({
-  username: "Admin",
-  full_name: "",
-  email: "",
-  role: "",
-  profile_image: "/images/temporary profile.jpg",
-});
 
+  const handleLogout = async (e) => {
+    e.preventDefault();
 
-const handleLogout = async (e) => {
-  e.preventDefault();
-
-  const result = await Swal.fire({
-    title: "Logout?",
-    text: "Are you sure you want to logout?",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Yes",
-    cancelButtonText: "Cancel",
-    confirmButtonColor: "#7b5cff",
-  });
-
-  if (!result.isConfirmed) return;
-
-  try {
-    await fetch(`${API_BASE}/adminLogout.php`, {
-      method: "POST",
-      credentials: "include",
+    const result = await Swal.fire({
+      title: "Logout?",
+      text: "Are you sure you want to logout?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#7b5cff",
     });
-  } catch (err) {
-    console.error("Logout API error:", err);
-  }
 
-  localStorage.removeItem("admin");
-  localStorage.removeItem("admin_id");
-  localStorage.removeItem("admin_username");
-  localStorage.removeItem("admin_email");
-  sessionStorage.clear();
+    if (!result.isConfirmed) return;
 
-  navigate("/pb-admin-access", { replace: true });
-};
+    try {
+      await fetch(`${API_BASE}/adminLogout.php`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout API error:", err);
+    }
+
+    localStorage.removeItem("admin");
+    localStorage.removeItem("admin_id");
+    localStorage.removeItem("admin_username");
+    localStorage.removeItem("admin_email");
+    sessionStorage.clear();
+
+    navigate("/pb-admin-access", { replace: true });
+  };
+
   const formatDeckId = (deck) => {
     return `DECK${String(deck.deck_id).padStart(4, "0")}`;
   };
@@ -99,40 +103,37 @@ const handleLogout = async (e) => {
   };
 
   const fetchAdmin = async () => {
-  try {
-    const res = await fetch(
-      `${API_BASE}/getAdminProfile.php`,
-      {
+    try {
+      const res = await fetch(`${API_BASE}/getAdminProfile.php`, {
         credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        console.error(data.message || "Admin not found");
+        return;
       }
-    );
 
-    const data = await res.json();
-
-    if (!data.success) {
-      console.error(data.message || "Admin not found");
-      return;
+      setAdmin({
+        username: data.admin?.username || "Admin",
+        full_name: data.admin?.full_name || "",
+        email: data.admin?.email || "",
+        role: data.admin?.role || "Administrator",
+        profile_image: data.admin?.profile_image || "/images/temporary profile.jpg",
+      });
+    } catch (err) {
+      console.error("Fetch admin error:", err);
     }
-
-    setAdmin({
-      username: data.admin?.username || "Admin",
-      full_name: data.admin?.full_name || "",
-      email: data.admin?.email || "",
-      role: data.admin?.role || "Administrator",
-      profile_image:
-        data.admin?.profile_image || "/images/temporary profile.jpg",
-    });
-  } catch (err) {
-    console.error("Fetch admin error:", err);
-  }
-};
+  };
 
   const fetchBellNotifications = async () => {
     try {
-      const admin = JSON.parse(localStorage.getItem("admin") || "{}");
+      const storedAdmin = JSON.parse(localStorage.getItem("admin") || "{}");
+      const adminId = storedAdmin.id || localStorage.getItem("admin_id");
 
       const res = await fetch(
-        `${API_BASE}/getAdminNotifications.php?admin_id=${admin.id}`,
+        `${API_BASE}/getAdminNotifications.php?admin_id=${adminId || ""}`,
         { credentials: "include" }
       );
 
@@ -152,8 +153,8 @@ const handleLogout = async (e) => {
   const handleMarkAllAsRead = async (e) => {
     e.stopPropagation();
 
-    const admin = JSON.parse(localStorage.getItem("admin") || "{}");
-    const adminId = admin.id;
+    const storedAdmin = JSON.parse(localStorage.getItem("admin") || "{}");
+    const adminId = storedAdmin.id || localStorage.getItem("admin_id");
 
     if (!adminId) {
       alert("Admin ID not found. Please log in again.");
@@ -161,19 +162,16 @@ const handleLogout = async (e) => {
     }
 
     try {
-      const res = await fetch(
-        `${API_BASE}/markAdminNotificationsRead.php`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            admin_id: adminId,
-          }),
-        }
-      );
+      const res = await fetch(`${API_BASE}/markAdminNotificationsRead.php`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          admin_id: adminId,
+        }),
+      });
 
       const data = await res.json();
 
@@ -191,8 +189,20 @@ const handleLogout = async (e) => {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`${API_BASE}/getDecks.php`);
-      const data = await response.json();
+      const response = await fetch(`${API_BASE}/getDecks.php`, {
+        credentials: "include",
+      });
+
+      const text = await response.text();
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        console.error("Invalid JSON from getDecks.php:", text);
+        setError("Server returned invalid JSON. Check getDecks.php.");
+        return;
+      }
 
       if (data.success) {
         setDecks(data.decks || []);
@@ -214,11 +224,21 @@ const handleLogout = async (e) => {
 
     try {
       const res = await fetch(
-        `${API_BASE}/getCardsByDeckId.php?deck_id=${deck.deck_id}`
+        `${API_BASE}/getCardsByDeckId.php?deck_id=${deck.deck_id}`,
+        { credentials: "include" }
       );
 
       const text = await res.text();
-      const data = JSON.parse(text);
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        console.error("Invalid JSON from getCardsByDeckId.php:", text);
+        alert("Server returned invalid JSON.");
+        setSelectedDeckCards([]);
+        return;
+      }
 
       if (data.success) {
         setSelectedDeckCards(data.cards || []);
@@ -292,21 +312,21 @@ const handleLogout = async (e) => {
     return 0;
   });
 
-const isDeckArchived = (deck) => {
-  const archived = String(deck.archived ?? "").toLowerCase();
-  const isArchived = String(deck.is_archived ?? "").toLowerCase();
-  const status = String(deck.status ?? "").toLowerCase();
+  const isDeckArchived = (deck) => {
+    const archived = String(deck.archived ?? "").toLowerCase();
+    const isArchived = String(deck.is_archived ?? "").toLowerCase();
+    const status = String(deck.status ?? "").toLowerCase();
 
-  return (
-    archived === "1" ||
-    archived === "true" ||
-    archived === "archived" ||
-    isArchived === "1" ||
-    isArchived === "true" ||
-    isArchived === "archived" ||
-    status === "archived"
-  );
-};
+    return (
+      archived === "1" ||
+      archived === "true" ||
+      archived === "archived" ||
+      isArchived === "1" ||
+      isArchived === "true" ||
+      isArchived === "archived" ||
+      status === "archived"
+    );
+  };
 
   const totalPages = Math.ceil(sortedDecks.length / rowsToShow);
 
@@ -388,12 +408,12 @@ const isDeckArchived = (deck) => {
         <div className={styles.sidebarBottom}>
           <div className={styles.divider}></div>
 
-       <button type="button" onClick={handleLogout} className={styles.menuItem}>
-  <span className={styles.menuIcon}>
-    <LogOut size={20} />
-  </span>
-  <span className={styles.menuText}>Logout</span>
-</button>
+          <button type="button" onClick={handleLogout} className={styles.menuItem}>
+            <span className={styles.menuIcon}>
+              <LogOut size={20} />
+            </span>
+            <span className={styles.menuText}>Logout</span>
+          </button>
         </div>
       </aside>
 
@@ -411,96 +431,94 @@ const isDeckArchived = (deck) => {
             }}
           />
         </div>
-  <div className={styles.headerRight}>
-    
-    {/* Notification */}
-    <div className={styles.notificationWrapper}>
-      <button
-        type="button"
-        className={styles.notificationBtn}
-        onClick={(e) => {
-          e.stopPropagation();
-          setNotificationOpen((prev) => !prev);
-        }}
-      >
-        <i className="bx bx-bell"></i>
 
-        {notificationCount > 0 && (
-          <span className={styles.notificationBadge}>
-            {notificationCount}
-          </span>
-        )}
-      </button>
-
-      <div
-        className={`${styles.notificationDropdown} ${
-          notificationOpen ? styles.show : ""
-        }`}
-      >
-        <div className={styles.notificationHeader}>
-          <h4>Notifications</h4>
-
-          {notificationCount > 0 && (
+        <div className={styles.headerRight}>
+          <div className={styles.notificationWrapper}>
             <button
               type="button"
-              className={styles.markReadBtn}
-              onClick={handleMarkAllAsRead}
+              className={styles.notificationBtn}
+              onClick={(e) => {
+                e.stopPropagation();
+                setNotificationOpen((prev) => !prev);
+              }}
             >
-              Mark all as read
-            </button>
-          )}
-        </div>
+              <i className="bx bx-bell"></i>
 
-        {bellNotifications.length > 0 ? (
-          bellNotifications.slice(0, 5).map((item) => (
-            <div
-              key={item.notification_id || item.id}
-              className={styles.notificationItem}
-            >
-              <div className={styles.notificationTop}>
-                <h5>{item.title || "No title"}</h5>
-                <span className={styles.notificationRole}>
-                  {item.recipient_type || "all"}
+              {notificationCount > 0 && (
+                <span className={styles.notificationBadge}>
+                  {notificationCount}
                 </span>
+              )}
+            </button>
+
+            <div
+              className={`${styles.notificationDropdown} ${
+                notificationOpen ? styles.show : ""
+              }`}
+            >
+              <div className={styles.notificationHeader}>
+                <h4>Notifications</h4>
+
+                {notificationCount > 0 && (
+                  <button
+                    type="button"
+                    className={styles.markReadBtn}
+                    onClick={handleMarkAllAsRead}
+                  >
+                    Mark all as read
+                  </button>
+                )}
               </div>
 
-              <p className={styles.notificationMessage}>
-                {item.message || "No message"}
-              </p>
+              {bellNotifications.length > 0 ? (
+                bellNotifications.slice(0, 5).map((item) => (
+                  <div
+                    key={item.notification_id || item.id}
+                    className={styles.notificationItem}
+                  >
+                    <div className={styles.notificationTop}>
+                      <h5>{item.title || "No title"}</h5>
+                      <span className={styles.notificationRole}>
+                        {item.recipient_type || "all"}
+                      </span>
+                    </div>
 
-              <p className={styles.notificationCreator}>
-                Posted by {item.created_by || "Admin"}
-              </p>
+                    <p className={styles.notificationMessage}>
+                      {item.message || "No message"}
+                    </p>
 
-              <small className={styles.notificationDate}>
-                {item.created_at
-                  ? new Date(item.created_at).toLocaleString()
-                  : "No date"}
-              </small>
+                    <p className={styles.notificationCreator}>
+                      Posted by {item.created_by || "Admin"}
+                    </p>
+
+                    <small className={styles.notificationDate}>
+                      {item.created_at
+                        ? new Date(item.created_at).toLocaleString()
+                        : "No date"}
+                    </small>
+                  </div>
+                ))
+              ) : (
+                <div className={styles.emptyNotification}>
+                  <p>You don’t have any new notifications</p>
+                </div>
+              )}
             </div>
-          ))
-        ) : (
-          <div className={styles.emptyNotification}>
-            <p>You don’t have any new notifications</p>
           </div>
-        )}
-      </div>
-    </div>
 
-    {/* Admin Profile */}
-    <div className={styles.adminHeaderProfile}>
-      <img
-        src={admin.profile_image || "/images/temporary profile.jpg"}
-        alt="Admin"
-        className={styles.adminHeaderImg}
-      />
+          <div className={styles.adminHeaderProfile}>
+            <img
+              src={admin.profile_image || "/images/temporary profile.jpg"}
+              alt="Admin"
+              className={styles.adminHeaderImg}
+            />
 
-      <span className={styles.adminHeaderName}>
-        {admin.username || "Admin"}
-      </span>
-    </div>
-  </div>
-</header>
+            <span className={styles.adminHeaderName}>
+              {admin.username || "Admin"}
+            </span>
+          </div>
+        </div>
+      </header>
 
       <main className={styles.main}>
         <div className={styles.pageTop}>
@@ -536,7 +554,9 @@ const isDeckArchived = (deck) => {
           <div className={styles.tableContent}>
             {loading && <div className={styles.message}>Loading decks...</div>}
 
-            {!loading && error && <div className={styles.errorMessage}>{error}</div>}
+            {!loading && error && (
+              <div className={styles.errorMessage}>{error}</div>
+            )}
 
             {!loading && !error && currentDecks.length === 0 && (
               <div className={styles.message}>No decks found.</div>
@@ -562,17 +582,19 @@ const isDeckArchived = (deck) => {
                       {deck.visibility || "Public"}
                     </span>
                   </div>
-<div>
-  <span
-    className={`${styles.badge} ${
-      isDeckArchived(deck)
-        ? styles.archivedBadge
-        : styles.activeBadge
-    }`}
-  >
-    {isDeckArchived(deck) ? "Archived" : "Active"}
-  </span>
-</div>
+
+                  <div>
+                    <span
+                      className={`${styles.badge} ${
+                        isDeckArchived(deck)
+                          ? styles.archivedBadge
+                          : styles.activeBadge
+                      }`}
+                    >
+                      {isDeckArchived(deck) ? "Archived" : "Active"}
+                    </span>
+                  </div>
+
                   <button
                     className={styles.viewBtn}
                     type="button"
@@ -595,24 +617,28 @@ const isDeckArchived = (deck) => {
                 {"<"}
               </button>
 
-              {Array.from({ length: totalPages || 1 }, (_, i) => i + 1).map((page) => (
-                <button
-                  key={page}
-                  type="button"
-                  className={`${styles.pageBtn} ${
-                    currentPage === page ? styles.pageActive : ""
-                  }`}
-                  onClick={() => setCurrentPage(page)}
-                >
-                  {page}
-                </button>
-              ))}
+              {Array.from({ length: totalPages || 1 }, (_, i) => i + 1).map(
+                (page) => (
+                  <button
+                    key={page}
+                    type="button"
+                    className={`${styles.pageBtn} ${
+                      currentPage === page ? styles.pageActive : ""
+                    }`}
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
 
               <button
                 className={styles.navBtn}
                 type="button"
                 disabled={currentPage === totalPages || totalPages === 0}
-                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(p + 1, totalPages))
+                }
               >
                 {">"}
               </button>
