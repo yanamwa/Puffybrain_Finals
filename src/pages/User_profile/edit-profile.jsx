@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import "boxicons/css/boxicons.min.css";
+import { API_BASE } from "../../config.js";
 import styles from "./edit-profile.module.css";
 import Swal from "sweetalert2";
 
@@ -11,34 +12,45 @@ function EditProfile() {
   const [search, setSearch] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
+
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
+
   const [otpEmail, setOtpEmail] = useState("");
   const [otpCode, setOtpCode] = useState(["", "", "", ""]);
   const [pendingSave, setPendingSave] = useState(false);
   const [resendingOtp, setResendingOtp] = useState(false);
+
+  const OTP_DURATION = 300;
+  const [otpTimeLeft, setOtpTimeLeft] = useState(OTP_DURATION);
+
   const [myDecks, setMyDecks] = useState([]);
   const [courses, setCourses] = useState([]);
+
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
+
   const notificationCount = notifications.filter(
     (notif) => notif.status === "unread"
   ).length;
+
   const [selectedImageFile, setSelectedImageFile] = useState(null);
   const [isOtherSchool, setIsOtherSchool] = useState(false);
 
   const showFeedback = (type, title, text) => {
-  Swal.fire({
-    imageUrl: type === "success" ? "/images/success.png" : "/images/error.png",
-    imageWidth: 170,
-    imageHeight: 170,
-    title,
-    text,
-  });
-};
+    Swal.fire({
+      imageUrl: type === "success" ? "/images/success.png" : "/images/error.png",
+      imageWidth: 170,
+      imageHeight: 170,
+      title,
+      text,
+    });
+  };
+
   const [user, setUser] = useState({
     username: "",
     email: "",
@@ -56,63 +68,57 @@ function EditProfile() {
     profile_image: "",
   });
 
-    const [passwordForm, setPasswordForm] = useState({
+  const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
 
   const fetchNotifications = async () => {
-  try {
-    const res = await fetch(
-      "http://localhost/puffybrain/getUserNotifications.php",
-      {
+    try {
+      const res = await fetch(`${API_BASE}/getUserNotifications.php`, {
         method: "GET",
         credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setNotifications(data.notifications || []);
+      } else {
+        setNotifications([]);
       }
-    );
-
-    const data = await res.json();
-
-    if (data.success) {
-      setNotifications(data.notifications || []);
-    } else {
+    } catch (err) {
+      console.error("Notification fetch error:", err);
       setNotifications([]);
     }
-  } catch (err) {
-    console.error("Notification fetch error:", err);
-    setNotifications([]);
-  }
-};
+  };
 
-const markNotificationsAsRead = async () => {
-  try {
-    const res = await fetch(
-      "http://localhost/puffybrain/markNotificationsAsRead.php",
-      {
+  const markNotificationsAsRead = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/markNotificationsAsRead.php`, {
         method: "POST",
         credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setNotifications((prev) =>
+          prev.map((notif) => ({
+            ...notif,
+            status: "read",
+          }))
+        );
       }
-    );
-
-    const data = await res.json();
-
-    if (data.success) {
-      setNotifications((prev) =>
-        prev.map((notif) => ({
-          ...notif,
-          status: "read",
-        }))
-      );
+    } catch (err) {
+      console.error("Mark notifications as read error:", err);
     }
-  } catch (err) {
-    console.error("Mark notifications as read error:", err);
-  }
-};
+  };
 
   const fetchUserDecks = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/userDecks.php", {
+      const res = await fetch(`${API_BASE}/userDecks.php`, {
         credentials: "include",
       });
 
@@ -126,7 +132,7 @@ const markNotificationsAsRead = async () => {
 
   const fetchAddedCourses = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/getMyCourses.php", {
+      const res = await fetch(`${API_BASE}/getMyCourses.php`, {
         credentials: "include",
       });
 
@@ -140,7 +146,7 @@ const markNotificationsAsRead = async () => {
 
   const fetchUser = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/getUser.php", {
+      const res = await fetch(`${API_BASE}/getUser.php`, {
         credentials: "include",
       });
 
@@ -171,21 +177,21 @@ const markNotificationsAsRead = async () => {
     }
   };
 
-useEffect(() => {
-  fetchUserDecks();
-  fetchAddedCourses();
-  fetchUser();
-  fetchNotifications();
-}, []);
+  useEffect(() => {
+    fetchUserDecks();
+    fetchAddedCourses();
+    fetchUser();
+    fetchNotifications();
+  }, []);
 
   useEffect(() => {
     const handler = (e) => {
       const insideDropdown = e.target.closest(
-  `.${styles.deckMenu}, .${styles.deckMenuBtn}, .${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}`
-);
+        `.${styles.deckMenu}, .${styles.deckMenuBtn}, .${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}`
+      );
 
       if (!insideDropdown) {
-        setDropdownOpen(null);
+        setDropdownOpen(false);
         setNotificationOpen(false);
       }
     };
@@ -198,6 +204,7 @@ useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === "Escape") {
         setIsEditModalOpen(false);
+        setShowOtpModal(false);
       }
     };
 
@@ -205,25 +212,61 @@ useEffect(() => {
     return () => window.removeEventListener("keydown", handleEsc);
   }, []);
 
+  useEffect(() => {
+    if (!showOtpModal) return;
+    if (otpTimeLeft <= 0) return;
+
+    const interval = setInterval(() => {
+      setOtpTimeLeft((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [showOtpModal, otpTimeLeft]);
+
   const openCourse = (courseId) => {
     navigate(`/learning/${courseId}`);
   };
 
-  const handleLogout = () => {
-      Swal.fire({
-        title: "Logout?",
-        text: "Are you sure you want to logout?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes",
-        confirmButtonColor: "#7b5cff",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          navigate("/login");
-        }
-      });
-    };
+const handleLogout = () => {
+  Swal.fire({
+    title: "Logout?",
+    text: "Are you sure you want to logout?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#8d6cab",
+    cancelButtonColor: "#b0b0b0",
+    confirmButtonText: "Yes, Logout",
+    cancelButtonText: "Cancel",
+    reverseButtons: true,
+    customClass: {
+      popup: styles.logoutPopup,
+      title: styles.logoutTitle,
+      htmlContainer: styles.logoutText,
+      confirmButton: styles.logoutConfirm,
+      cancelButton: styles.logoutCancel,
+    },
+  }).then(async (result) => {
+    if (!result.isConfirmed) return;
 
+    try {
+      await fetch(`${API_BASE}/logout.php`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout API error:", err);
+    }
+
+    localStorage.removeItem("username");
+    localStorage.removeItem("user_email");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("profile_image");
+
+    sessionStorage.clear();
+
+    navigate("/login", { replace: true });
+  });
+};
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
 
@@ -235,317 +278,367 @@ useEffect(() => {
 
   const newPassword = passwordForm.newPassword;
 
-const hasLength = newPassword.length >= 12;
-const hasUpper = /[A-Z]/.test(newPassword);
-const hasLower = /[a-z]/.test(newPassword);
-const hasNumber = /[0-9]/.test(newPassword);
-const hasSymbol = /[^A-Za-z0-9]/.test(newPassword);
+  const hasLength = newPassword.length >= 12;
+  const hasUpper = /[A-Z]/.test(newPassword);
+  const hasLower = /[a-z]/.test(newPassword);
+  const hasNumber = /[0-9]/.test(newPassword);
+  const hasSymbol = /[^A-Za-z0-9]/.test(newPassword);
 
-const isPasswordValid =
-  hasLength && hasUpper && hasLower && hasNumber && hasSymbol;
+  const isPasswordValid =
+    hasLength && hasUpper && hasLower && hasNumber && hasSymbol;
 
-const passwordsMatch =
-  passwordForm.newPassword === passwordForm.confirmPassword;
+  const passwordsMatch =
+    passwordForm.newPassword === passwordForm.confirmPassword;
 
-const getPasswordStrength = (password) => {
-  let strength = 0;
+  const getPasswordStrength = (password) => {
+    let strength = 0;
 
-  if (password.length >= 12) strength++;
-  if (/[A-Z]/.test(password)) strength++;
-  if (/[a-z]/.test(password)) strength++;
-  if (/[0-9]/.test(password)) strength++;
-  if (/[^A-Za-z0-9]/.test(password)) strength++;
+    if (password.length >= 12) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^A-Za-z0-9]/.test(password)) strength++;
 
-  if (strength <= 2) return "weak";
-  if (strength === 3 || strength === 4) return "medium";
-  return "strong";
-};
+    if (strength <= 2) return "weak";
+    if (strength === 3 || strength === 4) return "medium";
+    return "strong";
+  };
 
-const passwordStrength = getPasswordStrength(newPassword);
+  const passwordStrength = getPasswordStrength(newPassword);
 
   const handleChangePassword = async (e) => {
-  e.preventDefault();
-
-  if (!isPasswordValid) {
-  showFeedback("error", "Invalid Password", "Password must meet all security requirements.");
-  return;
-}
+    e.preventDefault();
 
     if (
-    !passwordForm.currentPassword ||
-    !passwordForm.newPassword ||
-    !passwordForm.confirmPassword
-  ) {
-    showFeedback("error", "Missing Fields", "Please fill in all password fields.");
-    return;
-  }
-
-  if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-    showFeedback("error", "Mismatch", "Passwords do not match.");
-    return;
-  }
-
-  try {
-    const res = await fetch("http://localhost/puffybrain/changePassword.php", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-      currentPassword: passwordForm.currentPassword,
-      newPassword: passwordForm.newPassword,
-    }),
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      showFeedback("success", "Success", "Password changed successfully!");
-      setPasswordForm({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    });
-    } else {
-      showFeedback("error", "Failed", data.message || "Failed to change password.");
+      !passwordForm.currentPassword ||
+      !passwordForm.newPassword ||
+      !passwordForm.confirmPassword
+    ) {
+      showFeedback("error", "Missing Fields", "Please fill in all password fields.");
+      return;
     }
-  } catch (err) {
-    console.error("Change password error:", err);
-    showFeedback("error", "Server Error", "Server error while changing password.");
-  }
-};
 
-  const handleDeleteAccount = () => 
+    if (!isPasswordValid) {
+      showFeedback(
+        "error",
+        "Invalid Password",
+        "Password must meet all security requirements."
+      );
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      showFeedback("error", "Mismatch", "Passwords do not match.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/changePassword.php`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          currentPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        showFeedback("success", "Success", "Password changed successfully!");
+        setPasswordForm({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+      } else {
+        showFeedback(
+          "error",
+          "Failed",
+          data.message || "Failed to change password."
+        );
+      }
+    } catch (err) {
+      console.error("Change password error:", err);
+      showFeedback("error", "Server Error", "Server error while changing password.");
+    }
+  };
+
+  const handleDeleteAccount = () => {
     Swal.fire({
-  imageUrl: "/images/error.png",
-  imageWidth: 170,
-  imageHeight: 170,
-  title: "Delete Account?",
-  text: "This action is irreversible.",
-  showCancelButton: true,
-  confirmButtonText: "Yes, delete",
-  cancelButtonText: "Cancel",
-}).then((result) => {
-  if (result.isConfirmed) {
-    showFeedback("success", "Deleted", "Account deletion logic goes here.");
-  }
-});
+      imageUrl: "/images/error.png",
+      imageWidth: 170,
+      imageHeight: 170,
+      title: "Delete Account?",
+      text: "This action is irreversible.",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete",
+      cancelButtonText: "Cancel",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        showFeedback("success", "Deleted", "Account deletion logic goes here.");
+      }
+    });
+  };
 
   const openEditModal = () => {
-  setEditForm({
-    username: "",
-    email: "",
-    year_level: "",
-    school: "",
-    profile_image: "",
-  });
+    setEditForm({
+      username: user.username || "",
+      email: user.email || "",
+      year_level: user.year_level || "",
+      school: user.school || "",
+      profile_image: user.profile_image || "",
+    });
 
-  setIsEditModalOpen(true);
-};
+    setSelectedImageFile(null);
+    setIsOtherSchool(false);
+    setIsEditModalOpen(true);
+  };
 
   const closeEditModal = () => {
     setIsEditModalOpen(false);
   };
 
   const handleEditInputChange = (e) => {
-  const { name, value } = e.target;
+    const { name, value } = e.target;
 
-  if (name === "school") {
-    if (value === "Others") {
-      setIsOtherSchool(true);
-      setEditForm((prev) => ({ ...prev, school: "" }));
-      return;
-    } else {
-      setIsOtherSchool(false);
+    if (name === "school") {
+      if (value === "Others") {
+        setIsOtherSchool(true);
+        setEditForm((prev) => ({ ...prev, school: "" }));
+        return;
+      } else {
+        setIsOtherSchool(false);
+      }
     }
-  }
 
-  setEditForm((prev) => ({
-    ...prev,
-    [name]: value,
-  }));
-};
+    setEditForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   const handlePhotoChange = (e) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  setSelectedImageFile(file);
+    setSelectedImageFile(file);
 
-  const previewUrl = URL.createObjectURL(file);
+    const previewUrl = URL.createObjectURL(file);
 
-  setEditForm((prev) => ({
-    ...prev,
-    profile_image: previewUrl,
-  }));
-};
+    setEditForm((prev) => ({
+      ...prev,
+      profile_image: previewUrl,
+    }));
+  };
 
-  const sendEmailOtp = async (emailToVerify) => {
-  try {
-    const res = await fetch("http://localhost/puffybrain/send-change-email-otp.php", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email: emailToVerify }),
-    });
-
-    const text = await res.text();
-    console.log("OTP RAW RESPONSE:", text);
-
-    let data;
+  const sendEmailOtp = async (emailToVerify, showSuccessAlert = false) => {
     try {
-      data = JSON.parse(text);
-    } catch {
-      showFeedback("error", "Server Issue", "PHP did not return JSON.");
+      const res = await fetch(`${API_BASE}/send-change-email-otp.php`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: emailToVerify }),
+      });
+
+      const text = await res.text();
+      console.log("OTP RAW RESPONSE:", text);
+
+      let data;
+
+      try {
+        data = JSON.parse(text);
+      } catch {
+        showFeedback("error", "Server Issue", "PHP did not return JSON.");
+        return false;
+      }
+
+      if (data.success) {
+        setOtpEmail(emailToVerify);
+        setOtpCode(["", "", "", ""]);
+        setOtpTimeLeft(OTP_DURATION);
+        setShowOtpModal(true);
+
+        if (showSuccessAlert) {
+          showFeedback(
+            "success",
+            "OTP Sent",
+            data.message || "A new verification code was sent to your email."
+          );
+        }
+
+        return true;
+      } else {
+        showFeedback("error", "OTP Failed", data.message || "Failed to send OTP.");
+        return false;
+      }
+    } catch (err) {
+      console.error("Send OTP error:", err);
+      showFeedback("error", "Server Error", "Server error while sending OTP.");
+      return false;
+    }
+  };
+
+  const saveProfileAfterOtp = async () => {
+    const formData = new FormData();
+    formData.append("username", editForm.username);
+    formData.append("email", editForm.email);
+    formData.append("school", editForm.school);
+    formData.append("year_level", editForm.year_level);
+
+    if (selectedImageFile) {
+      formData.append("profile_image", selectedImageFile);
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/updateUser.php`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        await fetchUser();
+        setSelectedImageFile(null);
+        setIsEditModalOpen(false);
+        setShowOtpModal(false);
+        setPendingSave(false);
+        showFeedback("success", "Success", "Profile updated successfully!");
+      } else {
+        showFeedback("error", "Failed", data.message || "Failed to update profile.");
+      }
+    } catch (err) {
+      console.error("Update profile error:", err);
+      showFeedback("error", "Server Error", "Server error while updating profile.");
+    }
+  };
+
+  const handleVerifyEmailOtp = async () => {
+    const otp = otpCode.join("");
+
+    if (otp.length !== 4) {
+      showFeedback("error", "Wrong OTP", "Make sure to input a correct code");
       return;
     }
 
-    if (data.success) {
-      setOtpEmail(emailToVerify);
-      setOtpCode(["", "", "", ""]);
-      setShowOtpModal(true);
-    } else {
-      showFeedback("error", "OTP Failed", data.message || "Failed to send OTP.");
+    try {
+      const res = await fetch(`${API_BASE}/verify-change-email-otp.php`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: otpEmail,
+          otp,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        await saveProfileAfterOtp();
+      } else {
+        showFeedback(
+          "error",
+          data.title || "Wrong OTP",
+          data.message || "Make sure to input a correct code"
+        );
+      }
+    } catch (err) {
+      console.error("Verify OTP error:", err);
+      showFeedback("error", "Server Error", "Server error while verifying OTP.");
     }
-  } catch (err) {
-    console.error("Send OTP error:", err);
-    showFeedback("error", "Server Error", "Server error while sending OTP.");
-  }
-};
-
-const saveProfileAfterOtp = async () => {
-  const formData = new FormData();
-  formData.append("username", editForm.username);
-  formData.append("email", editForm.email);
-  formData.append("school", editForm.school);
-  formData.append("year_level", editForm.year_level);
-
-  if (selectedImageFile) {
-    formData.append("profile_image", selectedImageFile);
-  }
-
-  try {
-    const res = await fetch("http://localhost/puffybrain/updateUser.php", {
-      method: "POST",
-      credentials: "include",
-      body: formData,
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      await fetchUser();
-      setSelectedImageFile(null);
-      setIsEditModalOpen(false);
-      setShowOtpModal(false);
-      setPendingSave(false);
-      showFeedback("success", "Success", "Profile updated successfully!");
-    } else {
-      showFeedback("error", "Failed", data.message || "Failed to update profile.");
-    }
-  } catch (err) {
-    console.error("Update profile error:", err);
-    showFeedback("error", "Server Error", "Server error while updating profile.");
-  }
-};
-  
-  const handleVerifyEmailOtp = async () => {
-  const otp = otpCode.join("");
-
-  if (otp.length !== 4) {
-    showFeedback("error", "Invalid OTP", "Please enter the 4-digit OTP.");
-    return;
-  }
-
-  try {
-    const res = await fetch("http://localhost/puffybrain/verify-change-email-otp.php",{
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: otpEmail,
-        otp,
-      }),
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-  await saveProfileAfterOtp();
-} else {
-      showFeedback("error", "Invalid OTP", data.message || "Invalid OTP.");
-    }
-  } catch (err) {
-    console.error("Verify OTP error:", err);
-    showFeedback("error", "Server Error", "Server error while verifying OTP.");
-  }
-};
+  };
 
   const handleSaveProfile = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const emailChanged =
-    editForm.email &&
-    editForm.email.trim() !== "" &&
-    editForm.email.trim() !== user.email;
+    const emailChanged =
+      editForm.email &&
+      editForm.email.trim() !== "" &&
+      editForm.email.trim() !== user.email;
 
-  if (emailChanged && !pendingSave) {
-    await sendEmailOtp(editForm.email.trim());
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("username", editForm.username);
-  formData.append("email", editForm.email);
-  formData.append("school", editForm.school);
-  formData.append("year_level", editForm.year_level);
-
-  if (selectedImageFile) {
-    formData.append("profile_image", selectedImageFile);
-  }
-
-  try {
-    const res = await fetch("http://localhost/puffybrain/updateUser.php", {
-      method: "POST",
-      credentials: "include",
-      body: formData,
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      await fetchUser();
-      setSelectedImageFile(null);
-      setIsEditModalOpen(false);
-      setShowOtpModal(false);
-      setPendingSave(false);
-      showFeedback("success", "Success", "Profile updated successfully!");
-    } else {
-      showFeedback("error", "Failed", data.message || "Failed to update profile.");
+    if (emailChanged && !pendingSave) {
+      await sendEmailOtp(editForm.email.trim(), false);
+      return;
     }
-  } catch (err) {
-    console.error("Update profile error:", err);
-    showFeedback("error", "Server Error", "Server error while updating profile.");
-  }
-};
 
-const handleOtpChange = (value, index) => {
-  const cleanValue = value.replace(/[^0-9]/g, "");
+    const formData = new FormData();
+    formData.append("username", editForm.username);
+    formData.append("email", editForm.email);
+    formData.append("school", editForm.school);
+    formData.append("year_level", editForm.year_level);
 
-  const updatedOtp = [...otpCode];
-  updatedOtp[index] = cleanValue;
-  setOtpCode(updatedOtp);
+    if (selectedImageFile) {
+      formData.append("profile_image", selectedImageFile);
+    }
 
-  if (cleanValue && index < 3) {
-    const nextInput = document.getElementById(`otp-${index + 1}`);
-    nextInput?.focus();
-  }
-};
+    try {
+      const res = await fetch(`${API_BASE}/updateUser.php`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        await fetchUser();
+        setSelectedImageFile(null);
+        setIsEditModalOpen(false);
+        setShowOtpModal(false);
+        setPendingSave(false);
+        showFeedback("success", "Success", "Profile updated successfully!");
+      } else {
+        showFeedback("error", "Failed", data.message || "Failed to update profile.");
+      }
+    } catch (err) {
+      console.error("Update profile error:", err);
+      showFeedback("error", "Server Error", "Server error while updating profile.");
+    }
+  };
+
+  const handleOtpChange = (value, index) => {
+    const cleanValue = value.replace(/[^0-9]/g, "").slice(0, 1);
+
+    const updatedOtp = [...otpCode];
+    updatedOtp[index] = cleanValue;
+    setOtpCode(updatedOtp);
+
+    if (cleanValue && index < 3) {
+      const nextInput = document.getElementById(`otp-${index + 1}`);
+      nextInput?.focus();
+    }
+  };
+
+  const formatOtpTime = () => {
+    const minutes = String(Math.floor(otpTimeLeft / 60)).padStart(2, "0");
+    const seconds = String(otpTimeLeft % 60).padStart(2, "0");
+    return `${minutes}:${seconds}`;
+  };
+
+  const handleResendEmailOtp = async () => {
+    if (!otpEmail) {
+      showFeedback("error", "Missing Email", "No email found for OTP resend.");
+      return;
+    }
+
+    setResendingOtp(true);
+
+    try {
+      await sendEmailOtp(otpEmail, true);
+    } finally {
+      setResendingOtp(false);
+    }
+  };
 
   return (
     <div
@@ -553,137 +646,133 @@ const handleOtpChange = (value, index) => {
         isCollapsed ? styles.sidebarCollapsed : ""
       }`}
     >
-      <aside
-              className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
-            >
-              <div>
-                <div
-                  className={styles.sidebarToggle}
-                  onClick={() => setIsCollapsed(!isCollapsed)}
+      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
+        <div>
+          <div
+            className={styles.sidebarToggle}
+            onClick={() => setIsCollapsed(!isCollapsed)}
+          >
+            <i className="bx bx-sidebar"></i>
+          </div>
+
+          <div className={styles.logo}>
+            <img
+              className={styles.logoExpanded}
+              src="/images/logo1.png"
+              alt="Logo"
+            />
+            <img
+              className={styles.logoCollapsed}
+              src="/images/logo_solo.png"
+              alt="Logo"
+            />
+          </div>
+
+          <div className={styles.divider}></div>
+          <p className={styles.myDecksTitle}>Menu</p>
+
+          <nav className={styles.menu}>
+            <ul className={styles.sidebarList}>
+              <li className={styles.sidebarListItem}>
+                <NavLink
+                  to="/homepage"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
                 >
-                  <i className="bx bx-sidebar"></i>
-                </div>
-      
-                <div className={styles.logo}>
-                  <img
-                    className={styles.logoExpanded}
-                    src="/images/logo1.png"
-                    alt="Logo"
-                  />
-                  <img
-                    className={styles.logoCollapsed}
-                    src="/images/logo_solo.png"
-                    alt="Logo"
-                  />
-                </div>
-      
-                <div className={styles.divider}></div>
-                <p className={styles.myDecksTitle}>Menu</p>
-      
-                <nav className={styles.menu}>
-                  <ul className={styles.sidebarList}>
-                    <li className={styles.sidebarListItem}>
-                      <NavLink
-                        to="/homepage"
-                        className={({ isActive }) =>
-                          `${styles.menuItem} ${isActive ? styles.active : ""}`
-                        }
-                      >
-                        <i className="bx bx-home"></i>
-                        <span className={styles.menuText}>Home</span>
-                      </NavLink>
-                    </li>
-      
-                    <li className={styles.sidebarListItem}>
-                      <NavLink
-                        to="/Mydecks"
-                        className={({ isActive }) =>
-                          `${styles.menuItem} ${isActive ? styles.active : ""}`
-                        }
-                      >
+                  <i className="bx bx-home"></i>
+                  <span className={styles.menuText}>Home</span>
+                </NavLink>
+              </li>
+
+              <li className={styles.sidebarListItem}>
+                <NavLink
+                  to="/Mydecks"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
+                  <i className="bx bx-collection"></i>
+                  <span className={styles.menuText}>Decks</span>
+                </NavLink>
+              </li>
+
+              <li className={styles.sidebarListItem}>
+                <NavLink
+                  to="/mycourse"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
+                  <i className="bx bx-book-open"></i>
+                  <span className={styles.menuText}>My Course</span>
+                </NavLink>
+              </li>
+
+              <li className={styles.sidebarListItem}>
+                <NavLink
+                  to="/public-decks"
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ""}`
+                  }
+                >
+                  <i className="bx bx-world"></i>
+                  <span className={styles.menuText}>Public Decks</span>
+                </NavLink>
+              </li>
+            </ul>
+          </nav>
+
+          <div className={styles.divider}></div>
+
+          <div className={styles.myDecksNav}>
+            <div className={styles.sectionBlock}>
+              <p className={styles.sectionTitle}>My Decks</p>
+
+              <ul className={styles.sectionList}>
+                {myDecks.length === 0 ? (
+                  <li className={styles.sidebarEmptyText}>
+                    Don't have decks yet
+                  </li>
+                ) : (
+                  myDecks.slice(0, 3).map((deck) => (
+                    <li key={deck.id} className={styles.sidebarListItem}>
+                      <Link to={`/deck/${deck.id}`} className={styles.menuItem}>
                         <i className="bx bx-collection"></i>
-                        <span className={styles.menuText}>Decks</span>
-                      </NavLink>
+                        <span className={styles.menuText}>{deck.title}</span>
+                      </Link>
                     </li>
-      
-                    <li className={styles.sidebarListItem}>
-                      <NavLink
-                        to="/mycourse"
-                        className={({ isActive }) =>
-                          `${styles.menuItem} ${isActive ? styles.active : ""}`
-                        }
+                  ))
+                )}
+              </ul>
+            </div>
+
+            <div className={styles.sectionBlock}>
+              <div className={styles.sectionDivider}></div>
+              <p className={styles.sectionTitle}>My Courses</p>
+
+              <ul className={styles.sectionList}>
+                {courses.length === 0 ? (
+                  <li className={styles.sidebarEmptyText}>No courses added yet</li>
+                ) : (
+                  courses.slice(0, 3).map((course) => (
+                    <li key={course.id} className={styles.sidebarListItem}>
+                      <button
+                        type="button"
+                        onClick={() => openCourse(course.id)}
+                        className={styles.menuItem}
                       >
                         <i className="bx bx-book-open"></i>
-                        <span className={styles.menuText}>My Course</span>
-                      </NavLink>
+                        <span className={styles.menuText}>{course.title}</span>
+                      </button>
                     </li>
-      
-                    <li className={styles.sidebarListItem}>
-                      <NavLink
-                        to="/public-decks"
-                        className={({ isActive }) =>
-                          `${styles.menuItem} ${isActive ? styles.active : ""}`
-                        }
-                      >
-                        <i className="bx bx-world"></i>
-                        <span className={styles.menuText}>Public Decks</span>
-                      </NavLink>
-                    </li>
-                  </ul>
-                </nav>
-      
-                <div className={styles.divider}></div>
-      
-                <div className={styles.myDecksNav}>
-                  <div className={styles.sectionBlock}>
-                    <p className={styles.sectionTitle}>My Decks</p>
-      
-                    <ul className={styles.sectionList}>
-                      {myDecks.length === 0 ? (
-                        <li className={styles.sidebarEmptyText}>
-                          Don't have decks yet
-                        </li>
-                      ) : (
-                        myDecks.slice(0, 3).map((deck) => (
-                          <li key={deck.id} className={styles.sidebarListItem}>
-                            <Link to={`/deck/${deck.id}`} className={styles.menuItem}>
-                              <i className="bx bx-collection"></i>
-                              <span className={styles.menuText}>{deck.title}</span>
-                            </Link>
-                          </li>
-                        ))
-                      )}
-                    </ul>
-                  </div>
-      
-                  <div className={styles.sectionBlock}>
-                    <div className={styles.sectionDivider}></div>
-                    <p className={styles.sectionTitle}>My Courses</p>
-      
-                    <ul className={styles.sectionList}>
-                      {courses.length === 0 ? (
-                        <li className={styles.sidebarEmptyText}>
-                          No courses added yet
-                        </li>
-                      ) : (
-                        courses.slice(0, 3).map((course) => (
-                          <li key={course.id} className={styles.sidebarListItem}>
-                            <button
-                              type="button"
-                              onClick={() => openCourse(course.id)}
-                              className={styles.menuItem}
-                            >
-                              <i className="bx bx-book-open"></i>
-                              <span className={styles.menuText}>{course.title}</span>
-                            </button>
-                          </li>
-                        ))
-                      )}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </aside>
+                  ))
+                )}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </aside>
 
       <div className={styles.mainArea}>
         <div className={styles.gridContainer}>
@@ -702,79 +791,79 @@ const handleOtpChange = (value, index) => {
             </form>
 
             <div className={styles.profileWrapper}>
+              <div className={styles.notificationWrapper}>
+                <button
+                  type="button"
+                  className={styles.notificationBtn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setNotificationOpen((prev) => !prev);
+                    setDropdownOpen(false);
+                  }}
+                >
+                  <i className="bx bx-bell"></i>
 
-            <div className={styles.notificationWrapper}>
-  <button
-    type="button"
-    className={styles.notificationBtn}
-    onClick={(e) => {
-      e.stopPropagation();
-      setNotificationOpen((prev) => !prev);
-      setDropdownOpen(null);
-    }}
-  >
-    <i className="bx bx-bell"></i>
+                  {notificationCount > 0 && (
+                    <span className={styles.notificationBadge}>
+                      {notificationCount}
+                    </span>
+                  )}
+                </button>
 
-    {notificationCount > 0 && (
-      <span className={styles.notificationBadge}>
-        {notificationCount}
-      </span>
-    )}
-  </button>
+                <div
+                  className={`${styles.notificationDropdown} ${
+                    notificationOpen ? styles.show : ""
+                  }`}
+                >
+                  <div className={styles.notificationHeader}>
+                    <h4>Notifications</h4>
 
-  <div
-    className={`${styles.notificationDropdown} ${
-      notificationOpen ? styles.show : ""
-    }`}
-  >
-    <div className={styles.notificationHeader}>
-      <h4>Notifications</h4>
+                    {notificationCount > 0 && (
+                      <button
+                        type="button"
+                        className={styles.markReadBtn}
+                        onClick={markNotificationsAsRead}
+                      >
+                        Mark all as read
+                      </button>
+                    )}
+                  </div>
 
-      {notificationCount > 0 && (
-        <button
-          type="button"
-          className={styles.markReadBtn}
-          onClick={markNotificationsAsRead}
-        >
-          Mark all as read
-        </button>
-      )}
-    </div>
+                  {notifications.length > 0 ? (
+                    notifications.slice(0, 5).map((notif) => (
+                      <div
+                        key={notif.notification_id}
+                        className={styles.notificationItem}
+                      >
+                        <div className={styles.notificationTop}>
+                          <h5>{notif.title}</h5>
 
-    {notifications.length > 0 ? (
-      notifications.slice(0, 5).map((notif) => (
-        <div
-          key={notif.notification_id}
-          className={styles.notificationItem}
-        >
-          <div className={styles.notificationTop}>
-            <h5>{notif.title}</h5>
+                          <span className={styles.notificationRole}>
+                            {notif.target_role}
+                          </span>
+                        </div>
 
-            <span className={styles.notificationRole}>
-              {notif.target_role}
-            </span>
-          </div>
+                        <p>{notif.message}</p>
 
-          <p>{notif.message}</p>
+                        <small className={styles.notificationDate}>
+                          {new Date(notif.created_at).toLocaleString()}
+                        </small>
+                      </div>
+                    ))
+                  ) : (
+                    <div className={styles.emptyNotification}>
+                      <img
+                        src="/images/NoNotifcation.png"
+                        alt="No notifications"
+                        className={styles.emptyNotificationImg}
+                      />
 
-          <small className={styles.notificationDate}>
-            {new Date(notif.created_at).toLocaleString()}
-          </small>
-        </div>
-      ))
-    ) : (
-      <div className={styles.emptyNotification}>
-        <img
-          src="/images/NoNotifcation.png"
-          alt="No notifications"
-          className={styles.emptyNotificationImg}
-        />
+                      <p>You don’t have any new notifications</p>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-        <p>You don’t have any new notifications</p>
-      </div>
-    )}
-  </div>
-</div>
               <div className={styles.dpContainer}>
                 <img
                   src={user.profile_image}
@@ -793,7 +882,7 @@ const handleOtpChange = (value, index) => {
                   className={styles.dropdownBtn}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setDropdownOpen(!dropdownOpen);
+                    setDropdownOpen((prev) => !prev);
                   }}
                 >
                   <i className="bx bx-chevron-down" />
@@ -870,11 +959,7 @@ const handleOtpChange = (value, index) => {
                           <div className={styles.profileForm}>
                             <div className={styles.formGroup}>
                               <label>Username</label>
-                              <input
-                                type="text"
-                                value={user.username}
-                                readOnly
-                              />
+                              <input type="text" value={user.username} readOnly />
                             </div>
 
                             <div className={styles.formGroup}>
@@ -889,11 +974,7 @@ const handleOtpChange = (value, index) => {
 
                             <div className={styles.formGroup}>
                               <label>Year Level</label>
-                              <input
-                                type="text"
-                                value={user.year_level}
-                                readOnly
-                              />
+                              <input type="text" value={user.year_level} readOnly />
                             </div>
                           </div>
 
@@ -924,30 +1005,34 @@ const handleOtpChange = (value, index) => {
                             className={styles.settingsBody}
                             onSubmit={handleChangePassword}
                           >
-
                             <div className={styles.passwordGroup}>
-                                <label>Current Password</label>
-                                <div className={styles.passwordInputWrap}>
-                                  <input
-                                    type={showCurrentPassword ? "text" : "password"}
-                                    name="currentPassword"
-                                    placeholder="Enter current password"
-                                    value={passwordForm.currentPassword}
-                                    onChange={handlePasswordChange}
-                                  />
-                                  <button
-                                    type="button"
-                                    className={styles.eyeBtn}
-                                    onClick={() => setShowCurrentPassword((prev) => !prev)}
-                                  >
-                                    <i
-                                      className={`bx ${
-                                        showCurrentPassword ? "bx-hide" : "bx-show-alt"
-                                      }`}
-                                    ></i>
-                                  </button>
-                                </div>
+                              <label>Current Password</label>
+                              <div className={styles.passwordInputWrap}>
+                                <input
+                                  type={showCurrentPassword ? "text" : "password"}
+                                  name="currentPassword"
+                                  placeholder="Enter current password"
+                                  value={passwordForm.currentPassword}
+                                  onChange={handlePasswordChange}
+                                />
+                                <button
+                                  type="button"
+                                  className={styles.eyeBtn}
+                                  onClick={() =>
+                                    setShowCurrentPassword((prev) => !prev)
+                                  }
+                                >
+                                  <i
+                                    className={`bx ${
+                                      showCurrentPassword
+                                        ? "bx-hide"
+                                        : "bx-show-alt"
+                                    }`}
+                                  ></i>
+                                </button>
                               </div>
+                            </div>
+
                             <div className={styles.passwordGroup}>
                               <label>New Password</label>
                               <div className={styles.passwordInputWrap}>
@@ -961,19 +1046,16 @@ const handleOtpChange = (value, index) => {
                                 <button
                                   type="button"
                                   className={styles.eyeBtn}
-                                  onClick={() =>
-                                    setShowNewPassword((prev) => !prev)
-                                  }
+                                  onClick={() => setShowNewPassword((prev) => !prev)}
                                 >
                                   <i
                                     className={`bx ${
-                                      showNewPassword
-                                        ? "bx-hide"
-                                        : "bx-show-alt"
+                                      showNewPassword ? "bx-hide" : "bx-show-alt"
                                     }`}
                                   ></i>
                                 </button>
                               </div>
+
                               {passwordForm.newPassword.length > 0 && (
                                 <div className={styles.passwordBox}>
                                   <div className={styles.passwordChecklist}>
@@ -1008,8 +1090,10 @@ const handleOtpChange = (value, index) => {
                                     }`}
                                   >
                                     {passwordStrength === "weak" && "Weak password"}
-                                    {passwordStrength === "medium" && "Medium strength password"}
-                                    {passwordStrength === "strong" && "✓ Strong password"}
+                                    {passwordStrength === "medium" &&
+                                      "Medium strength password"}
+                                    {passwordStrength === "strong" &&
+                                      "✓ Strong password"}
                                   </div>
                                 </div>
                               )}
@@ -1019,9 +1103,7 @@ const handleOtpChange = (value, index) => {
                               <label>Confirm New Password</label>
                               <div className={styles.passwordInputWrap}>
                                 <input
-                                  type={
-                                    showConfirmPassword ? "text" : "password"
-                                  }
+                                  type={showConfirmPassword ? "text" : "password"}
                                   name="confirmPassword"
                                   placeholder="Confirm new password"
                                   value={passwordForm.confirmPassword}
@@ -1043,6 +1125,7 @@ const handleOtpChange = (value, index) => {
                                   ></i>
                                 </button>
                               </div>
+
                               {passwordForm.confirmPassword.length > 0 && (
                                 <div className={styles.confirmBox}>
                                   <div
@@ -1153,75 +1236,76 @@ const handleOtpChange = (value, index) => {
                         </div>
 
                         <div className={styles.modalFormGroup}>
-                              <label>Name of School</label>
+                          <label>Name of School</label>
 
-                              {!isOtherSchool ? (
-                                <select
-                                  name="school"
-                                  value={editForm.school || ""}
-                                  onChange={handleEditInputChange}
-                                >
-                                  <option value="">Rather not say</option>
-                                  <option>Cavite State University – Main Campus (Indang)</option>
-                                  <option>Cavite State University – Imus Campus</option>
-                                  <option>Cavite State University – Carmona Campus</option>
-                                  <option>Cavite State University – Bacoor City Campus</option>
-                                  <option>Cavite State University – Trece Martires City Campus</option>
-                                  <option>Cavite State University – Tanza Campus</option>
-                                  <option>Cavite State University – Silang Campus</option>
-                                  <option>Cavite State University – Naic Campus</option>
-                                  <option>Cavite State University – Rosario Campus</option>
-                                  <option>Cavite State University – General Trias City Campus</option>
-                                  <option>University of the Philippines System</option>
-                                  <option>Polytechnic University of the Philippines</option>
-                                  <option>De La Salle University</option>
-                                  <option>University of Santo Tomas</option>
-                                  <option value="Others">Others</option>
-                                </select>
-                              ) : (
-                                <input
-                                  type="text"
-                                  name="school"
-                                  value={editForm.school || ""}
-                                  onChange={handleEditInputChange}
-                                  placeholder="Enter your school"
-                                  autoFocus
-                                />
-                              )}
-                              {isOtherSchool && (
-                                <button
-                                type="button"
-                                onClick={() => setIsOtherSchool(false)}
-                                style={{
-                                  marginTop: "10px",
-                                  fontSize: "14px",
-                                  color: "#6f99e6",
-                                  background: "none",
-                                  border: "none",
-                                  padding: 0,
-                                  cursor: "pointer",
-                                  textDecoration: "none",
-                                }}
-                              >
-                                ← Back to list
-                              </button>
-                              )}
+                          {!isOtherSchool ? (
+                            <select
+                              name="school"
+                              value={editForm.school || ""}
+                              onChange={handleEditInputChange}
+                            >
+                              <option value="">Rather not say</option>
+                              <option>Cavite State University – Main Campus (Indang)</option>
+                              <option>Cavite State University – Imus Campus</option>
+                              <option>Cavite State University – Carmona Campus</option>
+                              <option>Cavite State University – Bacoor City Campus</option>
+                              <option>Cavite State University – Trece Martires City Campus</option>
+                              <option>Cavite State University – Tanza Campus</option>
+                              <option>Cavite State University – Silang Campus</option>
+                              <option>Cavite State University – Naic Campus</option>
+                              <option>Cavite State University – Rosario Campus</option>
+                              <option>Cavite State University – General Trias City Campus</option>
+                              <option>University of the Philippines System</option>
+                              <option>Polytechnic University of the Philippines</option>
+                              <option>De La Salle University</option>
+                              <option>University of Santo Tomas</option>
+                              <option value="Others">Others</option>
+                            </select>
+                          ) : (
+                            <input
+                              type="text"
+                              name="school"
+                              value={editForm.school || ""}
+                              onChange={handleEditInputChange}
+                              placeholder="Enter your school"
+                              autoFocus
+                            />
+                          )}
+
+                          {isOtherSchool && (
+                            <button
+                              type="button"
+                              onClick={() => setIsOtherSchool(false)}
+                              style={{
+                                marginTop: "10px",
+                                fontSize: "14px",
+                                color: "#6f99e6",
+                                background: "none",
+                                border: "none",
+                                padding: 0,
+                                cursor: "pointer",
+                                textDecoration: "none",
+                              }}
+                            >
+                              ← Back to list
+                            </button>
+                          )}
                         </div>
 
                         <div className={styles.modalFormGroup}>
-                                <label>Year Level</label>
-                                <select
-                                  name="year_level"
-                                  value={editForm.year_level || ""}
-                                  onChange={handleEditInputChange}
-                                >
-                                  <option value="">Select year level</option>
-                                  <option value="1st Year">1st Year</option>
-                                  <option value="2nd Year">2nd Year</option>
-                                  <option value="3rd Year">3rd Year</option>
-                                  <option value="4th Year">4th Year</option>
-                                </select>
-                              </div>
+                          <label>Year Level</label>
+                          <select
+                            name="year_level"
+                            value={editForm.year_level || ""}
+                            onChange={handleEditInputChange}
+                          >
+                            <option value="">Select year level</option>
+                            <option value="1st Year">1st Year</option>
+                            <option value="2nd Year">2nd Year</option>
+                            <option value="3rd Year">3rd Year</option>
+                            <option value="4th Year">4th Year</option>
+                          </select>
+                        </div>
 
                         <div className={styles.modalActions}>
                           <button
@@ -1275,82 +1359,93 @@ const handleOtpChange = (value, index) => {
                 </div>
               </div>
             )}
+
             {showOtpModal && (
-                <div className={styles.modalOverlay}>
-                  <div
-                    className={styles.editModal}
-                    onClick={(e) => e.stopPropagation()}
+              <div
+                className={styles.modalOverlay}
+                onClick={() => {
+                  setShowOtpModal(false);
+                  setPendingSave(false);
+                }}
+              >
+                <div
+                  className={styles.editModal}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    type="button"
+                    className={styles.modalCloseBtn}
+                    onClick={() => {
+                      setShowOtpModal(false);
+                      setPendingSave(false);
+                    }}
                   >
-                    <button
-                      type="button"
-                      className={styles.modalCloseBtn}
-                      onClick={() => {
-                        setShowOtpModal(false);
-                        setPendingSave(false);
-                      }}
-                    >
-                      <i className="bx bx-x"></i>
-                    </button>
+                    <i className="bx bx-x"></i>
+                  </button>
 
-                    <div className={styles.modalCard}>
-                      <h2 className={styles.modalTitle}>Email Verification</h2>
-                      <div className={styles.modalDivider}></div>
+                  <div className={styles.modalCard}>
+                    <h2 className={styles.modalTitle}>Email Verification</h2>
+                    <div className={styles.modalDivider}></div>
 
-                      <p className={styles.verifySubtext}>
-                        Enter the 4-digit code sent to {otpEmail}
-                      </p>
+                    <p className={styles.verifySubtext}>
+                      Enter the 4-digit code sent to {otpEmail}
+                    </p>
 
-                      <div className={styles.otpWrapper}>
-                        {[0, 1, 2, 3].map((_, index) => (
-                          <input
-                            key={index}
-                            id={`otp-${index}`}
-                            type="text"
-                            maxLength={1}
-                            className={styles.otpInput}
-                            value={otpCode[index]}
-                            onChange={(e) => handleOtpChange(e.target.value, index)}
-                          />
-                        ))}
-                      </div>
+                    <div className={styles.otpWrapper}>
+                      {[0, 1, 2, 3].map((_, index) => (
+                        <input
+                          key={index}
+                          id={`otp-${index}`}
+                          type="text"
+                          maxLength={1}
+                          className={styles.otpInput}
+                          value={otpCode[index]}
+                          onChange={(e) => handleOtpChange(e.target.value, index)}
+                        />
+                      ))}
+                    </div>
 
-                      <div className={styles.modalActions}>
-                        <button
-                          type="button"
-                          className={styles.cancelBtn}
-                          onClick={() => {
-                            setShowOtpModal(false);
-                            setPendingSave(false);
-                          }}
-                        >
-                          Cancel
-                        </button>
-
-                        <button
-                          type="button"
-                          className={styles.verifyBtn}
-                          onClick={handleVerifyEmailOtp}
-                        >
-                          Verify Email
-                        </button>
-                      </div>
+                    <div className={styles.otpRow}>
+                      <span className={styles.otpTimer}>
+                        {otpTimeLeft > 0
+                          ? `Code expires in ${formatOtpTime()}`
+                          : "Code expired"}
+                      </span>
 
                       <button
                         type="button"
                         className={styles.resendBtn}
-                        disabled={resendingOtp}
-                        onClick={async () => {
-                          setResendingOtp(true);
-                          await sendEmailOtp(otpEmail);
-                          setResendingOtp(false);
-                        }}
+                        disabled={otpTimeLeft > 0 || resendingOtp}
+                        onClick={handleResendEmailOtp}
                       >
                         {resendingOtp ? "Sending..." : "Resend OTP"}
                       </button>
                     </div>
+
+                    <div className={styles.modalActions}>
+                      <button
+                        type="button"
+                        className={styles.cancelBtn}
+                        onClick={() => {
+                          setShowOtpModal(false);
+                          setPendingSave(false);
+                        }}
+                      >
+                        Cancel
+                      </button>
+
+                      <button
+                        type="button"
+                        className={styles.verifyBtn}
+                        onClick={handleVerifyEmailOtp}
+                      >
+                        Verify Email
+                      </button>
+                    </div>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
           </main>
         </div>
       </div>

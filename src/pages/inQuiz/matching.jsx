@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { API_BASE } from "../../config.js";
 import styles from "./matching.module.css";
 
 export default function MatchingType() {
@@ -44,20 +45,25 @@ export default function MatchingType() {
     return copy;
   };
 
+  const normalizeLessonData = (data) => {
+    if (!data) return null;
+    return data.lesson || data.data || data;
+  };
+
   useEffect(() => {
     const loadMatchingData = async () => {
       try {
         if (isLessonMode) {
           const res = await fetch(
-            `http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`,
+            `${API_BASE}/getLessonsById.php?id=${lessonId}`,
             { credentials: "include" }
           );
 
-          const data = await res.json();
+          const data = normalizeLessonData(await res.json());
 
           setLesson({
             ...data,
-            title: data.title || "Matching Quiz",
+            title: data?.title || "Matching Quiz",
           });
 
           return;
@@ -65,7 +71,7 @@ export default function MatchingType() {
 
         if (isDeckMode) {
           const deckRes = await fetch(
-            `http://localhost/puffybrain/getDeckById.php?deckId=${deckId}`,
+            `${API_BASE}/getDeckById.php?deckId=${deckId}`,
             { credentials: "include" }
           );
 
@@ -73,7 +79,7 @@ export default function MatchingType() {
           console.log("LOADED DECK DATA:", deckData);
 
           const cardsRes = await fetch(
-            `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`,
+            `${API_BASE}/getCardsByDeck.php?deckId=${deckId}`,
             { credentials: "include" }
           );
 
@@ -270,16 +276,39 @@ export default function MatchingType() {
     return <div className={styles.wrapper}>Loading matching quiz...</div>;
   }
 
-  if (matchingPairs.length === 0) {
-    return (
-      <div className={styles.wrapper}>
-        <div className={styles.paperBackground}>
-          <h1>No matching quiz available.</h1>
-          <p>Deck cards were not loaded. Check console.</p>
-        </div>
+if (matchingPairs.length === 0) {
+  return (
+    <div className={styles.emptyWrapper}>
+      <div className={styles.emptyCard}>
+        <img
+          src="/images/404.png"
+          alt="No matching"
+          className={styles.emptyImage}
+        />
+
+        <h2 className={styles.emptyTitle}>No Matching Quiz Yet</h2>
+
+        <p className={styles.emptyText}>
+          No matching quiz questions are available for this lesson.
+        </p>
+
+        <button
+          type="button"
+          className={styles.emptyBtn}
+          onClick={() =>
+            navigate(
+              isDeckMode
+                ? `/review/deck/${deckId}`
+                : `/learning/${lessonId}`
+            )
+          }
+        >
+          Go Back
+        </button>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   return (
     <div className={styles.wrapper}>

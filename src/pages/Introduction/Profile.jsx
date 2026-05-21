@@ -1,21 +1,39 @@
 import styles from "./Profile.module.css";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
+import { API_BASE } from "../../config.js";
 
 function Profile() {
   const [user, setUser] = useState(null);
+
   const handleStart = async () => {
-  const email = localStorage.getItem("user_email");
+    const email = localStorage.getItem("user_email");
 
-    if (!email) return;
+    if (!email) {
+      Swal.fire("Error", "User not logged in", "error");
+      return;
+    }
 
-    await fetch("http://localhost/puffybrain/complete-onboarding.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email })
-    });
+    try {
+      const res = await fetch(`${API_BASE}/complete-onboarding.php`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ email }),
+      });
 
-    window.location.href = "/Loading";
+      const data = await res.json();
+
+      if (data.success) {
+        window.location.href = "/Loading";
+      } else {
+        Swal.fire("Error", data.message || "Could not complete onboarding.", "error");
+      }
+    } catch (error) {
+      Swal.fire("Server Error", "Could not complete onboarding.", "error");
+    }
   };
 
   useEffect(() => {
@@ -27,23 +45,29 @@ function Profile() {
         imageWidth: 180,
         imageHeight: 180,
         title: "Not Logged In",
-        text: "Please log in first."
+        text: "Please log in first.",
       });
       return;
     }
 
-    fetch("http://localhost/puffybrain/get-profile.php", {
+    fetch(`${API_BASE}/get-profile.php`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email })
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ email }),
     })
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (data.success) {
           setUser(data.user);
         } else {
-          Swal.fire("Error", data.message, "error");
+          Swal.fire("Error", data.message || "Could not load profile.", "error");
         }
+      })
+      .catch(() => {
+        Swal.fire("Server Error", "Could not load profile.", "error");
       });
   }, []);
 
@@ -78,9 +102,7 @@ function Profile() {
 
           <p className={styles.info}>
             Signature:
-            <span className={styles.signature}>
-              {user.username}
-            </span>
+            <span className={styles.signature}>{user.username}</span>
           </p>
         </div>
       </div>

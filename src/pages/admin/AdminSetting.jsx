@@ -15,6 +15,7 @@ import {
 import Swal from "sweetalert2";
 import styles from "./AdminSettings.module.css";
 import "boxicons/css/boxicons.min.css";
+import { API_BASE } from "../../config.js";
 
 export default function AdminSettings() {
   const navigate = useNavigate();
@@ -75,7 +76,7 @@ export default function AdminSettings() {
     { label: "Decks Management", path: "/admin/decks", icon: <LibraryBig size={20} /> },
     { label: "Modes Management", path: "/admin/modes", icon: <Gamepad2 size={20} /> },
     { label: "Notification Management", path: "/admin/notifications", icon: <i className="bx bx-bell"></i> },
-     { label: "Backup & Restore", path: "/admin/backup-restore", icon: <Database size={20} /> },
+    { label: "Backup & Restore", path: "/admin/backup-restore", icon: <Database size={20} /> },
 
   ];
 
@@ -94,7 +95,7 @@ export default function AdminSettings() {
       const adminData = JSON.parse(localStorage.getItem("admin") || "{}");
 
       const res = await fetch(
-        `http://localhost/puffybrain/getAdminNotifications.php?admin_id=${adminData.id}`,
+        `${API_BASE}/getAdminNotifications.php?admin_id=${adminData.id}`,
         { credentials: "include" }
       );
 
@@ -123,7 +124,7 @@ export default function AdminSettings() {
     }
 
     try {
-      const res = await fetch("http://localhost/puffybrain/markAdminNotificationsRead.php", {
+      const res = await fetch(`${API_BASE}/markAdminNotificationsRead.php`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -148,7 +149,7 @@ export default function AdminSettings() {
 
   const fetchAdmin = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/getAdminProfile.php", {
+      const res = await fetch(`${API_BASE}/getAdminProfile.php`, {
         credentials: "include",
       });
 
@@ -175,7 +176,7 @@ export default function AdminSettings() {
 
   const fetchAdminActivity = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/getAdminActivity.php", {
+      const res = await fetch(`${API_BASE}/getAdminActivity.php`, {
         credentials: "include",
       });
 
@@ -243,24 +244,38 @@ const paginatedActions = sortedActions.slice(
     };
   }, [imagePreview]);
 
-  const handleLogout = (e) => {
-    e.preventDefault();
+const handleLogout = async (e) => {
+  e.preventDefault();
 
-    Swal.fire({
-      title: "Logout?",
-      text: "Are you sure you want to logout?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes",
-      confirmButtonColor: "#7b5cff",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        localStorage.clear();
-        sessionStorage.clear();
-        navigate("/admin/login");
-      }
+  const result = await Swal.fire({
+    title: "Logout?",
+    text: "Are you sure you want to logout?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes",
+    cancelButtonText: "Cancel",
+    confirmButtonColor: "#7b5cff",
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    await fetch(`${API_BASE}/adminLogout.php`, {
+      method: "POST",
+      credentials: "include",
     });
-  };
+  } catch (err) {
+    console.error("Logout API error:", err);
+  }
+
+  localStorage.removeItem("admin");
+  localStorage.removeItem("admin_id");
+  localStorage.removeItem("admin_username");
+  localStorage.removeItem("admin_email");
+  sessionStorage.clear();
+
+  navigate("/pb-admin-access", { replace: true });
+};
 
   const openEditModal = () => {
     setEditForm({
@@ -310,7 +325,7 @@ const paginatedActions = sortedActions.slice(
   const sendEmailOtp = async (emailToVerify) => {
     try {
       const res = await fetch(
-        "http://localhost/puffybrain/send-admin-email-otp.php",
+        `${API_BASE}/send-admin-email-otp.php`,
         {
           method: "POST",
           credentials: "include",
@@ -356,7 +371,7 @@ const paginatedActions = sortedActions.slice(
     }
 
     try {
-      const res = await fetch("http://localhost/puffybrain/updateAdmin.php", {
+      const res = await fetch(`${API_BASE}/updateAdmin.php`, {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -429,7 +444,7 @@ const paginatedActions = sortedActions.slice(
 
     try {
       const res = await fetch(
-        "http://localhost/puffybrain/verify-admin-email-otp.php",
+        `${API_BASE}/verify-admin-email-otp.php`,
         {
           method: "POST",
           credentials: "include",
@@ -527,7 +542,7 @@ const paginatedActions = sortedActions.slice(
 
     try {
       const res = await fetch(
-        "http://localhost/puffybrain/changeAdminPassword.php",
+        `${API_BASE}/changeAdminPassword.php`,
         {
           method: "POST",
           credentials: "include",
@@ -668,12 +683,12 @@ const paginatedActions = sortedActions.slice(
         <div className={styles.sidebarBottom}>
           <div className={styles.divider}></div>
 
-          <NavLink to="/" onClick={handleLogout} className={styles.menuItem}>
-            <span className={styles.menuIcon}>
-              <LogOut size={20} />
-            </span>
-            <span className={styles.menuText}>Logout</span>
-          </NavLink>
+        <button type="button" onClick={handleLogout} className={styles.menuItem}>
+  <span className={styles.menuIcon}>
+    <LogOut size={20} />
+  </span>
+  <span className={styles.menuText}>Logout</span>
+</button>
         </div>
       </aside>
 <header className={styles.headerContainer}>

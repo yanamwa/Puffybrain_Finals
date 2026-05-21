@@ -4,14 +4,10 @@ import Swal from "sweetalert2";
 import styles from "./homepage.module.css";
 import Calendar from "./Calendar";
 import TodoList from "./TodoList";
+import { API_BASE } from "../../config.js";
 
 function Homepage() {
   const navigate = useNavigate();
-
-  const API_BASE =
-    window.location.hostname === "localhost"
-      ? "http://localhost/puffybrain"
-      : "/api";
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
@@ -30,6 +26,12 @@ function Homepage() {
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const [user, setUser] = useState({
+    username: "",
+    year_level: "",
+    profile_image: "/images/temporary profile.jpg",
+  });
 
   const categories = [
     "Reviewer",
@@ -56,15 +58,25 @@ function Homepage() {
     "#EECB99",
   ];
 
-  const [user, setUser] = useState({
-    username: "",
-    year_level: "",
-    profile_image: "/images/temporary profile.jpg",
-  });
-
   const notificationCount = notifications.filter(
     (notif) => notif.status === "unread"
   ).length;
+
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return "/images/temporary profile.jpg";
+
+    if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+      return imagePath;
+    }
+
+    const cleanPath = imagePath.replace(/^\/+/, "");
+
+    return `https://puffybrain.fun/${cleanPath}`;
+  };
+
+  const getDeckId = (deck) => {
+    return deck?.deck_id || deck?.id || deck?.DeckID || "";
+  };
 
   const filteredDecks = myDecks.filter((deck) =>
     deck.title?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -98,7 +110,7 @@ function Homepage() {
     );
 
     if (foundDeck) {
-      navigate(`/deck/${foundDeck.id}`);
+      navigate(`/deck/${getDeckId(foundDeck)}`);
       return;
     }
 
@@ -115,8 +127,8 @@ function Homepage() {
     });
   };
 
-const handleLogout = () => {
-  Swal.fire({
+const handleLogout = async () => {
+  const result = await Swal.fire({
     title: "Logout?",
     text: "Are you sure you want to logout?",
     icon: "warning",
@@ -133,9 +145,23 @@ const handleLogout = () => {
       cancelButton: styles.logoutSwalCancel,
       icon: styles.logoutSwalIcon,
     },
-  }).then((result) => {
-    if (result.isConfirmed) navigate("/login");
   });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    await fetch(`${API_BASE}/logout.php`, {
+      method: "POST",
+      credentials: "include",
+    });
+  } catch (err) {
+    console.error("Logout error:", err);
+  }
+
+localStorage.clear();
+sessionStorage.clear();
+
+window.location.replace("/login");
 };
 
   const fetchUserDecks = async () => {
@@ -158,16 +184,26 @@ const handleLogout = () => {
         credentials: "include",
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      console.log("GET USER RAW:", text);
+
+      let data;
+
+      try {
+        data = JSON.parse(text);
+      } catch {
+        console.error("getUser.php did not return JSON");
+        return;
+      }
 
       if (data.success) {
-   setUser({
-      username: data.user?.username || "",
-      year_level: data.user?.year_level || "",
-      profile_image: data.user?.profile_image
-        ? `${API_BASE}/${data.user.profile_image}`
-        : "/images/temporary profile.jpg",
-    });
+        const loadedUser = data.user || data;
+
+        setUser({
+          username: loadedUser.username || "",
+          year_level: loadedUser.year_level || "",
+          profile_image: getImageUrl(loadedUser.profile_image),
+        });
       }
     } catch (err) {
       console.error("fetchUser error:", err);
@@ -196,12 +232,7 @@ const handleLogout = () => {
       });
 
       const data = await res.json();
-
-      if (data.success) {
-        setNotifications(data.notifications || []);
-      } else {
-        setNotifications([]);
-      }
+      setNotifications(data.success ? data.notifications || [] : []);
     } catch (err) {
       console.error("Notification fetch error:", err);
       setNotifications([]);
@@ -327,7 +358,7 @@ const handleLogout = () => {
   };
 
   const handleEditDeck = async (deck) => {
-    const deckId = deck.deck_id || deck.id;
+    const deckId = getDeckId(deck);
 
     if (!deckId) {
       Swal.fire({
@@ -611,7 +642,7 @@ const handleLogout = () => {
 
               <li className={styles.sidebarListItem}>
                 <NavLink
-                  to="/Mydecks"
+                  to="/mydecks"
                   className={({ isActive }) =>
                     `${styles.menuItem} ${isActive ? styles.active : ""}`
                   }
@@ -659,14 +690,18 @@ const handleLogout = () => {
                     Don't have decks yet
                   </li>
                 ) : (
-                  myDecks.slice(0, 3).map((deck) => (
-                    <li key={deck.id} className={styles.sidebarListItem}>
-                      <Link to={`/deck/${deck.id}`} className={styles.menuItem}>
-                        <i className="bx bx-collection"></i>
-                        <span className={styles.menuText}>{deck.title}</span>
-                      </Link>
-                    </li>
-                  ))
+                  myDecks.slice(0, 3).map((deck) => {
+                    const deckId = getDeckId(deck);
+
+                    return (
+                      <li key={deckId} className={styles.sidebarListItem}>
+                        <Link to={`/deck/${deckId}`} className={styles.menuItem}>
+                          <i className="bx bx-collection"></i>
+                          <span className={styles.menuText}>{deck.title}</span>
+                        </Link>
+                      </li>
+                    );
+                  })
                 )}
               </ul>
             </div>
@@ -790,7 +825,7 @@ const handleLogout = () => {
 
         <main className={styles.mainContent}>
           <div className={styles.centerBox}>
-            <h1>Hello, {user.username}!</h1>
+            <h1>Hello, {user.username || "User"}!</h1>
             <p>What are we going to study?</p>
             <img className={styles.sideImage} src="/images/2.png" alt="Big" />
           </div>
@@ -886,7 +921,7 @@ const handleLogout = () => {
 
                 <button
                   className={styles.btnShow}
-                  onClick={() => navigate("/Mydecks")}
+                  onClick={() => navigate("/mydecks")}
                 >
                   Show All
                 </button>
@@ -901,12 +936,13 @@ const handleLogout = () => {
                   </p>
                 ) : (
                   filteredDecks.slice(0, 4).map((deck) => {
+                    const deckId = getDeckId(deck);
                     const deckColorValue = deck.deck_color || "#C3C7F3";
 
                     return (
                       <Link
-                        key={deck.id}
-                        to={`/deck/${deck.id}`}
+                        key={deckId}
+                        to={`/deck/${deckId}`}
                         className={styles.deckLink}
                       >
                         <article className={styles.deckCard}>
@@ -927,14 +963,14 @@ const handleLogout = () => {
                                 e.stopPropagation();
                                 setNotificationOpen(false);
                                 setDropdownOpen((prev) =>
-                                  prev === deck.id ? null : deck.id
+                                  prev === deckId ? null : deckId
                                 );
                               }}
                             >
                               <i className="bx bx-dots-vertical-rounded"></i>
                             </button>
 
-                            {dropdownOpen === deck.id && (
+                            {dropdownOpen === deckId && (
                               <div
                                 className={styles.cardDropdown}
                                 onClick={(e) => {
@@ -955,7 +991,7 @@ const handleLogout = () => {
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    console.log("Duplicate", deck.id);
+                                    console.log("Duplicate", deckId);
                                     setDropdownOpen(null);
                                   }}
                                 >
@@ -964,7 +1000,7 @@ const handleLogout = () => {
 
                                 <button
                                   type="button"
-                                  onClick={() => handleDeleteDeck(deck.id)}
+                                  onClick={() => handleDeleteDeck(deckId)}
                                 >
                                   Archive
                                 </button>
@@ -1138,10 +1174,13 @@ const handleLogout = () => {
               src={user.profile_image || "/images/temporary profile.jpg"}
               alt="Profile"
               className={styles.profileAvatarImg}
+              onError={(e) => {
+                e.currentTarget.src = "/images/temporary profile.jpg";
+              }}
             />
           </div>
 
-          <h3 className={styles.profileName}>{user.username}</h3>
+          <h3 className={styles.profileName}>{user.username || "User"}</h3>
 
           <p className={styles.profileRole}>
             {user.year_level || "Rather not say"}

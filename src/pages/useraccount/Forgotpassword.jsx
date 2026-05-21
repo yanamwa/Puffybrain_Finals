@@ -1,7 +1,8 @@
-import styles from './login.module.css';
+import styles from "./login.module.css";
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { useNavigate, Link } from "react-router-dom";
+import { API_BASE } from "../../config.js";
 
 function ForgotPassword() {
   const navigate = useNavigate();
@@ -10,9 +11,10 @@ function ForgotPassword() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    const cleanEmail = email.trim();
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!emailPattern.test(email)) {
+    if (!emailPattern.test(cleanEmail)) {
       Swal.fire({
         title: "Invalid Email",
         text: "Please enter a valid email address.",
@@ -23,13 +25,28 @@ function ForgotPassword() {
       return;
     }
 
-    fetch("http://localhost/puffybrain/forgot-password.php", {
+    fetch(`${API_BASE}/forgot-password.php`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: cleanEmail }),
     })
       .then((res) => res.json())
-      .then(() => {
+      .then((data) => {
+        // EMAIL NOT FOUND
+        if (!data.success) {
+          Swal.fire({
+            title: "Email Not Found",
+            text: data.message || "This email does not exist.",
+            imageUrl: "/images/error.png",
+            imageWidth: 200,
+            imageHeight: 200,
+          });
+          return;
+        }
+
+        // SUCCESS
         Swal.fire({
           title: "Email Sent!",
           text: "Check your email, a reset link has been sent.",
@@ -41,16 +58,22 @@ function ForgotPassword() {
         });
       })
       .catch(() => {
-        Swal.fire("Server Error", "Please try again later.", "error");
+        Swal.fire({
+          title: "Server Error",
+          text: "Please try again later.",
+          imageUrl: "/images/error.png",
+          imageWidth: 200,
+          imageHeight: 200,
+        });
       });
-  };
+  }; // ← THIS WAS MISSING
 
-return (
+  return (
     <div className={styles.wrapper}>
       <section className={styles.container}>
         <div className={styles.background}></div>
 
-    <div className={styles.navbar}>
+        <div className={styles.navbar}>
           <div className={styles.logo}>
             <img src="/images/logo1.png" alt="Logo" />
           </div>
@@ -58,8 +81,8 @@ return (
           <ul className={styles.navLinks}>
             <li><Link to="/">Home</Link></li>
             <li><Link to="/about">About</Link></li>
-            <li><Link to="/faq">FAQ</Link></li>
-            <li><Link to="/faq">Contact Us</Link></li>
+            <li><Link to="/Landing/FAQ">FAQ</Link></li>
+            <li><Link to="/contact">Contact Us</Link></li>
           </ul>
 
           <div className={styles.navActions}>
@@ -68,7 +91,6 @@ return (
             </Link>
           </div>
         </div>
-
 
         <div className={styles.signupContainer}>
           <div className={styles.signupCard}>
@@ -82,17 +104,14 @@ return (
               onChange={(e) => setEmail(e.target.value)}
             />
 
-            <button
-              className={styles.submitBtn}
-              onClick={handleSubmit}
-            >
+            <button className={styles.submitBtn} onClick={handleSubmit}>
               Submit
             </button>
 
             <p className={styles.forgotText}>
               Already remembered?
-              <a
-                href="/login"
+              <Link
+                to="/login"
                 style={{
                   textDecoration: "none",
                   color: "#A993D8",
@@ -100,7 +119,7 @@ return (
                 }}
               >
                 Login
-              </a>
+              </Link>
             </p>
           </div>
         </div>

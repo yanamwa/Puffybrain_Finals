@@ -67,9 +67,9 @@ function serializeLessonPages(pages) {
 export default function AddModule() {
   const navigate = useNavigate();
 
-  const API_URL = "http://localhost/puffybrain/adminLearningModule.php";
-  const AI_API_URL = "http://localhost/puffybrain/generateQuiz.php";
-  const EXTRACT_API_URL = "http://localhost/puffybrain/processLessonFile.php";
+  const API_URL = `${API_BASE}/adminLearningModule.php`;
+  const AI_API_URL = `${API_BASE}/generateQuiz.php`;
+  const EXTRACT_API_URL = `${API_BASE}/processLessonFile.php`;
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -149,7 +149,7 @@ export default function AddModule() {
 
   const fetchAdmin = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/getAdminProfile.php", {
+      const res = await fetch(`${API_BASE}/getAdminProfile.php`, {
         credentials: "include",
       });
 
@@ -178,7 +178,7 @@ export default function AddModule() {
       const storedAdmin = JSON.parse(localStorage.getItem("admin") || "{}");
 
       const res = await fetch(
-        `http://localhost/puffybrain/getAdminNotifications.php?admin_id=${
+        `${API_BASE}/getAdminNotifications.php?admin_id=${
           storedAdmin.id || ""
         }`,
         { credentials: "include" }
@@ -215,7 +215,7 @@ export default function AddModule() {
 
     try {
       const res = await fetch(
-        "http://localhost/puffybrain/markAdminNotificationsRead.php",
+        `${API_BASE}/markAdminNotificationsRead.php`,
         {
           method: "POST",
           credentials: "include",
@@ -586,7 +586,7 @@ export default function AddModule() {
   };
 
   const generateOptionsForItem = async (item) => {
-    const res = await fetch("http://localhost/puffybrain/generateOptions.php", {
+    const res = await fetch(`${API_BASE}/generateOptions.php`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

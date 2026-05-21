@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { API_BASE } from "../../config.js";
 import styles from "./timedinquiz.module.css";
 
 const timedFrames = [
@@ -7,6 +8,20 @@ const timedFrames = [
   "/images/timed2.png",
   "/images/timed3.png",
 ];
+
+function normalizeLessonData(data) {
+  return data?.lesson || data?.data || data || {};
+}
+
+function getLessonQuizData(lessonData) {
+  return (
+    lessonData?.quiz_contents ||
+    lessonData?.quiz_content ||
+    lessonData?.quizContents ||
+    lessonData?.questions ||
+    []
+  );
+}
 
 export default function TimedQuiz() {
   const navigate = useNavigate();
@@ -24,9 +39,7 @@ export default function TimedQuiz() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [voiceSpeed, setVoiceSpeed] = useState(0.9);
 
-  const [time, setTime] = useState(() => {
-    return Number(localStorage.getItem("timedQuizSeconds")) || 120;
-  });
+  const [time, setTime] = useState(0);
 
   const [questionIndex, setQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -59,6 +72,23 @@ export default function TimedQuiz() {
       .trim();
   }
 
+  function isSameText(a, b) {
+    return cleanAnswer(a) === cleanAnswer(b);
+  }
+
+  function getUniqueOptions(options) {
+    const seen = new Set();
+
+    return options.filter((opt) => {
+      const clean = cleanAnswer(opt);
+
+      if (!clean || seen.has(clean)) return false;
+
+      seen.add(clean);
+      return true;
+    });
+  }
+
   function extractOptionsFromQuestion(questionText = "") {
     const optionMatches = [
       ...String(questionText).matchAll(
@@ -67,6 +97,81 @@ export default function TimedQuiz() {
     ];
 
     return optionMatches.map((match) => match[2].trim()).filter(Boolean);
+  }
+
+  function parseJsonOptions(value) {
+    if (!value) return [];
+
+    if (Array.isArray(value)) return value;
+
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function getSavedOptions(item) {
+    return [
+      ...parseJsonOptions(item.mc_wrong_options),
+      ...(Array.isArray(item.options) ? item.options : []),
+      ...(Array.isArray(item.choices) ? item.choices : []),
+      item.option_a,
+      item.option_b,
+      item.option_c,
+      item.option_d,
+      item.choice_a,
+      item.choice_b,
+      item.choice_c,
+      item.choice_d,
+      item.wrong_option_1,
+      item.wrong_option_2,
+      item.wrong_option_3,
+    ].filter(Boolean);
+  }
+
+  async function generateWrongOptions(question, correctAnswer, cardId = null) {
+    try {
+      const res = await fetch(`${API_BASE}/generate-options.php`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          question,
+          correct_answer: correctAnswer,
+          card_id: cardId,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success || !Array.isArray(data.wrong_options)) {
+        return {
+          wrongOptions: [],
+          explanation: "",
+        };
+      }
+
+      const wrongOptions = getUniqueOptions(data.wrong_options)
+        .filter((opt) => !isSameText(opt, correctAnswer))
+        .filter((opt) => !["true", "false"].includes(cleanAnswer(opt)))
+        .slice(0, 3);
+
+      return {
+        wrongOptions,
+        explanation: data.explanation || "",
+      };
+    } catch (err) {
+      console.error("Generate timed wrong options error:", err);
+
+      return {
+        wrongOptions: [],
+        explanation: "",
+      };
+    }
   }
 
   useEffect(() => {
@@ -94,16 +199,20 @@ export default function TimedQuiz() {
       try {
         if (isLessonMode) {
           const res = await fetch(
-            `http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`
+            `${API_BASE}/getLessonsById.php?id=${lessonId}`,
+            { credentials: "include" }
           );
 
-          const lesson = await res.json();
-          setTitle(lesson?.title || "Lesson Timed Quiz");
+          const lessonData = normalizeLessonData(await res.json());
+          setTitle(lessonData?.title || "Lesson Timed Quiz");
 
+          const rawQuiz = getLessonQuizData(lessonData);
           let parsed = [];
 
           try {
-            parsed = JSON.parse(lesson?.quiz_contents || "[]");
+            parsed = Array.isArray(rawQuiz)
+              ? rawQuiz
+              : JSON.parse(String(rawQuiz || "[]"));
           } catch {
             parsed = [];
           }
@@ -124,18 +233,7 @@ export default function TimedQuiz() {
               const rawOptions =
                 extractedOptions.length > 0
                   ? extractedOptions
-                  : [
-                      ...(Array.isArray(item.options) ? item.options : []),
-                      ...(Array.isArray(item.choices) ? item.choices : []),
-                      item.option_a,
-                      item.option_b,
-                      item.option_c,
-                      item.option_d,
-                      item.choice_a,
-                      item.choice_b,
-                      item.choice_c,
-                      item.choice_d,
-                    ].filter(Boolean);
+                  : [...getSavedOptions(item), correctAnswer].filter(Boolean);
 
               const questionText = cleanQuestionText(rawQuestion);
               const answerText = String(correctAnswer).trim().toLowerCase();
@@ -147,30 +245,35 @@ export default function TimedQuiz() {
 
               const options = isTrueFalse
                 ? ["True", "False"]
-                : shuffleArray([...new Set([...rawOptions, correctAnswer])]);
+                : getUniqueOptions([...rawOptions, correctAnswer]).slice(0, 4);
+
+              if (!isTrueFalse && options.length < 4) return null;
 
               return {
                 question: questionText,
-                options: options.filter(Boolean).map(String),
+                options: shuffleArray(options.filter(Boolean).map(String)),
                 answer: String(correctAnswer),
                 explanation: item.explanation || correctAnswer,
               };
             })
-            .filter((item) => item.question && item.options.length > 0);
+            .filter(Boolean);
 
-          setQuestions(shuffleArray(lessonQuestions));
+          const shuffledQuestions = shuffleArray(lessonQuestions);
+
+          setQuestions(shuffledQuestions);
+          setTime(shuffledQuestions.length * 60);
         }
 
         if (isDeckMode) {
           const deckRes = await fetch(
-            `http://localhost/puffybrain/getDeckById.php?deckId=${deckId}`,
+            `${API_BASE}/getDeckById.php?deckId=${deckId}`,
             { credentials: "include" }
           );
 
           const deckData = await deckRes.json();
 
           const cardsRes = await fetch(
-            `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`,
+            `${API_BASE}/getCardsByDeck.php?deckId=${deckId}`,
             { credentials: "include" }
           );
 
@@ -185,12 +288,15 @@ export default function TimedQuiz() {
               "Deck Timed Quiz"
           );
 
-          const deckQuestions = cards
-            .map((card) => {
+          const deckQuestionsRaw = await Promise.all(
+            cards.map(async (card) => {
               const rawQuestion = card.question || "";
               const correctAnswer = card.answer || "";
+              const cardId = card.cardId || card.card_id || card.id || null;
 
               const extractedOptions = extractOptionsFromQuestion(rawQuestion);
+              const savedOptions = getSavedOptions(card);
+
               const questionText = cleanQuestionText(rawQuestion);
               const answerText = String(correctAnswer).trim().toLowerCase();
 
@@ -200,35 +306,55 @@ export default function TimedQuiz() {
                 questionText.toLowerCase().includes("true or false");
 
               let options = [];
+              let explanation = card.mc_explanation || correctAnswer;
 
               if (isTrueFalse) {
                 options = ["True", "False"];
-              } else if (extractedOptions.length > 0) {
-                options = extractedOptions;
+              } else if (extractedOptions.length >= 4) {
+                options = getUniqueOptions(extractedOptions).slice(0, 4);
+              } else if (savedOptions.length >= 3) {
+                options = shuffleArray(
+                  getUniqueOptions([correctAnswer, ...savedOptions])
+                ).slice(0, 4);
               } else {
-                const otherAnswers = shuffleArray(
-                  cards
-                    .filter((c) => c.answer && c.answer !== correctAnswer)
-                    .map((c) => c.answer)
-                ).slice(0, 3);
+                const generated = await generateWrongOptions(
+                  questionText,
+                  correctAnswer,
+                  cardId
+                );
 
-                options = shuffleArray([correctAnswer, ...otherAnswers]);
+                if (generated.wrongOptions.length < 3) {
+                  return null;
+                }
+
+                explanation = generated.explanation || correctAnswer;
+
+                options = shuffleArray(
+                  getUniqueOptions([correctAnswer, ...generated.wrongOptions])
+                ).slice(0, 4);
               }
+
+              if (!isTrueFalse && options.length < 4) return null;
 
               return {
                 question: questionText,
                 options: options.filter(Boolean).map(String),
                 answer: String(correctAnswer),
-                explanation: correctAnswer,
+                explanation,
               };
             })
-            .filter((item) => item.question && item.options.length > 0);
+          );
 
-          setQuestions(shuffleArray(deckQuestions));
+          const deckQuestions = deckQuestionsRaw.filter(Boolean);
+          const shuffledQuestions = shuffleArray(deckQuestions);
+
+          setQuestions(shuffledQuestions);
+          setTime(shuffledQuestions.length * 60);
         }
       } catch (error) {
         console.error("Error loading timed quiz:", error);
         setQuestions([]);
+        setTime(0);
       } finally {
         setLoading(false);
       }
@@ -318,7 +444,7 @@ export default function TimedQuiz() {
 
   async function saveQuizAttempt(finalScore, finishReason) {
     try {
-      await fetch("http://localhost/puffybrain/saveQuizAttempt.php", {
+      await fetch(`${API_BASE}/saveQuizAttempt.php`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -380,7 +506,35 @@ export default function TimedQuiz() {
   }
 
   if (questions.length === 0) {
-    return <div className={styles.page}>No timed quiz questions available.</div>;
+    return (
+      <div className={styles.emptyWrapper}>
+        <div className={styles.emptyCard}>
+          <img
+            src="/images/404.png"
+            alt="No questions"
+            className={styles.emptyImage}
+          />
+
+          <h2 className={styles.emptyTitle}>No Timed Quiz Yet</h2>
+
+          <p className={styles.emptyText}>
+            No valid timed quiz questions are available for this quiz yet.
+          </p>
+
+          <button
+            type="button"
+            className={styles.emptyBtn}
+            onClick={() =>
+              navigate(
+                isDeckMode ? `/review/deck/${deckId}` : `/learning/${lessonId}`
+              )
+            }
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
   }
 
   const minutes = Math.floor(time / 60);
@@ -511,30 +665,36 @@ export default function TimedQuiz() {
         </div>
 
         <div className={styles.options}>
-          {questions[questionIndex].options.map((option, i) => (
-            <button
-              key={i}
-              className={`${styles.option} ${
-                selectedAnswer === option ? styles.selectedOption : ""
-              }`}
-              onClick={() => handleAnswer(option)}
-              disabled={selectedAnswer !== null}
-            >
-              {ttsEnabled && (
-                <span
-                  className={styles.optionAudioIcon}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    speakText(option);
-                  }}
-                >
-                  <i className="bx bx-volume-full"></i>
-                </span>
-              )}
+          {questions[questionIndex].options.map((option, i) => {
+            const letters = ["A", "B", "C", "D"];
 
-              <span>{option}</span>
-            </button>
-          ))}
+            return (
+              <button
+                key={i}
+                className={`${styles.option} ${
+                  selectedAnswer === option ? styles.selectedOption : ""
+                }`}
+                onClick={() => handleAnswer(option)}
+                disabled={selectedAnswer !== null}
+              >
+                {ttsEnabled && (
+                  <span
+                    className={styles.optionAudioIcon}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      speakText(option);
+                    }}
+                  >
+                    <i className="bx bx-volume-full"></i>
+                  </span>
+                )}
+
+                <span>
+                  {letters[i]}. {String(option).replace(/^[A-D]\.\s*/i, "")}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

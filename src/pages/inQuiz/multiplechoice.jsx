@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { API_BASE } from "../../config.js";
 import styles from "./multiplechoice.module.css";
 
 const multipleFrames = [
@@ -56,7 +57,6 @@ export default function Quiz() {
 
   const splitQuestionAndOptions = (questionText = "") => {
     const text = String(questionText).trim();
-
     const match = text.match(/^(.*?)(?=\s+A\.\s+)/i);
     const questionOnly = match ? match[1].trim() : text;
 
@@ -64,11 +64,9 @@ export default function Quiz() {
       ...text.matchAll(/([A-D])\.\s*(.*?)(?=\s+[A-D]\.\s+|$)/gi),
     ];
 
-    const extractedOptions = optionMatches.map((m) => m[2].trim());
-
     return {
       questionOnly,
-      extractedOptions,
+      extractedOptions: optionMatches.map((m) => m[2].trim()),
     };
   };
 
@@ -89,28 +87,100 @@ export default function Quiz() {
     });
   };
 
-  const generateWrongOptions = (correctAnswer, allCards) => {
-    const otherAnswers = allCards
-      .map((card) => cleanOptionText(card.answer || ""))
-      .filter((answer) => answer.trim() !== "")
-      .filter((answer) => !isSameText(answer, correctAnswer));
+  const parseJsonOptions = (value) => {
+    if (!value) return [];
 
-    let wrongOptions = shuffleArray(getUniqueOptions(otherAnswers)).slice(0, 3);
+    if (Array.isArray(value)) return value;
 
-    if (wrongOptions.length < 3) {
-      const fallbackOptions = [
-        "All of the above",
-        "None of the above",
-        "Not applicable",
-      ].filter((opt) => !isSameText(opt, correctAnswer));
-
-      wrongOptions = getUniqueOptions([...wrongOptions, ...fallbackOptions]).slice(
-        0,
-        3
-      );
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
     }
+  };
 
-    return wrongOptions;
+  const getSavedOptions = (item) => {
+    return [
+      ...parseJsonOptions(item.mc_wrong_options),
+      ...(Array.isArray(item.options) ? item.options : []),
+      ...(Array.isArray(item.choices) ? item.choices : []),
+      item.option_a,
+      item.option_b,
+      item.option_c,
+      item.option_d,
+      item.choice_a,
+      item.choice_b,
+      item.choice_c,
+      item.choice_d,
+      item.wrong_option_1,
+      item.wrong_option_2,
+      item.wrong_option_3,
+    ].filter(Boolean);
+  };
+
+  const generateWrongOptions = async (question, correctAnswer, cardId = null) => {
+    try {
+      const res = await fetch(`${API_BASE}/generate-options.php`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          question,
+          correct_answer: correctAnswer,
+          card_id: cardId,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success || !Array.isArray(data.wrong_options)) {
+        return {
+          wrongOptions: [],
+          explanation: "",
+        };
+      }
+
+      const wrongOptions = getUniqueOptions(data.wrong_options)
+        .filter((opt) => !isSameText(opt, correctAnswer))
+        .filter(
+          (opt) =>
+            !["true", "false"].includes(cleanOptionText(opt).toLowerCase())
+        )
+        .slice(0, 3);
+
+      return {
+        wrongOptions,
+        explanation: data.explanation || "",
+      };
+    } catch (err) {
+      console.error("Generate wrong options error:", err);
+
+      return {
+        wrongOptions: [],
+        explanation: "",
+      };
+    }
+  };
+
+  const normalizeLessonData = (data) => {
+    if (!data) return null;
+    return data.lesson || data.data || data;
+  };
+
+  const getLessonQuizData = (lessonData) => {
+    return (
+      lessonData?.quiz_contents ||
+      lessonData?.quiz_content ||
+      lessonData?.quiz ||
+      lessonData?.questions ||
+      lessonData?.cards ||
+      lessonData?.flashcards ||
+      lessonData?.items ||
+      []
+    );
   };
 
   const speakText = (text) => {
@@ -156,38 +226,53 @@ export default function Quiz() {
       try {
         if (isLessonMode) {
           const res = await fetch(
-            `http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`
+            `${API_BASE}/getLessonsById.php?id=${lessonId}`,
+            { credentials: "include" }
           );
 
-          const lesson = await res.json();
-          setTitle(lesson.title || "Lesson Quiz");
+          const lessonData = normalizeLessonData(await res.json());
+          setTitle(lessonData?.title || "Lesson Quiz");
 
-          const parsed = JSON.parse(lesson.quiz_contents || "[]");
+          const rawQuiz = getLessonQuizData(lessonData);
 
-          const lessonQuestions = parsed.map((item) => {
+          let parsed = [];
+
+          try {
+            parsed = Array.isArray(rawQuiz)
+              ? rawQuiz
+              : JSON.parse(String(rawQuiz || "[]"));
+          } catch {
+            parsed = [];
+          }
+
+          const lessonQuestionsRaw = parsed.map((item) => {
             const rawQuestionText = item.question || "No question available.";
-
             const { questionOnly, extractedOptions } =
               splitQuestionAndOptions(rawQuestionText);
 
             const correctAnswer =
               item.correct_answer || item.correctAnswer || item.answer || "";
 
-            const isTrueFalse =
+            const answerLower = String(correctAnswer).trim().toLowerCase();
+            const questionLower = String(rawQuestionText).trim().toLowerCase();
+
+            if (
               item.type === "true_false" ||
-              String(rawQuestionText).toLowerCase().includes("true or false") ||
-              ["true", "false"].includes(
-                String(correctAnswer).trim().toLowerCase()
-              );
+              answerLower === "true" ||
+              answerLower === "false" ||
+              questionLower.includes("true or false")
+            ) {
+              return null;
+            }
 
             const rawOptions =
               Array.isArray(item.options) && item.options.length > 0
                 ? item.options.filter((opt) => opt && String(opt).trim() !== "")
                 : extractedOptions;
 
-            const options = isTrueFalse
-              ? ["True", "False"]
-              : getUniqueOptions(rawOptions).slice(0, 4);
+            const options = getUniqueOptions(rawOptions).slice(0, 4);
+
+            if (options.length < 4) return null;
 
             return {
               q: questionOnly,
@@ -197,12 +282,13 @@ export default function Quiz() {
             };
           });
 
+          const lessonQuestions = lessonQuestionsRaw.filter(Boolean);
           setQuestions(shuffleArray(lessonQuestions));
         }
 
         if (isDeckMode) {
           const deckRes = await fetch(
-            `http://localhost/puffybrain/getDeckById.php?deckId=${deckId}`,
+            `${API_BASE}/getDeckById.php?deckId=${deckId}`,
             { credentials: "include" }
           );
 
@@ -219,7 +305,7 @@ export default function Quiz() {
           setTitle(deckTitle);
 
           const cardsRes = await fetch(
-            `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`,
+            `${API_BASE}/getCardsByDeck.php?deckId=${deckId}`,
             { credentials: "include" }
           );
 
@@ -231,43 +317,67 @@ export default function Quiz() {
             return;
           }
 
-          const deckQuestions = cards.map((card) => {
-            const correctAnswer = card.answer || "No answer available.";
-            const rawQuestionText = card.question || "No question available.";
+          const deckQuestionsRaw = await Promise.all(
+            cards.map(async (card) => {
+              const correctAnswer = card.answer || "";
+              const rawQuestionText = card.question || "";
+              const cardId = card.cardId || card.card_id || card.id || null;
 
-            const { questionOnly, extractedOptions } =
-              splitQuestionAndOptions(rawQuestionText);
+              const answerLower = String(correctAnswer).trim().toLowerCase();
+              const questionLower = String(rawQuestionText).trim().toLowerCase();
 
-            const answerText = String(correctAnswer).trim().toLowerCase();
+              if (
+                answerLower === "true" ||
+                answerLower === "false" ||
+                questionLower.includes("true or false")
+              ) {
+                return null;
+              }
 
-            const isTrueFalseCard =
-              answerText === "true" ||
-              answerText === "false" ||
-              String(rawQuestionText).toLowerCase().includes("true or false");
+              const { questionOnly, extractedOptions } =
+                splitQuestionAndOptions(rawQuestionText);
 
-            let options = [];
+              const savedOptions = getSavedOptions(card);
 
-            if (isTrueFalseCard) {
-              options = ["True", "False"];
-            } else if (extractedOptions.length > 0) {
-              options = getUniqueOptions(extractedOptions);
-            } else {
-              options = shuffleArray(
-                getUniqueOptions([
+              let options = [];
+              let explanation = card.mc_explanation || correctAnswer;
+
+              if (extractedOptions.length >= 4) {
+                options = getUniqueOptions(extractedOptions).slice(0, 4);
+              } else if (savedOptions.length >= 3) {
+                options = shuffleArray(
+                  getUniqueOptions([correctAnswer, ...savedOptions])
+                ).slice(0, 4);
+              } else {
+                const generated = await generateWrongOptions(
+                  questionOnly,
                   correctAnswer,
-                  ...generateWrongOptions(correctAnswer, cards),
-                ])
-              ).slice(0, 4);
-            }
+                  cardId
+                );
 
-            return {
-              q: questionOnly,
-              options,
-              correctAnswer,
-              explanation: correctAnswer,
-            };
-          });
+                if (generated.wrongOptions.length < 3) {
+                  return null;
+                }
 
+                explanation = generated.explanation || correctAnswer;
+
+                options = shuffleArray(
+                  getUniqueOptions([correctAnswer, ...generated.wrongOptions])
+                ).slice(0, 4);
+              }
+
+              if (options.length < 4) return null;
+
+              return {
+                q: questionOnly,
+                options,
+                correctAnswer,
+                explanation,
+              };
+            })
+          );
+
+          const deckQuestions = deckQuestionsRaw.filter(Boolean);
           setQuestions(shuffleArray(deckQuestions));
         }
       } catch (error) {
@@ -293,21 +403,13 @@ export default function Quiz() {
     (opt) => opt && String(opt).trim() !== ""
   );
 
-  const questionText = String(question?.q || "").toLowerCase();
-
-  const isTrueFalse =
-    questionText.includes("true or false") ||
-    cleanOptions.some((opt) =>
-      ["true", "false"].includes(String(opt).trim().toLowerCase())
-    );
-
-  const visibleOptions = isTrueFalse
-    ? ["True", "False"]
-    : cleanOptions.slice(0, 4).map((opt, index) => addLetterPrefix(opt, index));
+  const visibleOptions = cleanOptions
+    .slice(0, 4)
+    .map((opt, index) => addLetterPrefix(opt, index));
 
   async function saveQuizAttempt(finalScore) {
     try {
-      await fetch("http://localhost/puffybrain/saveQuizAttempt.php", {
+      await fetch(`${API_BASE}/saveQuizAttempt.php`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -403,8 +505,33 @@ export default function Quiz() {
 
   if (questions.length === 0) {
     return (
-      <div className={styles.wrapper}>
-        <h1>No quiz questions available.</h1>
+      <div className={styles.emptyWrapper}>
+        <div className={styles.emptyCard}>
+          <img
+            src="/images/404.png"
+            alt="No questions"
+            className={styles.emptyImage}
+          />
+
+          <h2 className={styles.emptyTitle}>No Multiple Choice Quiz Yet</h2>
+
+          <p className={styles.emptyText}>
+            No valid multiple-choice questions are available. True/False cards
+            are skipped in this mode.
+          </p>
+
+          <button
+            type="button"
+            className={styles.emptyBtn}
+            onClick={() =>
+              navigate(
+                isDeckMode ? `/review/deck/${deckId}` : `/learning/${lessonId}`
+              )
+            }
+          >
+            Go Back
+          </button>
+        </div>
       </div>
     );
   }

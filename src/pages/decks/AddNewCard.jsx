@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import Swal from "sweetalert2";
+import { API_BASE } from "../../config.js";
 import styles from "./Addnewcard.module.css";
 
 export default function AddNewCard({ deckId, onCardAdded }) {
@@ -73,7 +74,7 @@ const removeImage = () => {
         formData.append("image", image);
       }
 
-      const response = await fetch("http://localhost/puffybrain/addCard.php", {
+      const response = await fetch(`${API_BASE}/addCard.php`, {
         method: "POST",
         body: formData,
       });

@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "boxicons/css/boxicons.min.css";
+import { API_BASE } from "../../config.js";
 import styles from "./UserProfile.module.css";
 
 function UserProfile() {
@@ -11,7 +12,8 @@ function UserProfile() {
   const { userId } = useParams();
 
   const [archivedDecks, setArchivedDecks] = useState([]);
-  const [myDecks, setMyDecks] = useState([]);
+  const [sidebarDecks, setSidebarDecks] = useState([]);
+  const [profileDecks, setProfileDecks] = useState([]);
   const [courses, setCourses] = useState([]);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -22,10 +24,6 @@ function UserProfile() {
   const [activeDeckTab, setActiveDeckTab] = useState("decks");
   const [archivedDropdownOpen, setArchivedDropdownOpen] = useState(null);
 
-  const notificationCount = notifications.filter(
-    (notif) => notif.status === "unread"
-  ).length;
-
   const [user, setUser] = useState({
     id: "",
     username: "",
@@ -34,6 +32,24 @@ function UserProfile() {
     signature: "",
     profile_image: "/images/temporary profile.jpg",
   });
+
+  const [loggedInUser, setLoggedInUser] = useState({
+    id: "",
+    username: "",
+    profile_image: "/images/temporary profile.jpg",
+  });
+
+  const notificationCount = notifications.filter(
+    (notif) => notif.status === "unread"
+  ).length;
+
+  const getUserId = (obj) => {
+    return obj?.id || obj?.user_id || obj?.UserID || obj?.userid || "";
+  };
+
+  const getDeckId = (deck) => {
+    return deck?.deck_id || deck?.id || deck?.DeckID || "";
+  };
 
   const filterDecks = (decks) => {
     const q = search.trim().toLowerCase();
@@ -54,35 +70,83 @@ function UserProfile() {
     });
   };
 
-  const filteredDecks = useMemo(() => filterDecks(myDecks), [myDecks, search]);
+  const filteredDecks = useMemo(
+    () => filterDecks(profileDecks),
+    [profileDecks, search]
+  );
+
   const filteredArchivedDecks = useMemo(
     () => filterDecks(archivedDecks),
     [archivedDecks, search]
   );
 
-  const fetchUserDecks = async (profileId) => {
-    if (!profileId) return;
+  const fetchSidebarDecks = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/userDecks.php`, {
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setSidebarDecks(data.decks || []);
+      } else {
+        setSidebarDecks([]);
+      }
+    } catch (err) {
+      console.error("fetchSidebarDecks error:", err);
+      setSidebarDecks([]);
+    }
+  };
+
+  const fetchUserDecks = async (profileId, ownProfile = false) => {
+    if (!profileId) {
+      setProfileDecks([]);
+      return;
+    }
 
     try {
       const res = await fetch(
-        `http://localhost/puffybrain/getUserDecksById.php?user_id=${profileId}`,
+        `${API_BASE}/getUserDecksById.php?user_id=${profileId}`,
         { credentials: "include" }
       );
 
-      const data = await res.json();
-      setMyDecks(data.success ? data.decks || [] : []);
+      const text = await res.text();
+      console.log("USER DECKS RAW:", text);
+
+      let data;
+
+      try {
+        data = JSON.parse(text);
+      } catch {
+        setProfileDecks([]);
+        return;
+      }
+
+      const decks = data.success ? data.decks || [] : [];
+
+      const visibleDecks = ownProfile
+        ? decks
+        : decks.filter(
+            (deck) => String(deck.visibility || "").toLowerCase() === "public"
+          );
+
+      setProfileDecks(visibleDecks);
     } catch (err) {
       console.error("Failed to fetch user decks:", err);
-      setMyDecks([]);
+      setProfileDecks([]);
     }
   };
 
   const fetchArchivedDecks = async (profileId) => {
-    if (!profileId) return;
+    if (!profileId) {
+      setArchivedDecks([]);
+      return;
+    }
 
     try {
       const res = await fetch(
-        `http://localhost/puffybrain/getArchivedDecks.php?user_id=${profileId}`,
+        `${API_BASE}/getArchivedDecks.php?user_id=${profileId}`,
         { credentials: "include" }
       );
 
@@ -96,7 +160,7 @@ function UserProfile() {
 
   const fetchAddedCourses = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/getMyCourses.php", {
+      const res = await fetch(`${API_BASE}/getMyCourses.php`, {
         credentials: "include",
       });
 
@@ -110,21 +174,13 @@ function UserProfile() {
 
   const fetchNotifications = async () => {
     try {
-      const res = await fetch(
-        "http://localhost/puffybrain/getUserNotifications.php",
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
+      const res = await fetch(`${API_BASE}/getUserNotifications.php`, {
+        method: "GET",
+        credentials: "include",
+      });
 
       const data = await res.json();
-
-      if (data.success) {
-        setNotifications(data.notifications || []);
-      } else {
-        setNotifications([]);
-      }
+      setNotifications(data.success ? data.notifications || [] : []);
     } catch (err) {
       console.error("Notification fetch error:", err);
       setNotifications([]);
@@ -133,13 +189,10 @@ function UserProfile() {
 
   const markNotificationsAsRead = async () => {
     try {
-      const res = await fetch(
-        "http://localhost/puffybrain/markNotificationsAsRead.php",
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
+      const res = await fetch(`${API_BASE}/markNotificationsAsRead.php`, {
+        method: "POST",
+        credentials: "include",
+      });
 
       const data = await res.json();
 
@@ -158,35 +211,68 @@ function UserProfile() {
 
   const fetchUser = async () => {
     try {
-      const currentRes = await fetch("http://localhost/puffybrain/getUser.php", {
+      const currentRes = await fetch(`${API_BASE}/getUser.php`, {
         credentials: "include",
       });
 
-      const currentData = await currentRes.json();
+      const currentText = await currentRes.text();
+      console.log("CURRENT USER RAW:", currentText);
+
+      let currentData;
+
+      try {
+        currentData = JSON.parse(currentText);
+      } catch {
+        navigate("/login");
+        return;
+      }
 
       if (!currentData.success) {
         navigate("/login");
         return;
       }
 
-      const loggedUser = currentData.user;
-      const loggedUserId = loggedUser.id || loggedUser.user_id;
+      const loggedUser = currentData.user || currentData;
+      const loggedUserId = getUserId(loggedUser);
+
+      if (!loggedUserId) {
+        console.error("Logged user id not found:", currentData);
+        return;
+      }
+
+      setLoggedInUser({
+        id: loggedUserId,
+        username: loggedUser.username || "",
+        profile_image:
+          loggedUser.profile_image || "/images/temporary profile.jpg",
+      });
+
       const profileId = userId || loggedUserId;
 
       const profileRes = await fetch(
-        `http://localhost/puffybrain/getUserProfile.php?id=${profileId}`,
+        `${API_BASE}/getUserProfile.php?id=${profileId}`,
         { credentials: "include" }
       );
 
-      const profileData = await profileRes.json();
+      const profileText = await profileRes.text();
+      console.log("PROFILE RAW:", profileText);
+
+      let profileData;
+
+      try {
+        profileData = JSON.parse(profileText);
+      } catch {
+        return;
+      }
 
       if (!profileData.success) {
         console.error(profileData.message || "Profile not found");
         return;
       }
 
-      const profileUser = profileData.user;
-      const profileUserId = profileUser.id || profileUser.user_id;
+      const profileUser = profileData.user || profileData;
+      const profileUserId = getUserId(profileUser) || profileId;
+      const ownProfile = String(loggedUserId) === String(profileUserId);
 
       setUser({
         id: profileUserId,
@@ -198,10 +284,17 @@ function UserProfile() {
           profileUser.profile_image || "/images/temporary profile.jpg",
       });
 
-      setIsOwnProfile(String(loggedUserId) === String(profileUserId));
+      setIsOwnProfile(ownProfile);
 
-      fetchUserDecks(profileUserId);
-      fetchArchivedDecks(profileUserId);
+      await fetchSidebarDecks();
+      await fetchUserDecks(profileUserId, ownProfile);
+
+      if (ownProfile) {
+        await fetchArchivedDecks(profileUserId);
+      } else {
+        setArchivedDecks([]);
+        setActiveDeckTab("decks");
+      }
     } catch (err) {
       console.error("Failed to fetch profile:", err);
     }
@@ -209,7 +302,7 @@ function UserProfile() {
 
   const handleRestore = async (deckId) => {
     try {
-      const res = await fetch("http://localhost/puffybrain/restoreDeck.php", {
+      const res = await fetch(`${API_BASE}/restoreDeck.php`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -221,7 +314,8 @@ function UserProfile() {
       if (data.success) {
         Swal.fire("Restored!", "Deck has been restored.", "success");
         fetchArchivedDecks(user.id);
-        fetchUserDecks(user.id);
+        fetchSidebarDecks();
+        fetchUserDecks(user.id, true);
       } else {
         Swal.fire("Error", data.message || "Failed to restore", "error");
       }
@@ -235,42 +329,68 @@ function UserProfile() {
     navigate(`/learning/${courseId}`);
   };
 
-  const handleLogout = () => {
-    Swal.fire({
-      title: "Logout?",
-      text: "Are you sure you want to logout?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes",
-      confirmButtonColor: "#7b5cff",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        navigate("/login");
-      }
-    });
-  };
+const handleLogout = () => {
+  Swal.fire({
+    title: "Logout?",
+    text: "Are you sure you want to logout?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#8d6cab",
+    cancelButtonColor: "#b0b0b0",
+    confirmButtonText: "Yes, Logout",
+    cancelButtonText: "Cancel",
+    reverseButtons: true,
+    customClass: {
+      popup: styles.logoutPopup,
+      title: styles.logoutTitle,
+      htmlContainer: styles.logoutText,
+      confirmButton: styles.logoutConfirm,
+      cancelButton: styles.logoutCancel,
+    },
+  }).then(async (result) => {
+    if (!result.isConfirmed) return;
+
+    try {
+      await fetch(`${API_BASE}/logout.php`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout API error:", err);
+    }
+
+    localStorage.removeItem("username");
+    localStorage.removeItem("user_email");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("profile_image");
+
+    sessionStorage.clear();
+
+    navigate("/login", { replace: true });
+  });
+};
 
   const handleShare = async () => {
-  const profileLink = `${window.location.origin}/user-profile/${user.id}`;
+    const profileLink = `${window.location.origin}/user-profile/${user.id}`;
 
-  try {
-    await navigator.clipboard.writeText(profileLink);
+    try {
+      await navigator.clipboard.writeText(profileLink);
 
-    toast.success("Profile link copied!", {
-      className: styles.toastSuccess,
-      progressClassName: styles.toastSuccessProgress,
-      icon: <i className="bx bx-check-circle"></i>,
-    });
-  } catch (error) {
-    console.error("Failed to copy profile link:", error);
+      toast.success("Profile link copied!", {
+        className: styles.toastSuccess,
+        progressClassName: styles.toastSuccessProgress,
+        icon: <i className="bx bx-check-circle"></i>,
+      });
+    } catch (error) {
+      console.error("Failed to copy profile link:", error);
 
-    toast.error("Unable to copy the profile link.", {
-      className: styles.toastError,
-      progressClassName: styles.toastErrorProgress,
-      icon: <i className="bx bx-error-circle"></i>,
-    });
-  }
-};
+      toast.error("Unable to copy the profile link.", {
+        className: styles.toastError,
+        progressClassName: styles.toastErrorProgress,
+        icon: <i className="bx bx-error-circle"></i>,
+      });
+    }
+  };
 
   useEffect(() => {
     fetchUser();
@@ -301,7 +421,9 @@ function UserProfile() {
         isCollapsed ? styles.sidebarCollapsed : ""
       }`}
     >
-      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
+      <aside
+        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
+      >
         <div>
           <div
             className={styles.sidebarToggle}
@@ -311,8 +433,16 @@ function UserProfile() {
           </div>
 
           <div className={styles.logo}>
-            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
-            <img className={styles.logoCollapsed} src="/images/logo_solo.png" alt="Logo" />
+            <img
+              className={styles.logoExpanded}
+              src="/images/logo1.png"
+              alt="Logo"
+            />
+            <img
+              className={styles.logoCollapsed}
+              src="/images/logo_solo.png"
+              alt="Logo"
+            />
           </div>
 
           <div className={styles.divider}></div>
@@ -374,54 +504,55 @@ function UserProfile() {
 
           <div className={styles.myDecksNav}>
             <div className={styles.sectionBlock}>
-              <p className={styles.sectionTitle}>
-                {isOwnProfile ? "My Decks" : `${user.username || "User"}'s Decks`}
-              </p>
+              <p className={styles.sectionTitle}>My Decks</p>
 
               <ul className={styles.sectionList}>
-                {myDecks.length === 0 ? (
-                  <li className={styles.sidebarEmptyText}>No decks available</li>
+                {sidebarDecks.length === 0 ? (
+                  <li className={styles.sidebarEmptyText}>
+                    Don't have decks yet
+                  </li>
                 ) : (
-                  myDecks.slice(0, 3).map((deck) => (
-                    <li key={deck.id || deck.deck_id} className={styles.sidebarListItem}>
-                      <Link
-                        to={`/deck/${deck.id || deck.deck_id}`}
+                  sidebarDecks.slice(0, 3).map((deck) => {
+                    const deckId = getDeckId(deck);
+
+                    return (
+                      <li key={deckId} className={styles.sidebarListItem}>
+                        <Link to={`/deck/${deckId}`} className={styles.menuItem}>
+                          <i className="bx bx-book"></i>
+                          <span className={styles.menuText}>{deck.title}</span>
+                        </Link>
+                      </li>
+                    );
+                  })
+                )}
+              </ul>
+            </div>
+
+            <div className={styles.sectionBlock}>
+              <div className={styles.sectionDivider}></div>
+              <p className={styles.sectionTitle}>My Courses</p>
+
+              <ul className={styles.sectionList}>
+                {courses.length === 0 ? (
+                  <li className={styles.sidebarEmptyText}>
+                    No courses added yet
+                  </li>
+                ) : (
+                  courses.slice(0, 3).map((course) => (
+                    <li key={course.id} className={styles.sidebarListItem}>
+                      <button
+                        type="button"
+                        onClick={() => openCourse(course.id)}
                         className={styles.menuItem}
                       >
-                        <i className="bx bx-book"></i>
-                        <span className={styles.menuText}>{deck.title}</span>
-                      </Link>
+                        <i className="bx bx-book-open"></i>
+                        <span className={styles.menuText}>{course.title}</span>
+                      </button>
                     </li>
                   ))
                 )}
               </ul>
             </div>
-
-            {isOwnProfile && (
-              <div className={styles.sectionBlock}>
-                <div className={styles.sectionDivider}></div>
-                <p className={styles.sectionTitle}>My Courses</p>
-
-                <ul className={styles.sectionList}>
-                  {courses.length === 0 ? (
-                    <li className={styles.sidebarEmptyText}>No courses added yet</li>
-                  ) : (
-                    courses.slice(0, 3).map((course) => (
-                      <li key={course.id} className={styles.sidebarListItem}>
-                        <button
-                          type="button"
-                          onClick={() => openCourse(course.id)}
-                          className={styles.menuItem}
-                        >
-                          <i className="bx bx-book-open"></i>
-                          <span className={styles.menuText}>{course.title}</span>
-                        </button>
-                      </li>
-                    ))
-                  )}
-                </ul>
-              </div>
-            )}
           </div>
         </div>
       </aside>
@@ -429,7 +560,10 @@ function UserProfile() {
       <div className={styles.mainArea}>
         <div className={styles.gridContainer}>
           <div className={styles.headerContainer}>
-            <form className={styles.searchBar} onSubmit={(e) => e.preventDefault()}>
+            <form
+              className={styles.searchBar}
+              onSubmit={(e) => e.preventDefault()}
+            >
               <input
                 type="text"
                 placeholder={
@@ -510,7 +644,7 @@ function UserProfile() {
                           <h5>{notif.title}</h5>
 
                           <span className={styles.notificationRole}>
-                            {notif.target_role}
+                            {notif.target_role || notif.recipient_type}
                           </span>
                         </div>
 
@@ -536,11 +670,15 @@ function UserProfile() {
               </div>
 
               <div className={styles.dpContainer}>
-                <img src={user.profile_image} alt="Profile" className={styles.profilePic} />
+                <img
+                  src={loggedInUser.profile_image}
+                  alt="Profile"
+                  className={styles.profilePic}
+                />
               </div>
 
               <div className={styles.userInfo}>
-                <p>{user.username || "User"}</p>
+                <p>{loggedInUser.username || "User"}</p>
               </div>
 
               <div className={styles.dropdown}>
@@ -584,7 +722,11 @@ function UserProfile() {
             <div className={styles.profileCard}>
               <div className={styles.idPhotoBox}>
                 <div className={styles.idPhotoFrame}>
-                  <img src={user.profile_image} alt="Profile" className={styles.idPhoto} />
+                  <img
+                    src={user.profile_image}
+                    alt="Profile"
+                    className={styles.idPhoto}
+                  />
                 </div>
                 <div className={styles.idBarcode}></div>
               </div>
@@ -592,14 +734,15 @@ function UserProfile() {
               <div className={styles.profileCardInner}>
                 <div className={styles.profileCardTop}>
                   <h1 className={styles.profileTitle}>Student ID Card</h1>
+
                   <button
-                      className={styles.shareBtn}
-                      type="button"
-                      onClick={handleShare}
-                      title="Copy profile link"
-                    >
-                      <i className="bx bx-share-alt"></i>
-                    </button>
+                    className={styles.shareBtn}
+                    type="button"
+                    onClick={handleShare}
+                    title="Copy profile link"
+                  >
+                    <i className="bx bx-share-alt"></i>
+                  </button>
                 </div>
 
                 <div className={styles.profileDivider}></div>
@@ -619,7 +762,9 @@ function UserProfile() {
                     </span>
                   </div>
 
-                  <div className={`${styles.profileField} ${styles.profileFieldWide}`}>
+                  <div
+                    className={`${styles.profileField} ${styles.profileFieldWide}`}
+                  >
                     <span className={styles.profileLabel}>School:</span>
                     <span className={styles.profileValue}>
                       {user.school || "Not set"}
@@ -660,7 +805,9 @@ function UserProfile() {
                   }
                   onClick={() => setActiveDeckTab("decks")}
                 >
-                  {isOwnProfile ? "My Decks" : `${user.username || "User"}'s Decks`}
+                  {isOwnProfile
+                    ? "My Decks"
+                    : `${user.username || "User"}'s Decks`}
                 </button>
 
                 {isOwnProfile && (
@@ -684,42 +831,50 @@ function UserProfile() {
 
               {activeDeckTab === "decks" && (
                 <div className={styles.decksGrid}>
-                  {myDecks.length === 0 ? (
-                    <p className={styles.emptyText}>No decks available</p>
+                  {profileDecks.length === 0 ? (
+                    <p className={styles.emptyText}>
+                      {isOwnProfile
+                        ? "No decks available"
+                        : "No public decks available"}
+                    </p>
                   ) : filteredDecks.length === 0 ? (
                     <p className={styles.emptyText}>
                       No decks found for “{search}”.
                     </p>
                   ) : (
-                    filteredDecks.map((deck, index) => (
-                      <Link
-                        key={deck.id || deck.deck_id}
-                        to={`/deck/${deck.id || deck.deck_id}`}
-                        className={styles.deckBox}
-                      >
-                        <div
-                          className={`${styles.deckPreview} ${
-                            index % 4 === 0
-                              ? styles.previewBlue
-                              : index % 4 === 1
-                              ? styles.previewPink
-                              : index % 4 === 2
-                              ? styles.previewViolet
-                              : styles.previewRed
-                          }`}
-                        ></div>
+                    filteredDecks.map((deck, index) => {
+                      const deckId = getDeckId(deck);
 
-                        <div className={styles.deckText}>
-                          <strong>{deck.title}</strong>
-                          <p>{deck.card_count ?? 0} cards</p>
-                        </div>
-                      </Link>
-                    ))
+                      return (
+                        <Link
+                          key={deckId}
+                          to={`/deck/${deckId}`}
+                          className={styles.deckBox}
+                        >
+                          <div
+                            className={`${styles.deckPreview} ${
+                              index % 4 === 0
+                                ? styles.previewBlue
+                                : index % 4 === 1
+                                ? styles.previewPink
+                                : index % 4 === 2
+                                ? styles.previewViolet
+                                : styles.previewRed
+                            }`}
+                          ></div>
+
+                          <div className={styles.deckText}>
+                            <strong>{deck.title}</strong>
+                            <p>{deck.card_count ?? 0} cards</p>
+                          </div>
+                        </Link>
+                      );
+                    })
                   )}
                 </div>
               )}
 
-              {activeDeckTab === "archive" && (
+              {activeDeckTab === "archive" && isOwnProfile && (
                 <div className={styles.decksGrid}>
                   {archivedDecks.length === 0 ? (
                     <p className={styles.emptyText}>No archived decks yet</p>
@@ -728,55 +883,59 @@ function UserProfile() {
                       No archived decks found for “{search}”.
                     </p>
                   ) : (
-                    filteredArchivedDecks.map((deck, index) => (
-                      <div key={deck.id || deck.deck_id} className={styles.deckBox}>
-                        <div className={styles.deckMenuWrapper}>
-                          <button
-                            type="button"
-                            className={styles.deckMenuBtn}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setArchivedDropdownOpen(
-                                archivedDropdownOpen === deck.id ? null : deck.id
-                              );
-                            }}
-                          >
-                            <i className="bx bx-dots-vertical-rounded"></i>
-                          </button>
+                    filteredArchivedDecks.map((deck, index) => {
+                      const deckId = getDeckId(deck);
 
-                          {archivedDropdownOpen === deck.id && (
-                            <div className={styles.deckDropdown}>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  handleRestore(deck.id);
-                                  setArchivedDropdownOpen(null);
-                                }}
-                              >
-                                Restore
-                              </button>
-                            </div>
-                          )}
+                      return (
+                        <div key={deckId} className={styles.deckBox}>
+                          <div className={styles.deckMenuWrapper}>
+                            <button
+                              type="button"
+                              className={styles.deckMenuBtn}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setArchivedDropdownOpen(
+                                  archivedDropdownOpen === deckId ? null : deckId
+                                );
+                              }}
+                            >
+                              <i className="bx bx-dots-vertical-rounded"></i>
+                            </button>
+
+                            {archivedDropdownOpen === deckId && (
+                              <div className={styles.deckDropdown}>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    handleRestore(deckId);
+                                    setArchivedDropdownOpen(null);
+                                  }}
+                                >
+                                  Restore
+                                </button>
+                              </div>
+                            )}
+                          </div>
+
+                          <div
+                            className={`${styles.deckPreview} ${
+                              index % 4 === 0
+                                ? styles.previewBlue
+                                : index % 4 === 1
+                                ? styles.previewPink
+                                : index % 4 === 2
+                                ? styles.previewViolet
+                                : styles.previewRed
+                            }`}
+                          ></div>
+
+                          <div className={styles.deckText}>
+                            <strong>{deck.title}</strong>
+                            <p>{deck.card_count ?? 0} cards</p>
+                          </div>
                         </div>
-
-                        <div
-                          className={`${styles.deckPreview} ${
-                            index % 4 === 0
-                              ? styles.previewBlue
-                              : index % 4 === 1
-                              ? styles.previewPink
-                              : index % 4 === 2
-                              ? styles.previewViolet
-                              : styles.previewRed
-                          }`}
-                        ></div>
-
-                        <div className={styles.deckText}>
-                          <strong>{deck.title}</strong>
-                          <p>{deck.card_count ?? 0} cards</p>
-                        </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               )}
@@ -784,14 +943,15 @@ function UserProfile() {
           </main>
         </div>
       </div>
+
       <ToastContainer
-  position="top-right"
-  autoClose={2200}
-  hideProgressBar={false}
-  closeOnClick
-  pauseOnHover={false}
-  draggable={false}
-/>
+        position="top-right"
+        autoClose={2200}
+        hideProgressBar={false}
+        closeOnClick
+        pauseOnHover={false}
+        draggable={false}
+      />
     </div>
   );
 }

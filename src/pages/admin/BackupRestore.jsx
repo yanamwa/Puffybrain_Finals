@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -15,6 +15,7 @@ import {
 import Swal from "sweetalert2";
 import styles from "./backuprestore.module.css";
 import "boxicons/css/boxicons.min.css";
+import { API_BASE } from "../../config.js";
 
 export default function AdminBackupRestore() {
   const [restoreFile, setRestoreFile] = useState(null);
@@ -23,6 +24,7 @@ export default function AdminBackupRestore() {
   const [searchQuery, setSearchQuery] = useState("");
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [bellNotifications, setBellNotifications] = useState([]);
+  const navigate = useNavigate();
 
   const menuItems = [
     { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
@@ -61,7 +63,7 @@ export default function AdminBackupRestore() {
   const fetchAdmin = async () => {
   try {
     const res = await fetch(
-      "http://localhost/puffybrain/getAdminProfile.php",
+      `${API_BASE}/getAdminProfile.php`,
       {
         credentials: "include",
       }
@@ -92,7 +94,7 @@ export default function AdminBackupRestore() {
       const admin = JSON.parse(localStorage.getItem("admin") || "{}");
 
       const res = await fetch(
-        `http://localhost/puffybrain/getAdminNotifications.php?admin_id=${admin.id}`,
+        `${API_BASE}/getAdminNotifications.php?admin_id=${admin.id}`,
         { credentials: "include" }
       );
 
@@ -146,7 +148,7 @@ export default function AdminBackupRestore() {
 
     try {
       const res = await fetch(
-        "http://localhost/puffybrain/markAdminNotificationsRead.php",
+        `${API_BASE}/markAdminNotificationsRead.php`,
         {
           method: "POST",
           credentials: "include",
@@ -187,98 +189,130 @@ export default function AdminBackupRestore() {
   };
 
   const handleBackup = () => {
-    window.location.href = "http://localhost/puffybrain/backupDatabase.php";
+    window.location.href = `${API_BASE}/backupDatabase.php`;
   };
 
-  const handleRestore = async () => {
-    if (!restoreFile) {
-      await showBackupSwal({
-        imageUrl: "/images/error.png",
-        imageWidth: 190,
-        imageHeight: 190,
-        imageAlt: "Missing File",
-        title: "Missing File",
-        text: "Please choose a .sql backup file.",
-        confirmButtonText: "OK",
-      });
-      return;
-    }
-
-    const result = await showBackupSwal({
-      imageUrl: "/images/asking.png",
+const handleRestore = async () => {
+  if (!restoreFile) {
+    await showBackupSwal({
+      imageUrl: "/images/error.png",
       imageWidth: 190,
       imageHeight: 190,
-      imageAlt: "Restore Warning",
-      title: "Restore Database?",
-      text: "This will overwrite current database data.",
-      showCancelButton: true,
-      confirmButtonText: "Yes, restore",
-      cancelButtonText: "Cancel",
+      imageAlt: "Missing File",
+      title: "Missing File",
+      text: "Please choose a .sql backup file.",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
+
+  const result = await showBackupSwal({
+    imageUrl: "/images/asking.png",
+    imageWidth: 190,
+    imageHeight: 190,
+    imageAlt: "Restore Warning",
+    title: "Restore Database?",
+    text: "This will overwrite current database data.",
+    showCancelButton: true,
+    confirmButtonText: "Yes, restore",
+    cancelButtonText: "Cancel",
+  });
+
+  if (!result.isConfirmed) return;
+
+  const formData = new FormData();
+  formData.append("backup_file", restoreFile);
+
+  try {
+    setIsRestoring(true);
+
+    const res = await fetch(`${API_BASE}/restoreDatabase.php`, {
+      method: "POST",
+      credentials: "include",
+      body: formData,
     });
 
-    if (!result.isConfirmed) return;
+    const text = await res.text();
 
-    const formData = new FormData();
-    formData.append("backup_file", restoreFile);
-
+    let data;
     try {
-      setIsRestoring(true);
+      data = JSON.parse(text);
+    } catch {
+      throw new Error(text || "Server returned invalid JSON.");
+    }
 
-      const res = await fetch("http://localhost/puffybrain/restoreDatabase.php", {
-        method: "POST",
-        credentials: "include",
-        body: formData,
+    if (data.success) {
+      await showBackupSwal({
+        imageUrl: "/images/success.png",
+        imageWidth: 190,
+        imageHeight: 190,
+        imageAlt: "Success",
+        title: "Success",
+        text: data.message || "Database restored successfully.",
+        confirmButtonText: "OK",
       });
 
-      const data = await res.json();
-
-      if (data.success) {
-        await showBackupSwal({
-          imageUrl: "/images/success.png",
-          imageWidth: 190,
-          imageHeight: 190,
-          imageAlt: "Success",
-          title: "Success",
-          text: data.message,
-          confirmButtonText: "OK",
-        });
-
-        setRestoreFile(null);
-      } else {
-        await showBackupSwal({
-          imageUrl: "/images/error.png",
-          imageWidth: 190,
-          imageHeight: 190,
-          imageAlt: "Restore Failed",
-          title: "Failed",
-          text: data.message || "Restore failed.",
-          confirmButtonText: "OK",
-        });
-      }
-    } catch (err) {
-      console.error(err);
-
+      setRestoreFile(null);
+    } else {
       await showBackupSwal({
         imageUrl: "/images/error.png",
         imageWidth: 190,
         imageHeight: 190,
-        imageAlt: "Server Error",
-        title: "Server Error",
-        text: "Could not restore database.",
+        imageAlt: "Restore Failed",
+        title: "Failed",
+        text: data.error || data.message || "Restore failed.",
         confirmButtonText: "OK",
       });
-    } finally {
-      setIsRestoring(false);
     }
-  };
+  } catch (err) {
+    console.error("Restore error:", err);
 
-  const handleLogout = (e) => {
-    e.preventDefault();
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.href = "/admin/login";
-  };
+    await showBackupSwal({
+      imageUrl: "/images/error.png",
+      imageWidth: 190,
+      imageHeight: 190,
+      imageAlt: "Server Error",
+      title: "Server Error",
+      text: err.message || "Could not restore database.",
+      confirmButtonText: "OK",
+    });
+  } finally {
+    setIsRestoring(false);
+  }
+};
 
+const handleLogout = async (e) => {
+  e.preventDefault();
+
+  const result = await Swal.fire({
+    title: "Logout?",
+    text: "Are you sure you want to logout?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes",
+    cancelButtonText: "Cancel",
+    confirmButtonColor: "#7b5cff",
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    await fetch(`${API_BASE}/adminLogout.php`, {
+      method: "POST",
+      credentials: "include",
+    });
+  } catch (err) {
+    console.error("Logout API error:", err);
+  }
+
+  localStorage.removeItem("admin");
+  localStorage.removeItem("admin_id");
+  localStorage.removeItem("admin_username");
+  localStorage.removeItem("admin_email");
+  sessionStorage.clear();
+
+  navigate("/pb-admin-access", { replace: true });
+};
   const unreadNotifications = bellNotifications.filter(
     (notif) => notif.status === "unread"
   );
@@ -352,12 +386,12 @@ export default function AdminBackupRestore() {
         <div className={styles.sidebarBottom}>
           <div className={styles.divider}></div>
 
-          <NavLink to="/" onClick={handleLogout} className={styles.menuItem}>
-            <span className={styles.menuIcon}>
-              <LogOut size={20} />
-            </span>
-            <span className={styles.menuText}>Logout</span>
-          </NavLink>
+        <button type="button" onClick={handleLogout} className={styles.menuItem}>
+  <span className={styles.menuIcon}>
+    <LogOut size={20} />
+  </span>
+  <span className={styles.menuText}>Logout</span>
+</button>
         </div>
  </aside>
 

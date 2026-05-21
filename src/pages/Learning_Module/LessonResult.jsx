@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { API_BASE } from "../../config.js";
 import styles from "./lessonresult.module.css";
 import QuizModesModal from "../../components/QuizModesModal";
 
@@ -25,13 +26,13 @@ export default function LessonResult() {
     try {
       const query = new URLSearchParams({
         source: savedResults.source || (deckId ? "deck" : "lesson"),
-        lessonId: savedResults.lessonId || lessonId || "",
-        deckId: savedResults.deckId || deckId || "",
-        quizMode: savedResults.quizMode || "",
+        lessonId: savedResults.lessonId || savedResults.lesson_id || lessonId || "",
+        deckId: savedResults.deckId || savedResults.deck_id || deckId || "",
+        quizMode: savedResults.quizMode || savedResults.mode || "",
       });
 
       const res = await fetch(
-        `http://localhost/puffybrain/getQuizAttempts.php?${query.toString()}`,
+        `${API_BASE}/getQuizAttempts.php?${query.toString()}`,
         { credentials: "include" }
       );
 
@@ -45,7 +46,21 @@ export default function LessonResult() {
   };
 
   useEffect(() => {
-    const savedResults = JSON.parse(localStorage.getItem("lessonQuizResults"));
+    const parseStorage = (key) => {
+      try {
+        return JSON.parse(localStorage.getItem(key));
+      } catch {
+        return null;
+      }
+    };
+
+    const savedResults =
+      parseStorage(`lessonQuizResults_${lessonId}`) ||
+      parseStorage("lessonQuizResults") ||
+      parseStorage(`lessonQuizResult_${lessonId}`) ||
+      parseStorage(`quizResults_${lessonId}`) ||
+      parseStorage(`deckQuizResults_${deckId}`) ||
+      parseStorage("quizResults");
 
     if (savedResults) {
       setResults({
@@ -54,10 +69,12 @@ export default function LessonResult() {
         answers: savedResults.answers || [],
       });
 
-      setSource(savedResults.source || (deckId ? "deck" : "lesson"));
-      setResultDeckId(savedResults.deckId || deckId || null);
-      setQuizMode(savedResults.quizMode || "");
-      setIsTimedOut(Boolean(savedResults.isTimedOut));
+      const detectedSource = savedResults.source || (deckId ? "deck" : "lesson");
+
+      setSource(detectedSource);
+      setResultDeckId(savedResults.deckId || savedResults.deck_id || deckId || null);
+      setQuizMode(savedResults.quizMode || savedResults.mode || "");
+      setIsTimedOut(Boolean(savedResults.isTimedOut || savedResults.timedOut));
 
       fetchAttempts(savedResults);
     }
@@ -164,7 +181,7 @@ export default function LessonResult() {
     if (source === "deck") {
       navigate(`/deck/${resultDeckId || deckId}`);
     } else {
-      navigate(`/lesson/${lessonId}`);
+      navigate(`/learning/${lessonId}`);
     }
   };
 
@@ -333,8 +350,8 @@ export default function LessonResult() {
       {showQuizModal && (
         <QuizModesModal
           source={source}
-          lessonId={lessonId}
-          deckId={resultDeckId || deckId}
+          lessonId={source === "lesson" ? lessonId : undefined}
+          deckId={source === "deck" ? resultDeckId || deckId : undefined}
           quizzes={results.answers}
           cards={results.answers}
           onClose={() => setShowQuizModal(false)}

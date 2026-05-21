@@ -1,44 +1,45 @@
-  import React, { useEffect, useMemo, useState } from "react";
-  import { Link, NavLink, useNavigate } from "react-router-dom";
-  import Swal from "sweetalert2";
-  import "boxicons/css/boxicons.min.css";
-  import styles from "./Mydecks.module.css";
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import "boxicons/css/boxicons.min.css";
+import { API_BASE } from "../../config.js";
+import styles from "./Mydecks.module.css";
 
-  export default function Mydecks() {
-    const navigate = useNavigate();
+function MyDecks() {
+  const navigate = useNavigate();
 
-    const swalStyle = {
-      popup: styles.swalPopup,
-      title: styles.swalTitle,
-      htmlContainer: styles.swalText,
-      confirmButton: styles.swalConfirmBtn,
-      cancelButton: styles.swalCancelBtn,
-      actions: styles.swalActions,
-      icon: styles.swalIcon,
-    };
+  const swalStyle = {
+    popup: styles.swalPopup,
+    title: styles.swalTitle,
+    htmlContainer: styles.swalText,
+    confirmButton: styles.swalConfirmBtn,
+    cancelButton: styles.swalCancelBtn,
+    actions: styles.swalActions,
+    icon: styles.swalIcon,
+  };
 
-    const styledSwal = (config = {}) => {
-      return Swal.fire({
-        buttonsStyling: false,
-        confirmButtonText: "Okay",
-        customClass: swalStyle,
-        ...config,
-      });
-    };
+  const styledSwal = (config = {}) => {
+    return Swal.fire({
+      buttonsStyling: false,
+      confirmButtonText: "Okay",
+      customClass: swalStyle,
+      ...config,
+    });
+  };
 
-    const styledConfirmSwal = (config = {}) => {
-      return Swal.fire({
-        buttonsStyling: false,
-        showCancelButton: true,
-        confirmButtonText: "Confirm",
-        cancelButtonText: "Cancel",
-        customClass: swalStyle,
-        ...config,
-      });
-    };
+  const styledConfirmSwal = (config = {}) => {
+    return Swal.fire({
+      buttonsStyling: false,
+      showCancelButton: true,
+      confirmButtonText: "Confirm",
+      cancelButtonText: "Cancel",
+      customClass: swalStyle,
+      ...config,
+    });
+  };
 
-    const [isCollapsed, setIsCollapsed] = useState(false);
-    const [search, setSearch] = useState("");
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [search, setSearch] = useState("");
     const [dropdownOpen, setDropdownOpen] = useState(null);
     const [openFilterDropdown, setOpenFilterDropdown] = useState(null);
 
@@ -97,15 +98,45 @@
     };
 
     const handleLogout = () => {
-      styledConfirmSwal({
-        title: "Logout?",
-        text: "Are you sure you want to logout?",
-        icon: "warning",
-        confirmButtonText: "Yes",
-      }).then((result) => {
-        if (result.isConfirmed) navigate("/login");
+  Swal.fire({
+    title: "Logout?",
+    text: "Are you sure you want to logout?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#8d6cab",
+    cancelButtonColor: "#b0b0b0",
+    confirmButtonText: "Yes, Logout",
+    cancelButtonText: "Cancel",
+    reverseButtons: true,
+    customClass: {
+      popup: styles.logoutPopup,
+      title: styles.logoutTitle,
+      htmlContainer: styles.logoutText,
+      confirmButton: styles.logoutConfirm,
+      cancelButton: styles.logoutCancel,
+    },
+  }).then(async (result) => {
+    if (!result.isConfirmed) return;
+
+    try {
+      await fetch(`${API_BASE}/logout.php`, {
+        method: "POST",
+        credentials: "include",
       });
-    };
+    } catch (err) {
+      console.error("Logout API error:", err);
+    }
+
+    localStorage.removeItem("username");
+    localStorage.removeItem("user_email");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("profile_image");
+
+    sessionStorage.clear();
+
+    navigate("/login", { replace: true });
+  });
+};
 
     const normalizeDeck = (deck) => {
     const visibilityValue = deck.visibility || "private";
@@ -125,7 +156,7 @@
 
     const fetchUserDecks = async () => {
       try {
-        const res = await fetch("http://localhost/puffybrain/userDecks.php", {
+        const res = await fetch(`${API_BASE}/userDecks.php`, {
           credentials: "include",
         });
 
@@ -148,7 +179,7 @@
 
     const fetchCourses = async () => {
       try {
-        const res = await fetch("http://localhost/puffybrain/getMyCourses.php", {
+        const res = await fetch(`${API_BASE}/getMyCourses.php`, {
           credentials: "include",
         });
 
@@ -162,7 +193,7 @@
 
     const fetchUser = async () => {
       try {
-        const res = await fetch("http://localhost/puffybrain/getUser.php", {
+        const res = await fetch(`${API_BASE}/getUser.php`, {
           credentials: "include",
         });
 
@@ -184,7 +215,7 @@
     const fetchNotifications = async () => {
       try {
         const res = await fetch(
-          "http://localhost/puffybrain/getUserNotifications.php",
+          `${API_BASE}/getUserNotifications.php`,
           {
             method: "GET",
             credentials: "include",
@@ -207,7 +238,7 @@
     const markNotificationsAsRead = async () => {
       try {
         const res = await fetch(
-          "http://localhost/puffybrain/markNotificationsAsRead.php",
+          `${API_BASE}/markNotificationsAsRead.php`,
           {
             method: "POST",
             credentials: "include",
@@ -359,7 +390,7 @@
         formData.append("visibility", visibility);
         formData.append("deck_color", deckColor);
 
-        const res = await fetch("http://localhost/puffybrain/userDecks.php", {
+        const res = await fetch(`${API_BASE}/userDecks.php`, {
           method: "POST",
           credentials: "include",
           body: formData,
@@ -560,7 +591,7 @@
         formData.append("visibility", formValues.visibility);
         formData.append("deck_color", formValues.deckColor);
 
-        const res = await fetch("http://localhost/puffybrain/updateDeck.php", {
+        const res = await fetch(`${API_BASE}/updateDeck.php`, {
           method: "POST",
           credentials: "include",
           body: formData,
@@ -605,7 +636,7 @@
         formData.append("visibility", deck.visibility || "private");
         formData.append("deck_color", deck.deckColor || "#c9cdfa");
 
-        const res = await fetch("http://localhost/puffybrain/userDecks.php", {
+        const res = await fetch(`${API_BASE}/userDecks.php`, {
           method: "POST",
           credentials: "include",
           body: formData,
@@ -652,7 +683,7 @@
       if (!result.isConfirmed) return;
 
       try {
-        const res = await fetch("http://localhost/puffybrain/archiveDeck.php", {
+        const res = await fetch(`${API_BASE}/archiveDeck.php`, {
           method: "POST",
           credentials: "include",
           headers: {
@@ -1216,56 +1247,60 @@
                               backgroundColor: d.deckColor || "#c9cdfa",
                             }}
                           >
-                            <button
-                              type="button"
-                              className={styles.deckMenuBtn}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setOpenFilterDropdown(null);
-                                setDropdownOpen((prev) =>
-                                  prev === d.id ? null : d.id
-                                );
-                              }}
+                 {d.source === "created" && (
+                        <>
+                          <button
+                            type="button"
+                            className={styles.deckMenuBtn}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenFilterDropdown(null);
+                              setDropdownOpen((prev) =>
+                                prev === d.id ? null : d.id
+                              );
+                            }}
+                          >
+                            <i className="bx bx-dots-vertical-rounded"></i>
+                          </button>
+
+                          {dropdownOpen === d.id && (
+                            <div
+                              className={styles.deckMenu}
+                              onClick={(e) => e.stopPropagation()}
                             >
-                              <i className="bx bx-dots-vertical-rounded"></i>
-                            </button>
-
-                            {dropdownOpen === d.id && (
-                              <div
-                                className={styles.deckMenu}
-                                onClick={(e) => e.stopPropagation()}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleEditDeck(d);
+                                  setDropdownOpen(null);
+                                }}
                               >
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    handleEditDeck(d);
-                                    setDropdownOpen(null);
-                                  }}
-                                >
-                                  Edit
-                                </button>
+                                Edit
+                              </button>
 
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    handleDuplicateDeck(d);
-                                    setDropdownOpen(null);
-                                  }}
-                                >
-                                  Duplicate
-                                </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleDuplicateDeck(d);
+                                  setDropdownOpen(null);
+                                }}
+                              >
+                                Duplicate
+                              </button>
 
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    handleArchiveDeck(d);
-                                    setDropdownOpen(null);
-                                  }}
-                                >
-                                  Archive
-                                </button>
-                              </div>
-                            )}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleArchiveDeck(d);
+                                  setDropdownOpen(null);
+                                }}
+                              >
+                                Archive
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      )}
                           </div>
 
                           <div className={styles.deckBody}>
@@ -1424,3 +1459,5 @@
       </div>
     );
   }
+  
+  export default MyDecks;

@@ -110,11 +110,12 @@
 }
 
 .sidebarToggle {
+  height: 28px;
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   padding: 0 10px;
   cursor: pointer;
-  transition: all 0.3s ease;
 }
 
 .sidebar.collapsed .sidebarToggle {
@@ -128,11 +129,13 @@
 }
 
 .logo {
+  margin-top: -6px;
+  height: 58px;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
 }
+
 
 .logoExpanded {
   display: block;

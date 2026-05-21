@@ -1,33 +1,66 @@
 import { useRef, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import styles from './login.module.css';
+import { API_BASE } from "../../config.js";
+import styles from "./login.module.css";
 
 export default function Otp() {
   const inputsRef = useRef([]);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const email = location.state?.email;
+  const email = location.state?.email || sessionStorage.getItem("otp_email");
 
-  const OTP_DURATION = 300; // 5 minutes
+  const OTP_DURATION = 300;
   const [timeLeft, setTimeLeft] = useState(OTP_DURATION);
   const [resending, setResending] = useState(false);
 
+  const showThinkAlert = (title, text) => {
+    Swal.fire({
+      title,
+      text,
+      imageUrl: "/images/think.png",
+      imageWidth: 200,
+      imageHeight: 200,
+      confirmButtonText: "OK",
+    });
+  };
+
+  const showSuccessAlert = (title, text) => {
+    return Swal.fire({
+      title,
+      text,
+      imageUrl: "/images/success.png",
+      imageWidth: 200,
+      imageHeight: 200,
+      confirmButtonText: "OK",
+    });
+  };
+
+  const showErrorAlert = (title, text) => {
+    Swal.fire({
+      title,
+      text,
+      imageUrl: "/images/error.png",
+      imageWidth: 200,
+      imageHeight: 200,
+      confirmButtonText: "OK",
+    });
+  };
+
   useEffect(() => {
     if (!email) {
-      Swal.fire("Session Expired", "Please sign up again.", "warning")
-        .then(() => navigate("/signup"));
+      showThinkAlert("Session Expired", "Please sign up again.");
+      setTimeout(() => navigate("/signup"), 1200);
     }
   }, [email, navigate]);
 
-  // ===== TIMER =====
   useEffect(() => {
     if (timeLeft <= 0) return;
 
     const interval = setInterval(() => {
-      setTimeLeft(prev => prev - 1);
-    }, 2000);
+      setTimeLeft((prev) => Math.max(prev - 1, 0));
+    }, 1000);
 
     return () => clearInterval(interval);
   }, [timeLeft]);
@@ -38,65 +71,91 @@ export default function Otp() {
     return `${minutes}:${seconds}`;
   };
 
+  const getAlertTitle = (message) => {
+    if (message === "Wrong code") return "Wrong Code";
+    if (message === "Invalid verification code") return "Wrong Code";
+    if (message === "Invalid email address") return "Wrong Email";
+    if (message === "Verification code expired") return "Code Expired";
+    if (message === "Account not found or already verified") {
+      return "Account Not Found";
+    }
+
+    return "Verification Failed";
+  };
+
   const handleInput = (e, index) => {
     e.target.value = e.target.value.replace(/[^0-9]/g, "");
 
     if (e.target.value && index < inputsRef.current.length - 1) {
-      inputsRef.current[index + 1].focus();
+      inputsRef.current[index + 1]?.focus();
     }
   };
 
   const handleKeyDown = (e, index) => {
     if (e.key === "Backspace" && !e.target.value && index > 0) {
-      inputsRef.current[index - 1].focus();
+      inputsRef.current[index - 1]?.focus();
     }
   };
 
   const handleSubmit = () => {
-    const otp = inputsRef.current.map(input => input.value).join("");
+    const otp = inputsRef.current.map((input) => input?.value || "").join("");
 
     if (otp.length !== 4) {
-      Swal.fire("Incomplete Code", "Enter all 4 digits.", "error");
+      showThinkAlert("Incomplete Code", "Enter all 4 digits.");
       return;
     }
 
-    fetch("http://localhost/puffybrain/verify-otp.php", {
+    fetch(`${API_BASE}/verify-otp.php`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ email, otp }),
     })
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (data.success) {
-          Swal.fire("Verified!", "Your account has been verified.", "success")
-            .then(() => navigate("/login"));
+          showSuccessAlert(
+            "Verified!",
+            "Your account has been verified."
+          ).then(() => {
+            sessionStorage.removeItem("otp_email");
+            navigate("/login");
+          });
         } else {
-          Swal.fire("Invalid Code", data.message, "error");
+          showThinkAlert(
+            getAlertTitle(data.message),
+            data.message || "Wrong verification details."
+          );
         }
       })
       .catch(() => {
-        Swal.fire("Server Error", "Could not verify OTP.", "error");
+        showErrorAlert("Server Error", "Could not verify OTP.");
       });
   };
 
-  // ===== RESEND OTP =====
   const handleResend = () => {
     setResending(true);
 
-    fetch("http://localhost/puffybrain/resend-otp.php", {
+    fetch(`${API_BASE}/resend-otp.php`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ email }),
     })
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (data.success) {
-          Swal.fire("Sent!", "New verification code sent.", "success");
+          showSuccessAlert("Sent!", "New verification code sent.");
           setTimeLeft(OTP_DURATION);
-          inputsRef.current.forEach(input => (input.value = ""));
+          inputsRef.current.forEach((input) => {
+            if (input) input.value = "";
+          });
         } else {
-          Swal.fire("Error", data.message, "error");
+          showThinkAlert("Resend Failed", data.message || "Could not resend code.");
         }
+      })
+      .catch(() => {
+        showErrorAlert("Server Error", "Could not resend OTP.");
       })
       .finally(() => setResending(false));
   };
@@ -106,9 +165,10 @@ export default function Otp() {
       <section className={styles.container}>
         <div className={styles.background}></div>
 
-      <div className={styles.signupContainer}>
+        <div className={styles.signupContainer}>
           <div className={styles.signupCard}>
             <h2>Email Verification</h2>
+
             <p className={styles.verifySubtext}>
               Enter the 4-digit code sent to your email
             </p>
@@ -120,9 +180,9 @@ export default function Otp() {
                   type="text"
                   maxLength={1}
                   className={styles.otpInput}
-                  ref={el => (inputsRef.current[index] = el)}
-                  onInput={e => handleInput(e, index)}
-                  onKeyDown={e => handleKeyDown(e, index)}
+                  ref={(el) => (inputsRef.current[index] = el)}
+                  onInput={(e) => handleInput(e, index)}
+                  onKeyDown={(e) => handleKeyDown(e, index)}
                 />
               ))}
             </div>
@@ -135,15 +195,20 @@ export default function Otp() {
               </span>
 
               <button
+                type="button"
                 className={styles.resendBtn}
                 disabled={timeLeft > 0 || resending}
                 onClick={handleResend}
               >
-                Resend
+                {resending ? "Sending..." : "Resend"}
               </button>
             </div>
 
-            <button className={styles.verifyBtn} onClick={handleSubmit}>
+            <button
+              type="button"
+              className={styles.verifyBtn}
+              onClick={handleSubmit}
+            >
               Verify
             </button>
           </div>

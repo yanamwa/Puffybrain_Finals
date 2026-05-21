@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import styles from "./decksM.module.css";
 import "boxicons/css/boxicons.min.css";
-
+import { API_BASE } from "../../config.js";
 import {
   LayoutDashboard,
   Users,
@@ -52,13 +52,38 @@ export default function DeckManagement() {
 });
 
 
-  const handleLogout = (e) => {
-    e.preventDefault();
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.href = "/admin/login";
-  };
+const handleLogout = async (e) => {
+  e.preventDefault();
 
+  const result = await Swal.fire({
+    title: "Logout?",
+    text: "Are you sure you want to logout?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes",
+    cancelButtonText: "Cancel",
+    confirmButtonColor: "#7b5cff",
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    await fetch(`${API_BASE}/adminLogout.php`, {
+      method: "POST",
+      credentials: "include",
+    });
+  } catch (err) {
+    console.error("Logout API error:", err);
+  }
+
+  localStorage.removeItem("admin");
+  localStorage.removeItem("admin_id");
+  localStorage.removeItem("admin_username");
+  localStorage.removeItem("admin_email");
+  sessionStorage.clear();
+
+  navigate("/pb-admin-access", { replace: true });
+};
   const formatDeckId = (deck) => {
     return `DECK${String(deck.deck_id).padStart(4, "0")}`;
   };
@@ -76,7 +101,7 @@ export default function DeckManagement() {
   const fetchAdmin = async () => {
   try {
     const res = await fetch(
-      "http://localhost/puffybrain/getAdminProfile.php",
+      `${API_BASE}/getAdminProfile.php`,
       {
         credentials: "include",
       }
@@ -107,7 +132,7 @@ export default function DeckManagement() {
       const admin = JSON.parse(localStorage.getItem("admin") || "{}");
 
       const res = await fetch(
-        `http://localhost/puffybrain/getAdminNotifications.php?admin_id=${admin.id}`,
+        `${API_BASE}/getAdminNotifications.php?admin_id=${admin.id}`,
         { credentials: "include" }
       );
 
@@ -137,7 +162,7 @@ export default function DeckManagement() {
 
     try {
       const res = await fetch(
-        "http://localhost/puffybrain/markAdminNotificationsRead.php",
+        `${API_BASE}/markAdminNotificationsRead.php`,
         {
           method: "POST",
           credentials: "include",
@@ -166,7 +191,7 @@ export default function DeckManagement() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch("http://localhost/puffybrain/getDecks.php");
+      const response = await fetch(`${API_BASE}/getDecks.php`);
       const data = await response.json();
 
       if (data.success) {
@@ -189,7 +214,7 @@ export default function DeckManagement() {
 
     try {
       const res = await fetch(
-        `http://localhost/puffybrain/getCardsByDeckId.php?deck_id=${deck.deck_id}`
+        `${API_BASE}/getCardsByDeckId.php?deck_id=${deck.deck_id}`
       );
 
       const text = await res.text();
@@ -363,12 +388,12 @@ const isDeckArchived = (deck) => {
         <div className={styles.sidebarBottom}>
           <div className={styles.divider}></div>
 
-          <NavLink to="/" onClick={handleLogout} className={styles.menuItem}>
-            <span className={styles.menuIcon}>
-              <LogOut size={20} />
-            </span>
-            <span className={styles.menuText}>Logout</span>
-          </NavLink>
+       <button type="button" onClick={handleLogout} className={styles.menuItem}>
+  <span className={styles.menuIcon}>
+    <LogOut size={20} />
+  </span>
+  <span className={styles.menuText}>Logout</span>
+</button>
         </div>
       </aside>
 

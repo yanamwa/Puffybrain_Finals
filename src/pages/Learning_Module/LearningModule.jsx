@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "boxicons/css/boxicons.min.css";
 import styles from "./Learning_Module.module.css";
 import "../../index.css";
+import { API_BASE } from "../../config.js";
 import QuizModesModal from "../../components/QuizModesModal";
 
 function LearningModule() {
@@ -24,8 +25,11 @@ function LearningModule() {
   const [myDecks, setMyDecks] = useState([]);
   const [courses, setCourses] = useState([]);
 
-  const notificationCount = 0;
+const [notifications, setNotifications] = useState([]);
 
+const notificationCount = notifications.filter(
+  (notif) => notif.status === "unread"
+).length;
   const [user, setUser] = useState({
     id: null,
     username: "",
@@ -41,16 +45,16 @@ function LearningModule() {
   });
 
   const currentCourse = useMemo(() => {
-  return courses.find((course) => {
-    const courseId =
-      course.id ||
-      course.lesson_id ||
-      course.course_id ||
-      course.module_id;
+    return courses.find((course) => {
+      const courseId =
+        course.id ||
+        course.lesson_id ||
+        course.course_id ||
+        course.module_id;
 
-    return Number(courseId) === Number(lessonId);
-  });
-}, [courses, lessonId]);
+      return Number(courseId) === Number(lessonId);
+    });
+  }, [courses, lessonId]);
 
   const isCourseAdded = useMemo(() => {
     return courses.some((course) => {
@@ -66,7 +70,7 @@ function LearningModule() {
 
   const fetchUser = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/getUser.php", {
+      const res = await fetch(`${API_BASE}/getUser.php`, {
         credentials: "include",
       });
 
@@ -88,7 +92,7 @@ function LearningModule() {
 
   const fetchUserDecks = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/userDecks.php", {
+      const res = await fetch(`${API_BASE}/userDecks.php`, {
         credentials: "include",
       });
 
@@ -102,7 +106,7 @@ function LearningModule() {
 
   const fetchCourses = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/getMyCourses.php", {
+      const res = await fetch(`${API_BASE}/getMyCourses.php`, {
         credentials: "include",
       });
 
@@ -114,12 +118,50 @@ function LearningModule() {
     }
   };
 
-  useEffect(() => {
-    fetchUser();
-    fetchUserDecks();
-    fetchCourses();
-  }, []);
+  const fetchNotifications = async () => {
+  try {
+    const res = await fetch(`${API_BASE}/getUserNotifications.php`, {
+      method: "GET",
+      credentials: "include",
+    });
 
+    const data = await res.json();
+    setNotifications(data.success ? data.notifications || [] : []);
+  } catch (err) {
+    console.error("Notification fetch error:", err);
+    setNotifications([]);
+  }
+};
+
+const markNotificationsAsRead = async () => {
+  try {
+    const res = await fetch(`${API_BASE}/markNotificationsAsRead.php`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setNotifications((prev) =>
+        prev.map((notif) => ({
+          ...notif,
+          status: "read",
+        }))
+      );
+    }
+  } catch (err) {
+    console.error("Mark notifications as read error:", err);
+  }
+};
+
+
+useEffect(() => {
+  fetchUser();
+  fetchUserDecks();
+  fetchCourses();
+  fetchNotifications();
+}, []);
   useEffect(() => {
     const handler = (e) => {
       const insideDropdown = e.target.closest(
@@ -159,156 +201,112 @@ function LearningModule() {
     return lessonSlides.length + quizSlides.length;
   };
 
-useEffect(() => {
-  const loadLessonAndProgress = async () => {
-    setLoading(true);
+  useEffect(() => {
+    const loadLessonAndProgress = async () => {
+      setLoading(true);
 
-    try {
-      const lessonRes = await fetch(
-        `http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`
-      );
-
-      const lessonData = await lessonRes.json();
-
-      const finalLesson =
-        lessonData.lesson ||
-        lessonData.data ||
-        lessonData;
-
-      setLesson(finalLesson);
-
-      const totalSlides = getTotalSlides(finalLesson);
-
-      // ===== GET HOMEPAGE PROGRESS FIRST =====
-
-      const homepagePercentRaw =
-        currentCourse?.progress_percent ??
-        currentCourse?.progress ??
-        currentCourse?.study_progress ??
-        currentCourse?.percentage ??
-        currentCourse?.completion_percent ??
-        null;
-
-      const homepageStudied =
-        Number(currentCourse?.studied_cards) ||
-        Number(currentCourse?.completed_cards) ||
-        Number(currentCourse?.progress_count) ||
-        0;
-
-      const homepageTotal =
-        Number(currentCourse?.total_cards) ||
-        totalSlides;
-
-      // ===== USE HOMEPAGE PERCENT IF AVAILABLE =====
-
-      if (
-        homepagePercentRaw !== null &&
-        homepagePercentRaw !== undefined
-      ) {
-        const cleanPercent = Number(
-          String(homepagePercentRaw).replace("%", "")
+      try {
+        const lessonRes = await fetch(
+          `${API_BASE}/getLessonsById.php?id=${lessonId}`
         );
 
-        setProgress({
-          total_cards: homepageTotal,
-          studied_cards:
-            homepageStudied || homepageTotal,
-          progress_percent: Math.min(
-            cleanPercent || 0,
-            100
-          ),
-          last_viewed_card: 0,
-        });
+        const lessonData = await lessonRes.json();
 
-        return;
-      }
+        const finalLesson = lessonData.lesson || lessonData.data || lessonData;
 
-      // ===== COMPUTE FROM HOMEPAGE COUNTS =====
+        setLesson(finalLesson);
 
-      if (homepageStudied > 0 && homepageTotal > 0) {
-        const homepagePercent =
-          (homepageStudied / homepageTotal) * 100;
+        const totalSlides = getTotalSlides(finalLesson);
 
-        setProgress({
-          total_cards: homepageTotal,
-          studied_cards: homepageStudied,
-          progress_percent: Math.min(
-            homepagePercent,
-            100
-          ),
-          last_viewed_card: 0,
-        });
+        const homepagePercentRaw =
+          currentCourse?.progress_percent ??
+          currentCourse?.progress ??
+          currentCourse?.study_progress ??
+          currentCourse?.percentage ??
+          currentCourse?.completion_percent ??
+          null;
 
-        return;
-      }
+        const homepageStudied =
+          Number(currentCourse?.studied_cards) ||
+          Number(currentCourse?.completed_cards) ||
+          Number(currentCourse?.progress_count) ||
+          0;
 
-      // ===== FALLBACK =====
+        const homepageTotal = Number(currentCourse?.total_cards) || totalSlides;
 
-      if (!user.id) {
+        if (homepagePercentRaw !== null && homepagePercentRaw !== undefined) {
+          const cleanPercent = Number(
+            String(homepagePercentRaw).replace("%", "")
+          );
+
+          setProgress({
+            total_cards: homepageTotal,
+            studied_cards: homepageStudied || homepageTotal,
+            progress_percent: Math.min(cleanPercent || 0, 100),
+            last_viewed_card: 0,
+          });
+
+          return;
+        }
+
+        if (homepageStudied > 0 && homepageTotal > 0) {
+          const homepagePercent = (homepageStudied / homepageTotal) * 100;
+
+          setProgress({
+            total_cards: homepageTotal,
+            studied_cards: homepageStudied,
+            progress_percent: Math.min(homepagePercent, 100),
+            last_viewed_card: 0,
+          });
+
+          return;
+        }
+
+        if (!user.id) {
+          setProgress({
+            total_cards: totalSlides,
+            studied_cards: 0,
+            progress_percent: 0,
+            last_viewed_card: 0,
+          });
+
+          setLoading(false);
+          return;
+        }
+
+        const progressRes = await fetch(
+          `${API_BASE}/getLessonProgress.php?user_id=${user.id}&lesson_id=${lessonId}`,
+          {
+            credentials: "include",
+          }
+        );
+
+        const progressData = await progressRes.json();
+        const realProgress = progressData?.progress || progressData;
+
+        const studiedCards = Number(realProgress?.studied_cards) || 0;
+        const lastViewedCard = Number(realProgress?.last_viewed_card) || 0;
+
+        const safeStudiedCards = Math.min(studiedCards, totalSlides);
+
+        const computedPercent =
+          totalSlides > 0 ? (safeStudiedCards / totalSlides) * 100 : 0;
+
         setProgress({
           total_cards: totalSlides,
-          studied_cards: 0,
-          progress_percent: 0,
-          last_viewed_card: 0,
+          studied_cards: safeStudiedCards,
+          progress_percent: Math.min(computedPercent, 100),
+          last_viewed_card: lastViewedCard,
         });
-
+      } catch (err) {
+        console.error("Error loading lesson/progress:", err);
+      } finally {
         setLoading(false);
-        return;
       }
+    };
 
-      // ===== LOAD DATABASE PROGRESS =====
-
-      const progressRes = await fetch(
-        `http://localhost/puffybrain/getLessonProgress.php?user_id=${user.id}&lesson_id=${lessonId}`,
-        {
-          credentials: "include",
-        }
-      );
-
-      const progressData = await progressRes.json();
-
-      const realProgress =
-        progressData?.progress || progressData;
-
-      const studiedCards =
-        Number(realProgress?.studied_cards) || 0;
-
-      const lastViewedCard =
-        Number(realProgress?.last_viewed_card) || 0;
-
-      const safeStudiedCards = Math.min(
-        studiedCards,
-        totalSlides
-      );
-
-      const computedPercent =
-        totalSlides > 0
-          ? (safeStudiedCards / totalSlides) * 100
-          : 0;
-
-      setProgress({
-        total_cards: totalSlides,
-        studied_cards: safeStudiedCards,
-        progress_percent: Math.min(
-          computedPercent,
-          100
-        ),
-        last_viewed_card: lastViewedCard,
-      });
-
-    } catch (err) {
-      console.error(
-        "Error loading lesson/progress:",
-        err
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  loadLessonAndProgress();
-
-}, [lessonId, user.id, currentCourse]);
+    loadLessonAndProgress();
+  }, [lessonId, user.id, currentCourse]);
 
   const quizzes = useMemo(() => {
     if (!lesson?.quiz_contents) return [];
@@ -325,15 +323,31 @@ useEffect(() => {
   const addCourseIfNeeded = async () => {
     if (isCourseAdded) return true;
 
+    const cleanLessonId = Number(lessonId);
+
+    if (!cleanLessonId) {
+      Swal.fire({
+        title: "Missing Lesson ID",
+        text: "This lesson link is missing its lesson ID.",
+        imageUrl: "/images/error.png",
+        imageWidth: 170,
+        imageHeight: 170,
+        confirmButtonText: "Okay",
+      });
+
+      return false;
+    }
+
     try {
-      const res = await fetch("http://localhost/puffybrain/addCourse.php", {
+      const res = await fetch(`${API_BASE}/addCourse.php`, {
         method: "POST",
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          lesson_id: lessonId,
+          lesson_id: cleanLessonId,
+          lessonId: cleanLessonId,
         }),
       });
 
@@ -459,36 +473,62 @@ useEffect(() => {
       text: "Are you sure you want to logout?",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Yes",
-      confirmButtonColor: "#7b5cff",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        navigate("/login");
+      confirmButtonColor: "#8d6cab",
+      cancelButtonColor: "#b0b0b0",
+      confirmButtonText: "Yes, Logout",
+      cancelButtonText: "Cancel",
+      reverseButtons: true,
+      customClass: {
+        popup: styles.logoutPopup,
+        title: styles.logoutTitle,
+        htmlContainer: styles.logoutText,
+        confirmButton: styles.logoutConfirm,
+        cancelButton: styles.logoutCancel,
+      },
+    }).then(async (result) => {
+      if (!result.isConfirmed) return;
+
+      try {
+        await fetch(`${API_BASE}/logout.php`, {
+          method: "POST",
+          credentials: "include",
+        });
+      } catch (err) {
+        console.error("Logout API error:", err);
       }
+
+      localStorage.removeItem("username");
+      localStorage.removeItem("user_email");
+      localStorage.removeItem("user_id");
+      localStorage.removeItem("profile_image");
+
+      sessionStorage.clear();
+
+      navigate("/login", { replace: true });
     });
   };
 
   const handleShare = async () => {
-  const lessonLink = `${window.location.origin}/learning/${lessonId}`;
+    const lessonLink = `${window.location.origin}/learning/${lessonId}`;
 
-  try {
-    await navigator.clipboard.writeText(lessonLink);
+    try {
+      await navigator.clipboard.writeText(lessonLink);
 
-    toast.success("Lesson link copied!", {
-      className: styles.toastSuccess,
-      progressClassName: styles.toastSuccessProgress,
-      icon: <i className="bx bx-check-circle"></i>,
-    });
-  } catch (error) {
-    console.error("Failed to copy link:", error);
+      toast.success("Lesson link copied!", {
+        className: styles.toastSuccess,
+        progressClassName: styles.toastSuccessProgress,
+        icon: <i className="bx bx-check-circle"></i>,
+      });
+    } catch (error) {
+      console.error("Failed to copy link:", error);
 
-    toast.error("Unable to copy the lesson link.", {
-      className: styles.toastError,
-      progressClassName: styles.toastErrorProgress,
-      icon: <i className="bx bx-error-circle"></i>,
-    });
-  }
-};
+      toast.error("Unable to copy the lesson link.", {
+        className: styles.toastError,
+        progressClassName: styles.toastErrorProgress,
+        icon: <i className="bx bx-error-circle"></i>,
+      });
+    }
+  };
 
   const openCourse = (courseId) => {
     navigate(`/learning/${courseId}`);
@@ -754,19 +794,59 @@ useEffect(() => {
                   )}
                 </button>
 
-                <div
-                  className={`${styles.notificationDropdown} ${
-                    notificationOpen ? styles.show : ""
-                  }`}
-                >
-                  <h4>Notifications</h4>
+             <div
+  className={`${styles.notificationDropdown} ${
+    notificationOpen ? styles.show : ""
+  }`}
+>
+  <div className={styles.notificationHeader}>
+    <h4>Notifications</h4>
 
-                  <div className={styles.emptyNotification}>
-                    <p>You don’t have any new notifications</p>
-                  </div>
-                </div>
-              </div>
+    {notificationCount > 0 && (
+      <button
+        type="button"
+        className={styles.markReadBtn}
+        onClick={markNotificationsAsRead}
+      >
+        Mark all as read
+      </button>
+    )}
+  </div>
 
+  {notifications.length > 0 ? (
+    notifications.slice(0, 5).map((notif) => (
+      <div
+        key={notif.notification_id}
+        className={styles.notificationItem}
+      >
+        <div className={styles.notificationTop}>
+          <h5>{notif.title}</h5>
+
+          <span className={styles.notificationRole}>
+            {notif.recipient_type || notif.target_role}
+          </span>
+        </div>
+
+        <p>{notif.message}</p>
+
+        <small className={styles.notificationDate}>
+          {new Date(notif.created_at).toLocaleString()}
+        </small>
+      </div>
+    ))
+  ) : (
+    <div className={styles.emptyNotification}>
+      <img
+        src="/images/NoNotifcation.png"
+        alt="No notifications"
+        className={styles.emptyNotificationImg}
+      />
+
+      <p>You don’t have any new notifications</p>
+    </div>
+  )}
+</div>
+</div>
               <Link to="/user-profile" className={styles.profileLink}>
                 <div className={styles.dpContainer}>
                   <img
@@ -1037,14 +1117,15 @@ useEffect(() => {
           </main>
         </div>
       </div>
+
       <ToastContainer
-      position="top-right"
-      autoClose={2200}
-      hideProgressBar={false}
-      closeOnClick
-      pauseOnHover={false}
-      draggable={false}
-    />
+        position="top-right"
+        autoClose={2200}
+        hideProgressBar={false}
+        closeOnClick
+        pauseOnHover={false}
+        draggable={false}
+      />
     </div>
   );
 }

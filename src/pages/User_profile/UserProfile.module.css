@@ -663,11 +663,11 @@
   flex: 1;
   text-align: center;
   margin: 0;
-  font-size: 47px;
+  font-size: 70px;
   font-weight: 400;
   line-height: 1;
   color: #111;
-  font-family: "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive;
+  font-family: 'Qwitcher Grypen', cursive;
 }
 
 .shareBtn {
@@ -1262,4 +1262,56 @@
 
 :global(.Toastify__toast-icon) {
   width: 22px !important;
+}
+
+.toastSuccess,
+.toastError {
+  background: #ffffff !important;
+  color: #4a3d57 !important;
+  border-radius: 18px !important;
+  min-height: 64px !important;
+  padding: 14px 16px !important;
+  box-shadow: 0 8px 0 #d8c2f0, 0 16px 35px rgba(110, 82, 145, 0.22) !important;
+  border: 1px solid #d7b8ff !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  font-family: inherit !important;
+}
+
+.toastSuccess i {
+  color: #37c96b;
+  font-size: 24px;
+}
+
+.toastError i {
+  color: #ff5b6e;
+  font-size: 24px;
+}
+
+.toastSuccessProgress {
+  background: linear-gradient(90deg, #b78cff, #37c96b) !important;
+  height: 5px !important;
+}
+
+.toastErrorProgress {
+  background: linear-gradient(90deg, #b78cff, #ff5b6e) !important;
+  height: 5px !important;
+}
+
+:global(.Toastify__toast-container) {
+  width: 400px !important;
+}
+
+:global(.Toastify__toast) {
+  margin-bottom: 14px !important;
+}
+
+:global(.Toastify__close-button) {
+  color: #9b8aaa !important;
+  opacity: 1 !important;
+  align-self: center !important;
+}
+
+:global(.Toastify__toast-icon) {
+  width: 28px !important;
 }

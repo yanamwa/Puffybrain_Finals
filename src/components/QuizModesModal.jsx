@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_BASE } from "../config.js";
 import ModeCard from "./ModeCard";
 import styles from "./QuizModesModal.module.css";
 
@@ -25,7 +26,7 @@ export default function QuizModesModal({
 
   const fetchModes = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/getModes.php");
+      const res = await fetch(`${API_BASE}/getModes.php`);
 
       if (!res.ok) throw new Error("Failed to fetch");
 
@@ -130,7 +131,7 @@ export default function QuizModesModal({
                 <ModeCard
                   key={mode.id}
                   title={mode.title}
-                  img={`http://localhost/puffybrain/images/${mode.image}`}
+                  img={`${API_BASE}/images/${mode.image}`}
                   desc={mode.description}
                   onClick={() => handleStartPractice(mode)}
                 />

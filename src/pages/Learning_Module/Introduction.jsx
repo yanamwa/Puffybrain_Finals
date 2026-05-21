@@ -1,20 +1,30 @@
 import styles from "./lesson.module.css";
 import { Link, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { API_BASE } from "../../config.js";
 
 function Introduction() {
   const { lessonId } = useParams();
   const username = localStorage.getItem("username") || "user";
   const [lesson, setLesson] = useState(null);
 
-  useEffect(() => {
-    fetch(`http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setLesson(data);
-      })
-      .catch((err) => console.error(err));
-  }, [lessonId]);
+useEffect(() => {
+  fetch(`${API_BASE}/getLessonsById.php?id=${lessonId}`, {
+    credentials: "include",
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      console.log("Introduction API:", data);
+
+      if (data.success) {
+        setLesson(data.lesson);
+      } else {
+        console.error(data.message);
+        setLesson(null);
+      }
+    })
+    .catch((err) => console.error(err));
+}, [lessonId]);
 
   if (!lesson) {
     return <div>Loading lesson...</div>;

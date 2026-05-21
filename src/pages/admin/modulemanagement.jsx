@@ -13,6 +13,7 @@ import {
   Database,
 } from "lucide-react";
 import Swal from "sweetalert2";
+import { API_BASE } from "../../config.js";
 import "boxicons/css/boxicons.min.css";
 import styles from "./modulemanage.module.css";
 
@@ -78,7 +79,7 @@ function parseDeckCards(raw) {
 
 export default function ModuleManagement() {
   const navigate = useNavigate();
-  const API_URL = "http://localhost/puffybrain/adminLearningModule.php";
+  const API_URL = `${API_BASE}/adminLearningModule.php`;
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
@@ -126,7 +127,7 @@ export default function ModuleManagement() {
       const admin = JSON.parse(localStorage.getItem("admin") || "{}");
 
       const res = await fetch(
-        `http://localhost/puffybrain/getAdminNotifications.php?admin_id=${admin.id}`,
+        `${API_BASE}/getAdminNotifications.php?admin_id=${admin.id}`,
         { credentials: "include" }
       );
 
@@ -146,7 +147,7 @@ export default function ModuleManagement() {
   const fetchAdmin = async () => {
   try {
     const res = await fetch(
-      "http://localhost/puffybrain/getAdminProfile.php",
+      `${API_BASE}/getAdminProfile.php`,
       {
         credentials: "include",
       }
@@ -185,7 +186,7 @@ export default function ModuleManagement() {
     }
 
     try {
-      const res = await fetch("http://localhost/puffybrain/markAdminNotificationsRead.php", {
+      const res = await fetch(`${API_BASE}/markAdminNotificationsRead.php`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -208,13 +209,38 @@ export default function ModuleManagement() {
     }
   };
 
-  const handleLogout = (e) => {
-    e.preventDefault();
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.href = "/admin/login";
-  };
+const handleLogout = async (e) => {
+  e.preventDefault();
 
+  const result = await Swal.fire({
+    title: "Logout?",
+    text: "Are you sure you want to logout?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes",
+    cancelButtonText: "Cancel",
+    confirmButtonColor: "#7b5cff",
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    await fetch(`${API_BASE}/adminLogout.php`, {
+      method: "POST",
+      credentials: "include",
+    });
+  } catch (err) {
+    console.error("Logout API error:", err);
+  }
+
+  localStorage.removeItem("admin");
+  localStorage.removeItem("admin_id");
+  localStorage.removeItem("admin_username");
+  localStorage.removeItem("admin_email");
+  sessionStorage.clear();
+
+  navigate("/pb-admin-access", { replace: true });
+};
   const openTextView = (title, content) => {
     setTextViewTitle(title);
     setTextViewContent(content || "—");
@@ -481,12 +507,12 @@ export default function ModuleManagement() {
         <div className={styles.sidebarBottom}>
           <div className={styles.divider}></div>
 
-          <NavLink to="/" onClick={handleLogout} className={styles.menuItem}>
-            <span className={styles.menuIcon}>
-              <LogOut size={20} />
-            </span>
-            <span className={styles.menuText}>Logout</span>
-          </NavLink>
+       <button type="button" onClick={handleLogout} className={styles.menuItem}>
+  <span className={styles.menuIcon}>
+    <LogOut size={20} />
+  </span>
+  <span className={styles.menuText}>Logout</span>
+</button>
         </div>
       </aside>
 

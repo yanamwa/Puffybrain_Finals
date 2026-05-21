@@ -14,10 +14,18 @@ function CantSign() {
           </div>
 
           <ul className={styles.navLinks}>
-            <li><Link to="/">Home</Link></li>
-            <li><Link to="/about">About</Link></li>
-            <li><Link to="/faq">FAQ</Link></li>
-            <li><Link to="/contactus">Contact Us</Link></li>
+            <li>
+              <Link to="/">Home</Link>
+            </li>
+            <li>
+              <Link to="/about">About</Link>
+            </li>
+            <li>
+              <Link to="/Landing/FAQ">FAQ</Link>
+            </li>
+            <li>
+              <Link to="/contact">Contact Us</Link>
+            </li>
           </ul>
 
           <div className={styles.navActions}>
@@ -29,18 +37,35 @@ function CantSign() {
 
         {/* CONTENT */}
         <div className={styles.signupContainer}>
-          <div style={{display:"flex", gap:"40px"}}>
-
+          <div style={{ display: "flex", gap: "40px" }}>
             {/* FORGOT USERNAME */}
-            <Link to="/forgot-username" style={{textDecoration:"none"}}>
-              <div className={styles.signupCard} style={{width:"280px", textAlign:"center"}}>
+            <Link
+              to="/forgot-username"
+              style={{ textDecoration: "none" }}
+            >
+              <div
+                className={styles.signupCard}
+                style={{
+                  width: "280px",
+                  textAlign: "center",
+                }}
+              >
                 <img
                   src="/images/user-icon.png"
                   alt="Forgot Username"
-                  style={{width:"80px", marginBottom:"10px"}}
+                  style={{
+                    width: "80px",
+                    marginBottom: "10px",
+                  }}
                 />
+
                 <h3>Forgot username?</h3>
-                <p style={{color:"#666"}}>
+
+                <p
+                  style={{
+                    color: "#666",
+                  }}
+                >
                   Need help remembering? You can request a reminder be sent
                   to your linked email here.
                 </p>
@@ -48,23 +73,39 @@ function CantSign() {
             </Link>
 
             {/* FORGOT PASSWORD */}
-            <Link to="/forgot" style={{textDecoration:"none"}}>
-              <div className={styles.signupCard} style={{width:"280px", textAlign:"center"}}>
+            <Link
+              to="/forgot"
+              style={{ textDecoration: "none" }}
+            >
+              <div
+                className={styles.signupCard}
+                style={{
+                  width: "280px",
+                  textAlign: "center",
+                }}
+              >
                 <img
                   src="/images/lock-icon.png"
                   alt="Forgot Password"
-                  style={{width:"80px", marginBottom:"10px"}}
+                  style={{
+                    width: "80px",
+                    marginBottom: "10px",
+                  }}
                 />
+
                 <h3>Forgot password?</h3>
-                <p style={{color:"#666"}}>
-                  If you have forgotten your password you can reset it here.
+
+                <p
+                  style={{
+                    color: "#666",
+                  }}
+                >
+                  If you have forgotten your password, you can reset it here.
                 </p>
               </div>
             </Link>
-
           </div>
         </div>
-
       </section>
     </div>
   );

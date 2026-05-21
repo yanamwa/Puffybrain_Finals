@@ -3,10 +3,8 @@ import { useState } from "react";
 import Swal from "sweetalert2";
 import { useNavigate, Link } from "react-router-dom";
 import { API_BASE } from "../../config.js";
-
-function Login() {
+  function Login() {
   const navigate = useNavigate();
-
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");

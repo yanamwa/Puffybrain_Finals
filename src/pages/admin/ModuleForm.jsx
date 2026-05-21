@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
+import { API_BASE } from "../../config.js";
 import styles from "./modulemanage.module.css";
 import AdminLayout from "./AdminLayout";
 
@@ -16,7 +17,7 @@ function serializeQuizItems(items) {
 }
 
 export default function ModuleForm({ mode }) {
-  const API_URL = "http://localhost/puffybrain/adminLearningModule.php";
+  const API_URL = `${API_BASE}/adminLearningModule.php`;
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -160,7 +161,7 @@ const handleFileUpload = async () => {
   try {
     setIsProcessingFile(true);
 
-    const res = await fetch("http://localhost/puffybrain/processLessonFile.php", {
+    const res = await fetch(`${API_BASE}/processLessonFile.php`, {
       method: "POST",
       body: formData,
     });

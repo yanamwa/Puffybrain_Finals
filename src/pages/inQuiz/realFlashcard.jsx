@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { API_BASE } from "../../config.js";
 import styles from "./realFlashcards.module.css";
 
 export default function Flashcards() {
@@ -41,7 +42,25 @@ export default function Flashcards() {
       return image;
     }
 
-    return `http://localhost/puffybrain/card_images/${image}`;
+    return `${API_BASE}/card_images/${image}`;
+  };
+
+  const normalizeLessonData = (data) => {
+    if (!data) return null;
+    return data.lesson || data.data || data;
+  };
+
+  const getLessonQuizData = (lessonData) => {
+    return (
+      lessonData?.quiz_contents ||
+      lessonData?.quiz_content ||
+      lessonData?.quiz ||
+      lessonData?.questions ||
+      lessonData?.cards ||
+      lessonData?.flashcards ||
+      lessonData?.items ||
+      []
+    );
   };
 
   useEffect(() => {
@@ -51,21 +70,22 @@ export default function Flashcards() {
       try {
         if (isLessonMode) {
           const res = await fetch(
-            `http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`
+            `${API_BASE}/getLessonsById.php?id=${lessonId}`,
+            { credentials: "include" }
           );
 
-          const data = await res.json();
+          const data = normalizeLessonData(await res.json());
           setLesson(data);
         }
 
         if (isDeckMode) {
           const [cardsRes, deckRes] = await Promise.all([
             fetch(
-              `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`,
+              `${API_BASE}/getCardsByDeck.php?deckId=${deckId}`,
               { credentials: "include" }
             ),
             fetch(
-              `http://localhost/puffybrain/getDeckById.php?deckId=${deckId}`,
+              `${API_BASE}/getDeckById.php?deckId=${deckId}`,
               { credentials: "include" }
             ),
           ]);
@@ -95,9 +115,14 @@ export default function Flashcards() {
   }, []);
 
   const flashcards = useMemo(() => {
-    if (isLessonMode && lesson?.quiz_contents) {
+    if (isLessonMode) {
+      const rawQuiz = getLessonQuizData(lesson);
+      if (!rawQuiz) return [];
+
       try {
-        const parsed = JSON.parse(lesson.quiz_contents);
+        const parsed = Array.isArray(rawQuiz)
+          ? rawQuiz
+          : JSON.parse(String(rawQuiz));
         if (!Array.isArray(parsed)) return [];
 
         return shuffleArray(
@@ -153,7 +178,7 @@ export default function Flashcards() {
 
   const saveQuizAttempt = async (finalScore) => {
     try {
-      await fetch("http://localhost/puffybrain/saveQuizAttempt.php", {
+      await fetch(`${API_BASE}/saveQuizAttempt.php`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -239,10 +264,39 @@ export default function Flashcards() {
     return <div className={styles.container}>Loading flashcards...</div>;
   }
 
-  if (flashcards.length === 0) {
-    return <div className={styles.container}>No flashcards available.</div>;
-  }
+if (flashcards.length === 0) {
+  return (
+    <div className={styles.emptyWrapper}>
+      <div className={styles.emptyCard}>
+        <img
+          src="/images/404.png"
+          alt="No flashcards"
+          className={styles.emptyImage}
+        />
 
+        <h2 className={styles.emptyTitle}>No Flashcards Yet</h2>
+
+        <p className={styles.emptyText}>
+          No flashcards are available for this lesson.
+        </p>
+
+        <button
+          type="button"
+          className={styles.emptyBtn}
+          onClick={() =>
+            navigate(
+              isDeckMode
+                ? `/review/deck/${deckId}`
+                : `/learning/${lessonId}`
+            )
+          }
+        >
+          Go Back
+        </button>
+      </div>
+    </div>
+  );
+}
   return (
     <div className={styles.container}>
       {notifOpen && (

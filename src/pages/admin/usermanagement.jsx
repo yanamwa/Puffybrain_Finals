@@ -1,8 +1,9 @@
-  import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { NavLink } from "react-router-dom";
 import styles from "./user.module.css";
 import "boxicons/css/boxicons.min.css";
 import Swal from "sweetalert2";
+import { API_BASE } from "../../config.js";
 
 import {
   LayoutDashboard,
@@ -38,12 +39,12 @@ export default function UserManagement() {
   const fetchedOnce = useRef(false);
 
   const [admin, setAdmin] = useState({
-  username: "Admin",
-  full_name: "",
-  email: "",
-  role: "",
-  profile_image: "/images/temporary profile.jpg",
-});
+    username: "Admin",
+    full_name: "",
+    email: "",
+    role: "",
+    profile_image: "/images/temporary profile.jpg",
+  });
 
   const menuItems = [
     { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
@@ -51,46 +52,61 @@ export default function UserManagement() {
     { label: "Module Management", path: "/admin/modules", icon: <Layers size={20} /> },
     { label: "Decks Management", path: "/admin/decks", icon: <LibraryBig size={20} /> },
     { label: "Modes Management", path: "/admin/modes", icon: <Gamepad2 size={20} /> },
-    { label: "Notification Management", path: "/admin/notifications", icon: <i className="bx bx-bell"></i> },
+    {
+      label: "Notification Management",
+      path: "/admin/notifications",
+      icon: <i className="bx bx-bell"></i>,
+    },
   ];
 
-  const fetchAdmin = async () => {
-  try {
-    const res = await fetch(
-      "http://localhost/puffybrain/getAdminProfile.php",
-      {
-        credentials: "include",
-      }
-    );
+  const formatDate = (dateValue) => {
+    if (!dateValue) return "No date";
 
-    const data = await res.json();
+    const date = new Date(dateValue);
 
-    if (!data.success) {
-      console.error(data.message || "Admin not found");
-      return;
+    if (Number.isNaN(date.getTime())) {
+      return "No date";
     }
 
-    setAdmin({
-      username: data.admin?.username || "Admin",
-      full_name: data.admin?.full_name || "",
-      email: data.admin?.email || "",
-      role: data.admin?.role || "Administrator",
-      profile_image:
-        data.admin?.profile_image || "/images/temporary profile.jpg",
-    });
-  } catch (err) {
-    console.error("Fetch admin error:", err);
-  }
-};
+    return date.toLocaleString();
+  };
+
+  const formatVerified = (value) => {
+    return Number(value) === 1 ? "True" : "False";
+  };
+
+  const fetchAdmin = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/getAdminProfile.php`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        console.error(data.message || "Admin not found");
+        return;
+      }
+
+      setAdmin({
+        username: data.admin?.username || "Admin",
+        full_name: data.admin?.full_name || "",
+        email: data.admin?.email || "",
+        role: data.admin?.role || "Administrator",
+        profile_image: data.admin?.profile_image || "/images/temporary profile.jpg",
+      });
+    } catch (err) {
+      console.error("Fetch admin error:", err);
+    }
+  };
 
   const fetchBellNotifications = async () => {
     try {
-      const admin = JSON.parse(localStorage.getItem("admin") || "{}");
-
-      const res = await fetch(
-        `http://localhost/puffybrain/getAdminNotifications.php?admin_id=${admin.id}`,
-        { credentials: "include" }
-      );
+      const res = await fetch(`${API_BASE}/getAdminNotifications.php`, {
+        method: "GET",
+        credentials: "include",
+      });
 
       const data = await res.json();
 
@@ -108,22 +124,13 @@ export default function UserManagement() {
   const handleMarkAllAsRead = async (e) => {
     e.stopPropagation();
 
-    const admin = JSON.parse(localStorage.getItem("admin") || "{}");
-    const adminId = admin.id;
-
-    if (!adminId) {
-      Swal.fire("Error", "No admin ID found. Please log in again.", "error");
-      return;
-    }
-
     try {
-      const res = await fetch("http://localhost/puffybrain/markAdminNotificationsRead.php", {
+      const res = await fetch(`${API_BASE}/markAdminNotificationsRead.php`, {
         method: "POST",
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ admin_id: adminId }),
       });
 
       const data = await res.json();
@@ -140,15 +147,41 @@ export default function UserManagement() {
     }
   };
 
-  const handleLogout = (e) => {
-    e.preventDefault();
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.href = "/admin/login";
-  };
+const handleLogout = async (e) => {
+  e.preventDefault();
+
+  const result = await Swal.fire({
+    title: "Logout?",
+    text: "Are you sure you want to logout?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes",
+    cancelButtonText: "Cancel",
+    confirmButtonColor: "#7b5cff",
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    await fetch(`${API_BASE}/adminLogout.php`, {
+      method: "POST",
+      credentials: "include",
+    });
+  } catch (err) {
+    console.error("Logout API error:", err);
+  }
+
+  localStorage.removeItem("admin");
+  localStorage.removeItem("admin_id");
+  localStorage.removeItem("admin_username");
+  localStorage.removeItem("admin_email");
+  sessionStorage.clear();
+
+  navigate("/pb-admin-access", { replace: true });
+};
 
   const formatUserId = (user) => {
-    const date = user.STDDateCreated ? new Date(user.STDDateCreated) : new Date();
+    const date = user.created_at ? new Date(user.created_at) : new Date();
 
     const mm = String(date.getMonth() + 1).padStart(2, "0");
     const yyyy = date.getFullYear();
@@ -167,7 +200,10 @@ export default function UserManagement() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch("http://localhost/puffybrain/getUsers.php");
+      const response = await fetch(`${API_BASE}/getUsers.php`, {
+        method: "GET",
+        credentials: "include",
+      });
 
       if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -196,18 +232,27 @@ export default function UserManagement() {
 
     try {
       const res = await fetch(
-        `http://localhost/puffybrain/getUserDetailsAdmin.php?user_id=${user.id}`
+        `${API_BASE}/getUserDetailsAdmin.php?user_id=${encodeURIComponent(user.id)}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
       );
 
       const data = await res.json();
 
       if (data.success) {
+        setSelectedUser((prev) => ({
+          ...prev,
+          ...(data.user || {}),
+        }));
+
         setSelectedUserDecks(data.decks || []);
         setSelectedUserCourses(data.courses || []);
       } else {
         setSelectedUserDecks([]);
         setSelectedUserCourses([]);
-        alert(data.message || "Failed to fetch user details");
+        Swal.fire("Error", data.message || "Failed to fetch user details", "error");
       }
     } catch (err) {
       console.error(err);
@@ -222,6 +267,7 @@ export default function UserManagement() {
     if (fetchedOnce.current) return;
 
     fetchedOnce.current = true;
+
     fetchAdmin();
     fetchUsers();
     fetchBellNotifications();
@@ -257,7 +303,9 @@ export default function UserManagement() {
     return (
       String(user.id || "").toLowerCase().includes(q) ||
       String(user.username || "").toLowerCase().includes(q) ||
-      String(user.email || "").toLowerCase().includes(q)
+      String(user.email || "").toLowerCase().includes(q) ||
+      String(user.year_level || "").toLowerCase().includes(q) ||
+      String(user.school || "").toLowerCase().includes(q)
     );
   });
 
@@ -287,12 +335,13 @@ export default function UserManagement() {
     <div className={styles.gridContainer}>
       <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
         <div className={styles.sidebarTop}>
-          <div
+          <button
+            type="button"
             className={styles.sidebarToggle}
             onClick={() => setIsCollapsed(!isCollapsed)}
           >
             <i className="bx bx-sidebar"></i>
-          </div>
+          </button>
 
           <div className={styles.logo}>
             <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
@@ -350,12 +399,12 @@ export default function UserManagement() {
         <div className={styles.sidebarBottom}>
           <div className={styles.divider}></div>
 
-          <NavLink to="/" onClick={handleLogout} className={styles.menuItem}>
-            <span className={styles.menuIcon}>
-              <LogOut size={20} />
-            </span>
-            <span className={styles.menuText}>Logout</span>
-          </NavLink>
+         <button type="button" onClick={handleLogout} className={styles.menuItem}>
+  <span className={styles.menuIcon}>
+    <LogOut size={20} />
+  </span>
+  <span className={styles.menuText}>Logout</span>
+</button>
         </div>
       </aside>
 
@@ -372,96 +421,90 @@ export default function UserManagement() {
             }}
           />
         </div>
-  <div className={styles.headerRight}>
-    
-    {/* Notification */}
-    <div className={styles.notificationWrapper}>
-      <button
-        type="button"
-        className={styles.notificationBtn}
-        onClick={(e) => {
-          e.stopPropagation();
-          setNotificationOpen((prev) => !prev);
-        }}
-      >
-        <i className="bx bx-bell"></i>
 
-        {notificationCount > 0 && (
-          <span className={styles.notificationBadge}>
-            {notificationCount}
-          </span>
-        )}
-      </button>
-
-      <div
-        className={`${styles.notificationDropdown} ${
-          notificationOpen ? styles.show : ""
-        }`}
-      >
-        <div className={styles.notificationHeader}>
-          <h4>Notifications</h4>
-
-          {notificationCount > 0 && (
+        <div className={styles.headerRight}>
+          <div className={styles.notificationWrapper}>
             <button
               type="button"
-              className={styles.markReadBtn}
-              onClick={handleMarkAllAsRead}
+              className={styles.notificationBtn}
+              onClick={(e) => {
+                e.stopPropagation();
+                setNotificationOpen((prev) => !prev);
+              }}
             >
-              Mark all as read
-            </button>
-          )}
-        </div>
+              <i className="bx bx-bell"></i>
 
-        {bellNotifications.length > 0 ? (
-          bellNotifications.slice(0, 5).map((item) => (
+              {notificationCount > 0 && (
+                <span className={styles.notificationBadge}>{notificationCount}</span>
+              )}
+            </button>
+
             <div
-              key={item.notification_id || item.id}
-              className={styles.notificationItem}
+              className={`${styles.notificationDropdown} ${
+                notificationOpen ? styles.show : ""
+              }`}
             >
-              <div className={styles.notificationTop}>
-                <h5>{item.title || "No title"}</h5>
-                <span className={styles.notificationRole}>
-                  {item.recipient_type || "all"}
-                </span>
+              <div className={styles.notificationHeader}>
+                <h4>Notifications</h4>
+
+                {notificationCount > 0 && (
+                  <button
+                    type="button"
+                    className={styles.markReadBtn}
+                    onClick={handleMarkAllAsRead}
+                  >
+                    Mark all as read
+                  </button>
+                )}
               </div>
 
-              <p className={styles.notificationMessage}>
-                {item.message || "No message"}
-              </p>
+              {bellNotifications.length > 0 ? (
+                bellNotifications.slice(0, 5).map((item) => (
+                  <div
+                    key={item.notification_id || item.id}
+                    className={styles.notificationItem}
+                  >
+                    <div className={styles.notificationTop}>
+                      <h5>{item.title || "No title"}</h5>
+                      <span className={styles.notificationRole}>
+                        {item.recipient_type || "all"}
+                      </span>
+                    </div>
 
-              <p className={styles.notificationCreator}>
-                Posted by {item.created_by || "Admin"}
-              </p>
+                    <p className={styles.notificationMessage}>
+                      {item.message || "No message"}
+                    </p>
 
-              <small className={styles.notificationDate}>
-                {item.created_at
-                  ? new Date(item.created_at).toLocaleString()
-                  : "No date"}
-              </small>
+                    <p className={styles.notificationCreator}>
+                      Posted by {item.created_by || "Admin"}
+                    </p>
+
+                    <small className={styles.notificationDate}>
+                      {item.created_at
+                        ? new Date(item.created_at).toLocaleString()
+                        : "No date"}
+                    </small>
+                  </div>
+                ))
+              ) : (
+                <div className={styles.emptyNotification}>
+                  <p>You don’t have any new notifications</p>
+                </div>
+              )}
             </div>
-          ))
-        ) : (
-          <div className={styles.emptyNotification}>
-            <p>You don’t have any new notifications</p>
           </div>
-        )}
-      </div>
-    </div>
 
-    {/* Admin Profile */}
-    <div className={styles.adminHeaderProfile}>
-      <img
-        src={admin.profile_image || "/images/temporary profile.jpg"}
-        alt="Admin"
-        className={styles.adminHeaderImg}
-      />
+          <div className={styles.adminHeaderProfile}>
+            <img
+              src={admin.profile_image || "/images/temporary profile.jpg"}
+              alt="Admin"
+              className={styles.adminHeaderImg}
+            />
 
-      <span className={styles.adminHeaderName}>
-        {admin.username || "Admin"}
-      </span>
-    </div>
-  </div>
-</header>
+            <span className={styles.adminHeaderName}>{admin.username || "Admin"}</span>
+          </div>
+        </div>
+      </header>
 
       <main className={styles.main}>
         <div className={styles.pageTop}>
@@ -596,6 +639,24 @@ export default function UserManagement() {
 
               <p>
                 <strong>Email:</strong> {selectedUser.email || "No email found"}
+              </p>
+
+              <p>
+                <strong>Year Level:</strong>{" "}
+                {selectedUser.year_level || "No year level"}
+              </p>
+
+              <p>
+                <strong>School:</strong> {selectedUser.school || "No school"}
+              </p>
+
+              <p>
+                <strong>Created At:</strong> {formatDate(selectedUser.created_at)}
+              </p>
+
+              <p>
+                <strong>Is Verified:</strong>{" "}
+                {formatVerified(selectedUser.is_verified)}
               </p>
 
               <div className={styles.userInfoSection}>

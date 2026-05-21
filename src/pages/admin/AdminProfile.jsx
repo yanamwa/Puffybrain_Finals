@@ -15,6 +15,7 @@ import {
 import Swal from "sweetalert2";
 import styles from "./adminprofile.module.css";
 import "boxicons/css/boxicons.min.css";
+import { API_BASE } from "../../config.js";
 
 export default function AdminProfile() {
   const navigate = useNavigate();
@@ -57,8 +58,9 @@ export default function AdminProfile() {
   ];
 
   const fetchAdmin = async () => {
-    try {
-      const res = await fetch("http://localhost/puffybrain/getAdminProfile.php", {
+  try {
+    const adminData = JSON.parse(localStorage.getItem("admin") || "{}");
+      const res = await fetch(`${API_BASE}/getAdminProfile.php`, {
         credentials: "include",
       });
 
@@ -81,35 +83,42 @@ export default function AdminProfile() {
     }
   };
 
-  const fetchAdminActivity = async () => {
-    try {
-      const res = await fetch("http://localhost/puffybrain/getAdminActivity.php", {
-        credentials: "include",
-      });
+const fetchAdminActivity = async () => {
+  try {
+    const adminData = JSON.parse(localStorage.getItem("admin") || "{}");
 
-      const data = await res.json();
-
-      if (data.success) {
-        setAdminActivity({
-          last_login: data.activity?.last_login || "Not recorded yet",
-          modules_created: data.activity?.modules_created || 0,
-          recent_actions: data.activity?.recent_actions || [],
-        });
-      }
-    } catch (err) {
-      console.error("Fetch admin activity error:", err);
+    if (!adminData.id) {
+      console.warn("No admin ID found in localStorage");
+      return;
     }
-  };
 
+    const res = await fetch(`${API_BASE}/getAdminActivity.php?admin_id=${adminData.id}`, {
+      credentials: "include",
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setAdminActivity({
+        last_login: data.activity?.last_login || "Not recorded yet",
+        modules_created: data.activity?.modules_created || 0,
+        recent_actions: data.activity?.recent_actions || [],
+      });
+    }
+  } catch (err) {
+    console.error("Fetch admin activity error:", err);
+  }
+};
   const fetchBellNotifications = async () => {
     try {
-      const adminData = JSON.parse(localStorage.getItem("admin") || "{}");
+   const adminData = JSON.parse(localStorage.getItem("admin") || "{}");
 
-      const res = await fetch(
-        `http://localhost/puffybrain/getAdminNotifications.php?admin_id=${adminData.id}`,
-        { credentials: "include" }
-      );
-
+const res = await fetch(
+  `${API_BASE}/getAdminProfile.php?admin_id=${adminData.id}`,
+  {
+    credentials: "include",
+  }
+);
       const data = await res.json();
 
       if (data.success) {
@@ -162,7 +171,7 @@ export default function AdminProfile() {
     }
 
     try {
-      const res = await fetch("http://localhost/puffybrain/markAdminNotificationsRead.php", {
+      const res = await fetch(`${API_BASE}/markAdminNotificationsRead.php`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -185,24 +194,38 @@ export default function AdminProfile() {
     }
   };
 
-  const handleLogout = (e) => {
-    e.preventDefault();
+const handleLogout = async (e) => {
+  e.preventDefault();
 
-    Swal.fire({
-      title: "Logout?",
-      text: "Are you sure you want to logout?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes",
-      confirmButtonColor: "#7b5cff",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        localStorage.clear();
-        sessionStorage.clear();
-        navigate("/admin/login");
-      }
+  const result = await Swal.fire({
+    title: "Logout?",
+    text: "Are you sure you want to logout?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes",
+    cancelButtonText: "Cancel",
+    confirmButtonColor: "#7b5cff",
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    await fetch(`${API_BASE}/adminLogout.php`, {
+      method: "POST",
+      credentials: "include",
     });
-  };
+  } catch (err) {
+    console.error("Logout API error:", err);
+  }
+
+  localStorage.removeItem("admin");
+  localStorage.removeItem("admin_id");
+  localStorage.removeItem("admin_username");
+  localStorage.removeItem("admin_email");
+  sessionStorage.clear();
+
+  navigate("/pb-admin-access", { replace: true });
+};
 
   const formatActivityDate = (dateValue) => {
     if (!dateValue || dateValue === "Not recorded yet") {
@@ -311,12 +334,12 @@ export default function AdminProfile() {
         <div className={styles.sidebarBottom}>
           <div className={styles.divider}></div>
 
-          <NavLink to="/" onClick={handleLogout} className={styles.menuItem}>
-            <span className={styles.menuIcon}>
-              <LogOut size={20} />
-            </span>
-            <span className={styles.menuText}>Logout</span>
-          </NavLink>
+      <button type="button" onClick={handleLogout} className={styles.menuItem}>
+  <span className={styles.menuIcon}>
+    <LogOut size={20} />
+  </span>
+  <span className={styles.menuText}>Logout</span>
+</button>
         </div>
       </aside>
 

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { API_BASE } from "../../config.js";
 import styles from "./qanda.module.css";
 
 export default function QandA() {
@@ -31,6 +32,24 @@ export default function QandA() {
 
   const shuffleArray = (array) => [...array].sort(() => Math.random() - 0.5);
 
+  const normalizeLessonData = (data) => {
+    if (!data) return null;
+    return data.lesson || data.data || data;
+  };
+
+  const getLessonQuizData = (lessonData) => {
+    return (
+      lessonData?.quiz_contents ||
+      lessonData?.quiz_content ||
+      lessonData?.quiz ||
+      lessonData?.questions ||
+      lessonData?.cards ||
+      lessonData?.flashcards ||
+      lessonData?.items ||
+      []
+    );
+  };
+
   const cleanQuestionText = (text = "") => {
     return String(text)
       .replace(/\s*A\..*/is, "")
@@ -51,15 +70,16 @@ export default function QandA() {
       try {
         if (isLessonMode) {
           const res = await fetch(
-            `http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`
+            `${API_BASE}/getLessonsById.php?id=${lessonId}`,
+            { credentials: "include" }
           );
-          const data = await res.json();
+          const data = normalizeLessonData(await res.json());
           setLesson(data);
         }
 
         if (isDeckMode) {
           const deckRes = await fetch(
-            `http://localhost/puffybrain/getDeckById.php?deckId=${deckId}`,
+            `${API_BASE}/getDeckById.php?deckId=${deckId}`,
             { credentials: "include" }
           );
           const deckData = await deckRes.json();
@@ -72,7 +92,7 @@ export default function QandA() {
           );
 
           const cardsRes = await fetch(
-            `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`,
+            `${API_BASE}/getCardsByDeck.php?deckId=${deckId}`,
             { credentials: "include" }
           );
           const cardsData = await cardsRes.json();
@@ -94,9 +114,14 @@ export default function QandA() {
   }, []);
 
   const questions = useMemo(() => {
-    if (isLessonMode && lesson?.quiz_contents) {
+    if (isLessonMode) {
+      const rawQuiz = getLessonQuizData(lesson);
+      if (!rawQuiz) return [];
+
       try {
-        const parsed = JSON.parse(lesson.quiz_contents);
+        const parsed = Array.isArray(rawQuiz)
+          ? rawQuiz
+          : JSON.parse(String(rawQuiz));
         if (!Array.isArray(parsed)) return [];
 
         return shuffleArray(
@@ -230,7 +255,7 @@ const isCloseEnough = (userAnswer, correctAnswer) => {
 
   async function saveQuizAttempt(finalScore) {
     try {
-      await fetch("http://localhost/puffybrain/saveQuizAttempt.php", {
+      await fetch(`${API_BASE}/saveQuizAttempt.php`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -319,10 +344,39 @@ const isCloseEnough = (userAnswer, correctAnswer) => {
 
   if (loading) return <div className={styles.wrapper}>Loading Q&A...</div>;
 
-  if (questions.length === 0) {
-    return <div className={styles.wrapper}>No Q&A questions available.</div>;
-  }
+if (questions.length === 0) {
+  return (
+    <div className={styles.emptyWrapper}>
+      <div className={styles.emptyCard}>
+        <img
+          src="/images/404.png"
+          alt="No Q&A"
+          className={styles.emptyImage}
+        />
 
+        <h2 className={styles.emptyTitle}>No Q&A Quiz Yet</h2>
+
+        <p className={styles.emptyText}>
+          No Q&A questions are available for this lesson.
+        </p>
+
+        <button
+          type="button"
+          className={styles.emptyBtn}
+          onClick={() =>
+            navigate(
+              isDeckMode
+                ? `/review/deck/${deckId}`
+                : `/learning/${lessonId}`
+            )
+          }
+        >
+          Go Back
+        </button>
+      </div>
+    </div>
+  );
+}
   const progressWidth = ((current + 1) / questions.length) * 100;
 
   return (

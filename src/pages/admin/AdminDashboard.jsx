@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import Swal from "sweetalert2";
 import styles from "./dashboard.module.css";
 import "boxicons/css/boxicons.min.css";
+import { API_BASE } from "../../config.js";
 
 function easeOutCubic(t) {
   return 1 - Math.pow(1 - t, 3);
@@ -47,6 +48,7 @@ function useAnimatedCount(target, duration = 900) {
     }
 
     raf = requestAnimationFrame(step);
+
     return () => cancelAnimationFrame(raf);
   }, [target, duration]);
 
@@ -79,145 +81,221 @@ export default function AdminDashboard() {
   const [totalUsers, setTotalUsers] = useState(0);
   const [totalDecks, setTotalDecks] = useState(0);
   const [isCollapsed, setIsCollapsed] = useState(false);
-
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [bellNotifications, setBellNotifications] = useState([]);
 
   const fetchedOnce = useRef(false);
 
   const [admin, setAdmin] = useState({
-  username: "Admin",
-  full_name: "",
-  email: "",
-  role: "",
-  profile_image: "/images/temporary profile.jpg",
-});
+    id: "",
+    username: "Admin",
+    full_name: "",
+    email: "",
+    role: "",
+    profile_image: "/images/temporary profile.jpg",
+  });
 
   const menuItems = [
-    { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
-    { label: "User Management", path: "/admin/users", icon: <Users size={20} /> },
-    { label: "Module Management", path: "/admin/modules", icon: <Layers size={20} /> },
-    { label: "Decks Management", path: "/admin/decks", icon: <LibraryBig size={20} /> },
-    { label: "Modes Management", path: "/admin/modes", icon: <Gamepad2 size={20} /> },
-    { label: "Notification Management", path: "/admin/notifications", icon: <i className="bx bx-bell"></i> },
-    { label: "Backup & Restore", path: "/admin/backup-restore", icon: <Database size={20} /> },
+    {
+      label: "Dashboard",
+      path: "/admin/dashboard",
+      icon: <LayoutDashboard size={20} />,
+    },
+    {
+      label: "User Management",
+      path: "/admin/users",
+      icon: <Users size={20} />,
+    },
+    {
+      label: "Module Management",
+      path: "/admin/modules",
+      icon: <Layers size={20} />,
+    },
+    {
+      label: "Decks Management",
+      path: "/admin/decks",
+      icon: <LibraryBig size={20} />,
+    },
+    {
+      label: "Modes Management",
+      path: "/admin/modes",
+      icon: <Gamepad2 size={20} />,
+    },
+    {
+      label: "Notification Management",
+      path: "/admin/notifications",
+      icon: <i className="bx bx-bell"></i>,
+    },
+    {
+      label: "Backup & Restore",
+      path: "/admin/backup-restore",
+      icon: <Database size={20} />,
+    },
   ];
 
-  const fetchBellNotifications = async () => {
+  const getStoredAdminId = () => {
     try {
-      const admin = JSON.parse(localStorage.getItem("admin") || "{}");
+      const storedAdmin = JSON.parse(localStorage.getItem("admin") || "{}");
 
-      const res = await fetch(
-        `http://localhost/puffybrain/getAdminNotifications.php?admin_id=${admin.id}`,
-        { credentials: "include" }
+      return (
+        storedAdmin.id ||
+        storedAdmin.AdminID ||
+        localStorage.getItem("admin_id") ||
+        ""
       );
-
-      const data = await res.json();
-
-      if (data.success) {
-        setBellNotifications(data.notifications || []);
-      } else {
-        setBellNotifications([]);
-      }
-    } catch (err) {
-      console.error("Bell notification fetch error:", err);
-      setBellNotifications([]);
+    } catch {
+      return localStorage.getItem("admin_id") || "";
     }
   };
 
   const fetchAdmin = async () => {
-  try {
-    const res = await fetch(
-      "http://localhost/puffybrain/getAdminProfile.php",
-      {
-        credentials: "include",
-      }
-    );
-
-    const data = await res.json();
-
-    if (!data.success) {
-      console.error(data.message || "Admin not found");
-      return;
-    }
-
-    setAdmin({
-      username: data.admin?.username || "Admin",
-      full_name: data.admin?.full_name || "",
-      email: data.admin?.email || "",
-      role: data.admin?.role || "Administrator",
-      profile_image:
-        data.admin?.profile_image || "/images/temporary profile.jpg",
-    });
-  } catch (err) {
-    console.error("Fetch admin error:", err);
-  }
-};
-
-  const handleMarkAllAsRead = async (e) => {
-    e.stopPropagation();
-
-    const admin = JSON.parse(localStorage.getItem("admin") || "{}");
-    const adminId = admin.id;
-
-    if (!adminId) {
-      Swal.fire("Error", "No admin ID found. Please log in again.", "error");
-      return;
-    }
-
     try {
-      const res = await fetch("http://localhost/puffybrain/markAdminNotificationsRead.php", {
-        method: "POST",
+      const res = await fetch(`${API_BASE}/getAdminProfile.php`, {
+        method: "GET",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ admin_id: adminId }),
       });
 
       const data = await res.json();
 
-      if (data.success) {
-        await fetchBellNotifications();
-        setNotificationOpen(true);
-      } else {
-        Swal.fire("Error", data.message || "Failed to mark as read.", "error");
+      if (!data.success) {
+        console.error(data.message || "Admin not found");
+        return;
       }
+
+      const adminData = data.admin || {};
+
+      setAdmin({
+        id: adminData.id || adminData.AdminID || getStoredAdminId(),
+        username: adminData.username || adminData.Username || "Admin",
+        full_name: adminData.full_name || adminData.FullName || "",
+        email: adminData.email || adminData.Email || "",
+        role: adminData.role || adminData.Role || "Administrator",
+        profile_image:
+          adminData.profile_image || "/images/temporary profile.jpg",
+      });
     } catch (err) {
-      console.error("Mark all as read error:", err);
-      Swal.fire("Server Error", "Failed to mark as read.", "error");
+      console.error("Fetch admin error:", err);
     }
   };
+
+const fetchBellNotifications = async () => {
+  try {
+    const res = await fetch(`${API_BASE}/getAdminNotifications.php`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setBellNotifications(data.notifications || []);
+    } else {
+      setBellNotifications([]);
+    }
+  } catch (err) {
+    console.error("Bell notification fetch error:", err);
+    setBellNotifications([]);
+  }
+};
+  const fetchDashboardData = async () => {
+    try {
+      const [usersRes, decksRes, userCountRes, deckCountRes] =
+        await Promise.all([
+          fetch(`${API_BASE}/getUsers.php`, {
+            method: "GET",
+            credentials: "include",
+          }),
+          fetch(`${API_BASE}/getRecentDecks.php`, {
+            method: "GET",
+            credentials: "include",
+          }),
+          fetch(`${API_BASE}/userCount.php`, {
+            method: "GET",
+            credentials: "include",
+          }),
+          fetch(`${API_BASE}/deckCount.php`, {
+            method: "GET",
+            credentials: "include",
+          }),
+        ]);
+
+      const usersData = await usersRes.json();
+      const decksData = await decksRes.json();
+      const userCountData = await userCountRes.json();
+      const deckCountData = await deckCountRes.json();
+
+      if (usersData.success) setUsers(usersData.users || []);
+      if (decksData.success) setDecks(decksData.decks || []);
+      if (userCountData.success) setTotalUsers(userCountData.total || 0);
+      if (deckCountData.success) setTotalDecks(deckCountData.total || 0);
+    } catch (error) {
+      console.error("Dashboard fetch error:", error);
+      toast.error("Failed to fetch dashboard data.");
+    }
+  };
+
+const handleMarkAllAsRead = async (e) => {
+  e.stopPropagation();
+
+  try {
+    const res = await fetch(`${API_BASE}/markAdminNotificationsRead.php`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      await fetchBellNotifications();
+      setNotificationOpen(true);
+    } else {
+      Swal.fire("Error", data.message || "Failed to mark as read.", "error");
+    }
+  } catch (err) {
+    console.error("Mark all as read error:", err);
+    Swal.fire("Server Error", "Failed to mark as read.", "error");
+  }
+};
+const handleLogout = async (e) => {
+  e.preventDefault();
+
+  const result = await Swal.fire({
+    title: "Logout?",
+    text: "Are you sure you want to logout?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes",
+    cancelButtonText: "Cancel",
+    confirmButtonColor: "#7b5cff",
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    await fetch(`${API_BASE}/adminLogout.php`, {
+      method: "POST",
+      credentials: "include",
+    });
+  } catch (err) {
+    console.error("Logout API error:", err);
+  }
+
+  localStorage.removeItem("admin");
+  localStorage.removeItem("admin_id");
+  localStorage.removeItem("admin_username");
+  localStorage.removeItem("admin_email");
+  sessionStorage.clear();
+
+  navigate("/pb-admin-access", { replace: true });
+};
 
   useEffect(() => {
     if (fetchedOnce.current) return;
 
     fetchedOnce.current = true;
-
-    async function fetchDashboardData() {
-      try {
-        const [usersRes, decksRes, userCountRes, deckCountRes] =
-          await Promise.all([
-            fetch("http://localhost/puffybrain/getUsers.php"),
-            fetch("http://localhost/puffybrain/getRecentDecks.php"),
-            fetch("http://localhost/puffybrain/userCount.php"),
-            fetch("http://localhost/puffybrain/deckCount.php"),
-          ]);
-
-        const usersData = await usersRes.json();
-        const decksData = await decksRes.json();
-        const userCountData = await userCountRes.json();
-        const deckCountData = await deckCountRes.json();
-
-        if (usersData.success) setUsers(usersData.users || []);
-        if (decksData.success) setDecks(decksData.decks || []);
-        if (userCountData.success) setTotalUsers(userCountData.total || 0);
-        if (deckCountData.success) setTotalDecks(deckCountData.total || 0);
-      } catch (error) {
-        console.error("Dashboard fetch error:", error);
-        toast.error("Failed to fetch dashboard data.");
-      }
-    }
 
     fetchAdmin();
     fetchDashboardData();
@@ -238,13 +316,6 @@ export default function AdminDashboard() {
     };
   }, []);
 
-  const handleLogout = (e) => {
-    e.preventDefault();
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.href = "/admin/login";
-  };
-
   const unreadNotifications = bellNotifications.filter(
     (notif) => notif.status === "unread"
   );
@@ -254,7 +325,11 @@ export default function AdminDashboard() {
   const q = searchQuery.trim().toLowerCase();
 
   const filteredUsers = users.filter((u) =>
-    !q ? true : String(u.username || "").toLowerCase().includes(q)
+    !q
+      ? true
+      : String(u.username || u.Username || "")
+          .toLowerCase()
+          .includes(q)
   );
 
   const filteredDecks = decks.filter((d) =>
@@ -265,18 +340,29 @@ export default function AdminDashboard() {
 
   return (
     <div className={styles.gridContainer}>
-      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
+      <aside
+        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
+      >
         <div className={styles.sidebarTop}>
-          <div
+          <button
+            type="button"
             className={styles.sidebarToggle}
             onClick={() => setIsCollapsed(!isCollapsed)}
           >
             <i className="bx bx-sidebar"></i>
-          </div>
+          </button>
 
           <div className={styles.logo}>
-            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
-            <img className={styles.logoCollapsed} src="/images/logo_solo.png" alt="Logo" />
+            <img
+              className={styles.logoExpanded}
+              src="/images/logo1.png"
+              alt="Logo"
+            />
+            <img
+              className={styles.logoCollapsed}
+              src="/images/logo_solo.png"
+              alt="Logo"
+            />
           </div>
 
           <div className={styles.divider}></div>
@@ -332,12 +418,12 @@ export default function AdminDashboard() {
         <div className={styles.sidebarBottom}>
           <div className={styles.divider}></div>
 
-          <NavLink to="/" onClick={handleLogout} className={styles.menuItem}>
-            <span className={styles.menuIcon}>
-              <LogOut size={20} />
-            </span>
-            <span className={styles.menuText}>Logout</span>
-          </NavLink>
+       <button type="button" onClick={handleLogout} className={styles.menuItem}>
+  <span className={styles.menuIcon}>
+    <LogOut size={20} />
+  </span>
+  <span className={styles.menuText}>Logout</span>
+</button>
         </div>
       </aside>
 
@@ -351,96 +437,94 @@ export default function AdminDashboard() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-  <div className={styles.headerRight}>
-    
-    {/* Notification */}
-    <div className={styles.notificationWrapper}>
-      <button
-        type="button"
-        className={styles.notificationBtn}
-        onClick={(e) => {
-          e.stopPropagation();
-          setNotificationOpen((prev) => !prev);
-        }}
-      >
-        <i className="bx bx-bell"></i>
 
-        {notificationCount > 0 && (
-          <span className={styles.notificationBadge}>
-            {notificationCount}
-          </span>
-        )}
-      </button>
-
-      <div
-        className={`${styles.notificationDropdown} ${
-          notificationOpen ? styles.show : ""
-        }`}
-      >
-        <div className={styles.notificationHeader}>
-          <h4>Notifications</h4>
-
-          {notificationCount > 0 && (
+        <div className={styles.headerRight}>
+          <div className={styles.notificationWrapper}>
             <button
               type="button"
-              className={styles.markReadBtn}
-              onClick={handleMarkAllAsRead}
+              className={styles.notificationBtn}
+              onClick={(e) => {
+                e.stopPropagation();
+                setNotificationOpen((prev) => !prev);
+              }}
             >
-              Mark all as read
-            </button>
-          )}
-        </div>
+              <i className="bx bx-bell"></i>
 
-        {bellNotifications.length > 0 ? (
-          bellNotifications.slice(0, 5).map((item) => (
-            <div
-              key={item.notification_id || item.id}
-              className={styles.notificationItem}
-            >
-              <div className={styles.notificationTop}>
-                <h5>{item.title || "No title"}</h5>
-                <span className={styles.notificationRole}>
-                  {item.recipient_type || "all"}
+              {notificationCount > 0 && (
+                <span className={styles.notificationBadge}>
+                  {notificationCount}
                 </span>
+              )}
+            </button>
+
+            <div
+              className={`${styles.notificationDropdown} ${
+                notificationOpen ? styles.show : ""
+              }`}
+            >
+              <div className={styles.notificationHeader}>
+                <h4>Notifications</h4>
+
+                {notificationCount > 0 && (
+                  <button
+                    type="button"
+                    className={styles.markReadBtn}
+                    onClick={handleMarkAllAsRead}
+                  >
+                    Mark all as read
+                  </button>
+                )}
               </div>
 
-              <p className={styles.notificationMessage}>
-                {item.message || "No message"}
-              </p>
+              {bellNotifications.length > 0 ? (
+                bellNotifications.slice(0, 5).map((item) => (
+                  <div
+                    key={item.notification_id || item.id}
+                    className={styles.notificationItem}
+                  >
+                    <div className={styles.notificationTop}>
+                      <h5>{item.title || "No title"}</h5>
+                      <span className={styles.notificationRole}>
+                        {item.recipient_type || "all"}
+                      </span>
+                    </div>
 
-              <p className={styles.notificationCreator}>
-                Posted by {item.created_by || "Admin"}
-              </p>
+                    <p className={styles.notificationMessage}>
+                      {item.message || "No message"}
+                    </p>
 
-              <small className={styles.notificationDate}>
-                {item.created_at
-                  ? new Date(item.created_at).toLocaleString()
-                  : "No date"}
-              </small>
+                    <p className={styles.notificationCreator}>
+                      Posted by {item.created_by || "Admin"}
+                    </p>
+
+                    <small className={styles.notificationDate}>
+                      {item.created_at
+                        ? new Date(item.created_at).toLocaleString()
+                        : "No date"}
+                    </small>
+                  </div>
+                ))
+              ) : (
+                <div className={styles.emptyNotification}>
+                  <p>You don’t have any new notifications</p>
+                </div>
+              )}
             </div>
-          ))
-        ) : (
-          <div className={styles.emptyNotification}>
-            <p>You don’t have any new notifications</p>
           </div>
-        )}
-      </div>
-    </div>
 
-    {/* Admin Profile */}
-    <div className={styles.adminHeaderProfile}>
-      <img
-        src={admin.profile_image || "/images/temporary profile.jpg"}
-        alt="Admin"
-        className={styles.adminHeaderImg}
-      />
+          <div className={styles.adminHeaderProfile}>
+            <img
+              src={admin.profile_image || "/images/temporary profile.jpg"}
+              alt="Admin"
+              className={styles.adminHeaderImg}
+            />
 
-      <span className={styles.adminHeaderName}>
-        {admin.username || "Admin"}
-      </span>
-    </div>
-  </div>
-</header>
+            <span className={styles.adminHeaderName}>
+              {admin.username || "Admin"}
+            </span>
+          </div>
+        </div>
+      </header>
 
       <main className={styles.main}>
         <h1 className={styles.pageTitle}>Dashboard</h1>
@@ -488,9 +572,11 @@ export default function AdminDashboard() {
                   </div>
 
                   <div className={styles.listInfo}>
-                    <div className={styles.listName}>{d.title}</div>
+                    <div className={styles.listName}>
+                      {d.title || "Untitled Deck"}
+                    </div>
                     <div className={styles.listSub}>
-                      Created by @{d.username}
+                      Created by @{d.username || "Unknown"}
                     </div>
                   </div>
                 </div>
@@ -516,13 +602,15 @@ export default function AdminDashboard() {
 
             {filteredUsers.length > 0 ? (
               filteredUsers.map((u) => (
-                <div className={styles.listItem} key={u.id}>
+                <div className={styles.listItem} key={u.id || u.user_id}>
                   <div className={styles.listAvatar}>
                     <User size={18} />
                   </div>
 
                   <div className={styles.listInfo}>
-                    <div className={styles.listName}>@{u.username}</div>
+                    <div className={styles.listName}>
+                      @{u.username || u.Username || "Unknown"}
+                    </div>
                     <div className={styles.listSub}>Recent user</div>
                   </div>
                 </div>

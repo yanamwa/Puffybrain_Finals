@@ -2,6 +2,7 @@ import styles from "./lesson.module.css";
 import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
 import Swal from "sweetalert2";
+import { API_BASE } from "../../config.js";
 
 function Lesson() {
   const { lessonId } = useParams();
@@ -16,10 +17,19 @@ function Lesson() {
   const quizResultKey = `lessonQuizResults_${lessonId}`;
 
   useEffect(() => {
-    fetch(`http://localhost/puffybrain/getLessonsById.php?id=${lessonId}`)
+    fetch(`${API_BASE}/getLessonsById.php?id=${lessonId}`, {
+      credentials: "include",
+    })
       .then((res) => res.json())
       .then((data) => {
-        setLesson(data);
+        console.log("Lesson API:", data);
+
+        if (data.success) {
+          setLesson(data.lesson);
+        } else {
+          console.error(data.message);
+          setLesson(null);
+        }
       })
       .catch((err) => console.error(err));
   }, [lessonId]);
@@ -109,7 +119,9 @@ function Lesson() {
   useEffect(() => {
     if (allSlides.length === 0) return;
 
-    const savedResults = localStorage.getItem(quizResultKey);
+    const savedResults =
+      localStorage.getItem(quizResultKey) ||
+      localStorage.getItem("lessonQuizResults");
 
     if (!savedResults) {
       setHasTakenQuiz(false);
@@ -120,6 +132,14 @@ function Lesson() {
 
     try {
       const parsed = JSON.parse(savedResults);
+
+      if (Number(parsed.lessonId) !== Number(lessonId)) {
+        setHasTakenQuiz(false);
+        setQuizResults([]);
+        setSelectedAnswers({});
+        return;
+      }
+
       const savedAnswers = Array.isArray(parsed.answers) ? parsed.answers : [];
 
       setHasTakenQuiz(true);
@@ -145,7 +165,7 @@ function Lesson() {
       setQuizResults([]);
       setSelectedAnswers({});
     }
-  }, [quizResultKey, allSlides]);
+  }, [quizResultKey, allSlides, lessonId]);
 
   const totalSlides = allSlides.length;
 
@@ -161,7 +181,7 @@ function Lesson() {
     const studiedSlides = slideIndexToSave + 1;
 
     try {
-      await fetch("http://localhost/puffybrain/saveLessonProgress.php", {
+      await fetch(`${API_BASE}/saveLessonProgress.php`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -186,19 +206,19 @@ function Lesson() {
   const saveLessonResultsAndGoReview = async (latestResults = quizResults) => {
     const finalScore = latestResults.filter((item) => item.isCorrect).length;
 
-    localStorage.setItem(
-      quizResultKey,
-      JSON.stringify({
-        source: "lesson",
-        lessonId: Number(lessonId),
-        deckId: null,
-        quizMode: "lesson",
-        isTimedOut: false,
-        score: finalScore,
-        total: latestResults.length,
-        answers: latestResults,
-      })
-    );
+    const finalResult = {
+      source: "lesson",
+      lessonId: Number(lessonId),
+      deckId: null,
+      quizMode: "lesson",
+      isTimedOut: false,
+      score: finalScore,
+      total: latestResults.length,
+      answers: latestResults,
+    };
+
+    localStorage.setItem(quizResultKey, JSON.stringify(finalResult));
+    localStorage.setItem("lessonQuizResults", JSON.stringify(finalResult));
 
     localStorage.setItem(
       `lessonProgress_${lessonId}`,

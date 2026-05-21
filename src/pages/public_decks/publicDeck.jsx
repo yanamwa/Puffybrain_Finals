@@ -2,6 +2,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
 import Swal from "sweetalert2";
 import "boxicons/css/boxicons.min.css";
+import { API_BASE } from "../../config.js";
 import styles from "./publicDeck.module.css";
 
 function PublicDecks() {
@@ -94,24 +95,49 @@ function PublicDecks() {
     return deck.category || deck.deck_category || deck.subject || "Reviewer";
   };
 
-  const handleLogout = () => {
-    Swal.fire({
-      title: "Logout?",
-      text: "Are you sure you want to logout?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes",
-      cancelButtonText: "Cancel",
-      buttonsStyling: false,
-      customClass: swalClasses,
-    }).then((result) => {
-      if (result.isConfirmed) navigate("/login");
-    });
-  };
+const handleLogout = () => {
+  Swal.fire({
+    title: "Logout?",
+    text: "Are you sure you want to logout?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#8d6cab",
+    cancelButtonColor: "#b0b0b0",
+    confirmButtonText: "Yes, Logout",
+    cancelButtonText: "Cancel",
+    reverseButtons: true,
+    customClass: {
+      popup: styles.logoutPopup,
+      title: styles.logoutTitle,
+      htmlContainer: styles.logoutText,
+      confirmButton: styles.logoutConfirm,
+      cancelButton: styles.logoutCancel,
+    },
+  }).then(async (result) => {
+    if (!result.isConfirmed) return;
 
+    try {
+      await fetch(`${API_BASE}/logout.php`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout API error:", err);
+    }
+
+    localStorage.removeItem("username");
+    localStorage.removeItem("user_email");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("profile_image");
+
+    sessionStorage.clear();
+
+    navigate("/login", { replace: true });
+  });
+};
   const fetchUser = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/getUser.php", {
+      const res = await fetch(`${API_BASE}/getUser.php`, {
         credentials: "include",
       });
 
@@ -133,7 +159,7 @@ function PublicDecks() {
   const fetchNotifications = async () => {
     try {
       const res = await fetch(
-        "http://localhost/puffybrain/getUserNotifications.php",
+        `${API_BASE}/getUserNotifications.php`,
         {
           method: "GET",
           credentials: "include",
@@ -156,7 +182,7 @@ function PublicDecks() {
   const markNotificationsAsRead = async () => {
     try {
       const res = await fetch(
-        "http://localhost/puffybrain/markNotificationsAsRead.php",
+        `${API_BASE}/markNotificationsAsRead.php`,
         {
           method: "POST",
           credentials: "include",
@@ -180,7 +206,7 @@ function PublicDecks() {
 
   const fetchUserDecks = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/userDecks.php", {
+      const res = await fetch(`${API_BASE}/userDecks.php`, {
         credentials: "include",
       });
 
@@ -194,7 +220,7 @@ function PublicDecks() {
 
   const fetchCourses = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/getMyCourses.php", {
+      const res = await fetch(`${API_BASE}/getMyCourses.php`, {
         credentials: "include",
       });
 
@@ -206,23 +232,31 @@ function PublicDecks() {
     }
   };
 
-  const fetchLessons = async () => {
-    try {
-      const res = await fetch("http://localhost/puffybrain/getLessons.php", {
-        credentials: "include",
-      });
+const fetchLessons = async () => {
+  try {
+    const res = await fetch(`${API_BASE}/getLessons.php`, {
+      credentials: "include",
+    });
 
-      const data = await res.json();
-      setLessons(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("Lessons fetch error:", err);
-      setLessons([]);
-    }
-  };
+    const data = await res.json();
+    console.log("GET LESSONS:", data);
+
+if (Array.isArray(data)) {
+  setLessons(data);
+} else if (Array.isArray(data.lessons)) {
+  setLessons(data.lessons);
+} else {
+  setLessons([]);
+}
+  } catch (err) {
+    console.error("Lessons fetch error:", err);
+    setLessons([]);
+  }
+};
 
   const fetchPublicDecks = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/getPublicDecks.php", {
+      const res = await fetch(`${API_BASE}/getPublicDecks.php`, {
         credentials: "include",
       });
 
@@ -342,7 +376,7 @@ function PublicDecks() {
     if (!result.isConfirmed) return;
 
     try {
-      const res = await fetch("http://localhost/puffybrain/addCourse.php", {
+      const res = await fetch(`${API_BASE}/addCourse.php`, {
         method: "POST",
         credentials: "include",
         headers: {

@@ -95,9 +95,9 @@ export default function EditModule() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const API_URL = "http://localhost/puffybrain/adminLearningModule.php";
-  const AI_API_URL = "http://localhost/puffybrain/generateQuiz.php";
-  const EXTRACT_API_URL = "http://localhost/puffybrain/processLessonFile.php";
+  const API_URL = `${API_BASE}/adminLearningModule.php`;
+  const AI_API_URL = `${API_BASE}/generateQuiz.php`;
+  const EXTRACT_API_URL = `${API_BASE}/processLessonFile.php`;
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -149,7 +149,7 @@ export default function EditModule() {
 
   const fetchAdmin = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/getAdminProfile.php", {
+      const res = await fetch(`${API_BASE}/getAdminProfile.php`, {
         credentials: "include",
       });
 
@@ -177,7 +177,7 @@ export default function EditModule() {
       const storedAdmin = JSON.parse(localStorage.getItem("admin") || "{}");
 
       const res = await fetch(
-        `http://localhost/puffybrain/getAdminNotifications.php?admin_id=${storedAdmin.id || ""}`,
+        `${API_BASE}/getAdminNotifications.php?admin_id=${storedAdmin.id || ""}`,
         { credentials: "include" }
       );
 
@@ -206,7 +206,7 @@ export default function EditModule() {
     }
 
     try {
-      const res = await fetch("http://localhost/puffybrain/markAdminNotificationsRead.php", {
+      const res = await fetch(`${API_BASE}/markAdminNotificationsRead.php`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -598,7 +598,7 @@ const handleGenerateQuizForEdit = async () => {
 };
 
   const generateOptionsForItem = async (item) => {
-    const res = await fetch("http://localhost/puffybrain/generateOptions.php", {
+    const res = await fetch(`${API_BASE}/generateOptions.php`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

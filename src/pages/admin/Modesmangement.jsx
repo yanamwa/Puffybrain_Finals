@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import styles from "./mode.module.css";
 import "boxicons/css/boxicons.min.css";
-
+import { API_BASE } from "../../config.js";
 import {
   LayoutDashboard,
   Users,
@@ -71,7 +71,7 @@ export default function ModeManagement() {
       const admin = JSON.parse(localStorage.getItem("admin") || "{}");
 
       const res = await fetch(
-        `http://localhost/puffybrain/getAdminNotifications.php?admin_id=${admin.id}`,
+        `${API_BASE}/getAdminNotifications.php?admin_id=${admin.id}`,
         { credentials: "include" }
       );
 
@@ -91,7 +91,7 @@ export default function ModeManagement() {
   const fetchAdmin = async () => {
   try {
     const res = await fetch(
-      "http://localhost/puffybrain/getAdminProfile.php",
+      `${API_BASE}/getAdminProfile.php`,
       {
         credentials: "include",
       }
@@ -119,7 +119,7 @@ export default function ModeManagement() {
 
   const fetchModes = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/getModes.php");
+      const res = await fetch(`${API_BASE}/getModes.php`);
       const text = await res.text();
       const data = safeJsonParse(text);
 
@@ -163,7 +163,7 @@ export default function ModeManagement() {
 
     try {
       const res = await fetch(
-        "http://localhost/puffybrain/markAdminNotificationsRead.php",
+        `${API_BASE}/markAdminNotificationsRead.php`,
         {
           method: "POST",
           credentials: "include",
@@ -186,12 +186,38 @@ export default function ModeManagement() {
     }
   };
 
-  const handleLogout = (e) => {
-    e.preventDefault();
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.href = "/admin/login";
-  };
+const handleLogout = async (e) => {
+  e.preventDefault();
+
+  const result = await Swal.fire({
+    title: "Logout?",
+    text: "Are you sure you want to logout?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes",
+    cancelButtonText: "Cancel",
+    confirmButtonColor: "#7b5cff",
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    await fetch(`${API_BASE}/adminLogout.php`, {
+      method: "POST",
+      credentials: "include",
+    });
+  } catch (err) {
+    console.error("Logout API error:", err);
+  }
+
+  localStorage.removeItem("admin");
+  localStorage.removeItem("admin_id");
+  localStorage.removeItem("admin_username");
+  localStorage.removeItem("admin_email");
+  sessionStorage.clear();
+
+  navigate("/pb-admin-access", { replace: true });
+};
 
   const handleAddMode = async () => {
     const result = await Swal.fire({
@@ -235,7 +261,7 @@ export default function ModeManagement() {
         form.append("image", result.value.image);
       }
 
-      const res = await fetch("http://localhost/puffybrain/addMode.php", {
+      const res = await fetch(`${API_BASE}/addMode.php`, {
         method: "POST",
         body: form,
       });
@@ -269,7 +295,7 @@ export default function ModeManagement() {
         <div class="${styles.viewModeBox}">
           ${
             mode.image
-              ? `<img class="${styles.viewModeImage}" src="http://localhost/puffybrain/images/${mode.image}" alt="Mode image">`
+              ? `<img class="${styles.viewModeImage}" src="${API_BASE}/images/${mode.image}" alt="Mode image">`
               : `<div class="${styles.viewModeNoImage}">No image</div>`
           }
 
@@ -343,7 +369,7 @@ export default function ModeManagement() {
         form.append("image", result.value.image);
       }
 
-      const res = await fetch("http://localhost/puffybrain/updateMode.php", {
+      const res = await fetch(`${API_BASE}/updateMode.php`, {
         method: "POST",
         body: form,
       });
@@ -383,7 +409,7 @@ export default function ModeManagement() {
       const form = new FormData();
       form.append("id", id);
 
-      const res = await fetch("http://localhost/puffybrain/deleteMode.php", {
+      const res = await fetch(`${API_BASE}/deleteMode.php`, {
         method: "POST",
         body: form,
       });
@@ -486,10 +512,12 @@ export default function ModeManagement() {
         <div className={styles.sidebarBottom}>
           <div className={styles.divider}></div>
 
-          <NavLink to="/" onClick={handleLogout} className={styles.menuItem}>
-            <span className={styles.menuIcon}><LogOut size={20} /></span>
-            <span className={styles.menuText}>Logout</span>
-          </NavLink>
+        <button type="button" onClick={handleLogout} className={styles.menuItem}>
+  <span className={styles.menuIcon}>
+    <LogOut size={20} />
+  </span>
+  <span className={styles.menuText}>Logout</span>
+</button>
         </div>
       </aside>
 

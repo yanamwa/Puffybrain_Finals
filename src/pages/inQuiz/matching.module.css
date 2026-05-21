@@ -337,3 +337,47 @@ td {
   accent-color: #7c3cff;
   cursor: pointer;
 }
+
+.emptyWrapper {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.emptyCard {
+  width: 420px;
+  background: white;
+  border-radius: 20px;
+  padding: 35px;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.emptyImage {
+  width: 160px;
+  margin-bottom: 16px;
+}
+
+.emptyTitle {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.emptyText {
+  font-size: 15px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.emptyBtn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 12px;
+  background: #d7a7ff;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+}

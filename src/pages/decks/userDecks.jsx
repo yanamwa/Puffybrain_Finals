@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import QuizModesModal from "../../components/QuizModesModal";
+import { API_BASE } from "../../config.js";
 import styles from "./userDecks.module.css";
 
 export default function UserDecks() {
@@ -70,24 +71,24 @@ const notificationCount = notifications.filter(
     "Others",
   ];
 
-  const showUploadFailed = () => {
-    Swal.fire({
-      title: "Failed",
-      text: "Failed to make one. Try again later.",
-      imageUrl: "/images/error.png",
-      imageWidth: 160,
-      imageHeight: 160,
-      confirmButtonText: "OK",
-      customClass: {
-        popup: styles.uploadFailedPopup,
-        image: styles.uploadFailedImage,
-        title: styles.uploadFailedTitle,
-        htmlContainer: styles.uploadFailedText,
-        confirmButton: styles.uploadFailedBtn,
-      },
-      buttonsStyling: false,
-    });
-  };
+  const showUploadFailed = (message = "Failed to make one. Try again later.") => {
+  Swal.fire({
+    title: "Failed",
+    text: message,
+    imageUrl: "/images/error.png",
+    imageWidth: 160,
+    imageHeight: 160,
+    confirmButtonText: "OK",
+    customClass: {
+      popup: styles.uploadFailedPopup,
+      image: styles.uploadFailedImage,
+      title: styles.uploadFailedTitle,
+      htmlContainer: styles.uploadFailedText,
+      confirmButton: styles.uploadFailedBtn,
+    },
+    buttonsStyling: false,
+  });
+};
 
   const getCardImageSrc = (cardImage) => {
     if (!cardImage) return "";
@@ -96,7 +97,7 @@ const notificationCount = notifications.filter(
       return cardImage;
     }
 
-    return `http://localhost/puffybrain/card_images/${cardImage}`;
+    return `${API_BASE}/card_images/${cardImage}`;
   };
 
   const resetCardForm = () => {
@@ -159,7 +160,7 @@ const notificationCount = notifications.filter(
   const fetchNotifications = async () => {
   try {
     const res = await fetch(
-      "http://localhost/puffybrain/getUserNotifications.php",
+      `${API_BASE}/getUserNotifications.php`,
       {
         method: "GET",
         credentials: "include",
@@ -182,7 +183,7 @@ const notificationCount = notifications.filter(
 const markNotificationsAsRead = async () => {
   try {
     const res = await fetch(
-      "http://localhost/puffybrain/markNotificationsAsRead.php",
+      `${API_BASE}/markNotificationsAsRead.php`,
       {
         method: "POST",
         credentials: "include",
@@ -204,31 +205,40 @@ const markNotificationsAsRead = async () => {
   }
 };
 
-  const fetchDeck = async () => {
-    try {
-      const res = await fetch(
-        `http://localhost/puffybrain/getDeckById.php?deckId=${deckId}`,
-        { credentials: "include" }
-      );
+const [deckError, setDeckError] = useState("");
 
-      const data = await res.json();
+const fetchDeck = async () => {
+  try {
+    const res = await fetch(`${API_BASE}/getDeckById.php?deckId=${deckId}`, {
+      credentials: "include",
+    });
 
-      if (data.success) {
-        setDeck(data.deck);
-      } else {
-        console.error("Failed to fetch deck:", data.message);
-      }
-    } catch (err) {
-      console.error("fetchDeck error:", err);
+    const text = await res.text();
+    console.log("GET DECK RAW:", text);
+
+    const data = JSON.parse(text);
+
+    if (data.success) {
+      setDeck(data.deck);
+      setDeckError("");
+    } else {
+      console.error("Failed to fetch deck:", data.message);
+      setDeckError(data.message || "Failed to load deck.");
+      setDeck(null);
     }
-  };
+  } catch (err) {
+    console.error("fetchDeck error:", err);
+    setDeckError("Server error while loading deck.");
+    setDeck(null);
+  }
+};
 
 const fetchCards = async () => {
   try {
     console.log("Current deckId:", deckId);
 
     const res = await fetch(
-      `http://localhost/puffybrain/getCardsByDeck.php?deckId=${deckId}`,
+      `${API_BASE}/getCardsByDeck.php?deckId=${deckId}`,
       { credentials: "include" }
     );
 
@@ -248,7 +258,7 @@ const fetchCards = async () => {
 };
   const fetchUserDecks = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/userDecks.php", {
+      const res = await fetch(`${API_BASE}/userDecks.php`, {
         credentials: "include",
       });
 
@@ -262,7 +272,7 @@ const fetchCards = async () => {
 
   const fetchCourses = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/getMyCourses.php", {
+      const res = await fetch(`${API_BASE}/getMyCourses.php`, {
         credentials: "include",
       });
 
@@ -276,7 +286,7 @@ const fetchCards = async () => {
 
   const fetchUser = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/getUser.php", {
+      const res = await fetch(`${API_BASE}/getUser.php`, {
         credentials: "include",
       });
 
@@ -380,7 +390,7 @@ const handleAddToMyDecks = async () => {
     // IF ALREADY SAVED → UNSAVE
     if (heartSaved) {
       const res = await fetch(
-        "http://localhost/puffybrain/removeDeckFromMyDecks.php",
+        `${API_BASE}/removeDeckFromMyDecks.php`,
         {
           method: "POST",
           headers: {
@@ -423,7 +433,7 @@ const handleAddToMyDecks = async () => {
 
     // IF NOT SAVED → SAVE
     const res = await fetch(
-      "http://localhost/puffybrain/addDeckToMyDecks.php",
+      `${API_BASE}/addDeckToMyDecks.php`,
       {
         method: "POST",
         headers: {
@@ -533,7 +543,7 @@ const handleAddToMyDecks = async () => {
       });
 
       const res = await fetch(
-        "http://localhost/puffybrain/uploadLessonCards.php",
+        `${API_BASE}/uploadLessonCards.php`,
         {
           method: "POST",
           body: formData,
@@ -565,10 +575,31 @@ const handleAddToMyDecks = async () => {
           timer: 1600,
           showConfirmButton: false,
         });
-      } else {
-        console.error("Upload lesson failed:", data);
-        showUploadFailed();
-      }
+ } else {
+  console.error("Upload lesson failed:", data);
+
+  if (data.limitReached) {
+    Swal.fire({
+      title: "Thank you!",
+      text: "You used your free upload lesson, Thank you for using PuffyBrain",
+      imageUrl: "/images/thankyou.png",
+      imageWidth: 180,
+      imageHeight: 180,
+      confirmButtonText: "OK",
+      customClass: {
+        popup: styles.uploadFailedPopup,
+        image: styles.uploadFailedImage,
+        title: styles.uploadFailedTitle,
+        htmlContainer: styles.uploadFailedText,
+        confirmButton: styles.uploadFailedBtn,
+      },
+      buttonsStyling: false,
+    });
+    return;
+  }
+
+  showUploadFailed(data.message);
+}
     } catch (err) {
       console.error("UPLOAD LESSON FETCH ERROR:", err);
       showUploadFailed();
@@ -614,8 +645,8 @@ const handleAddCard = async () => {
 
   try {
     const url = editingCardId
-      ? "http://localhost/puffybrain/updateCard.php"
-      : "http://localhost/puffybrain/addCard.php";
+      ? `${API_BASE}/updateCard.php`
+      : `${API_BASE}/addCard.php`;
 
     const res = await fetch(url, {
       method: "POST",
@@ -691,7 +722,7 @@ const handleAddCard = async () => {
       formData.append("cardId", cardId);
       formData.append("deckId", deckId);
 
-      const res = await fetch("http://localhost/puffybrain/deleteCard.php", {
+      const res = await fetch(`${API_BASE}/deleteCard.php`, {
         method: "POST",
         body: formData,
         credentials: "include",
@@ -718,165 +749,265 @@ const handleAddCard = async () => {
     }
   };
 
-  const handleEditDeck = async () => {
-    if (!deck) return;
+const handleEditDeck = async () => {
+  if (!deck) return;
 
-    const currentCategory = deck.category || "Reviewer";
-    const isCustomCategory = !categories.includes(currentCategory);
+  const currentCategory = deck.category || "Reviewer";
+  const currentVisibility = deck.visibility || "private";
+  const currentDeckColor = deck.deck_color || "#d7c2f7";
+  const isCustomCategory = !categories.includes(currentCategory);
 
-    const { value: formValues } = await Swal.fire({
-      html: `
-        <div class="${styles.editDeckModal}">
-          <div class="${styles.editDeckHeader}">
-            <span>Edit Deck</span>
+  const deckColors = [
+    "#d7c2f7",
+    "#a8e0c8",
+    "#f5b29d",
+    "#a99cf5",
+    "#8fd7d0",
+    "#ef9db8",
+  ];
+
+  const { value: formValues } = await Swal.fire({
+    html: `
+      <div class="${styles.editDeckModal}">
+        <div class="${styles.editDeckHeader}">
+          <span>Edit Deck</span>
+        </div>
+
+        <div class="${styles.editDeckBody}">
+          <div class="${styles.editDeckGroup}">
+            <label>Deck Title</label>
+            <input 
+              id="swal-title" 
+              type="text" 
+              placeholder="Deck title" 
+              value="${deck.title || ""}"
+            />
           </div>
 
-          <div class="${styles.editDeckBody}">
-            <div class="${styles.editDeckGroup}">
-              <label>Deck title</label>
-              <input 
-                id="swal-title" 
-                type="text" 
-                placeholder="Deck title" 
-                value="${deck.title || ""}"
-              />
+          <div class="${styles.editDeckGroup}">
+            <label>Description</label>
+            <textarea 
+              id="swal-desc" 
+              placeholder="Optional"
+            >${deck.description || ""}</textarea>
+          </div>
+
+          <div class="${styles.editDeckGroup}">
+            <label>Category</label>
+
+            <select id="swal-category" class="${styles.editCategorySelect}">
+              ${categories
+                .map(
+                  (cat) => `
+                    <option value="${cat}" ${
+                    currentCategory === cat ||
+                    (cat === "Others" && isCustomCategory)
+                      ? "selected"
+                      : ""
+                  }>
+                      ${cat}
+                    </option>
+                  `
+                )
+                .join("")}
+            </select>
+
+            <input
+              id="swal-custom-category"
+              class="${styles.editCustomCategory}"
+              type="text"
+              placeholder="Type category"
+              value="${isCustomCategory ? currentCategory : ""}"
+              style="display: ${
+                currentCategory === "Others" || isCustomCategory
+                  ? "block"
+                  : "none"
+              }; margin-top: 10px;"
+            />
+          </div>
+
+          <div class="${styles.editDeckGroup}">
+            <label>Visibility</label>
+
+            <div style="display:flex; gap:28px; align-items:center; margin-top:12px;">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                <input
+                  type="radio"
+                  name="swal-visibility"
+                  value="public"
+                  ${currentVisibility === "public" ? "checked" : ""}
+                />
+                Public
+              </label>
+
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                <input
+                  type="radio"
+                  name="swal-visibility"
+                  value="private"
+                  ${currentVisibility === "private" ? "checked" : ""}
+                />
+                Private
+              </label>
             </div>
+          </div>
 
-            <div class="${styles.editDeckGroup}">
-              <label>Description</label>
-              <textarea 
-                id="swal-desc" 
-                placeholder="Deck description"
-              >${deck.description || ""}</textarea>
-            </div>
+          <div class="${styles.editDeckGroup}">
+            <label>Choose Deck Color</label>
 
-            <div class="${styles.editDeckGroup}">
-              <label>Category</label>
-
-              <select id="swal-category" class="${styles.editCategorySelect}">
-                ${categories
-                  .map(
-                    (cat) => `
-                      <option value="${cat}" ${
-                      currentCategory === cat ||
-                      (cat === "Others" && isCustomCategory)
-                        ? "selected"
-                        : ""
-                    }>
-                        ${cat}
-                      </option>
-                    `
-                  )
-                  .join("")}
-              </select>
-
-              <input
-                id="swal-custom-category"
-                class="${styles.editCustomCategory}"
-                type="text"
-                placeholder="Type category"
-                value="${isCustomCategory ? currentCategory : ""}"
-                style="display: ${
-                  currentCategory === "Others" || isCustomCategory
-                    ? "block"
-                    : "none"
-                }; margin-top: 10px;"
-              />
+            <div id="swal-color-picker" style="display:flex; gap:12px; margin-top:12px;">
+              ${deckColors
+                .map(
+                  (color) => `
+                    <button
+                      type="button"
+                      class="swal-color-btn"
+                      data-color="${color}"
+                      style="
+                        background:${color};
+                        width:34px;
+                        height:34px;
+                        border-radius:50%;
+                        border:${
+                          currentDeckColor === color
+                            ? "3px solid #5d3a86"
+                            : "2px solid transparent"
+                        };
+                        cursor:pointer;
+                      "
+                    ></button>
+                  `
+                )
+                .join("")}
             </div>
           </div>
         </div>
-      `,
-      didOpen: () => {
-        const select = document.getElementById("swal-category");
-        const customInput = document.getElementById("swal-custom-category");
+      </div>
+    `,
 
-        select.addEventListener("change", () => {
-          customInput.style.display =
-            select.value === "Others" ? "block" : "none";
-        });
-      },
-      showCancelButton: true,
-      confirmButtonText: "Save",
-      cancelButtonText: "Cancel",
-      reverseButtons: true,
-      focusConfirm: false,
-      customClass: {
-        popup: styles.editDeckPopup,
-        actions: styles.editDeckActions,
-        confirmButton: styles.editDeckSave,
-        cancelButton: styles.editDeckCancel,
-      },
-      buttonsStyling: false,
-      preConfirm: () => {
-        const title = document.getElementById("swal-title").value.trim();
-        const description = document.getElementById("swal-desc").value.trim();
-        const selectedCategory = document.getElementById("swal-category").value;
-        const customCategory = document
-          .getElementById("swal-custom-category")
-          .value.trim();
+    didOpen: () => {
+      const categorySelect = document.getElementById("swal-category");
+      const customInput = document.getElementById("swal-custom-category");
+      const colorButtons = document.querySelectorAll(".swal-color-btn");
 
-        const finalCategory =
-          selectedCategory === "Others" ? customCategory : selectedCategory;
+      window.selectedDeckColor = currentDeckColor;
 
-        if (!title) {
-          Swal.showValidationMessage("Deck title is required");
-          return false;
-        }
-
-        if (!finalCategory) {
-          Swal.showValidationMessage("Category is required");
-          return false;
-        }
-
-        if (!/^[A-Za-z0-9 ]+$/.test(finalCategory)) {
-          Swal.showValidationMessage("Only letters and numbers are allowed");
-          return false;
-        }
-
-        return {
-          title,
-          description,
-          category: finalCategory,
-        };
-      },
-    });
-
-    if (!formValues) return;
-
-    try {
-      const formData = new FormData();
-      formData.append("deckId", deckId);
-      formData.append("title", formValues.title);
-      formData.append("description", formValues.description);
-      formData.append("category", formValues.category);
-
-      const res = await fetch("http://localhost/puffybrain/updateDeck.php", {
-        method: "POST",
-        body: formData,
-        credentials: "include",
+      categorySelect.addEventListener("change", () => {
+        customInput.style.display =
+          categorySelect.value === "Others" ? "block" : "none";
       });
 
-      const data = await res.json();
+      colorButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          colorButtons.forEach((button) => {
+            button.style.border = "2px solid transparent";
+          });
 
-      if (data.success) {
-        await fetchDeck();
-        await fetchUserDecks();
-
-        Swal.fire({
-          title: "Updated!",
-          text: "Deck information updated successfully.",
-          icon: "success",
-          timer: 1500,
-          showConfirmButton: false,
+          btn.style.border = "3px solid #5d3a86";
+          window.selectedDeckColor = btn.dataset.color;
         });
-      } else {
-        Swal.fire("Error", data.message || "Failed to update deck.", "error");
+      });
+    },
+
+    showCancelButton: true,
+    confirmButtonText: "Save",
+    cancelButtonText: "Cancel",
+    reverseButtons: true,
+    focusConfirm: false,
+    customClass: {
+      popup: styles.editDeckPopup,
+      actions: styles.editDeckActions,
+      confirmButton: styles.editDeckSave,
+      cancelButton: styles.editDeckCancel,
+    },
+    buttonsStyling: false,
+
+    preConfirm: () => {
+      const title = document.getElementById("swal-title").value.trim();
+      const description = document.getElementById("swal-desc").value.trim();
+
+      const selectedCategory = document.getElementById("swal-category").value;
+      const customCategory = document
+        .getElementById("swal-custom-category")
+        .value.trim();
+
+      const visibility = document.querySelector(
+        'input[name="swal-visibility"]:checked'
+      )?.value;
+
+      const finalCategory =
+        selectedCategory === "Others" ? customCategory : selectedCategory;
+
+      const deck_color = window.selectedDeckColor || currentDeckColor;
+
+      if (!title) {
+        Swal.showValidationMessage("Deck title is required");
+        return false;
       }
-    } catch (err) {
-      console.error("handleEditDeck error:", err);
-      Swal.fire("Server Error", "Could not update deck.", "error");
+
+      if (!finalCategory) {
+        Swal.showValidationMessage("Category is required");
+        return false;
+      }
+
+      if (!/^[A-Za-z0-9 ]+$/.test(finalCategory)) {
+        Swal.showValidationMessage("Only letters and numbers are allowed");
+        return false;
+      }
+
+      if (!["public", "private"].includes(visibility)) {
+        Swal.showValidationMessage("Invalid visibility");
+        return false;
+      }
+
+      return {
+        title,
+        description,
+        category: finalCategory,
+        visibility,
+        deck_color,
+      };
+    },
+  });
+
+  if (!formValues) return;
+
+  try {
+    const formData = new FormData();
+    formData.append("deckId", deckId);
+    formData.append("title", formValues.title);
+    formData.append("description", formValues.description);
+    formData.append("category", formValues.category);
+    formData.append("visibility", formValues.visibility);
+    formData.append("deck_color", formValues.deck_color);
+
+    const res = await fetch(`${API_BASE}/updateDeck.php`, {
+      method: "POST",
+      body: formData,
+      credentials: "include",
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      await fetchDeck();
+      await fetchUserDecks();
+
+      Swal.fire({
+        title: "Updated!",
+        text: "Deck information updated successfully.",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+    } else {
+      Swal.fire("Error", data.message || "Failed to update deck.", "error");
     }
-  };
+  } catch (err) {
+    console.error("handleEditDeck error:", err);
+    Swal.fire("Server Error", "Could not update deck.", "error");
+  }
+};
 
   const handleEditCard = (card) => {
     const realCardId = card.cardId || card.id;
@@ -936,20 +1067,47 @@ const handleAddCard = async () => {
     });
   }, [cards, activeTab, search]);
 
-  const handleLogout = () => {
-    Swal.fire({
-      title: "Logout?",
-      text: "Are you sure you want to logout?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes",
-      confirmButtonColor: "#7b5cff",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        navigate("/login");
-      }
-    });
-  };
+const handleLogout = () => {
+  Swal.fire({
+    title: "Logout?",
+    text: "Are you sure you want to logout?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#8d6cab",
+    cancelButtonColor: "#b0b0b0",
+    confirmButtonText: "Yes, Logout",
+    cancelButtonText: "Cancel",
+    reverseButtons: true,
+    customClass: {
+      popup: styles.logoutPopup,
+      title: styles.logoutTitle,
+      htmlContainer: styles.logoutText,
+      confirmButton: styles.logoutConfirm,
+      cancelButton: styles.logoutCancel,
+    },
+  }).then(async (result) => {
+    if (!result.isConfirmed) return;
+
+    try {
+      await fetch(`${API_BASE}/logout.php`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout API error:", err);
+    }
+
+    localStorage.removeItem("username");
+    localStorage.removeItem("user_email");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("profile_image");
+
+    sessionStorage.clear();
+
+    navigate("/login", { replace: true });
+  });
+};
+
   return (
     <div
       className={`${styles.container} ${
@@ -1364,7 +1522,7 @@ const handleAddCard = async () => {
                     )}
                   </>
                 ) : (
-                  <p>Loading deck...</p>
+                 <p>{deckError || "Loading deck..."}</p>
                 )}
               </div>
             </section>

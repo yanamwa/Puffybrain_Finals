@@ -1,23 +1,20 @@
 .page {
   min-height: 100vh;
-
   padding: 45px 20px;
-
   box-sizing: border-box;
+  position: relative;
+  overflow-x: hidden;
 
   background-image:
     linear-gradient(
-      rgba(255, 255, 255, 0.12),
-      rgba(255, 255, 255, 0.12)
+      rgba(255,255,255,0.20),
+      rgba(255,255,255,0.20)
     ),
     url("/images/background_notebook.png");
 
-  background-size: 100%;
-  background-position: center top;
-
+  background-size: cover;
+  background-position: center;
   background-repeat: no-repeat;
-
-  overflow-x: hidden;
 }
 
 .quizHeader {
@@ -489,4 +486,68 @@
   to {
     transform: translateY(-8px);
   }
+}
+
+.emptyWrapper {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+    background-image:
+    linear-gradient(
+      rgba(255, 255, 255, 0.12),
+      rgba(255, 255, 255, 0.12)
+    ),
+    url("/images/background_notebook.png");
+  overflow-x: hidden;
+}
+
+.emptyCard {
+  width: 430px;
+  background: #ffffff;
+  border-radius: 25px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 10px 0 #757575;
+}
+
+.emptyImage {
+  width: 300px;
+  margin-bottom: 15px;
+  pointer-events: none;
+}
+
+.emptyTitle {
+  font-size: 46px;
+  font-family: "Jersey 15", sans-serif;
+  font-weight: normal;
+  margin: 10px 0;
+  color: var(--font-color);
+}
+
+.emptyText {
+  font-size: 20px;
+  color: #666;
+  margin: 14px 0 25px;
+}
+
+.emptyBtn {
+  width: 100%;
+  padding: 10px;
+  background: rgb(234, 202, 244);
+  color: var(--font-color);
+  border: 1px solid #ae9db3;
+  border-radius: 25px;
+  font-family: "Jersey 15", sans-serif;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #764784;
+}
+
+.emptyBtn:hover {
+  transform: translateY(-2px);
 }

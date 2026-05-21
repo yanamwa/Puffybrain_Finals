@@ -2,7 +2,7 @@ import styles from './login.module.css';
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { useNavigate, useSearchParams } from "react-router-dom";
-
+import { API_BASE } from "../../config.js";
 function ChangePassword() {
 
   const navigate = useNavigate();
@@ -79,7 +79,7 @@ function ChangePassword() {
       return;
     }
 
-    fetch("http://localhost/puffybrain/change-password.php", {
+    fetch(`${API_BASE}/change-password.php`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -225,9 +225,9 @@ function ChangePassword() {
             )}
 
 
-            <button className={styles.loginBtn} onClick={handleSubmit}>
-              Update Password
-            </button>
+          <button type="button" className={styles.loginBtn} onClick={handleSubmit}>
+  Update Password
+</button>
 
           </div>
         </div>

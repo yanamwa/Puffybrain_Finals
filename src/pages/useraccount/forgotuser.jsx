@@ -23,7 +23,7 @@ function ForgotPassword() {
       return;
     }
 
-    fetch("http://localhost/puffybrain/fogot-username.php", {
+    fetch(`${API_BASE}/fogot-username.php`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),

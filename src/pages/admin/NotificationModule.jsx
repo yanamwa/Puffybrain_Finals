@@ -15,6 +15,7 @@ import {
 import Swal from "sweetalert2";
 import styles from "./notification.module.css";
 import "boxicons/css/boxicons.min.css";
+import { API_BASE } from "../../config.js";
 
 export default function NotificationManagement() {
   const [bellNotifications, setBellNotifications] = useState([]);
@@ -69,7 +70,7 @@ export default function NotificationManagement() {
 
 const fetchAdmin = async () => {
   try {
-    const res = await fetch("http://localhost/puffybrain/getAdminProfile.php", {
+    const res = await fetch(`${API_BASE}/getAdminProfile.php`, {
       credentials: "include",
     });
 
@@ -92,7 +93,7 @@ const fetchAdmin = async () => {
       const admin = JSON.parse(localStorage.getItem("admin") || "{}");
 
       const res = await fetch(
-        `http://localhost/puffybrain/getAdminNotifications.php?admin_id=${admin.id}`,
+        `${API_BASE}/getAdminNotifications.php?admin_id=${admin.id}`,
         { credentials: "include" }
       );
 
@@ -111,7 +112,7 @@ const fetchAdmin = async () => {
 
   const fetchHistoryNotifications = async () => {
     try {
-      const res = await fetch("http://localhost/puffybrain/getAllNotifications.php", {
+      const res = await fetch(`${API_BASE}/getAllNotifications.php`, {
         credentials: "include",
       });
 
@@ -175,7 +176,7 @@ useEffect(() => {
     }
 
     try {
-      const res = await fetch("http://localhost/puffybrain/addNotification.php", {
+      const res = await fetch(`${API_BASE}/addNotification.php`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -245,7 +246,7 @@ useEffect(() => {
     if (!result.isConfirmed) return;
 
     try {
-      const res = await fetch("http://localhost/puffybrain/deleteNotification.php", {
+      const res = await fetch(`${API_BASE}/deleteNotification.php`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -314,7 +315,7 @@ useEffect(() => {
 
     try {
       const res = await fetch(
-        "http://localhost/puffybrain/markAdminNotificationsRead.php",
+        `${API_BASE}/markAdminNotificationsRead.php`,
         {
           method: "POST",
           credentials: "include",
@@ -357,12 +358,38 @@ useEffect(() => {
     }
   };
 
-  const handleLogout = (e) => {
-    e.preventDefault();
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.href = "/admin/login";
-  };
+const handleLogout = async (e) => {
+  e.preventDefault();
+
+  const result = await Swal.fire({
+    title: "Logout?",
+    text: "Are you sure you want to logout?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes",
+    cancelButtonText: "Cancel",
+    confirmButtonColor: "#7b5cff",
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    await fetch(`${API_BASE}/adminLogout.php`, {
+      method: "POST",
+      credentials: "include",
+    });
+  } catch (err) {
+    console.error("Logout API error:", err);
+  }
+
+  localStorage.removeItem("admin");
+  localStorage.removeItem("admin_id");
+  localStorage.removeItem("admin_username");
+  localStorage.removeItem("admin_email");
+  sessionStorage.clear();
+
+  navigate("/pb-admin-access", { replace: true });
+};
 
   const filteredNotifications = historyNotifications
     .filter((item) => {
@@ -463,12 +490,12 @@ useEffect(() => {
         <div className={styles.sidebarBottom}>
           <div className={styles.divider}></div>
 
-          <NavLink to="/" onClick={handleLogout} className={styles.menuItem}>
-            <span className={styles.menuIcon}>
-              <LogOut size={20} />
-            </span>
-            <span className={styles.menuText}>Logout</span>
-          </NavLink>
+        <button type="button" onClick={handleLogout} className={styles.menuItem}>
+  <span className={styles.menuIcon}>
+    <LogOut size={20} />
+  </span>
+  <span className={styles.menuText}>Logout</span>
+</button>
         </div>
       </aside>
 

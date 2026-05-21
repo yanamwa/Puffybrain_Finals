@@ -162,19 +162,21 @@ h6 {
 
 /* Button */
 .submitBtn {
-  background-color: #b996e1;
-  color: #000;
+  background-color: #c3a2e8;
+  color: var(--font-color);
+  font-family: inherit;
   padding: 12px 32px;
   border-radius: 25px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 5px 5px 0 #725792;
+  box-shadow: 5px 5px 0 rgb(92, 70, 120);
   text-decoration: none;
   width: 400px;
   display: inline-block;
-
-      transform: scale(1.2);    
-    transform-origin: center;
+  transform: scale(1.2);    
+  border: 1px solid #563d74;
+  transform-origin: center;
+  font: 18px;
 }
 
 .submitBtn:hover {
