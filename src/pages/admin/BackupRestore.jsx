@@ -37,13 +37,22 @@ export default function AdminBackupRestore() {
   ];
 
 
-  const [admin, setAdmin] = useState({
+const [admin, setAdmin] = useState({
+  id: "",
   username: "Admin",
   full_name: "",
   email: "",
   role: "",
   profile_image: "/images/temporary profile.jpg",
 });
+
+const adminImage =
+  admin.profile_image &&
+  !admin.profile_image.includes("temporary profile.jpg")
+    ? admin.profile_image.startsWith("http")
+      ? admin.profile_image
+      : `${API_BASE}/${admin.profile_image.replace(/^\/+/, "")}`
+    : "/images/temporary profile.jpg";
 
   const showBackupSwal = (config = {}) => {
     return Swal.fire({
@@ -484,11 +493,14 @@ const handleLogout = async (e) => {
 
     {/* Admin Profile */}
     <div className={styles.adminHeaderProfile}>
-      <img
-        src={admin.profile_image || "/images/temporary profile.jpg"}
-        alt="Admin"
-        className={styles.adminHeaderImg}
-      />
+    <img
+  src={adminImage}
+  alt="Admin"
+  className={styles.adminHeaderImg}
+  onError={(e) => {
+    e.currentTarget.src = "/images/temporary profile.jpg";
+  }}
+/>
 
       <span className={styles.adminHeaderName}>
         {admin.username || "Admin"}

@@ -1624,3 +1624,37 @@
   outline: none;
   box-shadow: none;
 }
+
+.uploadPhotoCircle {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.uploadedPreview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+.uploadOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  opacity: 0;
+  transition: 0.2s ease;
+  border-radius: 50%;
+  font-size: 13px;
+}
+
+.uploadPhotoCircle:hover .uploadOverlay {
+  opacity: 1;
+}

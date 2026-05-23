@@ -454,10 +454,8 @@ function MyDecks() {
         .join("");
 
       const { value: formValues } = await Swal.fire({
-        title: "Edit Deck",
         customClass: {
           popup: styles.editDeckPopup,
-          title: styles.editDeckTitle,
           htmlContainer: styles.editDeckHtml,
           actions: styles.editDeckActions,
           confirmButton: styles.editDeckSaveBtn,
@@ -523,7 +521,9 @@ function MyDecks() {
                       class="${styles.editDeckColorDot}"
                       data-color="${color}"
                       style="background:${color}; ${
-                        deck.deckColor === color ? "outline: 3px solid #111;" : ""
+                        (deck.deck_color || deck.deckColor) === color
+                          ? "outline: 3px solid #111;"
+                          : ""
                       }"
                     ></button>
                   `
@@ -534,9 +534,10 @@ function MyDecks() {
             <input
               id="swal-color"
               type="hidden"
-              value="${deck.deckColor || "#c9cdfa"}"
+              value="${deck.deck_color || deck.deckColor || "#c9cdfa"}"
             />
           </div>
+  </div>
         `,
         didOpen: () => {
           document
@@ -558,6 +559,7 @@ function MyDecks() {
         showCancelButton: true,
         confirmButtonText: "Save",
         cancelButtonText: "Cancel",
+        reverseButtons: true,
         preConfirm: () => {
           const title = document.getElementById("swal-title").value.trim();
           const description = document.getElementById("swal-desc").value.trim();

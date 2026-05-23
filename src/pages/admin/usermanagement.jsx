@@ -37,14 +37,23 @@ export default function UserManagement() {
   const [error, setError] = useState(null);
 
   const fetchedOnce = useRef(false);
+const [admin, setAdmin] = useState({
+  id: "",
+  username: "Admin",
+  full_name: "",
+  email: "",
+  role: "",
+  profile_image: "/images/temporary profile.jpg",
+});
 
-  const [admin, setAdmin] = useState({
-    username: "Admin",
-    full_name: "",
-    email: "",
-    role: "",
-    profile_image: "/images/temporary profile.jpg",
-  });
+const adminImage =
+  admin.profile_image &&
+  !admin.profile_image.includes("temporary profile.jpg")
+    ? admin.profile_image.startsWith("http")
+      ? admin.profile_image
+      : `${API_BASE}/${admin.profile_image.replace(/^\/+/, "")}`
+    : "/images/temporary profile.jpg";
+
 
   const menuItems = [
     { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
@@ -494,15 +503,20 @@ const handleLogout = async (e) => {
             </div>
           </div>
 
-          <div className={styles.adminHeaderProfile}>
-            <img
-              src={admin.profile_image || "/images/temporary profile.jpg"}
-              alt="Admin"
-              className={styles.adminHeaderImg}
-            />
+      <div className={styles.adminHeaderProfile}>
+  <img
+    src={adminImage}
+    alt="Admin"
+    className={styles.adminHeaderImg}
+    onError={(e) => {
+      e.currentTarget.src = "/images/temporary profile.jpg";
+    }}
+  />
 
-            <span className={styles.adminHeaderName}>{admin.username || "Admin"}</span>
-          </div>
+  <span className={styles.adminHeaderName}>
+    {admin.username || "Admin"}
+  </span>
+</div>
         </div>
       </header>
 

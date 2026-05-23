@@ -753,7 +753,7 @@ const handleEditDeck = async () => {
 
   const currentCategory = deck.category || "Reviewer";
   const currentVisibility = deck.visibility || "private";
-  const currentDeckColor = deck.deck_color || "#d7c2f7";
+  const currentDeckColor = deck.deck_color || deck.deckColor || "#d7c2f7";
   const isCustomCategory = !categories.includes(currentCategory);
 
   const deckColors = [
@@ -828,30 +828,31 @@ const handleEditDeck = async () => {
           <div class="${styles.editDeckGroup}">
             <label>Visibility</label>
 
-          <div class="${styles.editVisibilityRow}">
-  <label class="${styles.editVisibilityOption}">
-    <input
-      type="radio"
-      name="swal-visibility"
-      value="public"
-      ${currentVisibility === "public" ? "checked" : ""}
-    />
-    <span>Public</span>
-  </label>
+            <div class="${styles.editVisibilityRow}">
+              <label class="${styles.editVisibilityOption}">
+                <input
+                  type="radio"
+                  name="swal-visibility"
+                  value="public"
+                  ${currentVisibility === "public" ? "checked" : ""}
+                />
+                <span>Public</span>
+              </label>
 
-  <label class="${styles.editVisibilityOption}">
-    <input
-      type="radio"
-      name="swal-visibility"
-      value="private"
-      ${currentVisibility === "private" ? "checked" : ""}
-    />
-    <span>Private</span>
-  </label>
-</div>
+              <label class="${styles.editVisibilityOption}">
+                <input
+                  type="radio"
+                  name="swal-visibility"
+                  value="private"
+                  ${currentVisibility === "private" ? "checked" : ""}
+                />
+                <span>Private</span>
+              </label>
+            </div>
+          </div>
 
-          <div class="${styles.a}">
-            <label>Choose Deck Color</label>
+          <div class="${styles.editDeckGroup}">
+            <label>Deck Color</label>
 
             <div id="swal-color-picker" style="display:flex; gap:12px; margin-top:12px;">
               ${deckColors

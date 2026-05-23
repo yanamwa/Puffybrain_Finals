@@ -163,19 +163,23 @@
   color: black;
   text-decoration: none;
   padding: 10px 14px;
-  margin: 4px 0 4px 10px;
-  border-radius: 999px 0 0 999px;
+  margin: 4px 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  border-radius: 0;
   font-size: 16px;
   transition: 0.25s ease;
+  box-shadow: none;
 }
 
 .menuItem:hover,
 .menuItem.active,
 .active {
-  background: white;
-  transform: translateX(6px);
+  background: transparent;
+  transform: none;
+  box-shadow: none;
 }
-
 .menuIcon {
   width: 22px;
   min-width: 22px;

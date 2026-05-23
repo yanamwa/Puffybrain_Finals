@@ -1607,9 +1607,9 @@ color:#ff4d4f;
 
 .editDeckPopup {
   width: 600px !important;
-  max-width: 92vw !important;
+  max-width: calc(100vw - 40px) !important;
   padding: 0 !important;
-  border-radius: 16px !important;
+  border-radius: 36px !important;
   overflow: hidden !important;
   background: #ffffff !important;
   font-family: "Jersey 15", sans-serif !important;
@@ -1624,14 +1624,17 @@ color:#ff4d4f;
   margin: 0 !important;
   padding: 0 !important;
   width: 100%;
+  background: #ffffff;
 }
 
 .editDeckHeader {
-  height: 118px !important;
-  background: #d7a7ff !important;
+  height: 90px !important;
+  background: #e3c2ff !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  border-top-left-radius: 36px !important;
+  border-top-right-radius: 36px !important;
 }
 
 .editDeckHeader span {
@@ -1640,7 +1643,7 @@ color:#ff4d4f;
 }
 
 .editDeckBody {
-  padding: 0 40px 24px !important;
+  padding: 30px 40px 0 !important;
   text-align: left !important;
 }
 
@@ -1664,7 +1667,7 @@ color:#ff4d4f;
   box-sizing: border-box !important;
   border: none !important;
   outline: none !important;
-  border-radius: 14px !important;
+  border-radius: 999px !important;
   background: #f3f3f3 !important;
   padding: 0 16px !important;
   font-family: "Jersey 15", sans-serif !important;
@@ -1677,6 +1680,7 @@ color:#ff4d4f;
   min-height: 74px !important;
   padding-top: 13px !important;
   resize: none !important;
+  border-radius: 22px !important;
 }
 
 .editCategorySelect {
@@ -1686,7 +1690,60 @@ color:#ff4d4f;
 .editDeckActions {
   border-top: 1px solid #eeeeee !important;
   padding: 18px 0 28px !important;
-  margin: 0 40px !important;
+  margin: 16px 40px 28px !important;
+  display: flex !important;
+  justify-content: center !important;
+  gap: 18px !important;
+}
+
+.editDeckSave,
+.editDeckCancel {
+  width: 120px !important;
+  height: 36px !important;
+  border-radius: 20px !important;
+  font-family: "Jersey 15", sans-serif !important;
+  font-size: 18px !important;
+  color: var(--font-color) !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+
+.editDeckSave {
+  background: #e3aadd !important;
+  border: 1px solid #b276e6 !important;
+  box-shadow: 0 4px 0 #a45de3 !important;
+}
+
+.editDeckCancel {
+  background: #ffffff !important;
+  border: 1px solid #000 !important;
+  box-shadow: 0 4px 0 grey !important;
+}
+
+.editDeckSave:hover,
+.editDeckCancel:hover {
+  transform: translateY(-2px);
+}
+
+:global(.swal2-popup).editDeckPopup {
+  padding: 0 !important;
+  background: #ffffff !important;
+  border-radius: 36px !important;
+  overflow: hidden !important;
+}
+
+:global(.swal2-popup).editDeckPopup :global(.swal2-title) {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+:global(.swal2-popup).editDeckPopup :global(.swal2-html-container) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
 }
 
 .cards-actions {
@@ -2328,7 +2385,7 @@ color:#ff4d4f;
 :global(.swal2-popup.editDeckPopup) {
   padding: 0 !important;
   overflow: hidden !important;
-  border-radius: 16px !important;
+  border-radius: 36px !important;
 }
 
 :global(.swal2-popup.editDeckPopup .swal2-html-container) {
@@ -2337,5 +2394,5 @@ color:#ff4d4f;
 }
 
 :global(.swal2-popup.editDeckPopup .swal2-actions) {
-  margin: 0 40px 20px !important;
+  margin: 16px 40px 28px !important;
 }

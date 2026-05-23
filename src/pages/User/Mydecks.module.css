@@ -1330,9 +1330,9 @@
 
 .editDeckPopup {
   width: 600px !important;
-  max-width: 92vw !important;
+  max-width: calc(100vw - 40px) !important;
   padding: 0 !important;
-  border-radius: 18px !important;
+  border-radius: 36px !important;
   overflow: hidden !important;
   background: #ffffff !important;
   font-family: "Jersey 15", sans-serif !important;
@@ -1347,23 +1347,26 @@
   margin: 0 !important;
   padding: 0 !important;
   width: 100%;
+  background: #ffffff;
 }
 
 .editDeckHeader {
-  height: 110px;
-  background: #d7a7ff;
+  height: 90px;
+  background: #e3c2ff;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-top-left-radius: 36px;
+  border-top-right-radius: 36px;
 }
 
 .editDeckHeader span {
-  font-size: 34px;
-  color: #111;
+  font-size: 32px;
+  color: #000;
 }
 
 .editDeckBody {
-  padding: 28px 40px 24px;
+  padding: 30px 40px 0;
   text-align: left;
 }
 
@@ -1382,7 +1385,7 @@
   border: none;
   outline: none;
   background: #f2f2f2;
-  border-radius: 14px;
+  border-radius: 999px;
   padding: 0 16px;
   height: 44px;
   font-family: "Jersey 15", sans-serif;
@@ -1395,6 +1398,7 @@
   height: 80px;
   padding-top: 14px;
   resize: none;
+  border-radius: 22px;
 }
 
 .editDeckSelect {
@@ -1430,7 +1434,7 @@
 
 .editDeckActions {
   border-top: 1px solid #ececec;
-  margin: 0 40px !important;
+  margin: 16px 40px 28px !important;
   padding: 20px 0 28px !important;
   display: flex !important;
   justify-content: center !important;
@@ -1439,26 +1443,52 @@
 
 .editDeckSaveBtn,
 .editDeckCancelBtn {
-  min-width: 120px;
-  height: 42px;
-  border-radius: 14px !important;
+  width: 120px;
+  height: 36px;
+  border-radius: 20px !important;
   font-family: "Jersey 15", sans-serif !important;
   font-size: 18px !important;
+  color: #333 !important;
   cursor: pointer;
+  transition: all 0.15s ease !important;
 }
 
 .editDeckSaveBtn {
-  background: #8f63c6 !important;
-  color: white !important;
-  border: none !important;
-  box-shadow: 0 4px 0 #6f47a6 !important;
+  background: #e3aadd !important;
+  border: 1px solid #b276e6 !important;
+  box-shadow: 0 4px 0 #a45de3 !important;
 }
 
 .editDeckCancelBtn {
-  background: #666 !important;
-  color: white !important;
-  border: none !important;
-  box-shadow: 0 4px 0 #3f3f3f !important;
+  background: #fff !important;
+  border: 1px solid #000 !important;
+  box-shadow: 0 4px 0 grey !important;
+}
+
+.editDeckSaveBtn:hover,
+.editDeckCancelBtn:hover {
+  transform: translateY(-2px);
+}
+
+:global(.swal2-popup).editDeckPopup {
+  padding: 0 !important;
+  background: #ffffff !important;
+  border-radius: 36px !important;
+  overflow: hidden !important;
+}
+
+:global(.swal2-popup).editDeckPopup :global(.swal2-title) {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+:global(.swal2-popup).editDeckPopup :global(.swal2-html-container) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
 }
 
 @media (max-width: 520px) {
@@ -1467,18 +1497,22 @@
     border-radius: 28px !important;
   }
 
-  .editDeckTitle {
+  .editDeckHeader {
     height: 82px !important;
+    border-top-left-radius: 28px;
+    border-top-right-radius: 28px;
+  }
+
+  .editDeckHeader span {
     font-size: 28px !important;
   }
 
-  .editDeckHtml {
-    padding: 24px 0 0 !important;
+  .editDeckBody {
+    padding: 24px 24px 0;
   }
 
-  .editDeckForm,
   .editDeckActions {
-    width: calc(100% - 48px);
+    margin: 16px 24px 24px !important;
   }
 
   .editDeckActions {

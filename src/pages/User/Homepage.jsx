@@ -406,10 +406,8 @@ function Homepage() {
       .join("");
 
     const { value: formValues } = await Swal.fire({
-      title: "Edit Deck",
       customClass: {
         popup: styles.editDeckPopup,
-        title: styles.editDeckTitle,
         htmlContainer: styles.editDeckHtml,
         actions: styles.editDeckActions,
         confirmButton: styles.editDeckSaveBtn,
@@ -417,52 +415,58 @@ function Homepage() {
       },
       buttonsStyling: false,
       html: `
-        <div class="${styles.editDeckForm}">
-          <label class="${styles.editDeckLabel}">Deck Title</label>
-          <input id="swal-title" class="${styles.editDeckInput}" placeholder="Enter your deck name" value="${deck.title || ""}" />
-
-          <label class="${styles.editDeckLabel}">Description</label>
-          <textarea id="swal-desc" class="${styles.editDeckTextarea}" placeholder="Optional">${deck.description || ""}</textarea>
-
-          <label class="${styles.editDeckLabel}">Category</label>
-          <select id="swal-category" class="${styles.editDeckSelect}">
-            ${categoryOptions}
-          </select>
-
-          <label class="${styles.editDeckLabel}">Visibility</label>
-          <div class="${styles.editDeckRadioRow}">
-            <label>
-              <input type="radio" name="swal-visibility" value="public" ${deck.visibility === "public" ? "checked" : ""} />
-              Public
-            </label>
-
-            <label>
-              <input type="radio" name="swal-visibility" value="private" ${deck.visibility !== "public" ? "checked" : ""} />
-              Private
-            </label>
+        <div class="${styles.editDeckModal}">
+          <div class="${styles.editDeckHeader}">
+            <span>Edit Deck</span>
           </div>
 
-          <label class="${styles.editDeckLabel}">Choose Deck Color</label>
-          <div class="${styles.editDeckColorRow}">
-            ${deckColors
-              .map(
-                (color) => `
-                  <button
-                    type="button"
-                    class="${styles.editDeckColorDot}"
-                    data-color="${color}"
-                    style="background:${color}; ${
-                      (deck.deck_color || deck.deckColor) === color
-                        ? "outline: 3px solid #111;"
-                        : ""
-                    }"
-                  ></button>
-                `
-              )
-              .join("")}
-          </div>
+          <div class="${styles.editDeckForm}">
+            <label class="${styles.editDeckLabel}">Deck Title</label>
+            <input id="swal-title" class="${styles.editDeckInput}" placeholder="Enter your deck name" value="${deck.title || ""}" />
 
-          <input id="swal-color" type="hidden" value="${deck.deck_color || deck.deckColor || "#c9cdfa"}" />
+            <label class="${styles.editDeckLabel}">Description</label>
+            <textarea id="swal-desc" class="${styles.editDeckTextarea}" placeholder="Optional">${deck.description || ""}</textarea>
+
+            <label class="${styles.editDeckLabel}">Category</label>
+            <select id="swal-category" class="${styles.editDeckSelect}">
+              ${categoryOptions}
+            </select>
+
+            <label class="${styles.editDeckLabel}">Visibility</label>
+            <div class="${styles.editDeckRadioRow}">
+              <label>
+                <input type="radio" name="swal-visibility" value="public" ${deck.visibility === "public" ? "checked" : ""} />
+                Public
+              </label>
+
+              <label>
+                <input type="radio" name="swal-visibility" value="private" ${deck.visibility !== "public" ? "checked" : ""} />
+                Private
+              </label>
+            </div>
+
+            <label class="${styles.editDeckLabel}">Deck Color</label>
+            <div class="${styles.editDeckColorRow}">
+              ${deckColors
+                .map(
+                  (color) => `
+                    <button
+                      type="button"
+                      class="${styles.editDeckColorDot}"
+                      data-color="${color}"
+                      style="background:${color}; ${
+                        (deck.deck_color || deck.deckColor) === color
+                          ? "outline: 3px solid #111;"
+                          : ""
+                      }"
+                    ></button>
+                  `
+                )
+                .join("")}
+            </div>
+
+            <input id="swal-color" type="hidden" value="${deck.deck_color || deck.deckColor || "#c9cdfa"}" />
+          </div>
         </div>
       `,
       didOpen: () => {
@@ -485,6 +489,7 @@ function Homepage() {
       showCancelButton: true,
       confirmButtonText: "Save",
       cancelButtonText: "Cancel",
+      reverseButtons: true,
       preConfirm: () => {
         const title = document.getElementById("swal-title").value.trim();
         const description = document.getElementById("swal-desc").value.trim();
