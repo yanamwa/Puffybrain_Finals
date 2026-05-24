@@ -1,0 +1,442 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: 230px;
+  right: 0;
+  height: 70px;
+  padding: 0 28px;
+  background: #f5f5f5;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+.collapsedHeader {
+  left: 70px;
+}
+
+/* PHONE */
+@media (max-width: 768px) {
+  .header,
+  .collapsedHeader {
+    left: 60px !important;
+    right: 0;
+    height: 60px;
+    padding: 0 10px;
+    gap: 8px;
+  }
+}
+.searchBar {
+  flex: 1;
+  min-width: 0;
+  max-width: 850px;
+  height: 35px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid var(--color-third);
+  border-radius: 50px;
+  padding: 0 8px 0 18px;
+  box-sizing: border-box;
+}
+
+.searchBar input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 0 12px 0 0;
+  font-size: 15px;
+  color: var(--font-color);
+  font-family: inherit;
+}
+
+.searchBtn {
+  width: 38px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.searchBtn i {
+  font-size: 22px;
+  color: #555;
+}
+
+.notificationWrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.notificationBtn {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.notificationBtn i {
+  font-size: 24px;
+  color: #555;
+}
+
+.notificationBadge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #e74c3c;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+
+.notificationDropdown {
+  position: absolute;
+  top: 52px;
+  right: 0;
+  width: 330px;
+  max-height: 430px;
+  overflow-y: auto;
+  background: white;
+  border-radius: 20px;
+  padding: 14px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.14);
+  z-index: 99999;
+  display: none;
+}
+
+.show {
+  display: block;
+}
+
+.notificationHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 12px;
+}
+
+.notificationHeader h4 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.markReadBtn {
+  border: 1px solid #6f5796;
+  background: #907ead;
+  box-shadow: 0 4px rgb(126, 107, 158);
+  color: white;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.emptyNotification {
+  min-height: 180px;
+  padding: 22px 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.emptyNotificationImg {
+  width: 165px;
+}
+
+.notificationItem {
+  padding: 14px 4px;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.notificationTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.notificationTop h5 {
+  margin: 0;
+  font-size: 16px;
+  color: #5a0776;
+}
+
+.notificationRole {
+  background: #1515158b;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 14px;
+}
+
+.notificationItem p {
+  font-size: 16px;
+}
+
+.notificationDate {
+  color: #777;
+  font-size: 14px;
+}
+
+@media (max-width: 1199px) {
+  .header {
+    right: 0;
+  }
+}
+
+  .searchBar {
+    height: 34px;
+  }
+
+  .searchBar input {
+    font-size: 13px;
+  }
+
+  .notificationBtn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .notificationDropdown {
+    position: fixed;
+    top: 65px;
+    right: 10px;
+    width: 250px;
+  }
+
+
+.profileWrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  position: relative;
+}
+
+.profileLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.dpContainer,
+.profilePic {
+  width: 40px;
+  height: 40px;
+}
+
+.profilePic {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.userInfo p {
+  margin: 0;
+  font-size: 20px;
+  white-space: nowrap;
+}
+
+.dropdown {
+  position: relative;
+}
+
+.dropdownBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 6px;
+}
+
+.dropdownContent {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  display: none;
+  width: 190px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+  border-radius: 12px;
+  padding: 8px;
+  z-index: 99999;
+}
+
+.dropdownContent a,
+.dropdownContent button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #000;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 15px;
+  text-align: left;
+}
+
+.dropdownContent a:hover,
+.dropdownContent button:hover {
+  background: #f3f3f3;
+}
+
+.show {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .userInfo {
+    display: none;
+  }
+
+  .profileWrapper {
+    gap: 4px;
+  }
+
+  .dpContainer,
+  .profilePic {
+    width: 34px;
+    height: 34px;
+  }
+
+  .dropdownContent {
+    position: fixed;
+    top: 65px;
+    right: 10px;
+    width: 180px;
+  }
+}
+
+/* ===== PHONE HEADER FIX ===== */
+@media (max-width: 768px) {
+  .header {
+    left: 220px;
+    right: 0;
+    height: 52px;
+    padding: 0 8px;
+    gap: 6px;
+  }
+
+  .searchBar {
+    height: 30px;
+    max-width: none;
+    margin: 0;
+    padding: 0 6px 0 10px;
+  }
+
+  .searchBar input {
+    font-size: 10px;
+    padding-right: 4px;
+  }
+
+  .searchBtn {
+    width: 26px;
+    height: 26px;
+  }
+
+  .searchBtn i {
+    font-size: 17px;
+  }
+
+  .notificationBtn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .notificationBtn i {
+    font-size: 18px;
+  }
+
+  .profileWrapper {
+    gap: 3px;
+    margin-left: 4px;
+  }
+
+  .dpContainer,
+  .profilePic {
+    width: 30px;
+    height: 30px;
+  }
+
+  .userInfo p {
+    display: block;
+    font-size: 12px;
+    max-width: 45px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .dropdownBtn {
+    padding: 2px;
+    font-size: 14px;
+  }
+
+  .notificationDropdown {
+    position: fixed;
+    top: 58px;
+    right: 8px;
+    width: 240px;
+  }
+
+  .dropdownContent {
+    position: fixed;
+    top: 58px;
+    right: 8px;
+    width: 170px;
+  }
+}
+
+.header {
+  left: 230px;
+  right: 0;
+}
+
+.collapsedHeader {
+  left: 70px;
+}
+
+@media (max-width: 768px) {
+  .header {
+    left: 60px;
+    right: 0;
+  }
+
+  .collapsedHeader {
+    left: 60px;
+  }
+}

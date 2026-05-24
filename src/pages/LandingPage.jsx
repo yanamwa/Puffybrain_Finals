@@ -1,5 +1,8 @@
 import { useEffect } from "react";
 import styles from "./LandingPage.module.css";
+import LandingNavbar from "../components/LandingNavbar";
+import LandingFooter from "../components/LandingFooter";
+
 
 function LandingPage() {
   useEffect(() => {
@@ -9,7 +12,7 @@ function LandingPage() {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add(styles.show);npm
+           entry.target.classList.add(styles.show);
           } else {
             entry.target.classList.remove(styles.show);
           }
@@ -28,44 +31,7 @@ function LandingPage() {
       <div className={styles.wrapper}>
         <section className={styles.container}>
           <div className={styles.background}></div>
-
-          <div className={styles.navbar}>
-            <div className={styles.logo}>
-              <img src="/images/logo1.png" alt="Logo" />
-            </div>
-
-            <nav className={styles.navLinks}>
-              <li>
-                <a href="/">Home</a>
-              </li>
-
-              <li>
-                <a href="/about">About</a>
-              </li>
-
-              <li>
-                <a href="/Landing/FAQ">FAQ</a>
-              </li>
-
-              <li>
-                <a href="/contact">Contact Us</a>
-              </li>
-            </nav>
-
-            <div className={styles.navActions}>
-              <a
-                href="/signup"
-                className={styles.startBtn}
-                style={{
-                  textDecoration: "none",
-                  display: "inline-block",
-                }}
-              >
-                Start Learning
-              </a>
-            </div>
-          </div>
-
+          <LandingNavbar />
           <section className={styles.heroBg}>
             <div className={styles.heroContent}>
               <p className={styles.studySecret}>
@@ -179,33 +145,7 @@ function LandingPage() {
           </a>
         </div>
       </section>
-
-      <footer className={styles.footer}>
-        <div className={styles.footerMenu}>
-          <a href="#">About Us</a>
-          <a href="#">Terms and Conditions</a>
-          <a href="#">Privacy Policy</a>
-          <a href="#">Contact Us</a>
-        </div>
-
-        <div className={styles.socialIcons}>
-          <a href="#">
-            <i className="fab fa-instagram"></i>
-          </a>
-
-          <a href="#">
-            <i className="fa-brands fa-facebook-f"></i>
-          </a>
-
-          <a href="mailto:example@gmail.com">
-            <i className="fas fa-envelope"></i>
-          </a>
-        </div>
-      </footer>
-
-      <div className={styles.subFooter}>
-        <p>© 2025 – PuffyBrain All Rights Reserved</p>
-      </div>
+<LandingFooter />
     </>
   );
 }

@@ -1,10 +1,12 @@
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import styles from "./homepage.module.css";
 import Calendar from "./Calendar";
 import TodoList from "./TodoList";
 import { API_BASE } from "../../config.js";
+import UserHeader from "../../components/UserHeader";
+import UserSidebar from "../../components/UserSidebar";
 
 function Homepage() {
   const navigate = useNavigate();
@@ -22,7 +24,7 @@ function Homepage() {
   const [customCategory, setCustomCategory] = useState("");
   const [deckVisibility, setDeckVisibility] = useState("private");
   const [deckColor, setDeckColor] = useState("#C3C7F3");
-
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -625,235 +627,37 @@ function Homepage() {
   };
 
   return (
-    <div
-      className={`${styles.container} ${
-        isCollapsed ? styles.sidebarCollapsed : ""
-      }`}
-    >
-      <aside
-        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
-      >
-        <div>
-          <div
-            className={styles.sidebarToggle}
-            onClick={() => setIsCollapsed(!isCollapsed)}
-          >
-            <i className="bx bx-sidebar"></i>
-          </div>
+  <div
+    className={`${styles.container} ${
+      isCollapsed ? styles.sidebarCollapsed : ""
+    }`}
+  >
+    <UserSidebar
+      isCollapsed={isCollapsed}
+      setIsCollapsed={setIsCollapsed}
+      myDecks={myDecks}
+      courses={courses}
+      openCourse={openCourse}
+      getDeckId={getDeckId}
+    />
 
-          <div className={styles.logo}>
-            <img
-              className={styles.logoExpanded}
-              src="/images/logo1.png"
-              alt="Logo"
-            />
-            <img
-              className={styles.logoCollapsed}
-              src="/images/logo_solo.png"
-              alt="Logo"
-            />
-          </div>
-
-          <div className={styles.divider}></div>
-          <p className={styles.myDecksTitle}>Menu</p>
-
-          <nav className={styles.menu}>
-            <ul className={styles.sidebarList}>
-              <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/homepage"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-home"></i>
-                  <span className={styles.menuText}>Home</span>
-                </NavLink>
-              </li>
-
-              <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/mydecks"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-collection"></i>
-                  <span className={styles.menuText}>Decks</span>
-                </NavLink>
-              </li>
-
-              <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/mycourse"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-book-open"></i>
-                  <span className={styles.menuText}>My Course</span>
-                </NavLink>
-              </li>
-
-              <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/public-decks"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-world"></i>
-                  <span className={styles.menuText}>Public Decks</span>
-                </NavLink>
-              </li>
-            </ul>
-          </nav>
-
-          <div className={styles.divider}></div>
-
-          <div className={styles.myDecksNav}>
-            <div className={styles.sectionBlock}>
-              <p className={styles.sectionTitle}>My Decks</p>
-
-              <ul className={styles.sectionList}>
-                {myDecks.length === 0 ? (
-                  <li className={styles.sidebarEmptyText}>
-                    Don't have decks yet
-                  </li>
-                ) : (
-                  myDecks.slice(0, 3).map((deck) => {
-                    const deckId = getDeckId(deck);
-
-                    return (
-                      <li key={deckId} className={styles.sidebarListItem}>
-                        <Link to={`/deck/${deckId}`} className={styles.menuItem}>
-                          <i className="bx bx-collection"></i>
-                          <span className={styles.menuText}>{deck.title}</span>
-                        </Link>
-                      </li>
-                    );
-                  })
-                )}
-              </ul>
-            </div>
-
-            <div className={styles.sectionBlock}>
-              <div className={styles.sectionDivider}></div>
-              <p className={styles.sectionTitle}>My Courses</p>
-
-              <ul className={styles.sectionList}>
-                {courses.length === 0 ? (
-                  <li className={styles.sidebarEmptyText}>
-                    No courses added yet
-                  </li>
-                ) : (
-                  courses.slice(0, 3).map((course) => (
-                    <li key={course.id} className={styles.sidebarListItem}>
-                      <button
-                        type="button"
-                        onClick={() => openCourse(course.id)}
-                        className={styles.menuItem}
-                      >
-                        <i className="bx bx-book-open"></i>
-                        <span className={styles.menuText}>{course.title}</span>
-                      </button>
-                    </li>
-                  ))
-                )}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      <div className={styles.mainArea}>
-        <header className={styles.header}>
-          <form className={styles.searchBar} onSubmit={handleSearchSubmit}>
-            <input
-              type="text"
-              placeholder="Search your deck or course title"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-
-            <button type="submit" className={styles.searchBtn}>
-              <i className="bx bx-search"></i>
-            </button>
-          </form>
-
-          <div className={styles.notificationWrapper}>
-            <button
-              className={styles.notificationBtn}
-              onClick={(e) => {
-                e.stopPropagation();
-                setNotificationOpen((prev) => !prev);
-                setDropdownOpen(null);
-              }}
-            >
-              <i className="bx bx-bell"></i>
-
-              {notificationCount > 0 && (
-                <span className={styles.notificationBadge}>
-                  {notificationCount}
-                </span>
-              )}
-            </button>
-
-            <div
-              className={`${styles.notificationDropdown} ${
-                notificationOpen ? styles.show : ""
-              }`}
-            >
-              <div className={styles.notificationHeader}>
-                <h4>Notifications</h4>
-
-                {notificationCount > 0 && (
-                  <button
-                    type="button"
-                    className={styles.markReadBtn}
-                    onClick={markNotificationsAsRead}
-                  >
-                    Mark all as read
-                  </button>
-                )}
-              </div>
-
-              {notifications.length > 0 ? (
-                notifications.slice(0, 5).map((notif) => (
-                  <div
-                    key={notif.notification_id}
-                    className={styles.notificationItem}
-                  >
-                    <div className={styles.notificationTop}>
-                      <h5>{notif.title}</h5>
-
-                      <span className={styles.notificationRole}>
-                        {notif.target_role || notif.recipient_type || "user"}
-                      </span>
-                    </div>
-
-                    <p>{notif.message}</p>
-
-                    <small className={styles.notificationDate}>
-                      {new Date(notif.created_at).toLocaleString()}
-                    </small>
-                  </div>
-                ))
-              ) : (
-                <div className={styles.emptyNotification}>
-                  <img
-                    src="/images/NoNotifcation.png"
-                    alt="No notifications"
-                    className={styles.emptyNotificationImg}
-                  />
-
-                  <p>You don’t have any new notifications</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </header>
-
+    <div className={styles.mainArea}>
+ <UserHeader
+  isCollapsed={isCollapsed}
+  searchQuery={searchQuery}
+  setSearchQuery={setSearchQuery}
+  handleSearchSubmit={handleSearchSubmit}
+  notificationOpen={notificationOpen}
+  setNotificationOpen={setNotificationOpen}
+  setDropdownOpen={setDropdownOpen}
+  notificationCount={notificationCount}
+  notifications={notifications}
+  markNotificationsAsRead={markNotificationsAsRead}
+  user={user}
+  profileDropdownOpen={profileDropdownOpen}
+  setProfileDropdownOpen={setProfileDropdownOpen}
+  handleLogout={handleLogout}
+/>
         <main className={styles.mainContent}>
           <div className={styles.centerBox}>
             <h1>Hello, {user.username || "User"}!</h1>

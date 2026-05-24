@@ -599,3 +599,251 @@
   content: "✗";
   color: #d1d5db;
 }
+
+/* ===== PHONE FIX: LOGIN + SIGNUP ===== */
+@media (max-width: 600px) {
+  html,
+  body {
+    margin: 0;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .wrapper {
+    width: 100%;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  .container {
+    width: 100%;
+    min-height: 100vh;
+    border: none;
+    border-radius: 0;
+    overflow-x: hidden;
+  }
+
+  .navbar {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 18px 10px;
+    border-radius: 0;
+    gap: 14px;
+    flex-direction: column;
+    box-sizing: border-box;
+  }
+
+  .logo img {
+    height: 58px;
+  }
+
+  .navLinks {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 24px;
+    padding: 0;
+    margin: 0;
+    font-size: 16px;
+    overflow-x: auto;
+  }
+
+  .navActions {
+    display: none;
+  }
+
+  .signupContainer,
+  .loginContainer {
+    margin-top: 0;
+    padding: 80px 14px 35px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .signupCard,
+  .loginCard {
+    width: 100% !important;
+    max-width: 360px !important;
+    margin: 0 auto !important;
+    padding: 48px 28px 35px !important;
+    border-radius: 28px !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 5px 0 #b58ee5 !important;
+  }
+
+  .signupCard h2,
+  .loginCard h2 {
+    font-size: 34px !important;
+    line-height: 1.1;
+  }
+
+  .signupCard h2::after {
+    width: 100%;
+  }
+
+  .signupCard label,
+  .loginCard label {
+    font-size: 16px;
+    margin-top: 24px;
+  }
+
+  .signupCard input,
+  .loginCard input,
+  .passwordWrapper input {
+    width: 100% !important;
+    height: 42px;
+    padding: 0 14px;
+    font-size: 15px;
+    box-sizing: border-box;
+  }
+
+  .toggleEye {
+    left: auto !important;
+    right: 14px !important;
+  }
+
+  .forgot {
+    text-align: center;
+    font-size: 15px;
+  }
+
+  .loginBtn {
+    font-size: 17px;
+    height: 48px;
+    padding: 0;
+  }
+
+  .signupText,
+  .signinText,
+  .termsText {
+    font-size: 15px;
+    line-height: 1.35;
+  }
+
+  .passwordChecklist {
+    font-size: 12px;
+    padding: 10px;
+  }
+}
+
+.cantOptions {
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  align-items: stretch;
+}
+
+/* ===== PHONE FIX: CAN'T SIGN IN ===== */
+@media (max-width: 600px) {
+  .cantOptions {
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+    align-items: center;
+  }
+
+  .cantOptions a {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .cantCard {
+    width: 100% !important;
+    max-width: 320px !important;
+    min-height: 300px !important;
+    margin: 0 auto !important;
+    padding: 28px 22px !important;
+    box-sizing: border-box !important;
+    box-shadow: 8px 8px 0 #979797 !important;
+  }
+
+  .cantCard img {
+    width: 140px !important;
+  }
+
+  .cantCard h3 {
+    font-size: 22px !important;
+  }
+
+  .cantCard p {
+    font-size: 15px !important;
+    line-height: 1.35 !important;
+  }
+}
+
+.cantOptions {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  width: 100%;
+}
+
+.cantLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.cantCard {
+  width: 380px;
+  min-height: 380px;
+  background: #ffffff;
+  border-radius: 30px;
+  padding: 50px;
+  text-align: center;
+  box-shadow: 15px 15px 0 #979797;
+  box-sizing: border-box;
+}
+
+.cantCard img {
+  width: 180px;
+  margin: 0 auto 10px;
+}
+
+.cantCard h3 {
+  font-size: 26px;
+  color: var(--font-color);
+}
+
+.cantCard p {
+  color: #666;
+  font-size: 18px;
+}
+
+@media (max-width: 600px) {
+  .cantOptions {
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .cantLink {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .cantCard {
+    width: 100% !important;
+    min-height: 300px !important;
+    margin: 0 auto !important;
+    padding: 28px 22px !important;
+    box-shadow: 8px 8px 0 #979797 !important;
+  }
+
+  .cantCard img {
+    width: 140px !important;
+  }
+
+  .cantCard h3 {
+    font-size: 22px !important;
+  }
+
+  .cantCard p {
+    font-size: 15px !important;
+  }
+}

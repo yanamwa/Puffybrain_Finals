@@ -1,0 +1,259 @@
+.sidebar {
+  position: fixed;
+  width: 230px;
+  background-color: var(--color-primary);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100vh;
+  padding-top: 10px;
+  transition: width 0.3s ease;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+}
+
+.sidebarInner {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar.collapsed {
+  width: 70px;
+}
+
+.logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.logoExpanded {
+  display: block;
+  width: 150px;
+  height: auto;
+  object-fit: contain;
+  transition: all 0.3s ease;
+}
+
+.logoCollapsed {
+  display: none;
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+  margin: 0;
+}
+
+.sidebar.collapsed .logoExpanded {
+  display: none;
+}
+
+.sidebar.collapsed .logoCollapsed {
+  display: block;
+}
+
+.sidebarToggle {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 10px;
+  cursor: pointer;
+}
+
+.sidebar.collapsed .sidebarToggle {
+  justify-content: center;
+  padding: 0;
+}
+
+.sidebarToggle i {
+  font-size: 24px;
+  color: #959494;
+}
+
+.sidebarList,
+.sectionList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebarListItem {
+  margin: 0;
+  padding: 0 8px 0 10px;
+}
+
+.sidebarList i,
+.sectionList i {
+  width: 22px;
+  min-width: 22px;
+  font-size: 20px;
+  margin-left: 14px;
+  margin-right: 10px;
+  opacity: 0.3;
+  color: var(--font-color);
+  font-weight: normal;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  text-decoration: none;
+  color: var(--font-color);
+  background: transparent;
+  border: none;
+  padding: 10px 14px;
+  margin: 4px 0;
+  border-radius: 999px 0 0 999px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-family: "Jersey 15", sans-serif;
+  font-size: 22px;
+  font-weight: normal;
+}
+
+.menuItem:hover {
+  background: #ffffff;
+  transform: translateX(6px);
+}
+
+.active,
+.menuItem.active {
+  background: rgb(243, 243, 243);
+  transform: translateX(6px);
+  margin-left: 30px;
+}
+
+.menuItem:hover i,
+.active i {
+  opacity: 1;
+}
+
+.menuText {
+  display: inline-block;
+  line-height: 1.2;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.divider {
+  height: 1px;
+  background-color: white;
+  margin: 0 10px;
+}
+
+.sectionTitle {
+  font-size: 17px;
+  margin: 10px 0 5px 15px;
+  font-family: "Jersey 15", sans-serif;
+  color: black;
+}
+
+.sectionList .menuItem {
+  font-size: 20px;
+}
+
+.seeMoreLink {
+  padding-left: 20px;
+  color: #6b46d8;
+  text-decoration: none;
+  font-size: 18px;
+  font-family: "Jersey 15", sans-serif;
+}
+
+.sidebar.collapsed .menuText,
+.sidebar.collapsed .sectionTitle {
+  display: none;
+}
+.sidebar.collapsed i {
+  margin-left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.sidebar.collapsed .sectionList .menuItem {
+  justify-content: center;
+  padding: 12px 0;
+}
+
+.sidebar.collapsed .sectionList i {
+  margin: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+
+.sidebar.collapsed .menuItem {
+  justify-content: center;
+}
+
+.sidebar.collapsed .active,
+.sidebar.collapsed .menuItem.active {
+  margin-left: 0 !important;
+  transform: none !important;
+  background: #ffffff;
+  border-radius: 50%;
+}
+
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 60px !important;
+  }
+
+  .menuText,
+  .sectionTitle,
+  .logoExpanded {
+    display: none !important;
+  }
+
+  .logoCollapsed {
+    display: block !important;
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .sidebarListItem {
+    padding: 0 !important;
+  }
+
+  .menuItem {
+    justify-content: center !important;
+    padding: 12px 0 !important;
+    margin: 4px 0 !important;
+    border-radius: 0 !important;
+    transform: none !important;
+  }
+
+  .menuItem:hover,
+  .active,
+  .menuItem.active {
+    margin-left: 0 !important;
+    transform: none !important;
+    background: #ffffff !important;
+  }
+
+  .menuItem i,
+  .sectionList i,
+  .sidebarList i {
+    margin: 0 !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+    font-size: 1.3rem !important;
+  }
+
+
+  .myDecksNav {
+    display: none !important;
+  }
+}

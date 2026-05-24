@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import "boxicons/css/boxicons.min.css";
 import { API_BASE } from "../../config.js";
 import styles from "./Mydecks.module.css";
+import UserHeader from "../../components/UserHeader";
+import UserSidebar from "../../components/UserSidebar";
 
 function MyDecks() {
   const navigate = useNavigate();
@@ -138,22 +140,29 @@ function MyDecks() {
   });
 };
 
-    const normalizeDeck = (deck) => {
-    const visibilityValue = deck.visibility || "private";
+const normalizeDeck = (deck) => {
+  const visibilityValue = deck.visibility || "private";
 
-    return {
-      id: deck.deck_id || deck.id,
-      title: deck.title || "",
-      description: deck.description || "",
-      category: deck.category || "Reviewer",
-      cards: Number(deck.card_count || deck.cards || 0),
-      type: visibilityValue === "public" ? "shared" : "private",
-      visibility: visibilityValue,
-      source: deck.deck_source || "created",
-      deckColor: deck.deck_color || deck.deckColor || "#c9cdfa",
-    };
+  const safeDeckColor =
+    typeof deck.deck_color === "string"
+      ? deck.deck_color.trim()
+      : "";
+
+  return {
+    id: deck.deck_id || deck.id,
+    title: deck.title || "",
+    description: deck.description || "",
+    category: deck.category || "Reviewer",
+    cards: Number(deck.card_count || deck.cards || 0),
+    type: visibilityValue === "public" ? "shared" : "private",
+    visibility: visibilityValue,
+    source: deck.deck_source || "created",
+    deckColor:
+      safeDeckColor && safeDeckColor !== "#ffffff"
+        ? safeDeckColor
+        : "#D7C9F7",
   };
-
+};
     const fetchUserDecks = async () => {
       try {
         const res = await fetch(`${API_BASE}/userDecks.php`, {
@@ -739,521 +748,248 @@ function MyDecks() {
         });
       }
     };
-
-
-
-    
+  
     return (
-      <div
-        className={`${styles.container} ${
-          isCollapsed ? styles.sidebarCollapsed : ""
-        }`}
-      >
-        <aside
-          className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
-        >
-          <div>
-            <div
-              className={styles.sidebarToggle}
-              onClick={() => setIsCollapsed(!isCollapsed)}
+  <div
+    className={`${styles.container} ${
+      isCollapsed ? styles.sidebarCollapsed : ""
+    }`}
+  >
+<UserSidebar
+  isCollapsed={isCollapsed}
+  setIsCollapsed={setIsCollapsed}
+  myDecks={myDecks}
+  courses={courses}
+  openCourse={openCourse}
+  getDeckId={(deck) => deck.deck_id || deck.id}
+/>
+
+    <div className={styles.mainArea}>
+      <UserHeader
+        isCollapsed={isCollapsed}
+        searchQuery={search}
+        setSearchQuery={setSearch}
+        handleSearchSubmit={(e) => e.preventDefault()}
+        notificationOpen={notificationOpen}
+        setNotificationOpen={setNotificationOpen}
+        setDropdownOpen={setDropdownOpen}
+        notificationCount={notificationCount}
+        notifications={notifications}
+        markNotificationsAsRead={markNotificationsAsRead}
+        user={user}
+        profileDropdownOpen={profileDropdownOpen}
+        setProfileDropdownOpen={setProfileDropdownOpen}
+        handleLogout={handleLogout}
+      />
+
+      <main className={styles.main}>
+        <div className={styles.panel}>
+          <div className={styles.purpleStrip} />
+
+          <div className={styles.panelHeader}>
+            <h1>My Decks</h1>
+
+            <button
+              className={styles.addBtn}
+              type="button"
+              onClick={() => setAddPopupOpen(true)}
             >
-              <i className="bx bx-sidebar"></i>
-            </div>
+              Add New Decks
+            </button>
+          </div>
+        </div>
 
-            <div className={styles.logo}>
-              <img
-                className={styles.logoExpanded}
-                src="/images/logo1.png"
-                alt="Logo"
-              />
-              <img
-                className={styles.logoCollapsed}
-                src="/images/logo_solo.png"
-                alt="Logo"
-              />
-            </div>
+        <div className={styles.panel}>
+          <div className={styles.purpleStrip} />
 
-            <div className={styles.divider}></div>
-            <p className={styles.myDecksTitle}>Menu</p>
+          <div className={styles.filterRow}>
+            <div className={styles.filterGroup}>
+              <div className={styles.customDropdown}>
+                <button
+                  type="button"
+                  className={styles.customDropdownBtn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDropdownOpen(null);
+                    setOpenFilterDropdown(
+                      openFilterDropdown === "deckType" ? null : "deckType"
+                    );
+                  }}
+                >
+                  <i className="bx bx-user"></i>
 
-            <nav className={styles.menu}>
-              <ul className={styles.sidebarList}>
-                <li className={styles.sidebarListItem}>
-                  <NavLink
-                    to="/homepage"
-                    className={({ isActive }) =>
-                      `${styles.menuItem} ${isActive ? styles.active : ""}`
-                    }
-                  >
-                    <i className="bx bx-home"></i>
-                    <span className={styles.menuText}>Home</span>
-                  </NavLink>
-                </li>
+                  <span>
+                    {selectedFilter === ""
+                      ? "All"
+                      : selectedFilter === "private"
+                      ? "Private"
+                      : selectedFilter === "public"
+                      ? "Public"
+                      : selectedFilter === "shared"
+                      ? "Shared"
+                      : selectedFilter === "mydecks"
+                      ? "My Decks"
+                      : selectedFilter === "publicdecks"
+                      ? "Public Decks"
+                      : "All"}
+                  </span>
 
-                <li className={styles.sidebarListItem}>
-                  <NavLink
-                    to="/Mydecks"
-                    className={({ isActive }) =>
-                      `${styles.menuItem} ${isActive ? styles.active : ""}`
-                    }
-                  >
-                    <i className="bx bx-collection"></i>
-                    <span className={styles.menuText}>Decks</span>
-                  </NavLink>
-                </li>
+                  <i className="bx bx-chevron-down"></i>
+                </button>
 
-                <li className={styles.sidebarListItem}>
-                  <NavLink
-                    to="/mycourse"
-                    className={({ isActive }) =>
-                      `${styles.menuItem} ${isActive ? styles.active : ""}`
-                    }
-                  >
-                    <i className="bx bx-book-open"></i>
-                    <span className={styles.menuText}>My Course</span>
-                  </NavLink>
-                </li>
+                {openFilterDropdown === "deckType" && (
+                  <div className={styles.customDropdownMenu}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedFilter("");
+                        setOpenFilterDropdown(null);
+                      }}
+                    >
+                      All
+                    </button>
 
-                <li className={styles.sidebarListItem}>
-                  <NavLink
-                    to="/public-decks"
-                    className={({ isActive }) =>
-                      `${styles.menuItem} ${isActive ? styles.active : ""}`
-                    }
-                  >
-                    <i className="bx bx-world"></i>
-                    <span className={styles.menuText}>Public Decks</span>
-                  </NavLink>
-                </li>
-              </ul>
-            </nav>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedFilter("private");
+                        setOpenFilterDropdown(null);
+                      }}
+                    >
+                      Private
+                    </button>
 
-            <div className={styles.divider}></div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedFilter("public");
+                        setOpenFilterDropdown(null);
+                      }}
+                    >
+                      Public
+                    </button>
 
-            <div className={styles.myDecksNav}>
-              <div className={styles.sectionBlock}>
-                <p className={styles.sectionTitle}>My Decks</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedFilter("shared");
+                        setOpenFilterDropdown(null);
+                      }}
+                    >
+                      Shared
+                    </button>
 
-                <ul className={styles.sectionList}>
-                  {myDecks.length === 0 ? (
-                    <li className={styles.sidebarEmptyText}>
-                      Don't have decks yet
-                    </li>
-                  ) : (
-                    myDecks.slice(0, 3).map((deck) => (
-                      <li
-                        key={deck.id || deck.deck_id}
-                        className={styles.sidebarListItem}
-                      >
-                        <Link
-                          to={`/deck/${deck.id || deck.deck_id}`}
-                          className={styles.menuItem}
-                        >
-                          <i className="bx bx-collection"></i>
-                          <span className={styles.menuText}>{deck.title}</span>
-                        </Link>
-                      </li>
-                    ))
-                  )}
-                </ul>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedFilter("mydecks");
+                        setOpenFilterDropdown(null);
+                      }}
+                    >
+                      My Decks
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedFilter("publicdecks");
+                        setOpenFilterDropdown(null);
+                      }}
+                    >
+                      Public Decks
+                    </button>
+                  </div>
+                )}
               </div>
 
-              <div className={styles.sectionBlock}>
-                <div className={styles.sectionDivider}></div>
-                <p className={styles.sectionTitle}>My Courses</p>
+              <div className={styles.customDropdown}>
+                <button
+                  type="button"
+                  className={styles.customDropdownBtn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDropdownOpen(null);
+                    setOpenFilterDropdown(
+                      openFilterDropdown === "category" ? null : "category"
+                    );
+                  }}
+                >
+                  <i className="bx bx-book"></i>
+                  <span>{selectedCategory || "Categories"}</span>
+                  <i className="bx bx-chevron-down"></i>
+                </button>
 
-                <ul className={styles.sectionList}>
-                  {courses.length === 0 ? (
-                    <li className={styles.sidebarEmptyText}>
-                      No courses added yet
-                    </li>
-                  ) : (
-                    courses.slice(0, 3).map((course) => (
-                      <li key={course.id} className={styles.sidebarListItem}>
+                {openFilterDropdown === "category" && (
+                  <div className={styles.customDropdownMenu}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedCategory("");
+                        setOpenFilterDropdown(null);
+                      }}
+                    >
+                      All Categories
+                    </button>
+
+                    {categories
+                      .filter((cat) => cat !== "Others")
+                      .map((cat) => (
                         <button
+                          key={cat}
                           type="button"
-                          onClick={() => openCourse(course.id)}
-                          className={styles.menuItem}
+                          onClick={() => {
+                            setSelectedCategory(cat);
+                            setOpenFilterDropdown(null);
+                          }}
                         >
-                          <i className="bx bx-book-open"></i>
-                          <span className={styles.menuText}>{course.title}</span>
+                          {cat}
                         </button>
-                      </li>
-                    ))
-                  )}
-                </ul>
+                      ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
-        </aside>
 
-        <div className={styles.mainArea}>
-          <div className={styles.gridContainer}>
-            <div className={styles.headerContainer}>
-              <form
-                className={styles.searchBar}
-                onSubmit={(e) => e.preventDefault()}
-              >
-                <input
-                  type="text"
-                  placeholder="Search by title, category, public, private..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+          <div className={styles.fullDivider}></div>
+
+          <div className={styles.deckArea}>
+            {decks.length === 0 ? (
+              <div className={styles.emptyState}>
+                <img
+                  src="/images/cute1.png"
+                  alt="No decks"
+                  className={styles.emptyImg}
                 />
-
-                {search.trim() ? (
-                  <button
-                    type="button"
-                    onClick={() => setSearch("")}
-                    aria-label="Clear search"
-                    className={styles.searchBtn}
-                  >
-                    <i className="bx bx-x"></i>
-                  </button>
-                ) : (
-                  <button
-                    type="submit"
-                    aria-label="Search"
-                    className={styles.searchBtn}
-                  >
-                    <i className="bx bx-search"></i>
-                  </button>
-                )}
-              </form>
-
-              <div className={styles.profileWrapper}>
-                <div className={styles.notificationWrapper}>
-                  <button
-                    type="button"
-                    className={styles.notificationBtn}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setNotificationOpen((prev) => !prev);
-                      setProfileDropdownOpen(false);
-                      setDropdownOpen(null);
-                      setOpenFilterDropdown(null);
-                    }}
-                  >
-                    <i className="bx bx-bell"></i>
-
-                    {notificationCount > 0 && (
-                      <span className={styles.notificationBadge}>
-                        {notificationCount}
-                      </span>
-                    )}
-                  </button>
-
-                  <div
-                    className={`${styles.notificationDropdown} ${
-                      notificationOpen ? styles.show : ""
-                    }`}
-                  >
-                    <div className={styles.notificationHeader}>
-                      <h4>Notifications</h4>
-
-                      {notificationCount > 0 && (
-                        <button
-                          type="button"
-                          className={styles.markReadBtn}
-                          onClick={markNotificationsAsRead}
-                        >
-                          Mark all as read
-                        </button>
-                      )}
-                    </div>
-
-                    {notifications.length > 0 ? (
-                      notifications.slice(0, 5).map((notif) => (
-                        <div
-                          key={notif.notification_id}
-                          className={styles.notificationItem}
-                        >
-                          <div className={styles.notificationTop}>
-                            <h5>{notif.title}</h5>
-
-                            <span className={styles.notificationRole}>
-                              {notif.target_role}
-                            </span>
-                          </div>
-
-                          <p>{notif.message}</p>
-
-                          <small className={styles.notificationDate}>
-                            {new Date(notif.created_at).toLocaleString()}
-                          </small>
-                        </div>
-                      ))
-                    ) : (
-                      <div className={styles.emptyNotification}>
-                        <img
-                          src="/images/NoNotifcation.png"
-                          alt="No notifications"
-                          className={styles.emptyNotificationImg}
-                        />
-
-                        <p>You don’t have any new notifications</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <Link to="/user-profile" className={styles.profileLink}>
-                  <div className={styles.dpContainer}>
-                    <img
-                      src={user.profile_image || "/images/temporary profile.jpg"}
-                      alt="Profile"
-                      className={styles.profilePic}
-                    />
-                  </div>
-
-                  <div className={styles.userInfo}>
-                    <p>{user.username}</p>
-                  </div>
-                </Link>
-
-                <div className={styles.dropdown}>
-                  <button
-                    type="button"
-                    className={styles.dropdownBtn}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setProfileDropdownOpen(!profileDropdownOpen);
-                      setOpenFilterDropdown(null);
-                    }}
-                  >
-                    <i className="bx bx-chevron-down" />
-                  </button>
-
-                  <div
-                    className={`${styles.dropdownContent} ${
-                      profileDropdownOpen ? styles.show : ""
-                    }`}
-                  >
-                    <NavLink to="/edit-profile">
-                      <i className="bx bx-cog" />
-                      <span>Settings</span>
-                    </NavLink>
-
-                    <NavLink to="/faq">
-                      <i className="bx bx-help-circle" />
-                      <span>FAQs</span>
-                    </NavLink>
-
-                    <button type="button" onClick={handleLogout}>
-                      <i className="bx bx-log-out" />
-                      <span>Logout</span>
-                    </button>
-                  </div>
-                </div>
+                <p className={styles.emptyText}>
+                  You haven’t created any decks yet.
+                </p>
               </div>
-            </div>
-
-            <main className={styles.main}>
-              <div className={styles.panel}>
-                <div className={styles.purpleStrip} />
-
-                <div className={styles.panelHeader}>
-                  <h1>My Decks</h1>
-
-                  <button
-                    className={styles.addBtn}
-                    type="button"
-                    onClick={() => setAddPopupOpen(true)}
-                  >
-                    Add New Decks
-                  </button>
-                </div>
+            ) : filteredDecks.length === 0 ? (
+              <div className={styles.emptyState}>
+                <img
+                  src="/images/cute1.png"
+                  alt="No results"
+                  className={styles.emptyImg}
+                />
+                <p className={styles.emptyText}>
+                  No decks found for “{search}”.
+                </p>
               </div>
-
-              <div className={styles.panel}>
-                <div className={styles.purpleStrip} />
-
-                <div className={styles.filterRow}>
-                  <div className={styles.filterGroup}>
-                    <div className={styles.customDropdown}>
-                      <button
-                        type="button"
-                        className={styles.customDropdownBtn}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDropdownOpen(null);
-                          setOpenFilterDropdown(
-                            openFilterDropdown === "deckType" ? null : "deckType"
-                          );
-                        }}
-                      >
-                        <i className="bx bx-user"></i>
-                        <span>
-                            {selectedFilter === ""
-                              ? "All"
-                              : selectedFilter === "private"
-                              ? "Private"
-                              : selectedFilter === "public"
-                              ? "Public"
-                              : selectedFilter === "shared"
-                              ? "Shared"
-                              : selectedFilter === "mydecks"
-                              ? "My Decks"
-                              : selectedFilter === "publicdecks"
-                              ? "Public Decks"
-                              : "All"}
-                          </span>
-                        <i className="bx bx-chevron-down"></i>
-                      </button>
-
-                      {openFilterDropdown === "deckType" && (
-                        <div className={styles.customDropdownMenu}>
-  <button
-    type="button"
-    onClick={() => {
-      setSelectedFilter("");
-      setOpenFilterDropdown(null);
-    }}
-  >
-    All
-  </button>
-
-  <button
-    type="button"
-    onClick={() => {
-      setSelectedFilter("private");
-      setOpenFilterDropdown(null);
-    }}
-  >
-    Private
-  </button>
-
-  <button
-    type="button"
-    onClick={() => {
-      setSelectedFilter("public");
-      setOpenFilterDropdown(null);
-    }}
-  >
-    Public
-  </button>
-
-  <button
-    type="button"
-    onClick={() => {
-      setSelectedFilter("shared");
-      setOpenFilterDropdown(null);
-    }}
-  >
-    Shared
-  </button>
-
-  <button
-    type="button"
-    onClick={() => {
-      setSelectedFilter("mydecks");
-      setOpenFilterDropdown(null);
-    }}
-  >
-    My Decks
-  </button>
-
-  <button
-    type="button"
-    onClick={() => {
-      setSelectedFilter("publicdecks");
-      setOpenFilterDropdown(null);
-    }}
-  >
-    Public Decks
-  </button>
-</div>
-                      )}
-                    </div>
-
-                    <div className={styles.customDropdown}>
-                      <button
-                        type="button"
-                        className={styles.customDropdownBtn}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDropdownOpen(null);
-                          setOpenFilterDropdown(
-                            openFilterDropdown === "category" ? null : "category"
-                          );
-                        }}
-                      >
-                        <i className="bx bx-book"></i>
-                        <span>{selectedCategory || "Categories"}</span>
-                        <i className="bx bx-chevron-down"></i>
-                      </button>
-
-                      {openFilterDropdown === "category" && (
-                        <div className={styles.customDropdownMenu}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedCategory("");
-                              setOpenFilterDropdown(null);
-                            }}
-                          >
-                            All Categories
-                          </button>
-
-                          {categories
-                            .filter((cat) => cat !== "Others")
-                            .map((cat) => (
-                              <button
-                                key={cat}
-                                type="button"
-                                onClick={() => {
-                                  setSelectedCategory(cat);
-                                  setOpenFilterDropdown(null);
-                                }}
-                              >
-                                {cat}
-                              </button>
-                            ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className={styles.fullDivider}></div>
-
-                <div className={styles.deckArea}>
-                  {decks.length === 0 ? (
-                    <div className={styles.emptyState}>
-                      <img
-                        src="/images/cute1.png"
-                        alt="No decks"
-                        className={styles.emptyImg}
-                      />
-                      <p className={styles.emptyText}>
-                        You haven’t created any decks yet.
-                      </p>
-                    </div>
-                  ) : filteredDecks.length === 0 ? (
-                    <div className={styles.emptyState}>
-                      <img
-                        src="/images/cute1.png"
-                        alt="No results"
-                        className={styles.emptyImg}
-                      />
-                      <p className={styles.emptyText}>
-                        No decks found for “{search}”.
-                      </p>
-                    </div>
-                  ) : (
-                    filteredDecks.map((d) => (
-                      <article key={d.id} className={styles.deckCard}>
-                        <div
-                          className={styles.deckCardInner}
-                          onClick={() => openDeck(d.id)}
-                        >
-                          <div
-                            className={styles.deckTop}
-                            style={{
-                              backgroundColor: d.deckColor || "#c9cdfa",
-                            }}
-                          >
-                 {d.source === "created" && (
+            ) : (
+              filteredDecks.map((d) => (
+                <article key={d.id} className={styles.deckCard}>
+                  <div
+                    className={styles.deckCardInner}
+                    onClick={() => openDeck(d.id)}
+                  >
+                    <div
+                      className={styles.deckTop}
+                      style={{
+                        backgroundColor: d.deckColor || "#c9cdfa",
+                      }}
+                    >
+                      {d.source === "created" && (
                         <>
                           <button
                             type="button"
@@ -1307,163 +1043,162 @@ function MyDecks() {
                           )}
                         </>
                       )}
-                          </div>
+                    </div>
 
-                          <div className={styles.deckBody}>
-                            <h4>{d.title}</h4>
+                    <div className={styles.deckBody}>
+                      <h4>{d.title}</h4>
 
-                            <p className={styles.deckCategoryText}>
-                              <i className="bx bxs-book"></i>
-                              <span>{d.category || "Reviewer"}</span>
-                            </p>
+                      <p className={styles.deckCategoryText}>
+                        <i className="bx bxs-book"></i>
+                        <span>{d.category || "Reviewer"}</span>
+                      </p>
 
-                            <span className={styles.cardCount}>
-                              {d.cards} cards
-                            </span>
-                          </div>
-                        </div>
-                      </article>
-                    ))
-                  )}
-                </div>
-              </div>
-            </main>
+                      <span className={styles.cardCount}>{d.cards} cards</span>
+                    </div>
+                  </div>
+                </article>
+              ))
+            )}
+          </div>
+        </div>
+      </main>
 
-            {addPopupOpen && (
-              <div
-                className={styles.overlay}
+      {addPopupOpen && (
+        <div
+          className={styles.overlay}
+          onClick={() => {
+            setAddPopupOpen(false);
+            resetAddForm();
+          }}
+        >
+          <div
+            className={styles.modal}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className={styles.modalTitle}>Add Decks</h2>
+
+            <label className={styles.label}>Deck Title</label>
+            <input
+              className={styles.input}
+              value={deckTitle}
+              onChange={(e) => setDeckTitle(e.target.value)}
+              placeholder="Enter your deck name"
+            />
+
+            <label className={styles.label}>Description</label>
+            <input
+              className={styles.input}
+              value={deckDesc}
+              onChange={(e) => setDeckDesc(e.target.value)}
+              placeholder="Optional"
+            />
+
+            <label className={styles.label}>Category</label>
+            <select
+              className={styles.selectInput}
+              value={deckCategory}
+              onChange={(e) => {
+                setDeckCategory(e.target.value);
+
+                if (e.target.value !== "Others") {
+                  setCustomCategory("");
+                }
+              }}
+            >
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+
+            {deckCategory === "Others" && (
+              <input
+                className={`${styles.input} ${styles.customCategoryInput}`}
+                placeholder="Type category"
+                value={customCategory}
+                maxLength={30}
+                onChange={(e) => {
+                  const cleanValue = e.target.value.replace(
+                    /[^A-Za-z0-9 ]/g,
+                    ""
+                  );
+                  setCustomCategory(cleanValue);
+                }}
+              />
+            )}
+
+            <label className={styles.label}>Visibility</label>
+            <div className={styles.radioRow}>
+              <label className={styles.radioLabel}>
+                <input
+                  type="radio"
+                  name="visibility"
+                  checked={visibility === "public"}
+                  onChange={() => setVisibility("public")}
+                />
+                Public
+              </label>
+
+              <label className={styles.radioLabel}>
+                <input
+                  type="radio"
+                  name="visibility"
+                  checked={visibility === "private"}
+                  onChange={() => setVisibility("private")}
+                />
+                Private
+              </label>
+            </div>
+
+            <label className={styles.label}>Choose Deck Color</label>
+            <div className={styles.colorRow}>
+              {[
+                "#D7C9F7",
+                "#B8F2D9",
+                "#FFB7A5",
+                "#B5A9FF",
+                "#9EE7DD",
+                "#F4A7C1",
+              ].map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  className={styles.colorDot}
+                  style={{
+                    backgroundColor: c,
+                    outline: deckColor === c ? "3px solid #111" : "none",
+                  }}
+                  onClick={() => setDeckColor(c)}
+                />
+              ))}
+            </div>
+
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.cancelBtn}
                 onClick={() => {
                   setAddPopupOpen(false);
                   resetAddForm();
                 }}
               >
-                <div
-                  className={styles.modal}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <h2 className={styles.modalTitle}>Add Decks</h2>
+                Cancel
+              </button>
 
-                  <label className={styles.label}>Deck Title</label>
-                  <input
-                    className={styles.input}
-                    value={deckTitle}
-                    onChange={(e) => setDeckTitle(e.target.value)}
-                    placeholder="Enter your deck name"
-                  />
-
-                  <label className={styles.label}>Description</label>
-                  <input
-                    className={styles.input}
-                    value={deckDesc}
-                    onChange={(e) => setDeckDesc(e.target.value)}
-                    placeholder="Optional"
-                  />
-
-                  <label className={styles.label}>Category</label>
-                  <select
-                    className={styles.selectInput}
-                    value={deckCategory}
-                    onChange={(e) => {
-                      setDeckCategory(e.target.value);
-
-                      if (e.target.value !== "Others") {
-                        setCustomCategory("");
-                      }
-                    }}
-                  >
-                    {categories.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
-
-              {deckCategory === "Others" && (
-    <input
-      className={`${styles.input} ${styles.customCategoryInput}`}
-      placeholder="Type category"
-      value={customCategory}
-      maxLength={30}
-      onChange={(e) => {
-        const cleanValue = e.target.value.replace(/[^A-Za-z0-9 ]/g, "");
-        setCustomCategory(cleanValue);
-      }}
-    />
-  )}
-
-                  <label className={styles.label}>Visibility</label>
-                  <div className={styles.radioRow}>
-                    <label className={styles.radioLabel}>
-                      <input
-                        type="radio"
-                        name="visibility"
-                        checked={visibility === "public"}
-                        onChange={() => setVisibility("public")}
-                      />
-                      Public
-                    </label>
-
-                    <label className={styles.radioLabel}>
-                      <input
-                        type="radio"
-                        name="visibility"
-                        checked={visibility === "private"}
-                        onChange={() => setVisibility("private")}
-                      />
-                      Private
-                    </label>
-                  </div>
-
-                  <label className={styles.label}>Choose Deck Color</label>
-                  <div className={styles.colorRow}>
-                    {[
-                      "#D7C9F7",
-                      "#B8F2D9",
-                      "#FFB7A5",
-                      "#B5A9FF",
-                      "#9EE7DD",
-                      "#F4A7C1",
-                    ].map((c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        className={styles.colorDot}
-                        style={{
-                          backgroundColor: c,
-                          outline: deckColor === c ? "3px solid #111" : "none",
-                        }}
-                        onClick={() => setDeckColor(c)}
-                      />
-                    ))}
-                  </div>
-
-                  <div className={styles.modalActions}>
-                    <button
-                      type="button"
-                      className={styles.cancelBtn}
-                      onClick={() => {
-                        setAddPopupOpen(false);
-                        resetAddForm();
-                      }}
-                    >
-                      Cancel
-                    </button>
-
-                    <button
-                      type="button"
-                      className={styles.confirmBtn}
-                      onClick={handleAddDeck}
-                    >
-                      Add
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+              <button
+                type="button"
+                className={styles.confirmBtn}
+                onClick={handleAddDeck}
+              >
+                Add
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    );
+      )}
+    </div>
+  </div>
+);
   }
-  
-  export default MyDecks;
+export default MyDecks;

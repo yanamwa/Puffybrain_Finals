@@ -1,31 +1,38 @@
+/* ===== MY DECKS CLEANED CSS ===== */
+
 .container {
   display: flex;
   min-height: 100vh;
+  width: 100%;
   background: #f5f5f5;
+  overflow-x: hidden;
   transition: all 0.3s ease;
 }
 
+:global(.swal2-container),
 .swal2-container {
   z-index: 99999 !important;
 }
 
-.container.sidebarCollapsed .sidebar {
-  width: 60px;
-}
-
+/* ===== SIDEBAR ===== */
 .sidebar {
   position: fixed;
+  top: 0;
+  left: 0;
   width: 220px;
+  height: 100vh;
+  padding-top: 10px;
   background-color: var(--color-primary);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 100vh;
-  padding-top: 10px;
-  transition: width 0.3s ease;
+  overflow-x: hidden;
+  overflow-y: auto;
   z-index: 1000;
+  transition: width 0.3s ease;
 }
 
+.container.sidebarCollapsed .sidebar,
 .sidebar.collapsed {
   width: 60px;
 }
@@ -48,18 +55,20 @@
 
 .logoCollapsed {
   display: none;
-  width: 90px;
-  height: 90px;
+  width: 48px;
+  height: 48px;
   object-fit: contain;
+  margin: 0 auto;
   transition: all 0.3s ease;
-  margin: 0;
 }
 
-.sidebar.collapsed .logoExpanded {
+.sidebar.collapsed .logoExpanded,
+.container.sidebarCollapsed .logoExpanded {
   display: none;
 }
 
-.sidebar.collapsed .logoCollapsed {
+.sidebar.collapsed .logoCollapsed,
+.container.sidebarCollapsed .logoCollapsed {
   display: block;
 }
 
@@ -71,7 +80,8 @@
   transition: all 0.3s ease;
 }
 
-.sidebar.collapsed .sidebarToggle {
+.sidebar.collapsed .sidebarToggle,
+.container.sidebarCollapsed .sidebarToggle {
   justify-content: center;
   padding: 0;
 }
@@ -79,11 +89,6 @@
 .sidebarToggle i {
   font-size: 24px;
   color: #959494;
-}
-
-.myDecksTitle {
-  font-size: 17px;
-  margin: 0.3rem 0 0 15px;
 }
 
 .menu,
@@ -105,19 +110,8 @@
   padding: 0 8px 0 10px;
 }
 
-.sidebarList i,
-.sectionList i {
-  width: 22px;
-  min-width: 22px;
-  font-size: 20px;
-  margin-left: 14px;
-  margin-right: 10px;
-  opacity: 0.3;
-  color: black;
-  transition: all 0.3s ease;
-}
-
-.menuItem {
+.menuItem,
+.logoutLink {
   display: flex;
   align-items: center;
   width: 100%;
@@ -136,7 +130,13 @@
   font-size: inherit;
 }
 
-.menuItem:hover {
+.logoutLink {
+  width: calc(100% - 18px);
+  margin: 4px 8px 0 10px;
+}
+
+.menuItem:hover,
+.logoutLink:hover {
   background: #ffffff;
   transform: translateX(6px);
 }
@@ -145,49 +145,11 @@
 .active {
   background: rgb(243, 243, 243);
   transform: translateX(6px);
-  margin-left: 20px;  
+  margin-left: 20px;
 }
 
-.menuItem:hover i,
-.menuItem.active i,
-.active i {
-  opacity: 1;
-}
-
-.menuText {
-  display: inline-block;
-  line-height: 1.2;
-  white-space: normal;
-  word-break: break-word;
-}
-
-.logout {
-  margin-bottom: 20px;
-}
-
-.logoutLink {
-  display: flex;
-  align-items: center;
-  width: calc(100% - 18px);
-  box-sizing: border-box;
-  background: transparent;
-  border: none;
-  color: #000;
-  padding: 10px 14px;
-  margin: 4px 8px 0 10px;
-  border-radius: 999px 0 0 999px;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.25s ease, transform 0.25s ease;
-  font-family: inherit;
-  font-size: inherit;
-}
-
-.logoutLink:hover {
-  background: #ffffff;
-  transform: translateX(6px);
-}
-
+.sidebarList i,
+.sectionList i,
 .logoutLink i {
   width: 22px;
   min-width: 22px;
@@ -199,56 +161,36 @@
   transition: all 0.3s ease;
 }
 
+.menuItem:hover i,
+.menuItem.active i,
+.active i,
 .logoutLink:hover i {
   opacity: 1;
 }
 
-.sidebar.collapsed i {
-  margin-left: 0;
-  justify-content: center;
-  width: 100%;
-  display: flex;
-  font-size: 1.5rem;
+.menuText {
+  display: inline-block;
+  line-height: 1.2;
+  white-space: normal;
+  word-break: break-word;
 }
 
-.sidebar.collapsed .logout .logoutLink {
-  justify-content: center;
-  padding: 10px 0;
-  margin-left: 0;
-}
-
-.sidebar.collapsed .sidebarList span,
-.sidebar.collapsed .sectionList span,
-.sidebar.collapsed .menuText {
-  display: none;
-}
-
-.divider {
-  height: 1px;
-  background-color: white;
-  margin: 0 10px;
-}
-
-.sidebar.collapsed .myDecksTitle,
-.sidebar.collapsed .sectionTitle,
-.sidebar.collapsed .sidebarEmptyText {
-  display: none;
-}
-
-.sectionBlock {
-  margin-top: 10px;
-}
-
+.myDecksTitle,
 .sectionTitle {
   font-size: 17px;
   margin: 10px 0 5px 15px;
   font-weight: 500;
 }
 
+.divider,
 .sectionDivider {
   height: 1px;
   background-color: white;
   margin: 8px 10px;
+}
+
+.sectionBlock {
+  margin-top: 10px;
 }
 
 .sidebarEmptyText {
@@ -258,11 +200,74 @@
   color: #333;
 }
 
+.logout {
+  margin-bottom: 20px;
+}
+
+.sidebar.collapsed .myDecksTitle,
+.sidebar.collapsed .sectionTitle,
+.sidebar.collapsed .sidebarEmptyText,
+.sidebar.collapsed .sidebarList span,
+.sidebar.collapsed .sectionList span,
+.sidebar.collapsed .menuText,
+.container.sidebarCollapsed .myDecksTitle,
+.container.sidebarCollapsed .sectionTitle,
+.container.sidebarCollapsed .sidebarEmptyText,
+.container.sidebarCollapsed .sidebarList span,
+.container.sidebarCollapsed .sectionList span,
+.container.sidebarCollapsed .menuText {
+  display: none;
+}
+
+.sidebar.collapsed .sidebarListItem,
+.container.sidebarCollapsed .sidebarListItem {
+  padding: 0;
+}
+
+.sidebar.collapsed .menuItem,
+.sidebar.collapsed .logoutLink,
+.container.sidebarCollapsed .menuItem,
+.container.sidebarCollapsed .logoutLink {
+  justify-content: center;
+  width: 100%;
+  margin: 4px 0;
+  padding: 10px 0;
+  border-radius: 0;
+  transform: none;
+}
+
+.sidebar.collapsed .menuItem.active,
+.sidebar.collapsed .active,
+.sidebar.collapsed .menuItem:hover,
+.sidebar.collapsed .logoutLink:hover,
+.container.sidebarCollapsed .menuItem.active,
+.container.sidebarCollapsed .active,
+.container.sidebarCollapsed .menuItem:hover,
+.container.sidebarCollapsed .logoutLink:hover {
+  margin-left: 0;
+  transform: none;
+}
+
+.sidebar.collapsed .sidebarList i,
+.sidebar.collapsed .sectionList i,
+.sidebar.collapsed .logoutLink i,
+.container.sidebarCollapsed .sidebarList i,
+.container.sidebarCollapsed .sectionList i,
+.container.sidebarCollapsed .logoutLink i {
+  margin: 0;
+  width: 100%;
+  min-width: 100%;
+  display: flex;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
 /* ===== MAIN LAYOUT ===== */
 .mainArea {
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-width: 0;
   margin-left: 220px;
   transition: margin-left 0.3s ease;
 }
@@ -279,22 +284,25 @@
     "header"
     "main";
   min-height: 100vh;
+  width: 100%;
 }
 
 /* ===== HEADER ===== */
-
 .headerContainer {
   grid-area: header;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #E6E6E6;
+  gap: 14px;
+  height: 70px;
+  padding: 0 30px;
+  box-sizing: border-box;
+  border: 2px solid #e6e6e6;
   background: rgb(243, 243, 243);
   position: sticky;
   top: 0;
   z-index: 500;
 }
-/* ===== SEARCH BAR ===== */
 
 .searchBar {
   flex: 1;
@@ -302,10 +310,8 @@
   max-width: 850px;
   height: 35px;
   margin: 0 auto;
-
   display: flex;
   align-items: center;
-
   background: #ffffff;
   border: 1px solid var(--color-third);
   border-radius: 50px;
@@ -334,11 +340,9 @@
   background: transparent;
   border-radius: 50%;
   cursor: pointer;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   padding: 0;
   margin: 0;
   appearance: none;
@@ -355,15 +359,104 @@
   background: #f2ecff;
 }
 
-/* ===== NOTIFICATION ===== */
+.profileWrapper {
+  position: static;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  z-index: 10;
+}
 
+.profileLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.dpContainer,
+.profilePic {
+  width: 40px;
+  height: 40px;
+}
+
+.profilePic {
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.userInfo p {
+  margin: 0;
+  font-size: 20px;
+  color: #000;
+  white-space: nowrap;
+}
+
+.dropdown {
+  position: relative;
+}
+
+.dropdownBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 6px;
+}
+
+.dropdownContent {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  display: none;
+  width: 190px;
+  max-width: calc(100vw - 20px);
+  padding: 8px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  z-index: 9999;
+}
+
+.dropdownContent a,
+.dropdownContent button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #000;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 15px;
+  text-align: left;
+}
+
+.dropdownContent a:hover,
+.dropdownContent button:hover {
+  background: #f3f3f3;
+}
+
+.show {
+  display: block;
+}
+
+/* ===== NOTIFICATION ===== */
 .notificationWrapper {
   position: relative;
-  margin-left: auto;
-  margin-right: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .notificationBtn {
@@ -404,25 +497,20 @@
   position: absolute;
   top: 52px;
   right: 0;
-
   width: 330px;
   min-height: 240px;
   max-height: 430px;
   overflow-y: auto;
-
   background: #ffffff;
   border: 1px solid #eeeeee;
   border-radius: 20px;
   padding: 14px;
-
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.14);
-
   z-index: 99999;
   display: none;
 }
 
-.notificationDropdown.show,
-.show {
+.notificationDropdown.show {
   display: block;
 }
 
@@ -441,11 +529,10 @@
 }
 
 .markReadBtn {
-  border: none;
   background: #907ead;
   border: 1px solid #6f5796;
   box-shadow: 0 4px rgb(126, 107, 158);
-  color: rgb(255, 255, 255);
+  color: #ffffff;
   border-radius: 999px;
   padding: 6px 10px;
   font-family: inherit;
@@ -457,18 +544,14 @@
   background: #decfff;
 }
 
-/* EMPTY STATE */
-
 .emptyNotification {
   min-height: 180px;
   padding: 22px 15px;
-
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 14px;
-
   text-align: center;
 }
 
@@ -484,8 +567,6 @@
   font-size: 17px;
   line-height: 1.4;
 }
-
-/* NOTIFICATION ITEMS */
 
 .notificationItem {
   padding: 14px 4px;
@@ -520,7 +601,7 @@
 .notificationRole {
   background: #1515158b;
   border: 1px solid #3d3d3d;
-  box-shadow: 0 2px 0px rgba(0, 0, 0, 0.563);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.563);
   color: #ffffff;
   padding: 4px 10px;
   border-radius: 999px;
@@ -541,116 +622,28 @@
   font-size: 16px;
 }
 
-.profileLink {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  text-decoration: none;
-  color: inherit;
-}
-.profileWrapper {
-  position: absolute;
-  right: 30px;
-  top: 8px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  z-index: 10;
-}
-
-.dpContainer {
-  width: 40px;
-  height: 40px;
-}
-
-.profilePic {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  display: block;
-}
-
-.userInfo p {
-  margin: 0;
-  font-size: 20px;
-  color: #000;
-  white-space: nowrap;
-}
-
-.dropdown {
-  position: relative;
-}
-
-.dropdownBtn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 18px;
-  padding: 6px;
-}
-
-.dropdownContent {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  left: auto;
-
-  display: none;
-  background: #fff;
-  border: 1px solid #e5e5e5;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.12);
-  border-radius: 12px;
-
-  width: 190px;
-  max-width: calc(100vw - 20px);
-
-  padding: 8px;
-  z-index: 9999;
-}
-
-.dropdownContent a,
-.dropdownContent button {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 10px 12px;
-  border-radius: 10px;
-  text-decoration: none;
-  color: #000;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 15px;
-  text-align: left;
-}
-
-.dropdownContent a:hover,
-.dropdownContent button:hover {
-  background: #f3f3f3;
-}
-
-.show {
-  display: block;
-}
 /* ===== PAGE CONTENT ===== */
-
 .main {
   grid-area: main;
-  padding: 28px 34px;
+  padding: 95px 34px 28px;
   background: rgb(243, 243, 243);
   overflow: auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .panel {
+  width: 100%;
+  box-sizing: border-box;
   background: #ffffff;
   border-radius: 22px;
   margin-bottom: 20px;
   position: relative;
   overflow: visible;
+}
+
+.panel:first-child {
+  margin-top: 0;
 }
 
 .fullDivider {
@@ -671,6 +664,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
 }
 
 .panelHeader h1 {
@@ -692,6 +686,7 @@
   font-weight: normal;
   color: var(--font-color);
   font-style: normal;
+  white-space: nowrap;
 }
 
 .addBtn:hover {
@@ -699,8 +694,7 @@
   box-shadow: 3px 5px 0 #ababab;
 }
 
-/*filter*/
-
+/* ===== FILTERS ===== */
 .filterRow {
   display: flex;
   justify-content: flex-end;
@@ -708,10 +702,6 @@
   padding: 0 28px 10px;
   position: relative;
   background: transparent;
-  border-radius: 0;
-  height: auto;
-  top: auto;
-  left: auto;
   z-index: 10;
   margin-top: 10px;
 }
@@ -788,30 +778,18 @@
   background: #f1f1f1;
 }
 
+/* ===== DECK CARDS ===== */
 .deckArea {
   padding: 20px 40px 45px;
   display: grid;
   grid-template-columns: repeat(auto-fill, 230px);
+  justify-content: start;
+  align-items: start;
   gap: 28px;
   width: 100%;
   box-sizing: border-box;
   position: relative;
   overflow: visible;
-  justify-content: start;
-}
-
-.deckCard {
-  width: 230px;
-  height: 200px;
-  display: flex;
-  flex-direction: column;
-  background: #fff;
-  position: relative;
-  border-radius: 18px;
-  overflow: visible;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
-  cursor: pointer;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .deckArea:has(.emptyState) {
@@ -820,26 +798,42 @@
   align-items: center;
 }
 
+.deckCard {
+  width: 230px;
+  max-width: 230px;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  position: relative;
+  border-radius: 18px;
+  overflow: visible;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
 .deckCard:hover {
   transform: translateY(-6px);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.15);
 }
 
 .deckCardInner {
-  background: transparent;
-  overflow: visible;
-  height: 100%;        
+  width: 230px;
+  height: 200px;
+  background: #fff;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
+  border-radius: 18px;
 }
 
 .deckTop {
   height: 100px;
+  width: 100%;
   position: relative;
-  border-top-left-radius: 18px;
-  border-top-right-radius: 18px;
-  overflow: visible;
   flex: 0 0 100px;
+  overflow: hidden;
+  border-radius: 18px 18px 0 0;
 }
 
 .deckTop::before {
@@ -850,7 +844,7 @@
   width: 70px;
   height: 35px;
   border-radius: 18px 0 18px 0;
-  background: rgba(0, 0, 0, 0.12); 
+  background: rgba(0, 0, 0, 0.12);
 }
 
 .deckMenuBtn {
@@ -876,7 +870,7 @@
 .deckMenuBtn i {
   font-size: 18px;
   color: var(--font-color);
-  font-family: 'Jersey 15' sans-serif;
+  font-family: "Jersey 15", sans-serif;
 }
 
 .deckCard:hover .deckMenuBtn {
@@ -891,28 +885,30 @@
 
 .deckMenu {
   position: absolute;
-  top: 45px;
+  top: 46px;
   right: 10px;
-  min-width: 160px;
+  width: 120px;
+  min-width: 120px;
+  max-width: 120px;
   background: #fff;
-  border-radius: 12px;
+  border-radius: 10px;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
-  padding: 8px 0;
+  padding: 6px 0;
   z-index: 99999;
   animation: fadeIn 0.15s ease;
-
-  
 }
+
 .deckMenu button {
   width: 100%;
   border: none;
   background: transparent;
   text-align: left;
-  padding: 10px 14px;
+  padding: 9px 14px;
   cursor: pointer;
   font-size: 16px;
   color: var(--font-color);
-  font-family: 'Jersey 15', sans-serif;
+  font-family: "Jersey 15", sans-serif;
+  white-space: nowrap;
 }
 
 .deckMenu button:hover {
@@ -921,8 +917,9 @@
 
 .deckBody {
   flex: 1;
+  height: 100px;
   background: #ffffff;
-  padding: 12px 14px 12px;
+  padding: 12px 14px;
   border-bottom-left-radius: 18px;
   border-bottom-right-radius: 18px;
   display: flex;
@@ -950,39 +947,53 @@
   background: #f1f1f1;
   border: 1px solid #cfcfcf;
   border-radius: 999px;
-  color: #c9c9c9;
-  font-size: 12px;
+  color: #8a8a8a;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1.2;
   min-height: 20px;
   box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .deckCategoryText i {
-  font-size: 13px;
+  font-size: 14px;
   color: #6a6a6a;
   line-height: 1;
   flex-shrink: 0;
 }
 
 .deckCategoryText span {
-  color: #b1b1b1;
-  font-size: 12px;
+  color: #8a8a8a;
+  font-size: 13px;
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.cardCount {
+.cardCount,
+.deckBody > span,
+.deckBody span {
   margin-top: auto;
   font-size: 14px;
   color: #9b9b9b;
 }
 
-.deckBody span {
-  font-size: 14px;
-  color: #9b9b9b;
+.categoryTag {
+  width: fit-content;
+  max-width: 100%;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid #d7c4ef;
+  color: #5a2b75 !important;
+  font-size: 13px !important;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .blue .deckTop {
@@ -993,20 +1004,14 @@
   background: #8f95cc;
 }
 
-.pink .deckTop {
+.pink .deckTop,
+.violet .deckTop {
   background: #f2dcff;
 }
 
-.pink .deckTop::before {
-  background: #e2a6dc;
-}
-
-.violet .deckTop {
-  background: #f0dcff;
-}
-
+.pink .deckTop::before,
 .violet .deckTop::before {
-  background: #e0a6dc;
+  background: #e2a6dc;
 }
 
 .red .deckTop {
@@ -1018,7 +1023,6 @@
 }
 
 /* ===== EMPTY STATE ===== */
-
 .emptyState {
   width: 100%;
   min-height: 260px;
@@ -1043,7 +1047,6 @@
 }
 
 /* ===== MODAL ===== */
-
 .overlay {
   position: fixed;
   inset: 0;
@@ -1085,15 +1088,16 @@
   margin: 10px 0 6px;
 }
 
-.input {
-  width: 95%;
+.input,
+.selectInput {
+  width: 100%;
+  box-sizing: border-box;
   background: #ededed;
   border-radius: 30px;
   border: none;
-  height: 38px;
+  height: 40px;
   padding: 0 16px;
   outline: none;
-
   font-size: 20px;
   color: var(--font-color);
   font-family: inherit;
@@ -1119,7 +1123,7 @@
   margin-top: 10px;
   margin-bottom: 10px;
 }
-  
+
 .radioLabel {
   display: flex;
   align-items: center;
@@ -1152,33 +1156,12 @@
   margin-top: 10px;
 }
 
-.cancelBtn {
-  width: 120px;
-  height: 34px;
-  border-radius: 20px;
-  border: 1px solid #000;
-  background: #fff;
-  box-shadow: 0 4px 0 grey;
-  cursor: pointer;
-  font-size: 22px;
-
-  font-size: 22px;
-  color: var(--font-color);
-  font-family: inherit;
-  font-weight: normal;
-  font-style: normal;
-}
-
+.cancelBtn,
 .confirmBtn {
   width: 120px;
   height: 34px;
   border-radius: 20px;
-  border: none;
-  background: #e3aadd;
-  box-shadow: 0 4px 0 #a45de3;
   cursor: pointer;
-
-  border: 1px solid  #b276e6;
   font-size: 22px;
   color: var(--font-color);
   font-family: inherit;
@@ -1186,148 +1169,19 @@
   font-style: normal;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.cancelBtn {
+  border: 1px solid #000;
+  background: #fff;
+  box-shadow: 0 4px 0 grey;
 }
 
-/* ===== RESPONSIVE ===== */
-
-@media (max-width: 900px) {
-  .searchBar {
-    width: 360px;
-  }
-
-  .profileWrapper {
-    right: 14px;
-  }
-
-  .userInfo {
-    display: none;
-  }
-
-  .deckArea {
-    padding: 70px 20px 35px;
-  }
-}
-
-@media (max-width: 768px) {
-  .sidebar {
-    width: 60px;
-  }
-
-  .sidebar .menuText,
-  .sidebar .myDecksTitle,
-  .sidebar .sectionTitle,
-  .sidebar .sidebarEmptyText {
-    display: none;
-  }
-
-  .mainArea {
-    margin-left: 60px;
-  }
-
-  .headerContainer {
-    justify-content: flex-start;
-    padding-left: 20px;
-  }
-
-  .searchBar {
-    width: calc(100% - 90px);
-  }
-
-  .main {
-    padding: 20px;
-  }
-}
-.selectInput {
-  width: 100%;
-  background: #ededed;
-  border-radius: 30px;
-  border: none;
-  height: 40px;
-  padding: 0 16px;
-  outline: none;
-  font-size: 20px;
-  color: var(--font-color);
-  font-family: inherit;
-}
-
-.categoryTag {
-  width: fit-content;
-  max-width: 100%;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: #ffffff;
-  border: 1px solid #d7c4ef;
-  color: #5a2b75 !important;
-  font-size: 13px !important;
-  line-height: 1.1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.selectInput {
-  width: 100%;
-  background: #ededed;
-  border-radius: 30px;
-  border: none;
-  height: 40px;
-  padding: 0 16px;
-  outline: none;
-  font-size: 20px;
-  color: var(--font-color);
-  font-family: inherit;
-}
-
-.deckCategoryText {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin: 0 0 auto;
-  color: #8a8a8a;
-  font-size: 13px;
-  line-height: 1;
-  max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-}
-
-.deckCategoryText i {
-  font-size: 14px;
-  color: #8a8a8a;
-  flex-shrink: 0;
-}
-
-.deckCategoryText span {
-  font-size: 13px;
-  color: #8a8a8a;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.deckBody > span {
-  font-size: 14px;
-  color: #9b9b9b;
-  margin-top: 8px;
-}
-
-
-:global(.swal2-container) {
-  z-index: 99999 !important;
+.confirmBtn {
+  border: 1px solid #b276e6;
+  background: #e3aadd;
+  box-shadow: 0 4px 0 #a45de3;
 }
 
 /* ===== EDIT DECK MODAL ===== */
-
 .editDeckPopup {
   width: 600px !important;
   max-width: calc(100vw - 40px) !important;
@@ -1491,42 +1345,7 @@
   overflow: visible !important;
 }
 
-@media (max-width: 520px) {
-  .editDeckPopup {
-    width: calc(100vw - 24px) !important;
-    border-radius: 28px !important;
-  }
-
-  .editDeckHeader {
-    height: 82px !important;
-    border-top-left-radius: 28px;
-    border-top-right-radius: 28px;
-  }
-
-  .editDeckHeader span {
-    font-size: 28px !important;
-  }
-
-  .editDeckBody {
-    padding: 24px 24px 0;
-  }
-
-  .editDeckActions {
-    margin: 16px 24px 24px !important;
-  }
-
-  .editDeckActions {
-    flex-direction: column-reverse;
-    align-items: stretch;
-  }
-
-  .editDeckSaveBtn,
-  .editDeckCancelBtn {
-    width: 100%;
-  }
-}
-
-
+/* ===== SWAL CONFIRMATIONS ===== */
 .swalPopup {
   border-radius: 26px !important;
   padding: 28px 24px 24px !important;
@@ -1552,10 +1371,8 @@
   margin-top: 22px !important;
 }
 
-.swalConfirmBtn {
-  background: #d9a9e9 !important;
-  border: 1px solid #744185 !important;
-  box-shadow: 0 5px 0 #80588d !important;
+.swalConfirmBtn,
+.swalCancelBtn {
   color: #111 !important;
   border-radius: 14px !important;
   padding: 11px 28px !important;
@@ -1564,16 +1381,16 @@
   cursor: pointer !important;
 }
 
+.swalConfirmBtn {
+  background: #d9a9e9 !important;
+  border: 1px solid #744185 !important;
+  box-shadow: 0 5px 0 #80588d !important;
+}
+
 .swalCancelBtn {
   background: #f5f5f5 !important;
   border: 1px solid #797c7e !important;
   box-shadow: 0 5px 0 #757575 !important;
-  color: #111 !important;
-  border-radius: 14px !important;
-  padding: 11px 28px !important;
-  font-size: 23px !important;
-  font-family: "Jersey 15", sans-serif !important;
-  cursor: pointer !important;
 }
 
 .swalConfirmBtn:hover,
@@ -1585,8 +1402,337 @@
 .swalIcon {
   transform: scale(0.9);
 }
+
 .notEditableBtn {
   opacity: 0.55;
   cursor: not-allowed !important;
   color: #777 !important;
+}
+
+/* ===== ANIMATION ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== TABLET ===== */
+@media (max-width: 900px) {
+  .userInfo {
+    display: none;
+  }
+
+  .deckArea {
+    padding: 20px 24px 38px;
+  }
+}
+
+/* ===== PHONE / TABLET SHELL ===== */
+@media (max-width: 768px) {
+  html,
+  body {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .sidebar,
+  .sidebar.collapsed,
+  .container.sidebarCollapsed .sidebar {
+    width: 60px !important;
+    min-width: 60px !important;
+    overflow-x: hidden !important;
+  }
+
+  .sidebar .logoExpanded,
+  .sidebar .menuText,
+  .sidebar .myDecksTitle,
+  .sidebar .sectionTitle,
+  .sidebar .sidebarEmptyText,
+  .sidebar .sidebarList span,
+  .sidebar .sectionList span {
+    display: none !important;
+  }
+
+  .sidebar .logoCollapsed {
+    display: block !important;
+    width: 48px !important;
+    height: 48px !important;
+  }
+
+  .sidebarListItem {
+    padding: 0 !important;
+  }
+
+  .menuItem,
+  .logoutLink {
+    width: 100% !important;
+    margin: 4px 0 !important;
+    padding: 12px 0 !important;
+    justify-content: center !important;
+    border-radius: 0 !important;
+    transform: none !important;
+  }
+
+  .menuItem.active,
+  .active,
+  .menuItem:hover,
+  .logoutLink:hover {
+    margin-left: 0 !important;
+    transform: none !important;
+  }
+
+  .sidebarList i,
+  .sectionList i,
+  .logoutLink i {
+    margin: 0 !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+  }
+
+  .mainArea,
+  .sidebarCollapsed .mainArea {
+    margin-left: 60px !important;
+    width: calc(100vw - 60px) !important;
+    max-width: calc(100vw - 60px) !important;
+    overflow-x: hidden !important;
+  }
+
+  .gridContainer {
+    width: 100% !important;
+    min-width: 0 !important;
+    grid-template-rows: 60px 1fr !important;
+  }
+
+  .headerContainer {
+    width: 100% !important;
+    height: 60px !important;
+    padding: 0 8px !important;
+    justify-content: flex-start !important;
+    overflow: hidden !important;
+  }
+
+  .searchBar {
+    width: calc(100% - 104px) !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    height: 34px !important;
+    margin: 0 !important;
+    padding: 0 8px 0 12px !important;
+    flex: 0 1 auto !important;
+  }
+
+  .searchBar input {
+    font-size: 11px !important;
+  }
+
+  .searchBtn {
+    width: 28px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .searchBtn i {
+    font-size: 19px !important;
+  }
+
+  .profileWrapper {
+    gap: 4px !important;
+  }
+
+  .userInfo,
+  .dropdownBtn {
+    display: none !important;
+  }
+
+  .notificationBtn {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .notificationBtn i {
+    font-size: 21px !important;
+  }
+
+  .dpContainer,
+  .profilePic {
+    width: 34px !important;
+    height: 34px !important;
+  }
+
+  .main {
+    width: 100% !important;
+    padding: 76px 10px 30px !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+
+  .panel {
+    width: 100% !important;
+    border-radius: 18px !important;
+  }
+
+  .purpleStrip {
+    height: 14px !important;
+    border-radius: 18px 18px 0 0 !important;
+  }
+
+  .panelHeader {
+    padding: 18px 16px !important;
+    gap: 12px !important;
+  }
+
+  .panelHeader h1 {
+    font-size: 25px !important;
+    line-height: 1.1 !important;
+  }
+
+  .addBtn {
+    font-size: 13px !important;
+    padding: 8px 14px !important;
+    min-width: 115px !important;
+  }
+
+  .filterRow {
+    padding: 10px 10px 12px !important;
+    justify-content: flex-start !important;
+    overflow-x: auto !important;
+  }
+
+  .filterGroup {
+    width: max-content !important;
+    gap: 8px !important;
+  }
+
+  .customDropdownBtn {
+    min-width: 120px !important;
+    height: 31px !important;
+    font-size: 14px !important;
+    padding: 0 10px !important;
+  }
+
+  .deckArea {
+    grid-template-columns: 230px !important;
+    justify-content: center !important;
+    padding: 18px 10px 35px !important;
+    gap: 20px !important;
+  }
+
+  .notificationDropdown {
+    position: fixed !important;
+    top: 65px !important;
+    right: 8px !important;
+    width: calc(100vw - 80px) !important;
+    max-width: 280px !important;
+  }
+}
+
+/* ===== SMALL PHONE ===== */
+@media (max-width: 430px) {
+  .main {
+    padding: 72px 8px 24px !important;
+  }
+
+  .searchBar {
+    width: calc(100% - 94px) !important;
+  }
+
+  .panelHeader {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+
+  .addBtn {
+    align-self: flex-end !important;
+  }
+
+  .deckArea {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .editDeckPopup {
+    width: calc(100vw - 24px) !important;
+    border-radius: 28px !important;
+  }
+
+  .editDeckHeader {
+    height: 82px !important;
+    border-top-left-radius: 28px;
+    border-top-right-radius: 28px;
+  }
+
+  .editDeckHeader span {
+    font-size: 28px !important;
+  }
+
+  .editDeckBody {
+    padding: 24px 24px 0;
+  }
+
+  .editDeckActions {
+    margin: 16px 24px 24px !important;
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .editDeckSaveBtn,
+  .editDeckCancelBtn {
+    width: 100%;
+  }
+}
+
+/* ===== FIX COLLAPSED SIDEBAR CUT-OFF TEXT ===== */
+.container.sidebarCollapsed .sidebar {
+  width: 60px !important;
+  min-width: 60px !important;
+  overflow: hidden !important;
+}
+
+.container.sidebarCollapsed .mainArea {
+  margin-left: 60px !important;
+  width: calc(100vw - 60px) !important;
+}
+
+.container.sidebarCollapsed .logoExpanded,
+.container.sidebarCollapsed .menuText,
+.container.sidebarCollapsed .myDecksTitle,
+.container.sidebarCollapsed .sectionTitle,
+.container.sidebarCollapsed .sidebarEmptyText,
+.container.sidebarCollapsed .sidebar span,
+.container.sidebarCollapsed .sidebar p {
+  display: none !important;
+}
+
+.container.sidebarCollapsed .menuItem,
+.container.sidebarCollapsed .logoutLink {
+  width: 60px !important;
+  padding: 12px 0 !important;
+  margin: 4px 0 !important;
+  justify-content: center !important;
+  border-radius: 0 !important;
+  transform: none !important;
+}
+
+.container.sidebarCollapsed .menuItem.active,
+.container.sidebarCollapsed .active {
+  margin-left: 0 !important;
+  transform: none !important;
+}
+
+.container.sidebarCollapsed .sidebarListItem {
+  padding: 0 !important;
+}
+
+.container.sidebarCollapsed .sidebar i {
+  margin: 0 !important;
+  width: 60px !important;
+  min-width: 60px !important;
+  display: flex !important;
+  justify-content: center !important;
 }
