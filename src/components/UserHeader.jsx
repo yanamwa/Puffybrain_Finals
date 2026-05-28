@@ -3,19 +3,20 @@ import styles from "./UserHeader.module.css";
 
 export default function UserHeader({
   isCollapsed,
-  searchQuery,
+  searchQuery = "",
   setSearchQuery,
   handleSearchSubmit,
   notificationOpen,
   setNotificationOpen,
   setDropdownOpen,
-  notificationCount,
+  notificationCount = 0,
   notifications = [],
   markNotificationsAsRead,
   user,
   profileDropdownOpen,
   setProfileDropdownOpen,
   handleLogout,
+  hideProfile = false,
 }) {
   return (
     <header
@@ -44,7 +45,7 @@ export default function UserHeader({
             onClick={(e) => {
               e.stopPropagation();
               setNotificationOpen((prev) => !prev);
-              setProfileDropdownOpen(false);
+              setProfileDropdownOpen?.(false);
               setDropdownOpen?.(null);
             }}
           >
@@ -113,58 +114,65 @@ export default function UserHeader({
           </div>
         </div>
 
-        <Link to="/user-profile" className={styles.profileLink}>
-          <div className={styles.dpContainer}>
-            <img
-              src={user?.profile_image || "/images/temporary profile.jpg"}
-              alt="Profile"
-              className={styles.profilePic}
-              onError={(e) => {
-                e.currentTarget.src = "/images/temporary profile.jpg";
+        {!hideProfile && (
+          <>
+            <Link to="/user-profile" className={styles.profileLink}>
+              <div className={styles.dpContainer}>
+                <img
+                  src={user?.profile_image || "/images/temporary profile.jpg"}
+                  alt="Profile"
+                  className={styles.profilePic}
+                  onError={(e) => {
+                    e.currentTarget.src = "/images/temporary profile.jpg";
+                  }}
+                />
+              </div>
+
+              <div className={styles.userInfo}>
+                <p>{user?.username || "User"}</p>
+              </div>
+            </Link>
+
+            <div className={styles.dropdown}>
+              <button
+                type="button"
+                className={styles.dropdownBtn}
+                onClick={(e) => {
+                e.stopPropagation();
+
+                setTimeout(() => {
+                  setProfileDropdownOpen((prev) => !prev);
+                  setNotificationOpen(false);
+                  setDropdownOpen?.(null);
+                }, 0);
               }}
-            />
-          </div>
+              >
+                <i className="bx bx-chevron-down"></i>
+              </button>
 
-          <div className={styles.userInfo}>
-            <p>{user?.username || "User"}</p>
-          </div>
-        </Link>
+              <div
+                className={`${styles.dropdownContent} ${
+                  profileDropdownOpen ? styles.show : ""
+                }`}
+              >
+                <NavLink to="/edit-profile">
+                  <i className="bx bx-cog"></i>
+                  <span>Settings</span>
+                </NavLink>
 
-        <div className={styles.dropdown}>
-          <button
-            type="button"
-            className={styles.dropdownBtn}
-            onClick={(e) => {
-              e.stopPropagation();
-              setProfileDropdownOpen((prev) => !prev);
-              setNotificationOpen(false);
-              setDropdownOpen?.(null);
-            }}
-          >
-            <i className="bx bx-chevron-down"></i>
-          </button>
+                <NavLink to="/faq">
+                  <i className="bx bx-help-circle"></i>
+                  <span>FAQs</span>
+                </NavLink>
 
-          <div
-            className={`${styles.dropdownContent} ${
-              profileDropdownOpen ? styles.show : ""
-            }`}
-          >
-            <NavLink to="/edit-profile">
-              <i className="bx bx-cog"></i>
-              <span>Settings</span>
-            </NavLink>
-
-            <NavLink to="/faq">
-              <i className="bx bx-help-circle"></i>
-              <span>FAQs</span>
-            </NavLink>
-
-            <button type="button" onClick={handleLogout}>
-              <i className="bx bx-log-out"></i>
-              <span>Logout</span>
-            </button>
-          </div>
-        </div>
+                <button type="button" onClick={handleLogout}>
+                  <i className="bx bx-log-out"></i>
+                  <span>Logout</span>
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </header>
   );

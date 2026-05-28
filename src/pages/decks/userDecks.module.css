@@ -2847,3 +2847,14 @@ color:#ff4d4f;
     font-size: 18px !important;
   }
 }
+
+.profileWrapper,
+.dropdown,
+.dropdownContent {
+  z-index: 999999 !important;
+}
+
+.dropdownContent.show {
+  display: block !important;
+}
+

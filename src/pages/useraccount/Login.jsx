@@ -3,13 +3,17 @@ import { useState } from "react";
 import Swal from "sweetalert2";
 import { useNavigate, Link } from "react-router-dom";
 import { API_BASE } from "../../config.js";
-  function Login() {
+
+function Login() {
   const navigate = useNavigate();
+
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loginAttempts, setLoginAttempts] = useState(0);
+
   const MAX_ATTEMPTS = 10;
+
   const handleLogin = async () => {
     if (!username || !password) {
       Swal.fire({
@@ -34,7 +38,7 @@ import { API_BASE } from "../../config.js";
     }
 
     try {
-      const res = await fetch(`${API_BASE}/login.php`, {  
+      const res = await fetch(`${API_BASE}/login.php`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -44,9 +48,107 @@ import { API_BASE } from "../../config.js";
       });
 
       const data = await res.json();
+
       console.log("LOGIN RESPONSE:", data);
 
       if (!data.success) {
+
+        if (
+          data.account_deleted === true ||
+          data.account_deleted === 1 ||
+          data.account_deleted === "1" ||
+          data.account_deleted === "true"
+        ) {
+
+          Swal.fire({
+            imageUrl: "/images/error.png",
+            imageWidth: 170,
+            imageHeight: 170,
+            title: "Account Deleted",
+            text: "This account was deleted. Do you want to recover it?",
+            showCancelButton: true,
+            confirmButtonText: "Recover Account",
+            cancelButtonText: "Cancel",
+            confirmButtonColor: "#8b5cf6",
+            cancelButtonColor: "#999",
+          }).then(async (result) => {
+
+            if (result.isConfirmed) {
+
+              try {
+
+                const otpRes = await fetch(
+                  `${API_BASE}/send-recovery-otp.php`,
+                  {
+                    method: "POST",
+                    credentials: "include",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      username: data.username || username,
+                    }),
+                  }
+                );
+
+                const otpData = await otpRes.json();
+
+                console.log("RECOVERY OTP RESPONSE:", otpData);
+
+                if (otpData.success) {
+
+                  Swal.fire({
+                    imageUrl: "/images/success.png",
+                    imageWidth: 170,
+                    imageHeight: 170,
+                    title: "Verification Code Sent",
+                    text: "Please check your email for the recovery code.",
+                  }).then(() => {
+
+                    navigate("/recover-account", {
+                      state: {
+                        username: data.username || username,
+                        email: otpData.email || data.email || "",
+                      },
+                    });
+
+                  });
+
+                } else {
+
+                  Swal.fire({
+                    imageUrl: "/images/error.png",
+                    imageWidth: 170,
+                    imageHeight: 170,
+                    title: "Failed",
+                    text:
+                      otpData.message ||
+                      "Could not send verification code.",
+                  });
+
+                }
+
+              } catch (otpError) {
+
+                console.error("OTP ERROR:", otpError);
+
+                Swal.fire({
+                  imageUrl: "/images/error.png",
+                  imageWidth: 170,
+                  imageHeight: 170,
+                  title: "Server Error",
+                  text: "Failed to send verification code.",
+                });
+
+              }
+
+            }
+
+          });
+
+          return;
+        }
+
         const newAttempts = loginAttempts + 1;
         setLoginAttempts(newAttempts);
 
@@ -71,6 +173,7 @@ import { API_BASE } from "../../config.js";
       localStorage.setItem("username", data.username || "");
 
       if (data.isNewUser) {
+
         Swal.fire({
           imageUrl: "/images/success.png",
           imageWidth: 170,
@@ -78,7 +181,9 @@ import { API_BASE } from "../../config.js";
           title: "Welcome!",
           text: "Let's get you started",
         }).then(() => navigate("/welcome"));
+
       } else {
+
         Swal.fire({
           imageUrl: "/images/success.png",
           imageWidth: 170,
@@ -86,10 +191,21 @@ import { API_BASE } from "../../config.js";
           title: "Welcome back!",
           text: "Redirecting to homepage",
         }).then(() => navigate("/homepage"));
+
       }
+
     } catch (error) {
+
       console.error("LOGIN ERROR:", error);
-      Swal.fire("Error", "Server error", "error");
+
+      Swal.fire({
+        imageUrl: "/images/error.png",
+        imageWidth: 170,
+        imageHeight: 170,
+        title: "Server Error",
+        text: "Something went wrong.",
+      });
+
     }
   };
 
@@ -107,12 +223,15 @@ import { API_BASE } from "../../config.js";
             <li>
               <Link to="/">Home</Link>
             </li>
+
             <li>
               <Link to="/about">About</Link>
             </li>
+
             <li>
               <Link to="/faq">FAQ</Link>
             </li>
+
             <li>
               <Link to="/faq">Contact Us</Link>
             </li>
@@ -127,9 +246,11 @@ import { API_BASE } from "../../config.js";
 
         <div className={styles.signupContainer}>
           <div className={styles.signupCard}>
+
             <h2>Login</h2>
 
             <label>Username</label>
+
             <input
               type="text"
               placeholder="Enter your username"
@@ -138,14 +259,18 @@ import { API_BASE } from "../../config.js";
             />
 
             <label>Password</label>
+
             <div className={styles.passwordWrapper}>
+
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") handleLogin();
+                  if (e.key === "Enter") {
+                    handleLogin();
+                  }
                 }}
               />
 
@@ -155,23 +280,31 @@ import { API_BASE } from "../../config.js";
                 } ${styles.toggleEye}`}
                 onClick={() => setShowPassword(!showPassword)}
               />
+
             </div>
 
             <p className={styles.forgot}>
               <Link to="/forgot">Forgot your password?</Link>
             </p>
 
-            <button className={styles.loginBtn} onClick={handleLogin}>
+            <button
+              className={styles.loginBtn}
+              onClick={handleLogin}
+            >
               Login
             </button>
 
             <p className={styles.signupText}>
-              Don't have an account? <Link to="/signup">Signup</Link>
+              Don't have an account?{" "}
+              <Link to="/signup">Signup</Link>
             </p>
 
             <p className={styles.signupText}>
-              <Link to="/cant-signin">Can't sign in?</Link>
+              <Link to="/cant-signin">
+                Can't sign in?
+              </Link>
             </p>
+
           </div>
         </div>
       </section>

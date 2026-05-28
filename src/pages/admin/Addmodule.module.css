@@ -1143,3 +1143,193 @@
   border: 1px solid #ccc !important;
   box-shadow: 0 4px 0 #ccc !important;
 }
+
+/* ======================================== */
+/* ULTRA RESPONSIVE FIX */
+/* ======================================== */
+
+/* TABLET */
+@media (max-width: 992px) {
+  .gridContainer {
+    grid-template-columns: 70px 1fr;
+  }
+
+  .sidebar {
+    width: 70px;
+  }
+
+  .sidebar .menuText,
+  .sidebar .menuLabel,
+  .sidebar .logoExpanded {
+    display: none;
+  }
+
+  .sidebar .logoCollapsed {
+    display: block;
+  }
+
+  .menuItem {
+    justify-content: center;
+    margin-left: 0;
+    border-radius: 0;
+    padding: 12px 0;
+  }
+
+  .main {
+    padding: 24px 20px;
+  }
+
+  .headerContainer {
+    padding: 0 18px;
+    gap: 14px;
+  }
+
+  .searchBar {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .adminHeaderName {
+    display: none;
+  }
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .gridContainer {
+    display: block;
+  }
+
+  .sidebar {
+    position: fixed;
+    left: -240px;
+    width: 220px;
+    height: 100vh;
+    transition: left 0.3s ease;
+    z-index: 99999;
+  }
+
+  .sidebar.showSidebar {
+    left: 0;
+  }
+
+  .headerContainer {
+    width: 100%;
+    height: auto;
+    padding: 12px 14px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .searchBar {
+    width: 100%;
+    max-width: 100%;
+    order: 3;
+    margin: 0;
+  }
+
+  .headerRight {
+    margin-left: auto;
+    gap: 12px;
+  }
+
+  .adminHeaderProfile {
+    padding-left: 10px;
+  }
+
+  .main {
+    width: 100%;
+    padding: 18px 14px;
+    overflow-x: hidden;
+  }
+
+  .pageHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .pageHeader h1 {
+    font-size: 28px;
+  }
+
+  .formCard {
+    padding: 18px 16px;
+    border-radius: 16px;
+  }
+
+  .popupInfoGrid,
+  .optionsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .popupActions {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .popupCancelBtn,
+  .popupSaveBtn {
+    width: 100%;
+  }
+
+  .notificationDropdown {
+    width: 300px;
+    right: -20px;
+  }
+
+  .quizGeneratePopup,
+  .replacePopup,
+  .generateQuizPopup {
+    width: calc(100vw - 30px) !important;
+  }
+}
+
+/* SMALL MOBILE */
+@media (max-width: 480px) {
+  .headerContainer {
+    padding: 10px 12px;
+  }
+
+  .searchBar {
+    height: 40px;
+    padding: 0 12px;
+  }
+
+  .searchBar input {
+    font-size: 14px;
+  }
+
+  .pageHeader h1 {
+    font-size: 24px;
+  }
+
+  .popupLabel {
+    font-size: 15px;
+  }
+
+  .popupInput,
+  .popupSelect,
+  .popupTextarea {
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+
+  .notificationDropdown {
+    width: calc(100vw - 24px);
+    right: -8px;
+  }
+
+  .quizGenerateHeader span {
+    font-size: 24px;
+  }
+
+  .quizGenerateGroup label {
+    font-size: 17px;
+  }
+
+  .quizGenerateGroup input,
+  .quizGenerateGroup select {
+    font-size: 16px;
+  }
+}

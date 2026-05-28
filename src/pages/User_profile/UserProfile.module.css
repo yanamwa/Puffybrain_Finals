@@ -1315,3 +1315,377 @@
 :global(.Toastify__toast-icon) {
   width: 28px !important;
 }
+/* ===== USER PROFILE RESPONSIVE ===== */
+
+.main {
+  padding: 90px 56px 70px;
+  min-height: calc(100vh - 70px);
+  background: #f3f3f3;
+}
+
+.profileCard {
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto 40px;
+}
+
+.deckTabsSection {
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.decksGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+}
+
+/* tablet */
+@media (max-width: 1100px) {
+  .main {
+    padding: 80px 32px 60px;
+  }
+
+  .profileCard,
+  .deckTabsSection {
+    max-width: 760px;
+  }
+}
+
+/* phone/tablet stack */
+@media (max-width: 768px) {
+  .mainArea {
+    margin-left: 60px;
+  }
+
+  .main {
+    padding: 70px 18px 50px;
+  }
+
+  .profileCard {
+    flex-direction: column;
+    align-items: center;
+    border-radius: 28px;
+  }
+
+  .idPhotoBox {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .profileCardInner {
+    width: 100%;
+  }
+
+  .profileInfoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .profileCardTop {
+    gap: 12px;
+  }
+
+  .profileTitle {
+    font-size: 24px;
+  }
+
+  .deckTabsHeader {
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .decksGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* small phone */
+@media (max-width: 480px) {
+  .mainArea {
+    margin-left: 0;
+  }
+
+  .main {
+    padding: 60px 12px 40px;
+  }
+
+  .profileCard {
+    border-radius: 22px;
+  }
+
+  .profileTitle {
+    font-size: 20px;
+  }
+
+  .idPhotoFrame {
+    width: 140px;
+    height: 140px;
+  }
+
+  .profileField {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .editBtn {
+    width: 100%;
+  }
+
+  .deckBox {
+    min-height: 120px;
+  }
+}
+
+/* FINAL RESPONSIVE OVERRIDE */
+
+.main {
+  padding: 90px 32px 70px;
+}
+
+.profileCard {
+  width: 100%;
+  max-width: 900px;
+  padding-left: 120px;
+  margin: 0 auto 50px;
+  box-sizing: border-box;
+}
+
+.deckTabsSection {
+  width: 100%;
+  max-width: 900px;
+  margin: 70px auto 40px;
+}
+
+.decksGrid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+/* tablet */
+@media (max-width: 900px) {
+  .mainArea {
+    margin-left: 60px;
+  }
+
+  .main {
+    padding: 80px 18px 50px;
+  }
+
+  .profileCard {
+    padding-left: 0;
+    max-width: 620px;
+  }
+
+  .idPhotoBox {
+    position: relative;
+    left: auto;
+    top: auto;
+    margin: 0 auto -35px;
+  }
+
+  .profileCardInner {
+    padding: 60px 24px 28px;
+  }
+
+  .profileTitle {
+    font-size: 42px;
+  }
+
+  .profileInfoGrid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .profileFieldWide {
+    grid-column: auto;
+  }
+
+  .profileButtonWrap {
+    justify-content: stretch;
+  }
+
+  .editBtn {
+    width: 100%;
+  }
+
+  .deckTabsHeader {
+    left: 14px;
+    right: 14px;
+    overflow-x: auto;
+  }
+
+  .activeTab,
+  .tabBtn {
+    font-size: 18px;
+    padding: 12px 24px;
+    white-space: nowrap;
+  }
+}
+
+/* phone */
+@media (max-width: 520px) {
+  .mainArea {
+    margin-left: 0;
+  }
+
+  .main {
+    padding: 70px 12px 40px;
+  }
+
+  .profileCardInner {
+    padding: 55px 16px 24px;
+    border-radius: 20px;
+  }
+
+  .idPhotoBox {
+    width: 140px;
+    height: 160px;
+  }
+
+  .idPhotoFrame {
+    width: 105px;
+    height: 95px;
+  }
+
+  .profileTitle {
+    font-size: 32px;
+  }
+
+  .profileField {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .profileLabel,
+  .profileValue {
+    font-size: 17px;
+  }
+
+  .signatureText {
+    font-size: 36px;
+  }
+
+  .deckTabsSection {
+    padding: 34px 14px 20px;
+    border-radius: 18px;
+  }
+
+  .decksGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .deckPreview {
+    height: 80px;
+  }
+}
+
+/* ===== DECK CARD FINAL STYLE ===== */
+
+.deckTabsSection {
+  width: 100%;
+  max-width: 900px;
+  margin: 70px auto 40px;
+  background: #ffffff;
+  border: 1px solid #2f2f2f;
+  border-radius: 20px;
+  padding: 40px 32px 32px;
+  box-sizing: border-box;
+}
+
+.decksGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 230px);
+  gap: 28px;
+  justify-content: start;
+}
+
+.deckBox {
+  width: 230px;
+  height: 205px;
+  background: #ffffff;
+  border-radius: 18px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  position: relative;
+}
+.deckPreview {
+  height: 100px;
+  border-radius: 18px 18px 0 0;
+  position: relative;
+  background: #f0a0c1;
+}
+
+.deckPreview::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 70px;
+  height: 35px;
+  border-radius: 0 0 18px 0;
+  background: rgba(196, 120, 160, 0.55);
+}
+
+.previewBlue,
+.previewPink,
+.previewViolet,
+.previewRed {
+  background: #f0a0c1;
+}
+
+.previewBlue::before,
+.previewPink::before,
+.previewViolet::before,
+.previewRed::before {
+  background: rgba(196, 120, 160, 0.55);
+}
+
+.deckText {
+  background: #ffffff;
+  padding: 10px 14px 8px;
+  border-radius: 0;
+}
+
+.deckText strong {
+  display: block;
+  font-size: 16px;
+  color: #111;
+  margin-bottom: 6px;
+}
+
+.deckText p {
+  font-size: 14px;
+  color: #8b8b8b;
+  margin: 6px 0 0;
+}
+
+.deckText::after {
+  content: "▣  Reviewer";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4px;
+  padding: 6px 14px;
+  border: 1px solid #cfcfcf;
+  border-radius: 999px;
+  background: #f5f5f5;
+  color: #8a8a8a;
+  font-size: 13px;
+}
+
+@media (max-width: 768px) {
+  .deckTabsSection {
+    padding: 38px 18px 24px;
+  }
+
+  .decksGrid {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+}

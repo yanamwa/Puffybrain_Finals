@@ -1,4 +1,4 @@
-import { Link, NavLink, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
 import Swal from "sweetalert2";
 import { ToastContainer, toast } from "react-toastify";
@@ -8,6 +8,8 @@ import styles from "./Learning_Module.module.css";
 import "../../index.css";
 import { API_BASE } from "../../config.js";
 import QuizModesModal from "../../components/QuizModesModal";
+import UserHeader from "../../components/UserHeader";
+import UserSidebar from "../../components/UserSidebar";
 
 function LearningModule() {
   const navigate = useNavigate();
@@ -24,12 +26,8 @@ function LearningModule() {
 
   const [myDecks, setMyDecks] = useState([]);
   const [courses, setCourses] = useState([]);
+  const [notifications, setNotifications] = useState([]);
 
-const [notifications, setNotifications] = useState([]);
-
-const notificationCount = notifications.filter(
-  (notif) => notif.status === "unread"
-).length;
   const [user, setUser] = useState({
     id: null,
     username: "",
@@ -44,13 +42,14 @@ const notificationCount = notifications.filter(
     last_viewed_card: 0,
   });
 
+  const notificationCount = notifications.filter(
+    (notif) => notif.status === "unread"
+  ).length;
+
   const currentCourse = useMemo(() => {
     return courses.find((course) => {
       const courseId =
-        course.id ||
-        course.lesson_id ||
-        course.course_id ||
-        course.module_id;
+        course.id || course.lesson_id || course.course_id || course.module_id;
 
       return Number(courseId) === Number(lessonId);
     });
@@ -59,14 +58,13 @@ const notificationCount = notifications.filter(
   const isCourseAdded = useMemo(() => {
     return courses.some((course) => {
       const courseId =
-        course.id ||
-        course.lesson_id ||
-        course.course_id ||
-        course.module_id;
+        course.id || course.lesson_id || course.course_id || course.module_id;
 
       return Number(courseId) === Number(lessonId);
     });
   }, [courses, lessonId]);
+
+  const getDeckId = (deck) => deck?.id || deck?.deck_id || deck?.DeckID || "";
 
   const fetchUser = async () => {
     try {
@@ -119,63 +117,47 @@ const notificationCount = notifications.filter(
   };
 
   const fetchNotifications = async () => {
-  try {
-    const res = await fetch(`${API_BASE}/getUserNotifications.php`, {
-      method: "GET",
-      credentials: "include",
-    });
+    try {
+      const res = await fetch(`${API_BASE}/getUserNotifications.php`, {
+        method: "GET",
+        credentials: "include",
+      });
 
-    const data = await res.json();
-    setNotifications(data.success ? data.notifications || [] : []);
-  } catch (err) {
-    console.error("Notification fetch error:", err);
-    setNotifications([]);
-  }
-};
-
-const markNotificationsAsRead = async () => {
-  try {
-    const res = await fetch(`${API_BASE}/markNotificationsAsRead.php`, {
-      method: "POST",
-      credentials: "include",
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      setNotifications((prev) =>
-        prev.map((notif) => ({
-          ...notif,
-          status: "read",
-        }))
-      );
+      const data = await res.json();
+      setNotifications(data.success ? data.notifications || [] : []);
+    } catch (err) {
+      console.error("Notification fetch error:", err);
+      setNotifications([]);
     }
-  } catch (err) {
-    console.error("Mark notifications as read error:", err);
-  }
-};
+  };
 
+  const markNotificationsAsRead = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/markNotificationsAsRead.php`, {
+        method: "POST",
+        credentials: "include",
+      });
 
-useEffect(() => {
-  fetchUser();
-  fetchUserDecks();
-  fetchCourses();
-  fetchNotifications();
-}, []);
-  useEffect(() => {
-    const handler = (e) => {
-      const insideDropdown = e.target.closest(
-        `.${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}, .${styles.searchBar}`
-      );
+      const data = await res.json();
 
-      if (!insideDropdown) {
-        setProfileDropdownOpen(false);
-        setNotificationOpen(false);
+      if (data.success) {
+        setNotifications((prev) =>
+          prev.map((notif) => ({
+            ...notif,
+            status: "read",
+          }))
+        );
       }
-    };
+    } catch (err) {
+      console.error("Mark notifications as read error:", err);
+    }
+  };
 
-    window.addEventListener("click", handler);
-    return () => window.removeEventListener("click", handler);
+  useEffect(() => {
+    fetchUser();
+    fetchUserDecks();
+    fetchCourses();
+    fetchNotifications();
   }, []);
 
   const getTotalSlides = (lessonData) => {
@@ -211,7 +193,6 @@ useEffect(() => {
         );
 
         const lessonData = await lessonRes.json();
-
         const finalLesson = lessonData.lesson || lessonData.data || lessonData;
 
         setLesson(finalLesson);
@@ -270,7 +251,6 @@ useEffect(() => {
             last_viewed_card: 0,
           });
 
-          setLoading(false);
           return;
         }
 
@@ -286,7 +266,6 @@ useEffect(() => {
 
         const studiedCards = Number(realProgress?.studied_cards) || 0;
         const lastViewedCard = Number(realProgress?.last_viewed_card) || 0;
-
         const safeStudiedCards = Math.min(studiedCards, totalSlides);
 
         const computedPercent =
@@ -583,10 +562,23 @@ useEffect(() => {
     );
   }, [filteredQuizzes, correctQuestions]);
 
-  if (loading) {
-    return <div style={{ padding: "40px" }}>Loading lesson...</div>;
-  }
+if (loading) {
+  return (
+    <div className={styles.loadingPage}>
+      <div className={styles.loadingCard}>
+        <img
+          src="/images/Loading.png"
+          alt="Loading"
+          className={styles.loadingImage}
+        />
 
+        <p className={styles.loadingText}>
+          Loading decks<span></span>
+        </p>
+      </div>
+    </div>
+  );
+}
   if (!lesson) {
     return <div style={{ padding: "40px" }}>Lesson not found.</div>;
   }
@@ -597,525 +589,242 @@ useEffect(() => {
         isCollapsed ? styles.sidebarCollapsed : ""
       }`}
     >
-      <aside
-        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
-      >
-        <div>
-          <div
-            className={styles.sidebarToggle}
-            onClick={() => setIsCollapsed(!isCollapsed)}
-          >
-            <i className="bx bx-sidebar"></i>
-          </div>
-
-          <div className={styles.logo}>
-            <img
-              className={styles.logoExpanded}
-              src="/images/logo1.png"
-              alt="Logo"
-            />
-            <img
-              className={styles.logoCollapsed}
-              src="/images/logo_solo.png"
-              alt="Logo"
-            />
-          </div>
-
-          <div className={styles.divider}></div>
-          <p className={styles.myDecksTitle}>Menu</p>
-
-          <nav className={styles.menu}>
-            <ul className={styles.sidebarList}>
-              <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/homepage"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-home"></i>
-                  <span className={styles.menuText}>Home</span>
-                </NavLink>
-              </li>
-
-              <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/Mydecks"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-collection"></i>
-                  <span className={styles.menuText}>Decks</span>
-                </NavLink>
-              </li>
-
-              <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/mycourse"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-book-open"></i>
-                  <span className={styles.menuText}>My Course</span>
-                </NavLink>
-              </li>
-
-              <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/public-decks"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-world"></i>
-                  <span className={styles.menuText}>Public Decks</span>
-                </NavLink>
-              </li>
-            </ul>
-          </nav>
-
-          <div className={styles.divider}></div>
-
-          <div className={styles.myDecksNav}>
-            <div className={styles.sectionBlock}>
-              <p className={styles.sectionTitle}>My Decks</p>
-
-              <ul className={styles.sectionList}>
-                {myDecks.length === 0 ? (
-                  <li className={styles.sidebarEmptyText}>
-                    Don't have decks yet
-                  </li>
-                ) : (
-                  myDecks.slice(0, 3).map((deck) => (
-                    <li
-                      key={deck.id || deck.deck_id}
-                      className={styles.sidebarListItem}
-                    >
-                      <Link
-                        to={`/deck/${deck.id || deck.deck_id}`}
-                        className={styles.menuItem}
-                      >
-                        <i className="bx bx-collection"></i>
-                        <span className={styles.menuText}>{deck.title}</span>
-                      </Link>
-                    </li>
-                  ))
-                )}
-              </ul>
-            </div>
-
-            <div className={styles.sectionBlock}>
-              <div className={styles.sectionDivider}></div>
-              <p className={styles.sectionTitle}>My Courses</p>
-
-              <ul className={styles.sectionList}>
-                {courses.length === 0 ? (
-                  <li className={styles.sidebarEmptyText}>
-                    No courses added yet
-                  </li>
-                ) : (
-                  courses.slice(0, 3).map((course) => (
-                    <li
-                      key={course.id || course.lesson_id}
-                      className={styles.sidebarListItem}
-                    >
-                      <button
-                        type="button"
-                        onClick={() =>
-                          openCourse(course.id || course.lesson_id)
-                        }
-                        className={styles.menuItem}
-                      >
-                        <i className="bx bx-book-open"></i>
-                        <span className={styles.menuText}>{course.title}</span>
-                      </button>
-                    </li>
-                  ))
-                )}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      <div className={styles.mainArea}>
-        <div className={styles.gridContainer}>
-          <div className={styles.headerContainer}>
-            <form
-              className={styles.searchBar}
-              onSubmit={(e) => e.preventDefault()}
-            >
-              <input
-                type="text"
-                placeholder="Search cards"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-
-              {search.trim() ? (
-                <button
-                  type="button"
-                  onClick={() => setSearch("")}
-                  aria-label="Clear search"
-                  style={{
-                    border: "none",
-                    background: "transparent",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                >
-                  <i className="bx bx-x"></i>
-                </button>
-              ) : (
-                <i className="bx bx-search" />
-              )}
-            </form>
-
-            <div className={styles.profileWrapper}>
-              <div className={styles.notificationWrapper}>
-                <button
-                  type="button"
-                  className={styles.notificationBtn}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setNotificationOpen((prev) => !prev);
-                    setProfileDropdownOpen(false);
-                  }}
-                >
-                  <i className="bx bx-bell"></i>
-
-                  {notificationCount > 0 && (
-                    <span className={styles.notificationBadge}>
-                      {notificationCount}
-                    </span>
-                  )}
-                </button>
-
-             <div
-  className={`${styles.notificationDropdown} ${
-    notificationOpen ? styles.show : ""
-  }`}
->
-  <div className={styles.notificationHeader}>
-    <h4>Notifications</h4>
-
-    {notificationCount > 0 && (
-      <button
-        type="button"
-        className={styles.markReadBtn}
-        onClick={markNotificationsAsRead}
-      >
-        Mark all as read
-      </button>
-    )}
-  </div>
-
-  {notifications.length > 0 ? (
-    notifications.slice(0, 5).map((notif) => (
-      <div
-        key={notif.notification_id}
-        className={styles.notificationItem}
-      >
-        <div className={styles.notificationTop}>
-          <h5>{notif.title}</h5>
-
-          <span className={styles.notificationRole}>
-            {notif.recipient_type || notif.target_role}
-          </span>
-        </div>
-
-        <p>{notif.message}</p>
-
-        <small className={styles.notificationDate}>
-          {new Date(notif.created_at).toLocaleString()}
-        </small>
-      </div>
-    ))
-  ) : (
-    <div className={styles.emptyNotification}>
-      <img
-        src="/images/NoNotifcation.png"
-        alt="No notifications"
-        className={styles.emptyNotificationImg}
+      <UserSidebar
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+        myDecks={myDecks}
+        courses={courses}
+        openCourse={openCourse}
+        getDeckId={getDeckId}
       />
 
-      <p>You don’t have any new notifications</p>
-    </div>
-  )}
-</div>
-</div>
-              <Link to="/user-profile" className={styles.profileLink}>
-                <div className={styles.dpContainer}>
-                  <img
-                    src={user.profile_image || "/images/temporary profile.jpg"}
-                    alt="Profile"
-                    className={styles.profilePic}
+      <div className={styles.mainArea}>
+        <UserHeader
+          isCollapsed={isCollapsed}
+          searchQuery={search}
+          setSearchQuery={setSearch}
+          handleSearchSubmit={(e) => e.preventDefault()}
+          notificationOpen={notificationOpen}
+          setNotificationOpen={setNotificationOpen}
+          setDropdownOpen={setProfileDropdownOpen}
+          notificationCount={notificationCount}
+          notifications={notifications}
+          markNotificationsAsRead={markNotificationsAsRead}
+          user={user}
+          profileDropdownOpen={profileDropdownOpen}
+          setProfileDropdownOpen={setProfileDropdownOpen}
+          handleLogout={handleLogout}
+        />
+
+        <main className={styles.mainContent}>
+          <div className={styles.cardsContainer}>
+            <div className={styles.leftcont}>
+              <div className={styles.courses}>
+                <div className={styles.courseHead}></div>
+
+                <div className={styles.innercourse}>
+                  <div className={styles.innerhead}>
+                    <div className={styles.titleRow}>
+                      <h1 className={styles.lessonTitle}>{lesson.title}</h1>
+
+                      <button
+                        type="button"
+                        className={styles.shareBtn}
+                        onClick={handleShare}
+                        title="Copy lesson link"
+                      >
+                        <i className="bx bx-share-alt"></i>
+                      </button>
+                    </div>
+
+                    <div className={styles.cardCount}>{quizzes.length} Cards</div>
+                  </div>
+
+                  <div className={styles.description}>
+                    <h3>Description</h3>
+                    <p>{lesson.description}</p>
+                  </div>
+
+                  <div className={styles.innerfoot}>
+                    <h3>
+                      Created by Puffybrain
+                      <span
+                        className={`${styles.statusDot} ${styles.public}`}
+                        title="Public"
+                      />
+                      <span className={styles.statusText}>Public</span>
+                    </h3>
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.studyProgress}>
+                <div className={styles.ProgressHead}></div>
+
+                <div className={styles.innerProgress}>
+                  <h1>Study Progress</h1>
+
+                  <div className={styles.progressBarContainer}>
+                    <div
+                      className={styles.progressBar}
+                      style={{ width: `${progress.progress_percent}%` }}
+                    />
+                  </div>
+
+                  <div className={styles.progressPercent}>
+                    {Math.round(progress.progress_percent)}%
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.rightcol}>
+              <div className={styles.cards}>
+                <div className={styles.cardHead}>
+                  <div className={styles.cardButtons}>
+                    <button
+                      className={`${styles.btn} ${styles.studyBtn}`}
+                      onClick={handleStudy}
+                    >
+                      Study
+                    </button>
+
+                    <button
+                      className={`${styles.btn} ${styles.practiceBtn}`}
+                      onClick={handlePractice}
+                    >
+                      Practice
+                    </button>
+                  </div>
+                </div>
+
+                {openModes && (
+                  <QuizModesModal
+                    source="lesson"
+                    lessonId={lessonId}
+                    quizzes={quizzes}
+                    onClose={() => setOpenModes(false)}
                   />
-                </div>
+                )}
 
-                <div className={styles.userInfo}>
-                  <p>{user.username}</p>
-                </div>
-              </Link>
-
-              <div className={styles.dropdown}>
-                <button
-                  type="button"
-                  className={styles.dropdownBtn}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setProfileDropdownOpen(!profileDropdownOpen);
-                    setNotificationOpen(false);
-                  }}
-                >
-                  <i className="bx bx-chevron-down" />
-                </button>
-
-                <div
-                  className={`${styles.dropdownContent} ${
-                    profileDropdownOpen ? styles.show : ""
-                  }`}
-                >
-                  <NavLink to="/edit-profile">
-                    <i className="bx bx-cog" />
-                    <span>Settings</span>
-                  </NavLink>
-
-                  <NavLink to="/faq">
-                    <i className="bx bx-help-circle" />
-                    <span>FAQs</span>
-                  </NavLink>
-
-                  <button type="button" onClick={handleLogout}>
-                    <i className="bx bx-log-out" />
-                    <span>Logout</span>
+                <div className={styles.innercardHead}>
+                  <button
+                    className={`${styles.tabBtn} ${
+                      activeTab === "tab1" ? styles.activeTab : ""
+                    }`}
+                    onClick={() => setActiveTab("tab1")}
+                  >
+                    All Cards
                   </button>
+
+                  <button
+                    className={`${styles.tabBtn} ${
+                      activeTab === "tab2" ? styles.activeTab : ""
+                    }`}
+                    onClick={() => setActiveTab("tab2")}
+                  >
+                    Not Memorized
+                  </button>
+
+                  <button
+                    className={`${styles.tabBtn} ${
+                      activeTab === "tab3" ? styles.activeTab : ""
+                    }`}
+                    onClick={() => setActiveTab("tab3")}
+                  >
+                    Memorized
+                  </button>
+                </div>
+
+                <div className={styles.cardContent}>
+                  {activeTab === "tab1" && (
+                    <div className={styles.tabBoxes}>
+                      {filteredQuizzes.length === 0 ? (
+                        <div className={styles.emptyState}>
+                          <img
+                            src="/images/cute1.png"
+                            alt="No cards"
+                            className={styles.emptyImage}
+                          />
+                          <p>
+                            {search.trim()
+                              ? `No cards found for “${search}”.`
+                              : "No cards available yet."}
+                          </p>
+                        </div>
+                      ) : (
+                        filteredQuizzes.map((quiz, index) => (
+                          <div key={index} className={styles.box}>
+                            <p className={styles.question}>{quiz.question}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+
+                  {activeTab === "tab2" && (
+                    <div className={styles.tabBoxes}>
+                      {filteredQuizzes.length === 0 ? (
+                        <div className={styles.emptyState}>
+                          <img
+                            src="/images/cute1.png"
+                            alt="No cards"
+                            className={styles.emptyImage}
+                          />
+                          <p>
+                            {search.trim()
+                              ? `No not memorized cards found for “${search}”.`
+                              : "No cards to memorize yet."}
+                          </p>
+                        </div>
+                      ) : notMemorizedCards.length === 0 ? (
+                        <div className={styles.emptyState}>
+                          <img
+                            src="/images/celeb.png"
+                            alt="All memorized"
+                            className={styles.emptyImage}
+                          />
+                          <p>Congratulation! You memorized all cards 🎉</p>
+                        </div>
+                      ) : (
+                        notMemorizedCards.map((quiz, index) => (
+                          <div key={index} className={styles.box}>
+                            <p className={styles.question}>{quiz.question}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+
+                  {activeTab === "tab3" && (
+                    <div className={styles.tabBoxes}>
+                      {memorizedCards.length === 0 ? (
+                        <div className={styles.emptyState}>
+                          <img
+                            src="/images/cute1.png"
+                            alt="No memorized cards"
+                            className={styles.emptyImage}
+                          />
+                          <p>
+                            {search.trim()
+                              ? `No memorized cards found for “${search}”.`
+                              : "No memorized cards yet."}
+                          </p>
+                        </div>
+                      ) : (
+                        memorizedCards.map((quiz, index) => (
+                          <div key={index} className={styles.box}>
+                            <p className={styles.question}>{quiz.question}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
-
-          <main className={styles.mainContent}>
-            <div className={styles.cardsContainer}>
-              <div className={styles.leftcont}>
-                <div className={styles.courses}>
-                  <div className={styles.courseHead}></div>
-
-                  <div className={styles.innercourse}>
-                    <div className={styles.innerhead}>
-                      <div className={styles.titleRow}>
-                        <h1 className={styles.lessonTitle}>{lesson.title}</h1>
-
-                        <button
-                          type="button"
-                          className={styles.shareBtn}
-                          onClick={handleShare}
-                          title="Copy lesson link"
-                        >
-                          <i className="bx bx-share-alt"></i>
-                        </button>
-                      </div>
-
-                      <div className={styles.cardCount}>
-                        {quizzes.length} Cards
-                      </div>
-                    </div>
-
-                    <div className={styles.description}>
-                      <h3>Description</h3>
-                      <p>{lesson.description}</p>
-                    </div>
-
-                    <div className={styles.innerfoot}>
-                      <h3>
-                        Created by Puffybrain
-                        <span
-                          className={`${styles.statusDot} ${styles.public}`}
-                          title="Public"
-                        />
-                        <span className={styles.statusText}>Public</span>
-                      </h3>
-                    </div>
-                  </div>
-                </div>
-
-                <div className={styles.studyProgress}>
-                  <div className={styles.ProgressHead}></div>
-
-                  <div className={styles.innerProgress}>
-                    <h1>Study Progress</h1>
-
-                    <div className={styles.progressBarContainer}>
-                      <div
-                        className={styles.progressBar}
-                        style={{ width: `${progress.progress_percent}%` }}
-                      />
-                    </div>
-
-                    <div className={styles.progressPercent}>
-                      {Math.round(progress.progress_percent)}%
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.rightcol}>
-                <div className={styles.cards}>
-                  <div className={styles.cardHead}>
-                    <div className={styles.cardButtons}>
-                      <button
-                        className={`${styles.btn} ${styles.studyBtn}`}
-                        onClick={handleStudy}
-                      >
-                        Study
-                      </button>
-
-                      <button
-                        className={`${styles.btn} ${styles.practiceBtn}`}
-                        onClick={handlePractice}
-                      >
-                        Practice
-                      </button>
-                    </div>
-                  </div>
-
-                  {openModes && (
-                    <QuizModesModal
-                      source="lesson"
-                      lessonId={lessonId}
-                      quizzes={quizzes}
-                      onClose={() => setOpenModes(false)}
-                    />
-                  )}
-
-                  <div className={styles.innercardHead}>
-                    <button
-                      className={`${styles.tabBtn} ${
-                        activeTab === "tab1" ? styles.activeTab : ""
-                      }`}
-                      onClick={() => setActiveTab("tab1")}
-                    >
-                      All Cards
-                    </button>
-
-                    <button
-                      className={`${styles.tabBtn} ${
-                        activeTab === "tab2" ? styles.activeTab : ""
-                      }`}
-                      onClick={() => setActiveTab("tab2")}
-                    >
-                      Not Memorized
-                    </button>
-
-                    <button
-                      className={`${styles.tabBtn} ${
-                        activeTab === "tab3" ? styles.activeTab : ""
-                      }`}
-                      onClick={() => setActiveTab("tab3")}
-                    >
-                      Memorized
-                    </button>
-                  </div>
-
-                  <div className={styles.cardContent}>
-                    {activeTab === "tab1" && (
-                      <div className={styles.tabBoxes}>
-                        {filteredQuizzes.length === 0 ? (
-                          <div className={styles.emptyState}>
-                            <img
-                              src="/images/cute1.png"
-                              alt="No cards"
-                              className={styles.emptyImage}
-                            />
-                            <p>
-                              {search.trim()
-                                ? `No cards found for “${search}”.`
-                                : "No cards available yet."}
-                            </p>
-                          </div>
-                        ) : (
-                          filteredQuizzes.map((quiz, index) => (
-                            <div key={index} className={styles.box}>
-                              <p className={styles.question}>
-                                {quiz.question}
-                              </p>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    )}
-
-                    {activeTab === "tab2" && (
-                      <div className={styles.tabBoxes}>
-                        {filteredQuizzes.length === 0 ? (
-                          <div className={styles.emptyState}>
-                            <img
-                              src="/images/cute1.png"
-                              alt="No cards"
-                              className={styles.emptyImage}
-                            />
-                            <p>
-                              {search.trim()
-                                ? `No not memorized cards found for “${search}”.`
-                                : "No cards to memorize yet."}
-                            </p>
-                          </div>
-                        ) : notMemorizedCards.length === 0 ? (
-                          <div className={styles.emptyState}>
-                            <img
-                              src="/images/celeb.png"
-                              alt="All memorized"
-                              className={styles.emptyImage}
-                            />
-                            <p>Congratulation! You memorized all cards 🎉</p>
-                          </div>
-                        ) : (
-                          notMemorizedCards.map((quiz, index) => (
-                            <div key={index} className={styles.box}>
-                              <p className={styles.question}>
-                                {quiz.question}
-                              </p>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    )}
-
-                    {activeTab === "tab3" && (
-                      <div className={styles.tabBoxes}>
-                        {memorizedCards.length === 0 ? (
-                          <div className={styles.emptyState}>
-                            <img
-                              src="/images/cute1.png"
-                              alt="No memorized cards"
-                              className={styles.emptyImage}
-                            />
-                            <p>
-                              {search.trim()
-                                ? `No memorized cards found for “${search}”.`
-                                : "No memorized cards yet."}
-                            </p>
-                          </div>
-                        ) : (
-                          memorizedCards.map((quiz, index) => (
-                            <div key={index} className={styles.box}>
-                              <p className={styles.question}>
-                                {quiz.question}
-                              </p>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </main>
-        </div>
+        </main>
       </div>
 
       <ToastContainer

@@ -1,23 +1,16 @@
 import { useState, useEffect, useRef } from "react";
-import { NavLink } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import styles from "./user.module.css";
 import "boxicons/css/boxicons.min.css";
 import Swal from "sweetalert2";
 import { API_BASE } from "../../config.js";
-
-import {
-  LayoutDashboard,
-  Users,
-  Layers,
-  LibraryBig,
-  Gamepad2,
-  LogOut,
-  Search,
-  User,
-  Settings,
-} from "lucide-react";
+import AHeader from "../../components/AHeader";
+import ASidebar from "../../components/ASidebar";
 
 export default function UserManagement() {
+  const navigate = useNavigate();
+  const fetchedOnce = useRef(false);
+
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedUserDecks, setSelectedUserDecks] = useState([]);
@@ -36,37 +29,21 @@ export default function UserManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchedOnce = useRef(false);
-const [admin, setAdmin] = useState({
-  id: "",
-  username: "Admin",
-  full_name: "",
-  email: "",
-  role: "",
-  profile_image: "/images/temporary profile.jpg",
-});
+  const [admin, setAdmin] = useState({
+    id: "",
+    username: "Admin",
+    full_name: "",
+    email: "",
+    role: "",
+    profile_image: "/images/temporary profile.jpg",
+  });
 
-const adminImage =
-  admin.profile_image &&
-  !admin.profile_image.includes("temporary profile.jpg")
-    ? admin.profile_image.startsWith("http")
-      ? admin.profile_image
-      : `${API_BASE}/${admin.profile_image.replace(/^\/+/, "")}`
-    : "/images/temporary profile.jpg";
-
-
-  const menuItems = [
-    { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
-    { label: "User Management", path: "/admin/users", icon: <Users size={20} /> },
-    { label: "Module Management", path: "/admin/modules", icon: <Layers size={20} /> },
-    { label: "Decks Management", path: "/admin/decks", icon: <LibraryBig size={20} /> },
-    { label: "Modes Management", path: "/admin/modes", icon: <Gamepad2 size={20} /> },
-    {
-      label: "Notification Management",
-      path: "/admin/notifications",
-      icon: <i className="bx bx-bell"></i>,
-    },
-  ];
+  const adminImage =
+    admin.profile_image && !admin.profile_image.includes("temporary profile.jpg")
+      ? admin.profile_image.startsWith("http")
+        ? admin.profile_image
+        : `${API_BASE}/${admin.profile_image.replace(/^\/+/, "")}`
+      : "/images/temporary profile.jpg";
 
   const formatDate = (dateValue) => {
     if (!dateValue) return "No date";
@@ -77,11 +54,35 @@ const adminImage =
       return "No date";
     }
 
-    return date.toLocaleString();
+    return date.toLocaleString("en-PH", {
+      timeZone: "Asia/Manila",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
   };
 
   const formatVerified = (value) => {
     return Number(value) === 1 ? "True" : "False";
+  };
+
+  const isUserArchived = (user) => {
+    const archived = String(user?.archived ?? "").toLowerCase();
+    const isArchived = String(user?.is_archived ?? "").toLowerCase();
+    const status = String(user?.status ?? "").toLowerCase();
+
+    return (
+      archived === "1" ||
+      archived === "true" ||
+      archived === "archived" ||
+      isArchived === "1" ||
+      isArchived === "true" ||
+      isArchived === "archived" ||
+      status === "archived"
+    );
   };
 
   const fetchAdmin = async () => {
@@ -99,11 +100,13 @@ const adminImage =
       }
 
       setAdmin({
-        username: data.admin?.username || "Admin",
-        full_name: data.admin?.full_name || "",
-        email: data.admin?.email || "",
-        role: data.admin?.role || "Administrator",
-        profile_image: data.admin?.profile_image || "/images/temporary profile.jpg",
+        id: data.admin?.id || data.admin?.AdminID || "",
+        username: data.admin?.username || data.admin?.Username || "Admin",
+        full_name: data.admin?.full_name || data.admin?.FullName || "",
+        email: data.admin?.email || data.admin?.Email || "",
+        role: data.admin?.role || data.admin?.Role || "Administrator",
+        profile_image:
+          data.admin?.profile_image || "/images/temporary profile.jpg",
       });
     } catch (err) {
       console.error("Fetch admin error:", err);
@@ -156,38 +159,38 @@ const adminImage =
     }
   };
 
-const handleLogout = async (e) => {
-  e.preventDefault();
+  const handleLogout = async (e) => {
+    e.preventDefault();
 
-  const result = await Swal.fire({
-    title: "Logout?",
-    text: "Are you sure you want to logout?",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Yes",
-    cancelButtonText: "Cancel",
-    confirmButtonColor: "#7b5cff",
-  });
-
-  if (!result.isConfirmed) return;
-
-  try {
-    await fetch(`${API_BASE}/adminLogout.php`, {
-      method: "POST",
-      credentials: "include",
+    const result = await Swal.fire({
+      title: "Logout?",
+      text: "Are you sure you want to logout?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#7b5cff",
     });
-  } catch (err) {
-    console.error("Logout API error:", err);
-  }
 
-  localStorage.removeItem("admin");
-  localStorage.removeItem("admin_id");
-  localStorage.removeItem("admin_username");
-  localStorage.removeItem("admin_email");
-  sessionStorage.clear();
+    if (!result.isConfirmed) return;
 
-  navigate("/pb-admin-access", { replace: true });
-};
+    try {
+      await fetch(`${API_BASE}/adminLogout.php`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout API error:", err);
+    }
+
+    localStorage.removeItem("admin");
+    localStorage.removeItem("admin_id");
+    localStorage.removeItem("admin_username");
+    localStorage.removeItem("admin_email");
+    sessionStorage.clear();
+
+    navigate("/pb-admin-access", { replace: true });
+  };
 
   const formatUserId = (user) => {
     const date = user.created_at ? new Date(user.created_at) : new Date();
@@ -241,7 +244,9 @@ const handleLogout = async (e) => {
 
     try {
       const res = await fetch(
-        `${API_BASE}/getUserDetailsAdmin.php?user_id=${encodeURIComponent(user.id)}`,
+        `${API_BASE}/getUserDetailsAdmin.php?user_id=${encodeURIComponent(
+          user.id
+        )}`,
         {
           method: "GET",
           credentials: "include",
@@ -261,7 +266,11 @@ const handleLogout = async (e) => {
       } else {
         setSelectedUserDecks([]);
         setSelectedUserCourses([]);
-        Swal.fire("Error", data.message || "Failed to fetch user details", "error");
+        Swal.fire(
+          "Error",
+          data.message || "Failed to fetch user details",
+          "error"
+        );
       }
     } catch (err) {
       console.error(err);
@@ -282,7 +291,7 @@ const handleLogout = async (e) => {
     fetchBellNotifications();
 
     const handler = (e) => {
-      const insideDropdown = e.target.closest(`.${styles.notificationWrapper}`);
+      const insideDropdown = e.target.closest('[class*="notificationWrapper"]');
 
       if (!insideDropdown) {
         setNotificationOpen(false);
@@ -299,12 +308,6 @@ const handleLogout = async (e) => {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, sortBy, rowsToShow]);
-
-  const unreadNotifications = bellNotifications.filter(
-    (notif) => notif.status === "unread"
-  );
-
-  const notificationCount = unreadNotifications.length;
 
   const filteredUsers = users.filter((user) => {
     const q = searchQuery.trim().toLowerCase();
@@ -341,184 +344,27 @@ const handleLogout = async (e) => {
   );
 
   return (
-    <div className={styles.gridContainer}>
-      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
-        <div className={styles.sidebarTop}>
-          <button
-            type="button"
-            className={styles.sidebarToggle}
-            onClick={() => setIsCollapsed(!isCollapsed)}
-          >
-            <i className="bx bx-sidebar"></i>
-          </button>
+    <div
+      className={`${styles.gridContainer} ${
+        isCollapsed ? styles.collapsedGrid : ""
+      }`}
+    >
+      <ASidebar
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+        handleLogout={handleLogout}
+      />
 
-          <div className={styles.logo}>
-            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
-            <img className={styles.logoCollapsed} src="/images/logo_solo.png" alt="Logo" />
-          </div>
-
-          <div className={styles.divider}></div>
-          <p className={styles.menuLabel}>Menu</p>
-
-          <nav className={styles.menu}>
-            {menuItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  `${styles.menuItem} ${isActive ? styles.active : ""}`
-                }
-              >
-                <span className={styles.menuIcon}>{item.icon}</span>
-                <span className={styles.menuText}>{item.label}</span>
-              </NavLink>
-            ))}
-          </nav>
-
-          <div className={styles.divider}></div>
-          <p className={styles.menuLabel}>Others</p>
-
-          <nav className={styles.menu}>
-            <NavLink
-              to="/admin/profile"
-              className={({ isActive }) =>
-                `${styles.menuItem} ${isActive ? styles.active : ""}`
-              }
-            >
-              <span className={styles.menuIcon}>
-                <User size={20} />
-              </span>
-              <span className={styles.menuText}>Profile</span>
-            </NavLink>
-
-            <NavLink
-              to="/admin/settings"
-              className={({ isActive }) =>
-                `${styles.menuItem} ${isActive ? styles.active : ""}`
-              }
-            >
-              <span className={styles.menuIcon}>
-                <Settings size={20} />
-              </span>
-              <span className={styles.menuText}>Settings</span>
-            </NavLink>
-          </nav>
-        </div>
-
-        <div className={styles.sidebarBottom}>
-          <div className={styles.divider}></div>
-
-         <button type="button" onClick={handleLogout} className={styles.menuItem}>
-  <span className={styles.menuIcon}>
-    <LogOut size={20} />
-  </span>
-  <span className={styles.menuText}>Logout</span>
-</button>
-        </div>
-      </aside>
-
-      <header className={styles.headerContainer}>
-        <div className={styles.searchBar}>
-          <Search size={19} />
-          <input
-            type="text"
-            placeholder="Search users..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
-          />
-        </div>
-
-        <div className={styles.headerRight}>
-          <div className={styles.notificationWrapper}>
-            <button
-              type="button"
-              className={styles.notificationBtn}
-              onClick={(e) => {
-                e.stopPropagation();
-                setNotificationOpen((prev) => !prev);
-              }}
-            >
-              <i className="bx bx-bell"></i>
-
-              {notificationCount > 0 && (
-                <span className={styles.notificationBadge}>{notificationCount}</span>
-              )}
-            </button>
-
-            <div
-              className={`${styles.notificationDropdown} ${
-                notificationOpen ? styles.show : ""
-              }`}
-            >
-              <div className={styles.notificationHeader}>
-                <h4>Notifications</h4>
-
-                {notificationCount > 0 && (
-                  <button
-                    type="button"
-                    className={styles.markReadBtn}
-                    onClick={handleMarkAllAsRead}
-                  >
-                    Mark all as read
-                  </button>
-                )}
-              </div>
-
-              {bellNotifications.length > 0 ? (
-                bellNotifications.slice(0, 5).map((item) => (
-                  <div
-                    key={item.notification_id || item.id}
-                    className={styles.notificationItem}
-                  >
-                    <div className={styles.notificationTop}>
-                      <h5>{item.title || "No title"}</h5>
-                      <span className={styles.notificationRole}>
-                        {item.recipient_type || "all"}
-                      </span>
-                    </div>
-
-                    <p className={styles.notificationMessage}>
-                      {item.message || "No message"}
-                    </p>
-
-                    <p className={styles.notificationCreator}>
-                      Posted by {item.created_by || "Admin"}
-                    </p>
-
-                    <small className={styles.notificationDate}>
-                      {item.created_at
-                        ? new Date(item.created_at).toLocaleString()
-                        : "No date"}
-                    </small>
-                  </div>
-                ))
-              ) : (
-                <div className={styles.emptyNotification}>
-                  <p>You don’t have any new notifications</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-      <div className={styles.adminHeaderProfile}>
-  <img
-    src={adminImage}
-    alt="Admin"
-    className={styles.adminHeaderImg}
-    onError={(e) => {
-      e.currentTarget.src = "/images/temporary profile.jpg";
-    }}
-  />
-
-  <span className={styles.adminHeaderName}>
-    {admin.username || "Admin"}
-  </span>
-</div>
-        </div>
-      </header>
+      <AHeader
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        notificationOpen={notificationOpen}
+        setNotificationOpen={setNotificationOpen}
+        bellNotifications={bellNotifications}
+        handleMarkAllAsRead={handleMarkAllAsRead}
+        admin={admin}
+        adminImage={adminImage}
+      />
 
       <main className={styles.main}>
         <div className={styles.pageTop}>
@@ -550,7 +396,9 @@ const handleLogout = async (e) => {
           <div className={styles.tableContent}>
             {loading && <div className={styles.message}>Loading users...</div>}
 
-            {!loading && error && <div className={styles.errorMessage}>{error}</div>}
+            {!loading && error && (
+              <div className={styles.errorMessage}>{error}</div>
+            )}
 
             {!loading && !error && currentUsers.length === 0 && (
               <div className={styles.message}>No users found.</div>
@@ -586,24 +434,28 @@ const handleLogout = async (e) => {
                 {"<"}
               </button>
 
-              {Array.from({ length: totalPages || 1 }, (_, i) => i + 1).map((page) => (
-                <button
-                  type="button"
-                  key={page}
-                  className={`${styles.pageBtn} ${
-                    currentPage === page ? styles.pageActive : ""
-                  }`}
-                  onClick={() => setCurrentPage(page)}
-                >
-                  {page}
-                </button>
-              ))}
+              {Array.from({ length: totalPages || 1 }, (_, i) => i + 1).map(
+                (page) => (
+                  <button
+                    type="button"
+                    key={page}
+                    className={`${styles.pageBtn} ${
+                      currentPage === page ? styles.pageActive : ""
+                    }`}
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
 
               <button
                 type="button"
                 className={styles.navBtn}
                 disabled={currentPage === totalPages || totalPages === 0}
-                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(p + 1, totalPages))
+                }
               >
                 {">"}
               </button>
@@ -632,46 +484,87 @@ const handleLogout = async (e) => {
       </main>
 
       {selectedUser && (
-        <div className={styles.modalOverlay} onClick={() => setSelectedUser(null)}>
+        <div
+          className={styles.modalOverlay}
+          onClick={() => setSelectedUser(null)}
+        >
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               User Profile
 
-              <span className={styles.close} onClick={() => setSelectedUser(null)}>
+              <span
+                className={styles.close}
+                onClick={() => setSelectedUser(null)}
+              >
                 ×
               </span>
             </div>
 
             <div className={styles.modalBody}>
-              <p>
-                <strong>ID:</strong> {formatUserId(selectedUser)}
-              </p>
+              <div className={styles.profileGrid}>
+                <div className={styles.profileRow}>
+                  <span className={styles.profileLabel}>ID</span>
+                  <span className={styles.profileValue}>
+                    {formatUserId(selectedUser)}
+                  </span>
+                </div>
 
-              <p>
-                <strong>Username:</strong> {selectedUser.username || "No username"}
-              </p>
+                <div className={styles.profileRow}>
+                  <span className={styles.profileLabel}>Username</span>
+                  <span className={styles.profileValue}>
+                    {selectedUser.username || "No username"}
+                  </span>
+                </div>
 
-              <p>
-                <strong>Email:</strong> {selectedUser.email || "No email found"}
-              </p>
+                <div className={styles.profileRow}>
+                  <span className={styles.profileLabel}>Email</span>
+                  <span className={styles.profileValue}>
+                    {selectedUser.email || "No email found"}
+                  </span>
+                </div>
 
-              <p>
-                <strong>Year Level:</strong>{" "}
-                {selectedUser.year_level || "No year level"}
-              </p>
+                <div className={styles.profileRow}>
+                  <span className={styles.profileLabel}>Year Level</span>
+                  <span className={styles.profileValue}>
+                    {selectedUser.year_level || "No year level"}
+                  </span>
+                </div>
 
-              <p>
-                <strong>School:</strong> {selectedUser.school || "No school"}
-              </p>
+                <div className={styles.profileRow}>
+                  <span className={styles.profileLabel}>School</span>
+                  <span className={styles.profileValue}>
+                    {selectedUser.school || "No school"}
+                  </span>
+                </div>
 
-              <p>
-                <strong>Created At:</strong> {formatDate(selectedUser.created_at)}
-              </p>
+                <div className={styles.profileRow}>
+                  <span className={styles.profileLabel}>Created At</span>
+                  <span className={styles.profileValue}>
+                    {formatDate(selectedUser.created_at)}
+                  </span>
+                </div>
 
-              <p>
-                <strong>Is Verified:</strong>{" "}
-                {formatVerified(selectedUser.is_verified)}
-              </p>
+                <div className={styles.profileRow}>
+                  <span className={styles.profileLabel}>Is Verified</span>
+                  <span className={styles.profileValue}>
+                    {formatVerified(selectedUser.is_verified)}
+                  </span>
+                </div>
+
+                <div className={styles.profileRow}>
+                  <span className={styles.profileLabel}>Account Status</span>
+
+                  <span
+                    className={`${styles.accountStatusBadge} ${
+                      isUserArchived(selectedUser)
+                        ? styles.archivedAccount
+                        : styles.activeAccount
+                    }`}
+                  >
+                    {isUserArchived(selectedUser) ? "Archived" : "Active"}
+                  </span>
+                </div>
+              </div>
 
               <div className={styles.userInfoSection}>
                 <h3>Decks Made</h3>

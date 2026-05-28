@@ -1143,3 +1143,188 @@
   border: 1px solid #ccc !important;
   box-shadow: 0 4px 0 #ccc !important;
 }
+
+/* ========================================= */
+/* RESPONSIVE FIXES */
+/* ========================================= */
+
+/* LARGE TABLETS */
+@media (max-width: 1024px) {
+  .gridContainer {
+    grid-template-columns: 70px 1fr;
+  }
+
+  .sidebar {
+    width: 70px;
+  }
+
+  .sidebar .menuText,
+  .sidebar .menuLabel,
+  .sidebar .logoExpanded {
+    display: none;
+  }
+
+  .sidebar .logoCollapsed {
+    display: block;
+  }
+
+  .menuItem {
+    justify-content: center;
+    margin-left: 0;
+    border-radius: 0;
+    padding: 12px 0;
+  }
+
+  .main {
+    padding: 24px 20px;
+  }
+
+  .headerContainer {
+    padding: 0 18px;
+    gap: 12px;
+  }
+
+  .searchBar {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .popupInfoGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* TABLETS */
+@media (max-width: 768px) {
+  .gridContainer {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "header"
+      "main";
+  }
+
+  .sidebar {
+    position: fixed;
+    left: -240px;
+    width: 220px;
+    transition: left 0.3s ease;
+  }
+
+  .sidebar.showSidebar {
+    left: 0;
+  }
+
+  .headerContainer {
+    width: 100%;
+    padding: 12px 16px;
+    height: auto;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .searchBar {
+    order: 3;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+  }
+
+  .headerRight {
+    margin-left: auto;
+    gap: 12px;
+  }
+
+  .adminHeaderName {
+    display: none;
+  }
+
+  .main {
+    padding: 18px 14px;
+  }
+
+  .pageHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .pageHeader h1 {
+    font-size: 28px;
+  }
+
+  .formCard {
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+
+  .popupActions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .popupCancelBtn,
+  .popupSaveBtn {
+    width: 100%;
+  }
+
+  .optionsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .notificationDropdown {
+    width: 290px;
+    right: -30px;
+  }
+}
+
+/* MOBILE */
+@media (max-width: 480px) {
+  .headerContainer {
+    padding: 10px 12px;
+  }
+
+  .searchBar {
+    height: 40px;
+    padding: 0 12px;
+  }
+
+  .searchBar input {
+    font-size: 14px;
+  }
+
+  .pageHeader h1 {
+    font-size: 24px;
+  }
+
+  .popupLabel {
+    font-size: 15px;
+  }
+
+  .popupInput,
+  .popupSelect,
+  .popupTextarea {
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+
+  .popupAddBtn,
+  .popupCancelBtn,
+  .popupSaveBtn {
+    font-size: 14px;
+    min-width: unset;
+  }
+
+  .notificationDropdown {
+    width: calc(100vw - 24px);
+    right: -10px;
+  }
+
+  .quizGeneratePopup {
+    width: calc(100vw - 24px) !important;
+  }
+
+  .generateQuizTitle,
+  .replaceTitle {
+    font-size: 22px !important;
+  }
+}

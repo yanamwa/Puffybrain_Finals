@@ -1,21 +1,12 @@
 import { useState, useEffect } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import styles from "./decksM.module.css";
 import "boxicons/css/boxicons.min.css";
 import { API_BASE } from "../../config.js";
-import {
-  LayoutDashboard,
-  Users,
-  Layers,
-  LibraryBig,
-  Gamepad2,
-  LogOut,
-  Search,
-  User,
-  Settings,
-  Database,
-} from "lucide-react";
+
+import AHeader from "../../components/AHeader";
+import ASidebar from "../../components/ASidebar";
 
 export default function DeckManagement() {
   const navigate = useNavigate();
@@ -37,33 +28,22 @@ export default function DeckManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-const [admin, setAdmin] = useState({
-  id: "",
-  username: "Admin",
-  full_name: "",
-  email: "",
-  role: "",
-  profile_image: "/images/temporary profile.jpg",
-});
+  const [admin, setAdmin] = useState({
+    id: "",
+    username: "Admin",
+    full_name: "",
+    email: "",
+    role: "",
+    profile_image: "/images/temporary profile.jpg",
+  });
 
-const adminImage =
-  admin.profile_image &&
-  !admin.profile_image.includes("temporary profile.jpg")
-    ? admin.profile_image.startsWith("http")
-      ? admin.profile_image
-      : `${API_BASE}/${admin.profile_image.replace(/^\/+/, "")}`
-    : "/images/temporary profile.jpg";
-
-
-  const menuItems = [
-    { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
-    { label: "User Management", path: "/admin/users", icon: <Users size={20} /> },
-    { label: "Module Management", path: "/admin/modules", icon: <Layers size={20} /> },
-    { label: "Decks Management", path: "/admin/decks", icon: <LibraryBig size={20} /> },
-    { label: "Modes Management", path: "/admin/modes", icon: <Gamepad2 size={20} /> },
-    { label: "Notification Management", path: "/admin/notifications", icon: <i className="bx bx-bell"></i> },
-    { label: "Backup & Restore", path: "/admin/backup-restore", icon: <Database size={20} /> },
-  ];
+  const adminImage =
+    admin.profile_image &&
+    !admin.profile_image.includes("temporary profile.jpg")
+      ? admin.profile_image.startsWith("http")
+        ? admin.profile_image
+        : `${API_BASE}/${admin.profile_image.replace(/^\/+/, "")}`
+      : "/images/temporary profile.jpg";
 
   const handleLogout = async (e) => {
     e.preventDefault();
@@ -130,7 +110,9 @@ const adminImage =
         full_name: data.admin?.full_name || "",
         email: data.admin?.email || "",
         role: data.admin?.role || "Administrator",
-        profile_image: data.admin?.profile_image || "/images/temporary profile.jpg",
+        profile_image:
+          data.admin?.profile_image ||
+          "/images/temporary profile.jpg",
       });
     } catch (err) {
       console.error("Fetch admin error:", err);
@@ -140,10 +122,14 @@ const adminImage =
   const fetchBellNotifications = async () => {
     try {
       const storedAdmin = JSON.parse(localStorage.getItem("admin") || "{}");
-      const adminId = storedAdmin.id || localStorage.getItem("admin_id");
+
+      const adminId =
+        storedAdmin.id || localStorage.getItem("admin_id");
 
       const res = await fetch(
-        `${API_BASE}/getAdminNotifications.php?admin_id=${adminId || ""}`,
+        `${API_BASE}/getAdminNotifications.php?admin_id=${
+          adminId || ""
+        }`,
         { credentials: "include" }
       );
 
@@ -164,7 +150,9 @@ const adminImage =
     e.stopPropagation();
 
     const storedAdmin = JSON.parse(localStorage.getItem("admin") || "{}");
-    const adminId = storedAdmin.id || localStorage.getItem("admin_id");
+
+    const adminId =
+      storedAdmin.id || localStorage.getItem("admin_id");
 
     if (!adminId) {
       alert("Admin ID not found. Please log in again.");
@@ -172,16 +160,19 @@ const adminImage =
     }
 
     try {
-      const res = await fetch(`${API_BASE}/markAdminNotificationsRead.php`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          admin_id: adminId,
-        }),
-      });
+      const res = await fetch(
+        `${API_BASE}/markAdminNotificationsRead.php`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            admin_id: adminId,
+          }),
+        }
+      );
 
       const data = await res.json();
 
@@ -206,11 +197,16 @@ const adminImage =
       const text = await response.text();
 
       let data;
+
       try {
         data = JSON.parse(text);
       } catch {
         console.error("Invalid JSON from getDecks.php:", text);
-        setError("Server returned invalid JSON. Check getDecks.php.");
+
+        setError(
+          "Server returned invalid JSON. Check getDecks.php."
+        );
+
         return;
       }
 
@@ -241,12 +237,18 @@ const adminImage =
       const text = await res.text();
 
       let data;
+
       try {
         data = JSON.parse(text);
       } catch {
-        console.error("Invalid JSON from getCardsByDeckId.php:", text);
+        console.error(
+          "Invalid JSON from getCardsByDeckId.php:",
+          text
+        );
+
         alert("Server returned invalid JSON.");
         setSelectedDeckCards([]);
+
         return;
       }
 
@@ -270,7 +272,9 @@ const adminImage =
     fetchBellNotifications();
 
     const handler = (e) => {
-      const insideDropdown = e.target.closest(`.${styles.notificationWrapper}`);
+      const insideDropdown = e.target.closest(
+        '[class*="notificationWrapper"]'
+      );
 
       if (!insideDropdown) {
         setNotificationOpen(false);
@@ -279,7 +283,8 @@ const adminImage =
 
     window.addEventListener("click", handler);
 
-    return () => window.removeEventListener("click", handler);
+    return () =>
+      window.removeEventListener("click", handler);
   }, []);
 
   useEffect(() => {
@@ -290,33 +295,55 @@ const adminImage =
     const q = searchQuery.trim().toLowerCase();
 
     return (
-      String(deck.deck_id || "").toLowerCase().includes(q) ||
-      String(deck.title || "").toLowerCase().includes(q) ||
-      String(deck.username || "").toLowerCase().includes(q) ||
-      String(deck.visibility || "").toLowerCase().includes(q) ||
-      String(deck.status || "").toLowerCase().includes(q)
+      String(deck.deck_id || "")
+        .toLowerCase()
+        .includes(q) ||
+      String(deck.title || "")
+        .toLowerCase()
+        .includes(q) ||
+      String(deck.username || "")
+        .toLowerCase()
+        .includes(q) ||
+      String(deck.visibility || "")
+        .toLowerCase()
+        .includes(q) ||
+      String(deck.status || "")
+        .toLowerCase()
+        .includes(q)
     );
   });
 
   const sortedDecks = [...filteredDecks].sort((a, b) => {
     if (sortBy === "newest") {
-      return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+      return (
+        new Date(b.created_at || 0) -
+        new Date(a.created_at || 0)
+      );
     }
 
     if (sortBy === "oldest") {
-      return new Date(a.created_at || 0) - new Date(b.created_at || 0);
+      return (
+        new Date(a.created_at || 0) -
+        new Date(b.created_at || 0)
+      );
     }
 
     if (sortBy === "user") {
-      return String(a.username || "").localeCompare(String(b.username || ""));
+      return String(a.username || "").localeCompare(
+        String(b.username || "")
+      );
     }
 
     if (sortBy === "title") {
-      return String(a.title || "").localeCompare(String(b.title || ""));
+      return String(a.title || "").localeCompare(
+        String(b.title || "")
+      );
     }
 
     if (sortBy === "status") {
-      return String(a.status || "").localeCompare(String(b.status || ""));
+      return String(a.status || "").localeCompare(
+        String(b.status || "")
+      );
     }
 
     return 0;
@@ -324,7 +351,11 @@ const adminImage =
 
   const isDeckArchived = (deck) => {
     const archived = String(deck.archived ?? "").toLowerCase();
-    const isArchived = String(deck.is_archived ?? "").toLowerCase();
+
+    const isArchived = String(
+      deck.is_archived ?? ""
+    ).toLowerCase();
+
     const status = String(deck.status ?? "").toLowerCase();
 
     return (
@@ -338,211 +369,55 @@ const adminImage =
     );
   };
 
-  const totalPages = Math.ceil(sortedDecks.length / rowsToShow);
+  const totalPages = Math.ceil(
+    sortedDecks.length / rowsToShow
+  );
 
   const currentDecks = sortedDecks.slice(
     (currentPage - 1) * rowsToShow,
     currentPage * rowsToShow
   );
 
-  const unreadNotifications = bellNotifications.filter(
-    (notif) => notif.status === "unread"
-  );
-
-  const notificationCount = unreadNotifications.length;
-
   return (
-    <div className={styles.gridContainer}>
-      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
-        <div className={styles.sidebarTop}>
-          <div
-            className={styles.sidebarToggle}
-            onClick={() => setIsCollapsed(!isCollapsed)}
-          >
-            <i className="bx bx-sidebar"></i>
-          </div>
+    <div
+      className={`${styles.gridContainer} ${
+        isCollapsed ? styles.collapsedGrid : ""
+      }`}
+    >
+      <ASidebar
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+        handleLogout={handleLogout}
+      />
 
-          <div className={styles.logo}>
-            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
-            <img className={styles.logoCollapsed} src="/images/logo_solo.png" alt="Logo" />
-          </div>
-
-          <div className={styles.divider}></div>
-          <p className={styles.menuLabel}>Menu</p>
-
-          <nav className={styles.menu}>
-            {menuItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  `${styles.menuItem} ${isActive ? styles.active : ""}`
-                }
-              >
-                <span className={styles.menuIcon}>{item.icon}</span>
-                <span className={styles.menuText}>{item.label}</span>
-              </NavLink>
-            ))}
-          </nav>
-
-          <div className={styles.divider}></div>
-          <p className={styles.menuLabel}>Others</p>
-
-          <nav className={styles.menu}>
-            <NavLink
-              to="/admin/profile"
-              className={({ isActive }) =>
-                `${styles.menuItem} ${isActive ? styles.active : ""}`
-              }
-            >
-              <span className={styles.menuIcon}>
-                <User size={20} />
-              </span>
-              <span className={styles.menuText}>Profile</span>
-            </NavLink>
-
-            <NavLink
-              to="/admin/settings"
-              className={({ isActive }) =>
-                `${styles.menuItem} ${isActive ? styles.active : ""}`
-              }
-            >
-              <span className={styles.menuIcon}>
-                <Settings size={20} />
-              </span>
-              <span className={styles.menuText}>Settings</span>
-            </NavLink>
-          </nav>
-        </div>
-
-        <div className={styles.sidebarBottom}>
-          <div className={styles.divider}></div>
-
-          <button type="button" onClick={handleLogout} className={styles.menuItem}>
-            <span className={styles.menuIcon}>
-              <LogOut size={20} />
-            </span>
-            <span className={styles.menuText}>Logout</span>
-          </button>
-        </div>
-      </aside>
-
-      <header className={styles.headerContainer}>
-        <div className={styles.searchBar}>
-          <Search size={19} />
-
-          <input
-            type="text"
-            placeholder="Search decks..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
-          />
-        </div>
-
-        <div className={styles.headerRight}>
-          <div className={styles.notificationWrapper}>
-            <button
-              type="button"
-              className={styles.notificationBtn}
-              onClick={(e) => {
-                e.stopPropagation();
-                setNotificationOpen((prev) => !prev);
-              }}
-            >
-              <i className="bx bx-bell"></i>
-
-              {notificationCount > 0 && (
-                <span className={styles.notificationBadge}>
-                  {notificationCount}
-                </span>
-              )}
-            </button>
-
-            <div
-              className={`${styles.notificationDropdown} ${
-                notificationOpen ? styles.show : ""
-              }`}
-            >
-              <div className={styles.notificationHeader}>
-                <h4>Notifications</h4>
-
-                {notificationCount > 0 && (
-                  <button
-                    type="button"
-                    className={styles.markReadBtn}
-                    onClick={handleMarkAllAsRead}
-                  >
-                    Mark all as read
-                  </button>
-                )}
-              </div>
-
-              {bellNotifications.length > 0 ? (
-                bellNotifications.slice(0, 5).map((item) => (
-                  <div
-                    key={item.notification_id || item.id}
-                    className={styles.notificationItem}
-                  >
-                    <div className={styles.notificationTop}>
-                      <h5>{item.title || "No title"}</h5>
-                      <span className={styles.notificationRole}>
-                        {item.recipient_type || "all"}
-                      </span>
-                    </div>
-
-                    <p className={styles.notificationMessage}>
-                      {item.message || "No message"}
-                    </p>
-
-                    <p className={styles.notificationCreator}>
-                      Posted by {item.created_by || "Admin"}
-                    </p>
-
-                    <small className={styles.notificationDate}>
-                      {item.created_at
-                        ? new Date(item.created_at).toLocaleString()
-                        : "No date"}
-                    </small>
-                  </div>
-                ))
-              ) : (
-                <div className={styles.emptyNotification}>
-                  <p>You don’t have any new notifications</p>
-                </div>
-              )}
-            </div>
-          </div>
-<div className={styles.adminHeaderProfile}>
-  <img
-    src={adminImage}
-    alt="Admin"
-    className={styles.adminHeaderImg}
-    onError={(e) => {
-      e.currentTarget.src = "/images/temporary profile.jpg";
-    }}
-  />
-
-  <span className={styles.adminHeaderName}>
-    {admin.username || "Admin"}
-  </span>
-</div>
-        </div>
-      </header>
+      <AHeader
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        notificationOpen={notificationOpen}
+        setNotificationOpen={setNotificationOpen}
+        bellNotifications={bellNotifications}
+        handleMarkAllAsRead={handleMarkAllAsRead}
+        admin={admin}
+        adminImage={adminImage}
+      />
 
       <main className={styles.main}>
         <div className={styles.pageTop}>
           <div className={styles.titleSection}>
-            <h1 className={styles.pageTitle}>Decks Management</h1>
+            <h1 className={styles.pageTitle}>
+              Decks Management
+            </h1>
+
             <p>Tracks decks that were made by users.</p>
           </div>
 
           <div className={styles.sortBox}>
             <label>Sort by:</label>
 
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+            >
               <option value="newest">Newest Deck</option>
               <option value="oldest">Oldest Deck</option>
               <option value="user">User A-Z</option>
@@ -551,8 +426,7 @@ const adminImage =
             </select>
           </div>
         </div>
-
-        <div className={styles.tableCard}>
+                <div className={styles.tableCard}>
           <div className={styles.tableHeader}>
             <div>Deck ID</div>
             <div>User Made</div>
@@ -564,29 +438,56 @@ const adminImage =
           </div>
 
           <div className={styles.tableContent}>
-            {loading && <div className={styles.message}>Loading decks...</div>}
-
-            {!loading && error && (
-              <div className={styles.errorMessage}>{error}</div>
+            {loading && (
+              <div className={styles.message}>
+                Loading decks...
+              </div>
             )}
 
-            {!loading && !error && currentDecks.length === 0 && (
-              <div className={styles.message}>No decks found.</div>
+            {!loading && error && (
+              <div className={styles.errorMessage}>
+                {error}
+              </div>
             )}
 
             {!loading &&
               !error &&
+              currentDecks.length === 0 && (
+                <div className={styles.message}>
+                  No decks found.
+                </div>
+              )}
+
+            {!loading &&
+              !error &&
               currentDecks.map((deck) => (
-                <div className={styles.row} key={deck.deck_id}>
-                  <div className={styles.userId}>{formatDeckId(deck)}</div>
-                  <div>@{deck.username || "Unknown"}</div>
-                  <div>{deck.title || "No title"}</div>
-                  <div>{formatDate(deck.created_at)}</div>
+                <div
+                  className={styles.row}
+                  key={deck.deck_id}
+                >
+                  <div className={styles.userId}>
+                    {formatDeckId(deck)}
+                  </div>
+
+                  <div>
+                    @{deck.username || "Unknown"}
+                  </div>
+
+                  <div>
+                    {deck.title || "No title"}
+                  </div>
+
+                  <div>
+                    {formatDate(deck.created_at)}
+                  </div>
 
                   <div>
                     <span
                       className={`${styles.badge} ${
-                        String(deck.visibility || "").toLowerCase() === "private"
+                        String(
+                          deck.visibility || ""
+                        ).toLowerCase() ===
+                        "private"
                           ? styles.privateBadge
                           : styles.publicBadge
                       }`}
@@ -603,14 +504,18 @@ const adminImage =
                           : styles.activeBadge
                       }`}
                     >
-                      {isDeckArchived(deck) ? "Archived" : "Active"}
+                      {isDeckArchived(deck)
+                        ? "Archived"
+                        : "Active"}
                     </span>
                   </div>
 
                   <button
                     className={styles.viewBtn}
                     type="button"
-                    onClick={() => handleViewDeck(deck)}
+                    onClick={() =>
+                      handleViewDeck(deck)
+                    }
                   >
                     View
                   </button>
@@ -624,32 +529,46 @@ const adminImage =
                 className={styles.navBtn}
                 type="button"
                 disabled={currentPage === 1}
-                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                onClick={() =>
+                  setCurrentPage((p) =>
+                    Math.max(p - 1, 1)
+                  )
+                }
               >
                 {"<"}
               </button>
 
-              {Array.from({ length: totalPages || 1 }, (_, i) => i + 1).map(
-                (page) => (
-                  <button
-                    key={page}
-                    type="button"
-                    className={`${styles.pageBtn} ${
-                      currentPage === page ? styles.pageActive : ""
-                    }`}
-                    onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </button>
-                )
-              )}
+              {Array.from(
+                { length: totalPages || 1 },
+                (_, i) => i + 1
+              ).map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  className={`${styles.pageBtn} ${
+                    currentPage === page
+                      ? styles.pageActive
+                      : ""
+                  }`}
+                  onClick={() =>
+                    setCurrentPage(page)
+                  }
+                >
+                  {page}
+                </button>
+              ))}
 
               <button
                 className={styles.navBtn}
                 type="button"
-                disabled={currentPage === totalPages || totalPages === 0}
+                disabled={
+                  currentPage === totalPages ||
+                  totalPages === 0
+                }
                 onClick={() =>
-                  setCurrentPage((p) => Math.min(p + 1, totalPages))
+                  setCurrentPage((p) =>
+                    Math.min(p + 1, totalPages)
+                  )
                 }
               >
                 {">"}
@@ -662,7 +581,10 @@ const adminImage =
               <select
                 value={rowsToShow}
                 onChange={(e) => {
-                  setRowsToShow(Number(e.target.value));
+                  setRowsToShow(
+                    Number(e.target.value)
+                  );
+
                   setCurrentPage(1);
                 }}
               >
@@ -679,45 +601,69 @@ const adminImage =
       </main>
 
       {selectedDeck && (
-        <div className={styles.modalOverlay} onClick={() => setSelectedDeck(null)}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <div
+          className={styles.modalOverlay}
+          onClick={() => setSelectedDeck(null)}
+        >
+          <div
+            className={styles.modal}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className={styles.modalHeader}>
               Deck Details
 
-              <span className={styles.close} onClick={() => setSelectedDeck(null)}>
+              <span
+                className={styles.close}
+                onClick={() =>
+                  setSelectedDeck(null)
+                }
+              >
                 ×
               </span>
             </div>
 
             <div className={styles.modalBody}>
               <p>
-                <strong>Deck ID:</strong> {formatDeckId(selectedDeck)}
+                <strong>Deck ID:</strong>{" "}
+                {formatDeckId(selectedDeck)}
               </p>
 
               <p>
-                <strong>User Made:</strong> @{selectedDeck.username || "Unknown"}
+                <strong>User Made:</strong> @
+                {selectedDeck.username ||
+                  "Unknown"}
               </p>
 
               <p>
-                <strong>Title:</strong> {selectedDeck.title || "No title"}
+                <strong>Title:</strong>{" "}
+                {selectedDeck.title ||
+                  "No title"}
               </p>
 
               <p>
                 <strong>Description:</strong>{" "}
-                {selectedDeck.description || "No description"}
+                {selectedDeck.description ||
+                  "No description"}
               </p>
 
               <p>
-                <strong>Date Created:</strong> {formatDate(selectedDeck.created_at)}
+                <strong>Date Created:</strong>{" "}
+                {formatDate(
+                  selectedDeck.created_at
+                )}
               </p>
 
               <p>
-                <strong>Visibility:</strong> {selectedDeck.visibility || "Public"}
+                <strong>Visibility:</strong>{" "}
+                {selectedDeck.visibility ||
+                  "Public"}
               </p>
 
               <p>
                 <strong>Status:</strong>{" "}
-                {isDeckArchived(selectedDeck) ? "Archived" : "Active"}
+                {isDeckArchived(selectedDeck)
+                  ? "Archived"
+                  : "Active"}
               </p>
 
               <div className={styles.cardsSection}>
@@ -725,26 +671,45 @@ const adminImage =
 
                 {cardsLoading ? (
                   <p>Loading cards...</p>
-                ) : selectedDeckCards.length === 0 ? (
-                  <p>No cards found in this deck.</p>
+                ) : selectedDeckCards.length ===
+                  0 ? (
+                  <p>
+                    No cards found in this deck.
+                  </p>
                 ) : (
-                  <div className={styles.cardsList}>
-                    {selectedDeckCards.map((card, index) => (
-                      <div
-                        className={styles.cardItem}
-                        key={card.cardId || card.id || index}
-                      >
-                        <p>
-                          <strong>Question:</strong>{" "}
-                          {card.question || "No question"}
-                        </p>
+                  <div
+                    className={styles.cardsList}
+                  >
+                    {selectedDeckCards.map(
+                      (card, index) => (
+                        <div
+                          className={
+                            styles.cardItem
+                          }
+                          key={
+                            card.cardId ||
+                            card.id ||
+                            index
+                          }
+                        >
+                          <p>
+                            <strong>
+                              Question:
+                            </strong>{" "}
+                            {card.question ||
+                              "No question"}
+                          </p>
 
-                        <p>
-                          <strong>Answer:</strong>{" "}
-                          {card.answer || "No answer"}
-                        </p>
-                      </div>
-                    ))}
+                          <p>
+                            <strong>
+                              Answer:
+                            </strong>{" "}
+                            {card.answer ||
+                              "No answer"}
+                          </p>
+                        </div>
+                      )
+                    )}
                   </div>
                 )}
               </div>

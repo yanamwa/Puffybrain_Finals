@@ -4,6 +4,8 @@ import Swal from "sweetalert2";
 import "boxicons/css/boxicons.min.css";
 import { API_BASE } from "../../config.js";
 import styles from "./Mycourse.module.css";
+import UserHeader from "../../components/UserHeader";
+import UserSidebar from "../../components/UserSidebar";
 
 export default function MyCourse() {
   const navigate = useNavigate();
@@ -236,311 +238,39 @@ const handleLogout = () => {
   });
 };
 
-  return (
-    <div
-      className={`${styles.container} ${
-        isCollapsed ? styles.sidebarCollapsed : ""
-      }`}
-    >
-      <aside
-        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
-      >
-        <div>
-          <div
-            className={styles.sidebarToggle}
-            onClick={() => setIsCollapsed(!isCollapsed)}
-          >
-            <i className="bx bx-sidebar"></i>
-          </div>
+ return (
+  <div
+    className={`${styles.container} ${
+      isCollapsed ? styles.sidebarCollapsed : ""
+    }`}
+  >
+    <UserSidebar
+      isCollapsed={isCollapsed}
+      setIsCollapsed={setIsCollapsed}
+      myDecks={myDecks}
+      courses={courses}
+      openCourse={openCourse}
+      getDeckId={(deck) => deck?.deck_id || deck?.id || deck?.DeckID || ""}
+    />
 
-          <div className={styles.logo}>
-            <img
-              className={styles.logoExpanded}
-              src="/images/logo1.png"
-              alt="Logo"
-            />
-            <img
-              className={styles.logoCollapsed}
-              src="/images/logo_solo.png"
-              alt="Logo"
-            />
-          </div>
-
-          <div className={styles.divider}></div>
-          <p className={styles.myDecksTitle}>Menu</p>
-
-          <nav className={styles.menu}>
-            <ul className={styles.sidebarList}>
-              <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/homepage"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-home"></i>
-                  <span className={styles.menuText}>Home</span>
-                </NavLink>
-              </li>
-
-              <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/Mydecks"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-collection"></i>
-                  <span className={styles.menuText}>Decks</span>
-                </NavLink>
-              </li>
-
-              <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/mycourse"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-book-open"></i>
-                  <span className={styles.menuText}>My Course</span>
-                </NavLink>
-              </li>
-
-              <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/public-decks"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-world"></i>
-                  <span className={styles.menuText}>Public Decks</span>
-                </NavLink>
-              </li>
-            </ul>
-          </nav>
-
-          <div className={styles.divider}></div>
-
-          <div className={styles.myDecksNav}>
-            <div className={styles.sectionBlock}>
-              <p className={styles.sectionTitle}>My Decks</p>
-
-              <ul className={styles.sectionList}>
-                {myDecks.length === 0 ? (
-                  <li className={styles.sidebarEmptyText}>
-                    Don't have decks yet
-                  </li>
-                ) : (
-                  myDecks.slice(0, 3).map((deck) => (
-                    <li
-                      key={deck.id || deck.deck_id}
-                      className={styles.sidebarListItem}
-                    >
-                      <Link
-                        to={`/deck/${deck.id || deck.deck_id}`}
-                        className={styles.menuItem}
-                      >
-                        <i className="bx bx-collection"></i>
-                        <span className={styles.menuText}>{deck.title}</span>
-                      </Link>
-                    </li>
-                  ))
-                )}
-              </ul>
-            </div>
-
-            <div className={styles.sectionBlock}>
-              <div className={styles.sectionDivider}></div>
-              <p className={styles.sectionTitle}>My Courses</p>
-
-              <ul className={styles.sectionList}>
-                {courses.length === 0 ? (
-                  <li className={styles.sidebarEmptyText}>
-                    No courses added yet
-                  </li>
-                ) : (
-                  courses.slice(0, 3).map((course) => (
-                    <li key={course.id} className={styles.sidebarListItem}>
-                      <button
-                        type="button"
-                        onClick={() => openCourse(course.id)}
-                        className={styles.menuItem}
-                      >
-                        <i className="bx bx-book-open"></i>
-                        <span className={styles.menuText}>{course.title}</span>
-                      </button>
-                    </li>
-                  ))
-                )}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      <div className={styles.mainArea}>
-        <div className={styles.gridContainer}>
-          <div className={styles.headerContainer}>
-            <form
-              className={styles.searchBar}
-              onSubmit={(e) => e.preventDefault()}
-            >
-              <input
-                type="text"
-                placeholder="Search your courses"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-
-              {search.trim() ? (
-                <button
-                  type="button"
-                  onClick={() => setSearch("")}
-                  aria-label="Clear search"
-                  className={styles.searchBtn}
-                >
-                  <i className="bx bx-x"></i>
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  aria-label="Search"
-                  className={styles.searchBtn}
-                >
-                  <i className="bx bx-search"></i>
-                </button>
-              )}
-            </form>
-
-            <div className={styles.profileWrapper}>
-              <div className={styles.notificationWrapper}>
-                <button
-                  type="button"
-                  className={styles.notificationBtn}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setNotificationOpen((prev) => !prev);
-                    setProfileDropdownOpen(false);
-                    setOpenFilterDropdown(null);
-                  }}
-                >
-                  <i className="bx bx-bell"></i>
-
-                  {notificationCount > 0 && (
-                    <span className={styles.notificationBadge}>
-                      {notificationCount}
-                    </span>
-                  )}
-                </button>
-
-                <div
-                  className={`${styles.notificationDropdown} ${
-                    notificationOpen ? styles.show : ""
-                  }`}
-                >
-                  <div className={styles.notificationHeader}>
-                    <h4>Notifications</h4>
-
-                    {notificationCount > 0 && (
-                      <button
-                        type="button"
-                        className={styles.markReadBtn}
-                        onClick={markNotificationsAsRead}
-                      >
-                        Mark all as read
-                      </button>
-                    )}
-                  </div>
-
-                  {notifications.length > 0 ? (
-                    notifications.slice(0, 5).map((notif) => (
-                      <div
-                        key={notif.notification_id}
-                        className={styles.notificationItem}
-                      >
-                        <div className={styles.notificationTop}>
-                          <h5>{notif.title}</h5>
-
-                          <span className={styles.notificationRole}>
-                            {notif.target_role}
-                          </span>
-                        </div>
-
-                        <p>{notif.message}</p>
-
-                        <small className={styles.notificationDate}>
-                          {new Date(notif.created_at).toLocaleString()}
-                        </small>
-                      </div>
-                    ))
-                  ) : (
-                    <div className={styles.emptyNotification}>
-                      <img
-                        src="/images/NoNotifcation.png"
-                        alt="No notifications"
-                        className={styles.emptyNotificationImg}
-                      />
-
-                      <p>You don’t have any new notifications</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <Link to="/user-profile" className={styles.profileLink}>
-                <div className={styles.dpContainer}>
-                  <img
-                    src={user.profile_image || "/images/temporary profile.jpg"}
-                    alt="Profile"
-                    className={styles.profilePic}
-                  />
-                </div>
-
-                <div className={styles.userInfo}>
-                  <p>{user.username}</p>
-                </div>
-              </Link>
-
-              <div className={styles.dropdown}>
-                <button
-                  type="button"
-                  className={styles.dropdownBtn}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setProfileDropdownOpen(!profileDropdownOpen);
-                    setOpenFilterDropdown(null);
-                    setNotificationOpen(false);
-                  }}
-                >
-                  <i className="bx bx-chevron-down" />
-                </button>
-
-                <div
-                  className={`${styles.dropdownContent} ${
-                    profileDropdownOpen ? styles.show : ""
-                  }`}
-                >
-                  <NavLink to="/edit-profile">
-                    <i className="bx bx-cog" />
-                    <span>Settings</span>
-                  </NavLink>
-
-                  <NavLink to="/faq">
-                    <i className="bx bx-help-circle" />
-                    <span>FAQs</span>
-                  </NavLink>
-
-                  <button type="button" onClick={handleLogout}>
-                    <i className="bx bx-log-out" />
-                    <span>Logout</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
+<div className={styles.mainArea}>
+  <div className={styles.gridContainer}>
+    <UserHeader
+      isCollapsed={isCollapsed}
+      searchQuery={search}
+      setSearchQuery={setSearch}
+      handleSearchSubmit={(e) => e.preventDefault()}
+      notificationOpen={notificationOpen}
+      setNotificationOpen={setNotificationOpen}
+      setDropdownOpen={setOpenFilterDropdown}
+      notificationCount={notificationCount}
+      notifications={notifications}
+      markNotificationsAsRead={markNotificationsAsRead}
+      user={user}
+      profileDropdownOpen={profileDropdownOpen}
+      setProfileDropdownOpen={setProfileDropdownOpen}
+      handleLogout={handleLogout}
+    />
           <main className={styles.main}>
             <div className={styles.panel}>
               <div className={styles.purpleStrip}></div>

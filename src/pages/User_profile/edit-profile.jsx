@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "boxicons/css/boxicons.min.css";
 import { API_BASE } from "../../config.js";
 import styles from "./edit-profile.module.css";
 import Swal from "sweetalert2";
+import UserHeader from "../../components/UserHeader";
+import UserSidebar from "../../components/UserSidebar";
 
 function EditProfile() {
   const navigate = useNavigate();
@@ -74,6 +76,14 @@ function EditProfile() {
     confirmPassword: "",
   });
 
+  const getDeckId = (deck) => {
+    return deck?.deck_id || deck?.id || deck?.DeckID || "";
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+  };
+
   const fetchNotifications = async () => {
     try {
       const res = await fetch(`${API_BASE}/getUserNotifications.php`, {
@@ -82,12 +92,7 @@ function EditProfile() {
       });
 
       const data = await res.json();
-
-      if (data.success) {
-        setNotifications(data.notifications || []);
-      } else {
-        setNotifications([]);
-      }
+      setNotifications(data.success ? data.notifications || [] : []);
     } catch (err) {
       console.error("Notification fetch error:", err);
       setNotifications([]);
@@ -187,7 +192,7 @@ function EditProfile() {
   useEffect(() => {
     const handler = (e) => {
       const insideDropdown = e.target.closest(
-        `.${styles.deckMenu}, .${styles.deckMenuBtn}, .${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}`
+        `.${styles.deckMenu}, .${styles.deckMenuBtn}`
       );
 
       if (!insideDropdown) {
@@ -227,46 +232,47 @@ function EditProfile() {
     navigate(`/learning/${courseId}`);
   };
 
-const handleLogout = () => {
-  Swal.fire({
-    title: "Logout?",
-    text: "Are you sure you want to logout?",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#8d6cab",
-    cancelButtonColor: "#b0b0b0",
-    confirmButtonText: "Yes, Logout",
-    cancelButtonText: "Cancel",
-    reverseButtons: true,
-    customClass: {
-      popup: styles.logoutPopup,
-      title: styles.logoutTitle,
-      htmlContainer: styles.logoutText,
-      confirmButton: styles.logoutConfirm,
-      cancelButton: styles.logoutCancel,
-    },
-  }).then(async (result) => {
-    if (!result.isConfirmed) return;
+  const handleLogout = () => {
+    Swal.fire({
+      title: "Logout?",
+      text: "Are you sure you want to logout?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#8d6cab",
+      cancelButtonColor: "#b0b0b0",
+      confirmButtonText: "Yes, Logout",
+      cancelButtonText: "Cancel",
+      reverseButtons: true,
+      customClass: {
+        popup: styles.logoutPopup,
+        title: styles.logoutTitle,
+        htmlContainer: styles.logoutText,
+        confirmButton: styles.logoutConfirm,
+        cancelButton: styles.logoutCancel,
+      },
+    }).then(async (result) => {
+      if (!result.isConfirmed) return;
 
-    try {
-      await fetch(`${API_BASE}/logout.php`, {
-        method: "POST",
-        credentials: "include",
-      });
-    } catch (err) {
-      console.error("Logout API error:", err);
-    }
+      try {
+        await fetch(`${API_BASE}/logout.php`, {
+          method: "POST",
+          credentials: "include",
+        });
+      } catch (err) {
+        console.error("Logout API error:", err);
+      }
 
-    localStorage.removeItem("username");
-    localStorage.removeItem("user_email");
-    localStorage.removeItem("user_id");
-    localStorage.removeItem("profile_image");
+      localStorage.removeItem("username");
+      localStorage.removeItem("user_email");
+      localStorage.removeItem("user_id");
+      localStorage.removeItem("profile_image");
 
-    sessionStorage.clear();
+      sessionStorage.clear();
 
-    navigate("/login", { replace: true });
-  });
-};
+      navigate("/login", { replace: true });
+    });
+  };
+
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
 
@@ -367,22 +373,62 @@ const handleLogout = () => {
     }
   };
 
-  const handleDeleteAccount = () => {
-    Swal.fire({
-      imageUrl: "/images/error.png",
-      imageWidth: 170,
-      imageHeight: 170,
-      title: "Delete Account?",
-      text: "This action is irreversible.",
-      showCancelButton: true,
-      confirmButtonText: "Yes, delete",
-      cancelButtonText: "Cancel",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        showFeedback("success", "Deleted", "Account deletion logic goes here.");
+const handleDeleteAccount = () => {
+  Swal.fire({
+    imageUrl: "/images/error.png",
+    imageWidth: 170,
+    imageHeight: 170,
+    title: "Delete Account?",
+    html: `
+      <p>This action is irreversible.</p>
+      <p><b>Type DELETE to confirm.</b></p>
+    `,
+    input: "text",
+    inputPlaceholder: "Type DELETE",
+    showCancelButton: true,
+    confirmButtonText: "Delete Account",
+    cancelButtonText: "Cancel",
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#b0b0b0",
+    preConfirm: (value) => {
+      if (value !== "DELETE") {
+        Swal.showValidationMessage("You must type DELETE to continue.");
+        return false;
       }
-    });
-  };
+      return true;
+    },
+  }).then(async (result) => {
+    if (!result.isConfirmed) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/deleteUserAccount.php`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        Swal.fire({
+          imageUrl: "/images/success.png",
+          imageWidth: 170,
+          imageHeight: 170,
+          title: "Deleted",
+          text: "Your account has been deleted.",
+        }).then(() => {
+          localStorage.clear();
+          sessionStorage.clear();
+          navigate("/login", { replace: true });
+        });
+      } else {
+        showFeedback("error", "Failed", data.message || "Failed to delete account.");
+      }
+    } catch (err) {
+      console.error("Delete account error:", err);
+      showFeedback("error", "Server Error", "Server error while deleting account.");
+    }
+  });
+};
 
   const openEditModal = () => {
     setEditForm({
@@ -646,271 +692,33 @@ const handleLogout = () => {
         isCollapsed ? styles.sidebarCollapsed : ""
       }`}
     >
-      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
-        <div>
-          <div
-            className={styles.sidebarToggle}
-            onClick={() => setIsCollapsed(!isCollapsed)}
-          >
-            <i className="bx bx-sidebar"></i>
-          </div>
-
-          <div className={styles.logo}>
-            <img
-              className={styles.logoExpanded}
-              src="/images/logo1.png"
-              alt="Logo"
-            />
-            <img
-              className={styles.logoCollapsed}
-              src="/images/logo_solo.png"
-              alt="Logo"
-            />
-          </div>
-
-          <div className={styles.divider}></div>
-          <p className={styles.myDecksTitle}>Menu</p>
-
-          <nav className={styles.menu}>
-            <ul className={styles.sidebarList}>
-              <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/homepage"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-home"></i>
-                  <span className={styles.menuText}>Home</span>
-                </NavLink>
-              </li>
-
-              <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/Mydecks"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-collection"></i>
-                  <span className={styles.menuText}>Decks</span>
-                </NavLink>
-              </li>
-
-              <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/mycourse"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-book-open"></i>
-                  <span className={styles.menuText}>My Course</span>
-                </NavLink>
-              </li>
-
-              <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/public-decks"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-world"></i>
-                  <span className={styles.menuText}>Public Decks</span>
-                </NavLink>
-              </li>
-            </ul>
-          </nav>
-
-          <div className={styles.divider}></div>
-
-          <div className={styles.myDecksNav}>
-            <div className={styles.sectionBlock}>
-              <p className={styles.sectionTitle}>My Decks</p>
-
-              <ul className={styles.sectionList}>
-                {myDecks.length === 0 ? (
-                  <li className={styles.sidebarEmptyText}>
-                    Don't have decks yet
-                  </li>
-                ) : (
-                  myDecks.slice(0, 3).map((deck) => (
-                    <li key={deck.id} className={styles.sidebarListItem}>
-                      <Link to={`/deck/${deck.id}`} className={styles.menuItem}>
-                        <i className="bx bx-collection"></i>
-                        <span className={styles.menuText}>{deck.title}</span>
-                      </Link>
-                    </li>
-                  ))
-                )}
-              </ul>
-            </div>
-
-            <div className={styles.sectionBlock}>
-              <div className={styles.sectionDivider}></div>
-              <p className={styles.sectionTitle}>My Courses</p>
-
-              <ul className={styles.sectionList}>
-                {courses.length === 0 ? (
-                  <li className={styles.sidebarEmptyText}>No courses added yet</li>
-                ) : (
-                  courses.slice(0, 3).map((course) => (
-                    <li key={course.id} className={styles.sidebarListItem}>
-                      <button
-                        type="button"
-                        onClick={() => openCourse(course.id)}
-                        className={styles.menuItem}
-                      >
-                        <i className="bx bx-book-open"></i>
-                        <span className={styles.menuText}>{course.title}</span>
-                      </button>
-                    </li>
-                  ))
-                )}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </aside>
+      <UserSidebar
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+        myDecks={myDecks}
+        courses={courses}
+        openCourse={openCourse}
+        getDeckId={getDeckId}
+      />
 
       <div className={styles.mainArea}>
         <div className={styles.gridContainer}>
-          <div className={styles.headerContainer}>
-            <form
-              className={styles.searchBar}
-              onSubmit={(e) => e.preventDefault()}
-            >
-              <input
-                type="text"
-                placeholder="Search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              <i className="bx bx-search" />
-            </form>
-
-            <div className={styles.profileWrapper}>
-              <div className={styles.notificationWrapper}>
-                <button
-                  type="button"
-                  className={styles.notificationBtn}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setNotificationOpen((prev) => !prev);
-                    setDropdownOpen(false);
-                  }}
-                >
-                  <i className="bx bx-bell"></i>
-
-                  {notificationCount > 0 && (
-                    <span className={styles.notificationBadge}>
-                      {notificationCount}
-                    </span>
-                  )}
-                </button>
-
-                <div
-                  className={`${styles.notificationDropdown} ${
-                    notificationOpen ? styles.show : ""
-                  }`}
-                >
-                  <div className={styles.notificationHeader}>
-                    <h4>Notifications</h4>
-
-                    {notificationCount > 0 && (
-                      <button
-                        type="button"
-                        className={styles.markReadBtn}
-                        onClick={markNotificationsAsRead}
-                      >
-                        Mark all as read
-                      </button>
-                    )}
-                  </div>
-
-                  {notifications.length > 0 ? (
-                    notifications.slice(0, 5).map((notif) => (
-                      <div
-                        key={notif.notification_id}
-                        className={styles.notificationItem}
-                      >
-                        <div className={styles.notificationTop}>
-                          <h5>{notif.title}</h5>
-
-                          <span className={styles.notificationRole}>
-                            {notif.target_role}
-                          </span>
-                        </div>
-
-                        <p>{notif.message}</p>
-
-                        <small className={styles.notificationDate}>
-                          {new Date(notif.created_at).toLocaleString()}
-                        </small>
-                      </div>
-                    ))
-                  ) : (
-                    <div className={styles.emptyNotification}>
-                      <img
-                        src="/images/NoNotifcation.png"
-                        alt="No notifications"
-                        className={styles.emptyNotificationImg}
-                      />
-
-                      <p>You don’t have any new notifications</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className={styles.dpContainer}>
-                <img
-                  src={user.profile_image}
-                  alt="Profile"
-                  className={styles.profilePic}
-                />
-              </div>
-
-              <div className={styles.userInfo}>
-                <p>{user.username || "User"}</p>
-              </div>
-
-              <div className={styles.dropdown}>
-                <button
-                  type="button"
-                  className={styles.dropdownBtn}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDropdownOpen((prev) => !prev);
-                  }}
-                >
-                  <i className="bx bx-chevron-down" />
-                </button>
-
-                <div
-                  className={`${styles.dropdownContent} ${
-                    dropdownOpen ? styles.show : ""
-                  }`}
-                >
-                  <NavLink to="/edit-profile">
-                    <i className="bx bx-cog" />
-                    <span>Settings</span>
-                  </NavLink>
-
-                  <NavLink to="/faq">
-                    <i className="bx bx-help-circle" />
-                    <span>FAQs</span>
-                  </NavLink>
-
-                  <button type="button" onClick={handleLogout}>
-                    <i className="bx bx-log-out" />
-                    <span>Logout</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <UserHeader
+            isCollapsed={isCollapsed}
+            searchQuery={search}
+            setSearchQuery={setSearch}
+            handleSearchSubmit={handleSearchSubmit}
+            notificationOpen={notificationOpen}
+            setNotificationOpen={setNotificationOpen}
+            setDropdownOpen={setDropdownOpen}
+            notificationCount={notificationCount}
+            notifications={notifications}
+            markNotificationsAsRead={markNotificationsAsRead}
+            user={user}
+            profileDropdownOpen={dropdownOpen}
+            setProfileDropdownOpen={setDropdownOpen}
+            handleLogout={handleLogout}
+          />
 
           <main className={styles.main}>
             <div className={styles.pageHeader}>
@@ -1284,7 +1092,6 @@ const handleLogout = () => {
                                 border: "none",
                                 padding: 0,
                                 cursor: "pointer",
-                                textDecoration: "none",
                               }}
                             >
                               ← Back to list

@@ -297,3 +297,162 @@
   font-weight: 700;
   cursor: pointer;
 }
+
+/* ===== RESPONSIVE FIX ===== */
+
+.wrapper {
+  overflow-x: hidden;
+}
+
+@media (max-width: 900px) {
+  .wrapper {
+    padding: 16px 16px 40px;
+  }
+
+  .scoreSection,
+  .reviewWrapper {
+    max-width: 100%;
+  }
+
+  .feedbackBox {
+    max-width: 100%;
+    border-radius: 20px;
+  }
+
+  .summaryCards {
+    max-width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .summaryCard {
+    padding: 14px 10px;
+  }
+
+  .resultButtons {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .resultButtons button {
+    margin: 0;
+  }
+
+  .reviewList {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 650px) {
+  .wrapper {
+    padding: 14px 12px 34px;
+  }
+
+  .scoreHeader {
+    padding: 18px 12px;
+  }
+
+  .scoreHeader h1 {
+    font-size: 28px;
+  }
+
+  .feedbackBox h2 {
+    font-size: 21px;
+  }
+
+  .percentage {
+    font-size: 20px;
+  }
+
+  .attempts {
+    font-size: 24px;
+  }
+
+  .summaryCards {
+    grid-template-columns: 1fr;
+  }
+
+  .summaryCard {
+    padding: 16px;
+  }
+
+  .resultButtons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .resultButtons button {
+    width: 100%;
+    font-size: 16px;
+    padding: 10px 18px;
+  }
+
+  .reviewWrapper {
+    border-radius: 22px;
+  }
+
+  .reviewHeader {
+    font-size: 18px;
+    padding: 14px;
+  }
+
+  .reviewList {
+    padding: 14px;
+  }
+
+  .reviewItem {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .reviewQuestion {
+    font-size: 17px;
+  }
+
+  .reviewAnswer,
+  .weaknessItem,
+  .explanationText {
+    font-size: 16px;
+  }
+
+  .quizModal {
+    width: calc(100% - 24px);
+    max-width: none;
+    padding: 26px 18px;
+    border-radius: 20px;
+  }
+
+  .modeGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .scoreHeader h1 {
+    font-size: 24px;
+  }
+
+  .feedbackBox {
+    padding: 14px 14px 18px;
+  }
+
+  .scoreHeader {
+    margin: -14px -14px 0;
+  }
+
+  .feedbackBox h2 {
+    font-size: 19px;
+  }
+
+  .reviewQuestion {
+    font-size: 16px;
+  }
+
+  .reviewAnswer,
+  .weaknessItem,
+  .explanationText {
+    font-size: 15px;
+  }
+}

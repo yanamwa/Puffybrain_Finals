@@ -627,11 +627,11 @@ function Homepage() {
   };
 
   return (
-  <div
-    className={`${styles.container} ${
-      isCollapsed ? styles.sidebarCollapsed : ""
-    }`}
-  >
+<div
+  className={`homepage ${styles.container} ${
+    isCollapsed ? styles.sidebarCollapsed : ""
+  }`}
+>
     <UserSidebar
       isCollapsed={isCollapsed}
       setIsCollapsed={setIsCollapsed}
@@ -642,7 +642,7 @@ function Homepage() {
     />
 
     <div className={styles.mainArea}>
- <UserHeader
+<UserHeader
   isCollapsed={isCollapsed}
   searchQuery={searchQuery}
   setSearchQuery={setSearchQuery}
@@ -657,6 +657,7 @@ function Homepage() {
   profileDropdownOpen={profileDropdownOpen}
   setProfileDropdownOpen={setProfileDropdownOpen}
   handleLogout={handleLogout}
+  hideProfile={false}
 />
         <main className={styles.mainContent}>
           <div className={styles.centerBox}>
@@ -776,100 +777,65 @@ function Homepage() {
                     const canEdit = isDeckOwner(deck);
 
                     return (
-                      <Link
-                        key={deckId}
-                        to={`/deck/${deckId}`}
-                        className={styles.deckLink}
-                      >
-                        <article className={styles.deckCard}>
-                          <div
-                            className={styles.cardTop}
-                            style={{ backgroundColor: deckColorValue }}
-                          >
-                            <div
-                              className={styles.cardOverlay}
-                              style={{ backgroundColor: deckColorValue }}
-                            />
+<Link
+  key={deckId}
+  to={`/deck/${deckId}`}
+  className={styles.deckLink}
+>
+  <article className={styles.deckCard}>
+    <div
+      className={styles.cardTop}
+      style={{ backgroundColor: deckColorValue }}
+    >
+      <div
+        className={styles.cardOverlay}
+        style={{ backgroundColor: deckColorValue }}
+      />
+      <button
+        type="button"
+        className={styles.cardMenu}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setNotificationOpen(false);
+          setDropdownOpen((prev) => prev === deckId ? null : deckId);
+        }}
+      >
+        <i className="bx bx-dots-vertical-rounded"></i>
+      </button>
+    </div>
 
-                            <button
-                              type="button"
-                              className={styles.cardMenu}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setNotificationOpen(false);
-                                setDropdownOpen((prev) =>
-                                  prev === deckId ? null : deckId
-                                );
-                              }}
-                            >
-                              <i className="bx bx-dots-vertical-rounded"></i>
-                            </button>
-
-                            {dropdownOpen === deckId && (
-                              <div
-                                className={styles.cardDropdown}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                }}
-                              >
-                                {canEdit ? (
-                                  <>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        handleEditDeck(deck);
-                                        setDropdownOpen(null);
-                                      }}
-                                    >
-                                      Edit
-                                    </button>
-
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        console.log("Duplicate", deckId);
-                                        setDropdownOpen(null);
-                                      }}
-                                    >
-                                      Duplicate
-                                    </button>
-
-                                    <button
-                                      type="button"
-                                      onClick={() => handleDeleteDeck(deckId)}
-                                    >
-                                      Archive
-                                    </button>
-                                  </>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    disabled
-                                    className={styles.notEditableBtn}
-                                  >
-                                    Not editable
-                                  </button>
-                                )}
-                              </div>
-                            )}
-                          </div>
-
-                          <div className={styles.cardBody}>
-                            <p className={styles.deckTitle}>{deck.title}</p>
-
-                            <p className={styles.deckCategoryText}>
-                              <i className="bx bxs-book"></i>
-                              <span>{deck.category || "Reviewer"}</span>
-                            </p>
-
-                            <span className={styles.deckCount}>
-                              {deck.card_count ?? 0} cards
-                            </span>
-                          </div>
-                        </article>
-                      </Link>
+    <div className={styles.cardBody}>
+      <p className={styles.deckTitle}>{deck.title}</p>
+      <p className={styles.deckCategoryText}>
+        <i className="bx bxs-book"></i>
+        <span>{deck.category || "Reviewer"}</span>
+      </p>
+      <span className={styles.deckCount}>
+        {deck.card_count ?? 0} cards
+      </span>
+    </div>
+  </article>
+  {dropdownOpen === deckId && (
+    <div
+      className={styles.cardDropdown}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+    >
+      {canEdit ? (
+        <>
+          <button type="button" onClick={() => { handleEditDeck(deck); setDropdownOpen(null); }}>Edit</button>
+          <button type="button" onClick={() => { console.log("Duplicate", deckId); setDropdownOpen(null); }}>Duplicate</button>
+          <button type="button" onClick={() => handleDeleteDeck(deckId)}>Archive</button>
+        </>
+      ) : (
+        <button type="button" disabled className={styles.notEditableBtn}>Not editable</button>
+      )}
+    </div>
+  )}
+</Link>
                     );
                   })
                 )}

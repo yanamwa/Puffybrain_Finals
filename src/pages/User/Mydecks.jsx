@@ -978,85 +978,83 @@ const normalizeDeck = (deck) => {
               </div>
             ) : (
               filteredDecks.map((d) => (
-                <article key={d.id} className={styles.deckCard}>
-                  <div
-                    className={styles.deckCardInner}
-                    onClick={() => openDeck(d.id)}
-                  >
-                    <div
-                      className={styles.deckTop}
-                      style={{
-                        backgroundColor: d.deckColor || "#c9cdfa",
-                      }}
-                    >
-                      {d.source === "created" && (
-                        <>
-                          <button
-                            type="button"
-                            className={styles.deckMenuBtn}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setOpenFilterDropdown(null);
-                              setDropdownOpen((prev) =>
-                                prev === d.id ? null : d.id
-                              );
-                            }}
-                          >
-                            <i className="bx bx-dots-vertical-rounded"></i>
-                          </button>
+            <article key={d.id} className={styles.deckCard}>
+  <div
+    className={styles.deckCardInner}
+    onClick={() => openDeck(d.id)}
+  >
+    <div
+      className={styles.deckTop}
+      style={{
+        backgroundColor: d.deckColor || "#c9cdfa",
+      }}
+    >
+      {d.source === "created" && (
+        <button
+          type="button"
+          className={styles.deckMenuBtn}
+          onClick={(e) => {
+            e.stopPropagation();
+            setOpenFilterDropdown(null);
+            setDropdownOpen((prev) =>
+              prev === d.id ? null : d.id
+            );
+          }}
+        >
+          <i className="bx bx-dots-vertical-rounded"></i>
+        </button>
+      )}
+    </div>
 
-                          {dropdownOpen === d.id && (
-                            <div
-                              className={styles.deckMenu}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  handleEditDeck(d);
-                                  setDropdownOpen(null);
-                                }}
-                              >
-                                Edit
-                              </button>
+    {d.source === "created" && dropdownOpen === d.id && (
+      <div
+        className={styles.deckMenu}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            handleEditDeck(d);
+            setDropdownOpen(null);
+          }}
+        >
+          Edit
+        </button>
 
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  handleDuplicateDeck(d);
-                                  setDropdownOpen(null);
-                                }}
-                              >
-                                Duplicate
-                              </button>
+        <button
+          type="button"
+          onClick={() => {
+            handleDuplicateDeck(d);
+            setDropdownOpen(null);
+          }}
+        >
+          Duplicate
+        </button>
 
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  handleArchiveDeck(d);
-                                  setDropdownOpen(null);
-                                }}
-                              >
-                                Archive
-                              </button>
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
+        <button
+          type="button"
+          onClick={() => {
+            handleArchiveDeck(d);
+            setDropdownOpen(null);
+          }}
+        >
+          Archive
+        </button>
+      </div>
+    )}
 
-                    <div className={styles.deckBody}>
-                      <h4>{d.title}</h4>
+    <div className={styles.deckBody}>
+      <h4>{d.title}</h4>
 
-                      <p className={styles.deckCategoryText}>
-                        <i className="bx bxs-book"></i>
-                        <span>{d.category || "Reviewer"}</span>
-                      </p>
+      <p className={styles.deckCategoryText}>
+        <i className="bx bxs-book"></i>
+        <span>{d.category || "Reviewer"}</span>
+      </p>
 
-                      <span className={styles.cardCount}>{d.cards} cards</span>
-                    </div>
-                  </div>
-                </article>
+      <span className={styles.cardCount}>{d.cards} cards</span>
+    </div>
+  </div>
+</article>
               ))
             )}
           </div>

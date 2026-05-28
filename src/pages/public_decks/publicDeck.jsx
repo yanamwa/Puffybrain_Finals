@@ -1,9 +1,11 @@
-import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import "boxicons/css/boxicons.min.css";
 import { API_BASE } from "../../config.js";
 import styles from "./publicDeck.module.css";
+import UserHeader from "../../components/UserHeader";
+import UserSidebar from "../../components/UserSidebar";
 
 function PublicDecks() {
   const navigate = useNavigate();
@@ -29,6 +31,12 @@ function PublicDecks() {
   const [deckYearOpen, setDeckYearOpen] = useState(false);
   const [deckCategoryOpen, setDeckCategoryOpen] = useState(false);
 
+  const [user, setUser] = useState({
+    username: "",
+    year_level: "",
+    profile_image: "/images/temporary profile.jpg",
+  });
+
   const categories = [
     "Reviewer",
     "Mathematics",
@@ -49,12 +57,6 @@ function PublicDecks() {
     (notif) => notif.status === "unread"
   ).length;
 
-  const [user, setUser] = useState({
-    username: "",
-    year_level: "",
-    profile_image: "/images/temporary profile.jpg",
-  });
-
   const swalClasses = {
     popup: styles.swalPopup,
     title: styles.swalTitle,
@@ -69,6 +71,12 @@ function PublicDecks() {
     setDeckSortOpen(false);
     setDeckYearOpen(false);
     setDeckCategoryOpen(false);
+  };
+
+  const getDeckId = (deck) => deck?.deck_id || deck?.id || deck?.DeckID || "";
+
+  const openCourse = (courseId) => {
+    navigate(`/learning/${courseId}`);
   };
 
   const normalizeYear = (value) => {
@@ -95,46 +103,46 @@ function PublicDecks() {
     return deck.category || deck.deck_category || deck.subject || "Reviewer";
   };
 
-const handleLogout = () => {
-  Swal.fire({
-    title: "Logout?",
-    text: "Are you sure you want to logout?",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#8d6cab",
-    cancelButtonColor: "#b0b0b0",
-    confirmButtonText: "Yes, Logout",
-    cancelButtonText: "Cancel",
-    reverseButtons: true,
-    customClass: {
-      popup: styles.logoutPopup,
-      title: styles.logoutTitle,
-      htmlContainer: styles.logoutText,
-      confirmButton: styles.logoutConfirm,
-      cancelButton: styles.logoutCancel,
-    },
-  }).then(async (result) => {
-    if (!result.isConfirmed) return;
+  const handleLogout = () => {
+    Swal.fire({
+      title: "Logout?",
+      text: "Are you sure you want to logout?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#8d6cab",
+      cancelButtonColor: "#b0b0b0",
+      confirmButtonText: "Yes, Logout",
+      cancelButtonText: "Cancel",
+      reverseButtons: true,
+      customClass: {
+        popup: styles.logoutPopup,
+        title: styles.logoutTitle,
+        htmlContainer: styles.logoutText,
+        confirmButton: styles.logoutConfirm,
+        cancelButton: styles.logoutCancel,
+      },
+    }).then(async (result) => {
+      if (!result.isConfirmed) return;
 
-    try {
-      await fetch(`${API_BASE}/logout.php`, {
-        method: "POST",
-        credentials: "include",
-      });
-    } catch (err) {
-      console.error("Logout API error:", err);
-    }
+      try {
+        await fetch(`${API_BASE}/logout.php`, {
+          method: "POST",
+          credentials: "include",
+        });
+      } catch (err) {
+        console.error("Logout API error:", err);
+      }
 
-    localStorage.removeItem("username");
-    localStorage.removeItem("user_email");
-    localStorage.removeItem("user_id");
-    localStorage.removeItem("profile_image");
+      localStorage.removeItem("username");
+      localStorage.removeItem("user_email");
+      localStorage.removeItem("user_id");
+      localStorage.removeItem("profile_image");
+      sessionStorage.clear();
 
-    sessionStorage.clear();
+      navigate("/login", { replace: true });
+    });
+  };
 
-    navigate("/login", { replace: true });
-  });
-};
   const fetchUser = async () => {
     try {
       const res = await fetch(`${API_BASE}/getUser.php`, {
@@ -158,21 +166,13 @@ const handleLogout = () => {
 
   const fetchNotifications = async () => {
     try {
-      const res = await fetch(
-        `${API_BASE}/getUserNotifications.php`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
+      const res = await fetch(`${API_BASE}/getUserNotifications.php`, {
+        method: "GET",
+        credentials: "include",
+      });
 
       const data = await res.json();
-
-      if (data.success) {
-        setNotifications(data.notifications || []);
-      } else {
-        setNotifications([]);
-      }
+      setNotifications(data.success ? data.notifications || [] : []);
     } catch (err) {
       console.error("Notification fetch error:", err);
       setNotifications([]);
@@ -181,13 +181,10 @@ const handleLogout = () => {
 
   const markNotificationsAsRead = async () => {
     try {
-      const res = await fetch(
-        `${API_BASE}/markNotificationsAsRead.php`,
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
+      const res = await fetch(`${API_BASE}/markNotificationsAsRead.php`, {
+        method: "POST",
+        credentials: "include",
+      });
 
       const data = await res.json();
 
@@ -232,27 +229,26 @@ const handleLogout = () => {
     }
   };
 
-const fetchLessons = async () => {
-  try {
-    const res = await fetch(`${API_BASE}/getLessons.php`, {
-      credentials: "include",
-    });
+  const fetchLessons = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/getLessons.php`, {
+        credentials: "include",
+      });
 
-    const data = await res.json();
-    console.log("GET LESSONS:", data);
+      const data = await res.json();
 
-if (Array.isArray(data)) {
-  setLessons(data);
-} else if (Array.isArray(data.lessons)) {
-  setLessons(data.lessons);
-} else {
-  setLessons([]);
-}
-  } catch (err) {
-    console.error("Lessons fetch error:", err);
-    setLessons([]);
-  }
-};
+      if (Array.isArray(data)) {
+        setLessons(data);
+      } else if (Array.isArray(data.lessons)) {
+        setLessons(data.lessons);
+      } else {
+        setLessons([]);
+      }
+    } catch (err) {
+      console.error("Lessons fetch error:", err);
+      setLessons([]);
+    }
+  };
 
   const fetchPublicDecks = async () => {
     try {
@@ -287,7 +283,7 @@ if (Array.isArray(data)) {
   useEffect(() => {
     const handler = (e) => {
       const insideDropdown = e.target.closest(
-        `.${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}, .${styles.customDropdown}, .${styles.searchBar}`
+        `.${styles.customDropdown}, .${styles.searchBar}`
       );
 
       if (!insideDropdown) {
@@ -300,10 +296,6 @@ if (Array.isArray(data)) {
     window.addEventListener("click", handler);
     return () => window.removeEventListener("click", handler);
   }, []);
-
-  const openCourse = (courseId) => {
-    navigate(`/learning/${courseId}`);
-  };
 
   const isCourseAdded = (lessonId) => {
     return courses.some((course) => {
@@ -334,7 +326,7 @@ if (Array.isArray(data)) {
     }
 
     if (foundDeck) {
-      navigate(`/deck/${foundDeck.id}`);
+      navigate(`/deck/${foundDeck.deck_id || foundDeck.id}`);
       return;
     }
 
@@ -499,7 +491,9 @@ if (Array.isArray(data)) {
       .filter((deck) => {
         if (!deckCategory) return true;
 
-        return getDeckCategory(deck).toLowerCase() === deckCategory.toLowerCase();
+        return (
+          getDeckCategory(deck).toLowerCase() === deckCategory.toLowerCase()
+        );
       });
 
     if (deckSort === "az") {
@@ -508,21 +502,17 @@ if (Array.isArray(data)) {
       );
     }
 
-if (deckSort === "recent") {
-  result = [...result].sort(
-    (a, b) =>
-      Number(b.deck_id || b.id) -
-      Number(a.deck_id || a.id)
-  );
-}
+    if (deckSort === "recent") {
+      result = [...result].sort(
+        (a, b) => Number(b.deck_id || b.id) - Number(a.deck_id || a.id)
+      );
+    }
 
-if (deckSort === "oldest") {
-  result = [...result].sort(
-    (a, b) =>
-      Number(a.deck_id || a.id) -
-      Number(b.deck_id || b.id)
-  );
-}
+    if (deckSort === "oldest") {
+      result = [...result].sort(
+        (a, b) => Number(a.deck_id || a.id) - Number(b.deck_id || b.id)
+      );
+    }
 
     return result;
   }, [publicDecks, search, deckSort, deckYear, deckCategory]);
@@ -533,306 +523,33 @@ if (deckSort === "oldest") {
         isCollapsed ? styles.sidebarCollapsed : ""
       }`}
     >
-      <aside
-        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
-      >
-        <div>
-          <div
-            className={styles.sidebarToggle}
-            onClick={() => setIsCollapsed(!isCollapsed)}
-          >
-            <i className="bx bx-sidebar"></i>
-          </div>
-
-          <div className={styles.logo}>
-            <img
-              className={styles.logoExpanded}
-              src="/images/logo1.png"
-              alt="Logo"
-            />
-            <img
-              className={styles.logoCollapsed}
-              src="/images/logo_solo.png"
-              alt="Logo"
-            />
-          </div>
-
-          <div className={styles.divider}></div>
-          <p className={styles.myDecksTitle}>Menu</p>
-
-          <nav className={styles.menu}>
-            <ul className={styles.sidebarList}>
-              <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/homepage"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-home"></i>
-                  <span className={styles.menuText}>Home</span>
-                </NavLink>
-              </li>
-
-              <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/Mydecks"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-collection"></i>
-                  <span className={styles.menuText}>Decks</span>
-                </NavLink>
-              </li>
-
-              <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/mycourse"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-book-open"></i>
-                  <span className={styles.menuText}>My Course</span>
-                </NavLink>
-              </li>
-
-              <li className={styles.sidebarListItem}>
-                <NavLink
-                  to="/public-decks"
-                  className={({ isActive }) =>
-                    `${styles.menuItem} ${isActive ? styles.active : ""}`
-                  }
-                >
-                  <i className="bx bx-world"></i>
-                  <span className={styles.menuText}>Public Decks</span>
-                </NavLink>
-              </li>
-            </ul>
-          </nav>
-
-          <div className={styles.divider}></div>
-
-          <div className={styles.myDecksNav}>
-            <div className={styles.sectionBlock}>
-              <p className={styles.sectionTitle}>My Decks</p>
-
-              <ul className={styles.sectionList}>
-                {myDecks.length === 0 ? (
-                  <li className={styles.sidebarEmptyText}>
-                    Don't have decks yet
-                  </li>
-                ) : (
-                  myDecks.slice(0, 3).map((deck) => (
-                    <li
-                      key={deck.id || deck.deck_id}
-                      className={styles.sidebarListItem}
-                    >
-                      <Link
-                        to={`/deck/${deck.id || deck.deck_id}`}
-                        className={styles.menuItem}
-                      >
-                        <i className="bx bx-collection"></i>
-                        <span className={styles.menuText}>{deck.title}</span>
-                      </Link>
-                    </li>
-                  ))
-                )}
-              </ul>
-            </div>
-
-            <div className={styles.sectionBlock}>
-              <div className={styles.sectionDivider}></div>
-              <p className={styles.sectionTitle}>My Courses</p>
-
-              <ul className={styles.sectionList}>
-                {courses.length === 0 ? (
-                  <li className={styles.sidebarEmptyText}>
-                    No courses added yet
-                  </li>
-                ) : (
-                  courses.slice(0, 3).map((course) => {
-                    const courseLessonId = course.lesson_id || course.id;
-
-                    return (
-                      <li
-                        key={course.id || course.lesson_id}
-                        className={styles.sidebarListItem}
-                      >
-                        <button
-                          type="button"
-                          onClick={() => openCourse(courseLessonId)}
-                          className={styles.menuItem}
-                        >
-                          <i className="bx bx-book-open"></i>
-                          <span className={styles.menuText}>
-                            {course.title}
-                          </span>
-                        </button>
-                      </li>
-                    );
-                  })
-                )}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </aside>
+      <UserSidebar
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+        myDecks={myDecks}
+        courses={courses}
+        openCourse={openCourse}
+        getDeckId={getDeckId}
+      />
 
       <div className={styles.mainArea}>
         <div className={styles.gridContainer}>
-          <div className={styles.headerContainer}>
-            <form className={styles.searchBar} onSubmit={handleSearchSubmit}>
-              <input
-                type="text"
-                placeholder="Search courses or public decks"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-
-              {search.trim() ? (
-                <button
-                  type="button"
-                  className={styles.searchBtn}
-                  onClick={() => setSearch("")}
-                  aria-label="Clear search"
-                >
-                  <i className="bx bx-x" />
-                </button>
-              ) : (
-                <button type="submit" className={styles.searchBtn}>
-                  <i className="bx bx-search" />
-                </button>
-              )}
-            </form>
-
-            <div className={styles.profileWrapper}>
-              <div className={styles.notificationWrapper}>
-                <button
-                  type="button"
-                  className={styles.notificationBtn}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setNotificationOpen((prev) => !prev);
-                    setProfileDropdownOpen(false);
-                    closeAllFilterDropdowns();
-                  }}
-                >
-                  <i className="bx bx-bell"></i>
-
-                  {notificationCount > 0 && (
-                    <span className={styles.notificationBadge}>
-                      {notificationCount}
-                    </span>
-                  )}
-                </button>
-
-                <div
-                  className={`${styles.notificationDropdown} ${
-                    notificationOpen ? styles.show : ""
-                  }`}
-                >
-                  <div className={styles.notificationHeader}>
-                    <h4>Notifications</h4>
-
-                    {notificationCount > 0 && (
-                      <button
-                        type="button"
-                        className={styles.markReadBtn}
-                        onClick={markNotificationsAsRead}
-                      >
-                        Mark all as read
-                      </button>
-                    )}
-                  </div>
-
-                  {notifications.length > 0 ? (
-                    notifications.slice(0, 5).map((notif) => (
-                      <div
-                        key={notif.notification_id}
-                        className={styles.notificationItem}
-                      >
-                        <div className={styles.notificationTop}>
-                          <h5>{notif.title}</h5>
-
-                          <span className={styles.notificationRole}>
-                            {notif.target_role}
-                          </span>
-                        </div>
-
-                        <p>{notif.message}</p>
-
-                        <small className={styles.notificationDate}>
-                          {new Date(notif.created_at).toLocaleString()}
-                        </small>
-                      </div>
-                    ))
-                  ) : (
-                    <div className={styles.emptyNotification}>
-                      <img
-                        src="/images/NoNotifcation.png"
-                        alt="No notifications"
-                        className={styles.emptyNotificationImg}
-                      />
-
-                      <p>You don't have any new notifications</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <Link to="/user-profile" className={styles.profileLink}>
-                <div className={styles.dpContainer}>
-                  <img
-                    src={user.profile_image || "/images/temporary profile.jpg"}
-                    alt="Profile"
-                    className={styles.profilePic}
-                  />
-                </div>
-
-                <div className={styles.userInfo}>
-                  <p>{user.username}</p>
-                </div>
-              </Link>
-
-              <div className={styles.dropdown}>
-                <button
-                  type="button"
-                  className={styles.dropdownBtn}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setProfileDropdownOpen((prev) => !prev);
-                    setNotificationOpen(false);
-                    closeAllFilterDropdowns();
-                  }}
-                >
-                  <i className="bx bx-chevron-down" />
-                </button>
-
-                <div
-                  className={`${styles.dropdownContent} ${
-                    profileDropdownOpen ? styles.show : ""
-                  }`}
-                >
-                  <NavLink to="/edit-profile">
-                    <i className="bx bx-cog" />
-                    <span>Settings</span>
-                  </NavLink>
-
-                  <NavLink to="/faq">
-                    <i className="bx bx-help-circle" />
-                    <span>FAQs</span>
-                  </NavLink>
-
-                  <button type="button" onClick={handleLogout}>
-                    <i className="bx bx-log-out" />
-                    <span>Logout</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <UserHeader
+            isCollapsed={isCollapsed}
+            searchQuery={search}
+            setSearchQuery={setSearch}
+            handleSearchSubmit={handleSearchSubmit}
+            notificationOpen={notificationOpen}
+            setNotificationOpen={setNotificationOpen}
+            setDropdownOpen={closeAllFilterDropdowns}
+            notificationCount={notificationCount}
+            notifications={notifications}
+            markNotificationsAsRead={markNotificationsAsRead}
+            user={user}
+            profileDropdownOpen={profileDropdownOpen}
+            setProfileDropdownOpen={setProfileDropdownOpen}
+            handleLogout={handleLogout}
+          />
 
           <main className={styles.mainContent}>
             <section className={styles.courses}>
@@ -879,6 +596,7 @@ if (deckSort === "oldest") {
                           >
                             A-Z
                           </button>
+
                           <button
                             type="button"
                             onClick={() => {
@@ -888,6 +606,7 @@ if (deckSort === "oldest") {
                           >
                             Recently Added
                           </button>
+
                           <button
                             type="button"
                             onClick={() => {
@@ -1010,6 +729,7 @@ if (deckSort === "oldest") {
                           >
                             A-Z
                           </button>
+
                           <button
                             type="button"
                             onClick={() => {
@@ -1019,6 +739,7 @@ if (deckSort === "oldest") {
                           >
                             Recently Added
                           </button>
+
                           <button
                             type="button"
                             onClick={() => {
@@ -1124,56 +845,57 @@ if (deckSort === "oldest") {
 
                 <div className={styles.deckGrid}>
                   {filteredPublicDecks.length === 0 ? (
-                   <div className={styles.emptyDeckState}>
-                    <img
-                      src="/images/cute1.png"
-                      alt="No public decks"
-                      className={styles.emptyDeckImg}
-                    />
+                    <div className={styles.emptyDeckState}>
+                      <img
+                        src="/images/cute1.png"
+                        alt="No public decks"
+                        className={styles.emptyDeckImg}
+                      />
 
-                    <p className={styles.emptyDeckText}>
-                      {search || deckYear || deckCategory
-                        ? `No decks found for "${search || deckYear || deckCategory}".`
-                        : "No public decks available."}
-                    </p>
-                  </div>
-
+                      <p className={styles.emptyDeckText}>
+                        {search || deckYear || deckCategory
+                          ? `No decks found for "${
+                              search || deckYear || deckCategory
+                            }".`
+                          : "No public decks available."}
+                      </p>
+                    </div>
                   ) : (
                     filteredPublicDecks.map((deck, index) => (
-                <article
-  key={deck.deck_id || deck.id}
-  className={styles.deckCard}
-  onClick={() => navigate(`/deck/${deck.deck_id || deck.id}`)}
->
-  <div className={styles.deckCardInner}>
-    <div
-      className={styles.deckTop}
-      style={{
-        backgroundColor:
-          deck.deck_color ||
-          [
-            "#D7C9F7",
-            "#B8F2D9",
-            "#FFB7A5",
-            "#B5A9FF",
-            "#9EE7DD",
-            "#F4A7C1",
-          ][index % 6],
-      }}
-    ></div>
+                      <article
+                        key={deck.deck_id || deck.id}
+                        className={styles.deckCard}
+                        onClick={() => navigate(`/deck/${deck.deck_id || deck.id}`)}
+                      >
+                        <div className={styles.deckCardInner}>
+                          <div
+                            className={styles.deckTop}
+                            style={{
+                              backgroundColor:
+                                deck.deck_color ||
+                                [
+                                  "#D7C9F7",
+                                  "#B8F2D9",
+                                  "#FFB7A5",
+                                  "#B5A9FF",
+                                  "#9EE7DD",
+                                  "#F4A7C1",
+                                ][index % 6],
+                            }}
+                          ></div>
 
-    <div className={styles.deckBody}>
-      <h4>{deck.title}</h4>
+                          <div className={styles.deckBody}>
+                            <h4>{deck.title}</h4>
 
-      <p className={styles.deckCategoryText}>
-        <i className="bx bxs-book"></i>
-        <span>{getDeckCategory(deck)}</span>
-      </p>
+                            <p className={styles.deckCategoryText}>
+                              <i className="bx bxs-book"></i>
+                              <span>{getDeckCategory(deck)}</span>
+                            </p>
 
-      <span>{Number(deck.card_count ?? 0)} cards</span>
-    </div>
-  </div>
-</article>
+                            <span>{Number(deck.card_count ?? 0)} cards</span>
+                          </div>
+                        </div>
+                      </article>
                     ))
                   )}
                 </div>

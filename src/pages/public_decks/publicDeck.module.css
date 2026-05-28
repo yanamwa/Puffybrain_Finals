@@ -1400,3 +1400,77 @@
     right: 24px;
   }
 }
+
+
+/* PUBLIC DECKS RESPONSIVE FIX */
+
+@media (max-width: 900px) {
+  .mainArea {
+    margin-left: 230px !important;
+  }
+
+  .sidebarCollapsed .mainArea {
+    margin-left: 70px !important;
+  }
+
+  .mainContent {
+    padding: 24px 18px 30px !important;
+  }
+
+  .courses {
+    width: 100%;
+    overflow: visible;
+  }
+
+  .innerhead {
+    padding: 65px 22px 14px !important;
+    gap: 12px;
+  }
+
+  .innerhead h1 {
+    font-size: 28px !important;
+  }
+
+  .filterGroup {
+    width: 100%;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+  }
+
+  .customDropdown {
+    flex: 1 1 140px;
+  }
+
+  .customDropdownBtn {
+    width: 100% !important;
+  }
+
+  .lessons,
+  .deckGrid {
+    grid-template-columns: 1fr !important;
+    padding: 18px !important;
+  }
+
+  .deckCard {
+    max-width: 100% !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .mainArea {
+    margin-left: 70px !important;
+  }
+
+  .mainContent {
+    padding: 18px 10px 24px !important;
+  }
+
+  .innerhead {
+    padding: 58px 14px 14px !important;
+  }
+
+  .filterGroup {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

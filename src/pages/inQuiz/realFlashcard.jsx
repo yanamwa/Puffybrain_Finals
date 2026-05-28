@@ -80,14 +80,12 @@ export default function Flashcards() {
 
         if (isDeckMode) {
           const [cardsRes, deckRes] = await Promise.all([
-            fetch(
-              `${API_BASE}/getCardsByDeck.php?deckId=${deckId}`,
-              { credentials: "include" }
-            ),
-            fetch(
-              `${API_BASE}/getDeckById.php?deckId=${deckId}`,
-              { credentials: "include" }
-            ),
+            fetch(`${API_BASE}/getCardsByDeck.php?deckId=${deckId}`, {
+              credentials: "include",
+            }),
+            fetch(`${API_BASE}/getDeckById.php?deckId=${deckId}`, {
+              credentials: "include",
+            }),
           ]);
 
           const cardsData = await cardsRes.json();
@@ -123,10 +121,12 @@ export default function Flashcards() {
         const parsed = Array.isArray(rawQuiz)
           ? rawQuiz
           : JSON.parse(String(rawQuiz));
+
         if (!Array.isArray(parsed)) return [];
 
         return shuffleArray(
           parsed.map((item) => ({
+            cardId: null,
             question: item.question || "No question available.",
             answer:
               item.correct_answer ||
@@ -145,6 +145,7 @@ export default function Flashcards() {
     if (isDeckMode) {
       return shuffleArray(
         deckCards.map((card) => ({
+          cardId: card.cardId || card.card_id || card.id,
           question: card.question || "No question available.",
           answer: card.answer || "No answer available.",
           explanation: "",
@@ -199,6 +200,26 @@ export default function Flashcards() {
     }
   };
 
+  const updateCardMemorized = async (cardId, isCorrect) => {
+    if (!isDeckMode || !cardId) return;
+
+    try {
+      await fetch(`${API_BASE}/updateCardMemorized.php`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          cardId,
+          is_memorized: isCorrect ? 1 : 0,
+        }),
+      });
+    } catch (error) {
+      console.error("Update memorized error:", error);
+    }
+  };
+
   const loadNextCard = async (difficulty) => {
     if (!currentCard || notifOpen) return;
 
@@ -219,6 +240,7 @@ export default function Flashcards() {
     setNotifOpen(true);
 
     const newResult = {
+      cardId: currentCard.cardId || null,
       question: getCleanQuestion(currentCard.question),
       userAnswer: difficulty,
       correctAnswer: currentCard.answer,
@@ -231,6 +253,8 @@ export default function Flashcards() {
 
     setUserResults(updatedResults);
     setScore(updatedScore);
+
+    await updateCardMemorized(currentCard.cardId, isCorrect);
 
     setTimeout(async () => {
       setNotifOpen(false);
@@ -256,7 +280,7 @@ export default function Flashcards() {
         })
       );
 
-      navigate(`/review/${lessonId || "deck"}`);
+      navigate(isDeckMode ? `/review/deck/${deckId}` : `/review/${lessonId}`);
     }, 1100);
   };
 
@@ -264,39 +288,36 @@ export default function Flashcards() {
     return <div className={styles.container}>Loading flashcards...</div>;
   }
 
-if (flashcards.length === 0) {
-  return (
-    <div className={styles.emptyWrapper}>
-      <div className={styles.emptyCard}>
-        <img
-          src="/images/404.png"
-          alt="No flashcards"
-          className={styles.emptyImage}
-        />
+  if (flashcards.length === 0) {
+    return (
+      <div className={styles.emptyWrapper}>
+        <div className={styles.emptyCard}>
+          <img
+            src="/images/404.png"
+            alt="No flashcards"
+            className={styles.emptyImage}
+          />
 
-        <h2 className={styles.emptyTitle}>No Flashcards Yet</h2>
+          <h2 className={styles.emptyTitle}>No Flashcards Yet</h2>
 
-        <p className={styles.emptyText}>
-          No flashcards are available for this lesson.
-        </p>
+          <p className={styles.emptyText}>
+            No flashcards are available for this lesson.
+          </p>
 
-        <button
-          type="button"
-          className={styles.emptyBtn}
-          onClick={() =>
-            navigate(
-              isDeckMode
-                ? `/review/deck/${deckId}`
-                : `/learning/${lessonId}`
-            )
-          }
-        >
-          Go Back
-        </button>
+          <button
+            type="button"
+            className={styles.emptyBtn}
+            onClick={() =>
+              navigate(isDeckMode ? `/review/deck/${deckId}` : `/learning/${lessonId}`)
+            }
+          >
+            Go Back
+          </button>
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
+
   return (
     <div className={styles.container}>
       {notifOpen && (

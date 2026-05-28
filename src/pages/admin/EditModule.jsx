@@ -16,6 +16,8 @@ import Swal from "sweetalert2";
 import styles from "./editmodule.module.css";
 import "boxicons/css/boxicons.min.css";
 import { API_BASE } from "../../config.js";
+import AdminSidebar from "../../components/ASidebar";
+import AdminHeader from "../../components/AHeader";
 
 const GENERATE_COOLDOWN_MS = 5 * 60 * 60 * 1000;
 const GENERATE_COOLDOWN_KEY = "editModuleQuizGenerateCooldown";
@@ -873,130 +875,23 @@ export default function EditModule() {
     );
   }
 
-  return (
-    <div className={styles.gridContainer}>
-      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
-        <div className={styles.sidebarTop}>
-          <div
-            className={styles.sidebarToggle}
-            onClick={() => setIsCollapsed(!isCollapsed)}
-          >
-            <i className="bx bx-sidebar"></i>
-          </div>
+ return (
+  <div className={styles.gridContainer}>
+    <AdminSidebar
+      isCollapsed={isCollapsed}
+      setIsCollapsed={setIsCollapsed}
+    />
 
-          <div className={styles.logo}>
-            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
-            <img className={styles.logoCollapsed} src="/images/logo_solo.png" alt="Logo" />
-          </div>
-
-          <div className={styles.divider}></div>
-
-          <p className={styles.menuLabel}>Menu</p>
-
-          <nav className={styles.menu}>
-            {menuItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  `${styles.menuItem} ${isActive ? styles.active : ""}`
-                }
-              >
-                <span className={styles.menuIcon}>{item.icon}</span>
-                <span className={styles.menuText}>{item.label}</span>
-              </NavLink>
-            ))}
-          </nav>
-
-          <div className={styles.divider}></div>
-
-          <p className={styles.menuLabel}>Others</p>
-
-          <nav className={styles.menu}>
-            <NavLink
-              to="/admin/profile"
-              className={({ isActive }) =>
-                `${styles.menuItem} ${isActive ? styles.active : ""}`
-              }
-            >
-              <span className={styles.menuIcon}>
-                <User size={20} />
-              </span>
-              <span className={styles.menuText}>Profile</span>
-            </NavLink>
-
-            <NavLink
-              to="/admin/settings"
-              className={({ isActive }) =>
-                `${styles.menuItem} ${isActive ? styles.active : ""}`
-              }
-            >
-              <span className={styles.menuIcon}>
-                <Settings size={20} />
-              </span>
-              <span className={styles.menuText}>Settings</span>
-            </NavLink>
-          </nav>
-        </div>
-
-        <div className={styles.sidebarBottom}>
-          <div className={styles.divider}></div>
-
-          <NavLink to="/admin/login" onClick={handleLogout} className={styles.menuItem}>
-            <span className={styles.menuIcon}>
-              <LogOut size={20} />
-            </span>
-            <span className={styles.menuText}>Logout</span>
-          </NavLink>
-        </div>
-      </aside>
-
-      <header className={styles.headerContainer}>
-        <div className={styles.searchBar}>
-          <Search size={19} />
-
-          <input
-            type="text"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-
-        <div className={styles.headerRight}>
-          <div className={styles.notificationWrapper}>
-            <button
-              type="button"
-              className={styles.notificationBtn}
-              onClick={(e) => {
-                e.stopPropagation();
-                setNotificationOpen((prev) => !prev);
-              }}
-            >
-              <i className="bx bx-bell"></i>
-
-              {notificationCount > 0 && (
-                <span className={styles.notificationBadge}>
-                  {notificationCount}
-                </span>
-              )}
-            </button>
-          </div>
-
-          <div className={styles.adminHeaderProfile}>
-            <img
-              src={admin.profile_image || "/images/temporary profile.jpg"}
-              alt="Admin"
-              className={styles.adminHeaderImg}
-            />
-
-            <span className={styles.adminHeaderName}>
-              {admin.username || "Admin"}
-            </span>
-          </div>
-        </div>
-      </header>
-
+    <AdminHeader
+      admin={admin}
+      searchQuery={searchQuery}
+      setSearchQuery={setSearchQuery}
+      notificationOpen={notificationOpen}
+      setNotificationOpen={setNotificationOpen}
+      bellNotifications={bellNotifications}
+      notificationCount={notificationCount}
+      handleMarkAllAsRead={handleMarkAllAsRead}
+    />
       <main className={styles.main}>
         <div className={styles.pageHeader}>
           <h1>Edit Module</h1>

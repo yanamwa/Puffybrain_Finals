@@ -323,21 +323,21 @@ const fetchCards = async () => {
     fetchNotifications();
   }, [deckId]);
 
-  useEffect(() => {
-    const handler = (e) => {
-      const insideDropdown = e.target.closest(
-        `.${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}, .${styles.searchBar}`
-      );
+useEffect(() => {
+  const handler = (e) => {
+    const insideHeaderDropdown = e.target.closest(
+      '[class*="dropdownBtn"], [class*="dropdownContent"], [class*="profileWrapper"], [class*="notificationWrapper"], [class*="searchBar"]'
+    );
 
-      if (!insideDropdown) {
-        setDropdownOpen(false);
-        setNotificationOpen(false);
-      }
-    };
+    if (!insideHeaderDropdown) {
+      setDropdownOpen(false);
+      setNotificationOpen(false);
+    }
+  };
 
-    window.addEventListener("click", handler);
-    return () => window.removeEventListener("click", handler);
-  }, []);
+  document.addEventListener("mousedown", handler);
+  return () => document.removeEventListener("mousedown", handler);
+}, []);
 
   useEffect(() => {
     return () => {

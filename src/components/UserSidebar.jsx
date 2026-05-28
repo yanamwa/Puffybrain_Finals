@@ -9,8 +9,8 @@ export default function UserSidebar({
   openCourse,
   getDeckId,
 }) {
-  const shownDecks = myDecks.slice(0, 10);
-  const shownCourses = courses.slice(0, 10);
+const shownDecks = myDecks.slice(0, 5);
+const shownCourses = courses.slice(0, 5);
 
   return (
     <aside
@@ -116,7 +116,9 @@ export default function UserSidebar({
           <ul className={styles.sectionList}>
             {shownDecks.length > 0 ? (
               shownDecks.map((deck) => {
-                const deckId = getDeckId(deck);
+               const deckId = getDeckId
+                ? getDeckId(deck)
+                : deck.deck_id || deck.id || deck.DeckID;
 
                 return (
                   <li
@@ -137,13 +139,13 @@ export default function UserSidebar({
               })
             ) : (
               <li className={styles.sidebarListItem}>
-                <span className={styles.menuText}>
+                <span className={styles.menuText1}>
                   No decks yet
                 </span>
               </li>
             )}
 
-            {myDecks.length > 10 && (
+          {myDecks.length > 5 && (
               <li className={styles.sidebarListItem}>
                 <Link
                   to="/mydecks"
@@ -182,13 +184,13 @@ export default function UserSidebar({
               ))
             ) : (
               <li className={styles.sidebarListItem}>
-                <span className={styles.menuText}>
+                <span className={styles.menuText1}>
                   No courses yet
                 </span>
               </li>
             )}
 
-            {courses.length > 10 && (
+        {courses.length > 5 && (
               <li className={styles.sidebarListItem}>
                 <Link
                   to="/mycourse"

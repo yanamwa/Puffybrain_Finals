@@ -1,21 +1,12 @@
-import { useEffect, useRef, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import {
-  LayoutDashboard,
-  Users,
-  Layers,
-  LibraryBig,
-  Gamepad2,
-  Database,
-  LogOut,
-  Search,
-  User,
-  Settings,
-} from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import styles from "./adminprofile.module.css";
 import "boxicons/css/boxicons.min.css";
 import { API_BASE } from "../../config.js";
+
+import AHeader from "../../components/AHeader";
+import ASidebar from "../../components/ASidebar";
 
 export default function AdminProfile() {
   const navigate = useNavigate();
@@ -25,51 +16,78 @@ export default function AdminProfile() {
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [bellNotifications, setBellNotifications] = useState([]);
 
-  const [activitySortOpen, setActivitySortOpen] = useState(false);
-  const [activitySort, setActivitySort] = useState("recent");
-  const [activityPage, setActivityPage] = useState(1);
-  const actionsPerPage = 5;
+  const [loginSortOpen, setLoginSortOpen] = useState(false);
+  const [loginSort, setLoginSort] = useState("recent");
+  const [loginPage, setLoginPage] = useState(1);
 
+  const [actionSortOpen, setActionSortOpen] = useState(false);
+  const [actionSort, setActionSort] = useState("recent");
+  const [actionPage, setActionPage] = useState(1);
+
+  const rowsPerPage = 5;
   const fetchedOnce = useRef(false);
 
-const [admin, setAdmin] = useState({
-  id: "",
-  username: "Admin",
-  full_name: "",
-  email: "",
-  role: "",
-  profile_image: "/images/temporary profile.jpg",
-});
-
-const adminImage =
-  admin.profile_image &&
-  !admin.profile_image.includes("temporary profile.jpg")
-    ? admin.profile_image.startsWith("http")
-      ? admin.profile_image
-      : `${API_BASE}/${admin.profile_image.replace(/^\/+/, "")}`
-    : "/images/temporary profile.jpg";
-
+  const [admin, setAdmin] = useState({
+    id: "",
+    username: "Admin",
+    full_name: "",
+    email: "",
+    role: "",
+    profile_image: "/images/temporary profile.jpg",
+  });
 
   const [adminActivity, setAdminActivity] = useState({
-    last_login: "Loading...",
+    last_login: "Not recorded yet",
+    login_history: [],
     modules_created: 0,
     recent_actions: [],
   });
 
-  const menuItems = [
-    { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
-    { label: "User Management", path: "/admin/users", icon: <Users size={20} /> },
-    { label: "Module Management", path: "/admin/modules", icon: <Layers size={20} /> },
-    { label: "Decks Management", path: "/admin/decks", icon: <LibraryBig size={20} /> },
-    { label: "Modes Management", path: "/admin/modes", icon: <Gamepad2 size={20} /> },
-    { label: "Notification Management", path: "/admin/notifications", icon: <i className="bx bx-bell"></i> },
-   { label: "Backup & Restore", path: "/admin/backup-restore", icon: <Database size={20} /> },
-  
-  ];
+  const getAdminImageUrl = (image) => {
+    if (!image || image.includes("temporary profile.jpg")) {
+      return "/images/temporary profile.jpg";
+    }
+
+    if (image.startsWith("http")) return image;
+
+    const cleanImage = image.replace(/^\/+/, "").replace(/^puffybrain\//, "");
+    return `${API_BASE}/${cleanImage}`;
+  };
+
+  const adminImage = getAdminImageUrl(admin.profile_image);
+
+  const formatActivityDate = (dateValue) => {
+    if (!dateValue || dateValue === "Not recorded yet") return "Not recorded yet";
+
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) return dateValue;
+
+    return date.toLocaleString("en-PH", {
+      timeZone: "Asia/Manila",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
+  const getRawDate = (item) =>
+    item?.login_time || item?.date || item?.created_at || item?.last_login;
+
+  const splitPhDate = (dateValue) => {
+    const formatted = formatActivityDate(dateValue);
+    const [datePart, timePart] = formatted.split(",");
+
+    return {
+      date: datePart || "—",
+      time: timePart?.trim() || "—",
+    };
+  };
 
   const fetchAdmin = async () => {
-  try {
-    const adminData = JSON.parse(localStorage.getItem("admin") || "{}");
+    try {
       const res = await fetch(`${API_BASE}/getAdminProfile.php`, {
         credentials: "include",
       });
@@ -82,10 +100,14 @@ const adminImage =
       }
 
       setAdmin({
-        full_name: data.admin?.full_name || "System Administrator",
-        email: data.admin?.email || "Not set",
-        username: data.admin?.username || "Admin",
-        role: data.admin?.role || "Administrator",
+        id: data.admin?.id || data.admin?.AdminID || "",
+        username: data.admin?.username || data.admin?.Username || "Admin",
+        full_name:
+          data.admin?.full_name ||
+          data.admin?.FullName ||
+          "System Administrator",
+        email: data.admin?.email || data.admin?.Email || "Not set",
+        role: data.admin?.role || data.admin?.Role || "Administrator",
         profile_image: data.admin?.profile_image || "/images/temporary profile.jpg",
       });
     } catch (err) {
@@ -93,42 +115,54 @@ const adminImage =
     }
   };
 
-const fetchAdminActivity = async () => {
-  try {
-    const adminData = JSON.parse(localStorage.getItem("admin") || "{}");
+  const fetchAdminActivity = async () => {
+    try {
+      const adminData = JSON.parse(localStorage.getItem("admin") || "{}");
 
-    if (!adminData.id) {
-      console.warn("No admin ID found in localStorage");
-      return;
+      if (!adminData.id) {
+        console.warn("No admin ID found in localStorage");
+        return;
+      }
+
+      const res = await fetch(
+        `${API_BASE}/getAdminActivity.php?admin_id=${adminData.id}`,
+        { credentials: "include" }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        const lastLogin = data.activity?.last_login || "Not recorded yet";
+        const backendLoginHistory = data.activity?.login_history || [];
+
+        const loginHistory =
+          backendLoginHistory.length > 0
+            ? backendLoginHistory
+            : lastLogin !== "Not recorded yet"
+            ? [{ login_time: lastLogin }]
+            : [];
+
+        setAdminActivity({
+          last_login: lastLogin,
+          login_history: loginHistory,
+          modules_created: data.activity?.modules_created || 0,
+          recent_actions: data.activity?.recent_actions || [],
+        });
+      }
+    } catch (err) {
+      console.error("Fetch admin activity error:", err);
     }
+  };
 
-    const res = await fetch(`${API_BASE}/getAdminActivity.php?admin_id=${adminData.id}`, {
-      credentials: "include",
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      setAdminActivity({
-        last_login: data.activity?.last_login || "Not recorded yet",
-        modules_created: data.activity?.modules_created || 0,
-        recent_actions: data.activity?.recent_actions || [],
-      });
-    }
-  } catch (err) {
-    console.error("Fetch admin activity error:", err);
-  }
-};
   const fetchBellNotifications = async () => {
     try {
-   const adminData = JSON.parse(localStorage.getItem("admin") || "{}");
+      const adminData = JSON.parse(localStorage.getItem("admin") || "{}");
 
-const res = await fetch(
-  `${API_BASE}/getAdminProfile.php?admin_id=${adminData.id}`,
-  {
-    credentials: "include",
-  }
-);
+      const res = await fetch(
+        `${API_BASE}/getAdminNotifications.php?admin_id=${adminData.id}`,
+        { credentials: "include" }
+      );
+
       const data = await res.json();
 
       if (data.success) {
@@ -153,20 +187,19 @@ const res = await fetch(
 
     const handler = (e) => {
       const insideDropdown = e.target.closest(
-        `.${styles.notificationWrapper}, .${styles.customSort}`
+        '[class*="notificationWrapper"], [class*="customSort"]'
       );
 
       if (!insideDropdown) {
         setNotificationOpen(false);
-        setActivitySortOpen(false);
+        setLoginSortOpen(false);
+        setActionSortOpen(false);
       }
     };
 
     window.addEventListener("click", handler);
 
-    return () => {
-      window.removeEventListener("click", handler);
-    };
+    return () => window.removeEventListener("click", handler);
   }, []);
 
   const handleMarkAllAsRead = async (e) => {
@@ -184,9 +217,7 @@ const res = await fetch(
       const res = await fetch(`${API_BASE}/markAdminNotificationsRead.php`, {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ admin_id: adminId }),
       });
 
@@ -204,260 +235,90 @@ const res = await fetch(
     }
   };
 
-const handleLogout = async (e) => {
-  e.preventDefault();
+  const handleLogout = async (e) => {
+    e.preventDefault();
 
-  const result = await Swal.fire({
-    title: "Logout?",
-    text: "Are you sure you want to logout?",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Yes",
-    cancelButtonText: "Cancel",
-    confirmButtonColor: "#7b5cff",
-  });
-
-  if (!result.isConfirmed) return;
-
-  try {
-    await fetch(`${API_BASE}/adminLogout.php`, {
-      method: "POST",
-      credentials: "include",
+    const result = await Swal.fire({
+      title: "Logout?",
+      text: "Are you sure you want to logout?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#7b5cff",
     });
-  } catch (err) {
-    console.error("Logout API error:", err);
-  }
 
-  localStorage.removeItem("admin");
-  localStorage.removeItem("admin_id");
-  localStorage.removeItem("admin_username");
-  localStorage.removeItem("admin_email");
-  sessionStorage.clear();
+    if (!result.isConfirmed) return;
 
-  navigate("/pb-admin-access", { replace: true });
-};
-
-  const formatActivityDate = (dateValue) => {
-    if (!dateValue || dateValue === "Not recorded yet") {
-      return "Not recorded yet";
+    try {
+      await fetch(`${API_BASE}/adminLogout.php`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout API error:", err);
     }
 
-    const date = new Date(dateValue);
+    localStorage.removeItem("admin");
+    localStorage.removeItem("admin_id");
+    localStorage.removeItem("admin_username");
+    localStorage.removeItem("admin_email");
+    sessionStorage.clear();
 
-    if (Number.isNaN(date.getTime())) {
-      return dateValue;
-    }
-
-    return date.toLocaleString();
+    navigate("/pb-admin-access", { replace: true });
   };
 
-  const sortedActions = [...adminActivity.recent_actions].sort((a, b) => {
-    const dateA = new Date(a.date).getTime();
-    const dateB = new Date(b.date).getTime();
+  const sortedLoginHistory = useMemo(() => {
+    return [...adminActivity.login_history].sort((a, b) => {
+      const dateA = new Date(getRawDate(a)).getTime();
+      const dateB = new Date(getRawDate(b)).getTime();
+      return loginSort === "recent" ? dateB - dateA : dateA - dateB;
+    });
+  }, [adminActivity.login_history, loginSort]);
 
-    if (activitySort === "recent") {
-      return dateB - dateA;
-    }
+  const sortedRecentActions = useMemo(() => {
+    return [...adminActivity.recent_actions].sort((a, b) => {
+      const dateA = new Date(a.date || a.created_at).getTime();
+      const dateB = new Date(b.date || b.created_at).getTime();
+      return actionSort === "recent" ? dateB - dateA : dateA - dateB;
+    });
+  }, [adminActivity.recent_actions, actionSort]);
 
-    return dateA - dateB;
-  });
+  const totalLoginPages = Math.ceil(sortedLoginHistory.length / rowsPerPage);
+  const totalActionPages = Math.ceil(sortedRecentActions.length / rowsPerPage);
 
-  const totalActivityPages = Math.ceil(sortedActions.length / actionsPerPage);
-
-  const paginatedActions = sortedActions.slice(
-    (activityPage - 1) * actionsPerPage,
-    activityPage * actionsPerPage
+  const paginatedLoginHistory = sortedLoginHistory.slice(
+    (loginPage - 1) * rowsPerPage,
+    loginPage * rowsPerPage
   );
 
-  const unreadNotifications = bellNotifications.filter(
-    (notif) => notif.status === "unread"
+  const paginatedRecentActions = sortedRecentActions.slice(
+    (actionPage - 1) * rowsPerPage,
+    actionPage * rowsPerPage
   );
-
-  const notificationCount = unreadNotifications.length;
 
   return (
-    <div className={styles.gridContainer}>
-      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
-        <div className={styles.sidebarTop}>
-          <div
-            className={styles.sidebarToggle}
-            onClick={() => setIsCollapsed(!isCollapsed)}
-          >
-            <i className="bx bx-sidebar"></i>
-          </div>
+    <div
+      className={`${styles.gridContainer} ${
+        isCollapsed ? styles.collapsedGrid : ""
+      }`}
+    >
+      <ASidebar
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+        handleLogout={handleLogout}
+      />
 
-          <div className={styles.logo}>
-            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
-            <img className={styles.logoCollapsed} src="/images/logo_solo.png" alt="Logo" />
-          </div>
-
-          <div className={styles.divider}></div>
-
-          <p className={styles.menuLabel}>Menu</p>
-
-          <nav className={styles.menu}>
-            {menuItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  `${styles.menuItem} ${isActive ? styles.active : ""}`
-                }
-              >
-                <span className={styles.menuIcon}>{item.icon}</span>
-                <span className={styles.menuText}>{item.label}</span>
-              </NavLink>
-            ))}
-          </nav>
-
-          <div className={styles.divider}></div>
-
-          <p className={styles.menuLabel}>Others</p>
-
-          <nav className={styles.menu}>
-            <NavLink
-              to="/admin/profile"
-              className={({ isActive }) =>
-                `${styles.menuItem} ${isActive ? styles.active : ""}`
-              }
-            >
-              <span className={styles.menuIcon}>
-                <User size={20} />
-              </span>
-              <span className={styles.menuText}>Profile</span>
-            </NavLink>
-
-            <NavLink
-              to="/admin/settings"
-              className={({ isActive }) =>
-                `${styles.menuItem} ${isActive ? styles.active : ""}`
-              }
-            >
-              <span className={styles.menuIcon}>
-                <Settings size={20} />
-              </span>
-              <span className={styles.menuText}>Settings</span>
-            </NavLink>
-          </nav>
-        </div>
-
-        <div className={styles.sidebarBottom}>
-          <div className={styles.divider}></div>
-
-      <button type="button" onClick={handleLogout} className={styles.menuItem}>
-  <span className={styles.menuIcon}>
-    <LogOut size={20} />
-  </span>
-  <span className={styles.menuText}>Logout</span>
-</button>
-        </div>
-      </aside>
-
-      <header className={styles.headerContainer}>
-  <div className={styles.searchBar}>
-    <Search size={19} />
-    <input
-      type="text"
-      placeholder="Search..."
-      value={searchQuery}
-      onChange={(e) => setSearchQuery(e.target.value)}
-    />
-  </div>
-
-  <div className={styles.headerRight}>
-    
-    {/* Notification */}
-    <div className={styles.notificationWrapper}>
-      <button
-        type="button"
-        className={styles.notificationBtn}
-        onClick={(e) => {
-          e.stopPropagation();
-          setNotificationOpen((prev) => !prev);
-        }}
-      >
-        <i className="bx bx-bell"></i>
-
-        {notificationCount > 0 && (
-          <span className={styles.notificationBadge}>
-            {notificationCount}
-          </span>
-        )}
-      </button>
-
-      <div
-        className={`${styles.notificationDropdown} ${
-          notificationOpen ? styles.show : ""
-        }`}
-      >
-        <div className={styles.notificationHeader}>
-          <h4>Notifications</h4>
-
-          {notificationCount > 0 && (
-            <button
-              type="button"
-              className={styles.markReadBtn}
-              onClick={handleMarkAllAsRead}
-            >
-              Mark all as read
-            </button>
-          )}
-        </div>
-
-        {bellNotifications.length > 0 ? (
-          bellNotifications.slice(0, 5).map((item) => (
-            <div
-              key={item.notification_id || item.id}
-              className={styles.notificationItem}
-            >
-              <div className={styles.notificationTop}>
-                <h5>{item.title || "No title"}</h5>
-                <span className={styles.notificationRole}>
-                  {item.recipient_type || "all"}
-                </span>
-              </div>
-
-              <p className={styles.notificationMessage}>
-                {item.message || "No message"}
-              </p>
-
-              <p className={styles.notificationCreator}>
-                Posted by {item.created_by || "Admin"}
-              </p>
-
-              <small className={styles.notificationDate}>
-                {item.created_at
-                  ? new Date(item.created_at).toLocaleString()
-                  : "No date"}
-              </small>
-            </div>
-          ))
-        ) : (
-          <div className={styles.emptyNotification}>
-            <p>You don’t have any new notifications</p>
-          </div>
-        )}
-      </div>
-    </div>
-
-    {/* Admin Profile */}
- <div className={styles.adminHeaderProfile}>
-  <img
-    src={adminImage}
-    alt="Admin"
-    className={styles.adminHeaderImg}
-    onError={(e) => {
-      e.currentTarget.src = "/images/temporary profile.jpg";
-    }}
-  />
-
-  <span className={styles.adminHeaderName}>
-    {admin.username || "Admin"}
-  </span>
-</div>
-  </div>
-</header>
-
+      <AHeader
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        notificationOpen={notificationOpen}
+        setNotificationOpen={setNotificationOpen}
+        bellNotifications={bellNotifications}
+        handleMarkAllAsRead={handleMarkAllAsRead}
+        admin={admin}
+        adminImage={adminImage}
+      />
 
       <main className={styles.main}>
         <h1 className={styles.pageTitle}>Admin Profile</h1>
@@ -466,11 +327,11 @@ const handleLogout = async (e) => {
           <div className={styles.idPhotoBox}>
             <div className={styles.idPhotoFrame}>
               <img
-                src={admin.profile_image}
+                src={adminImage}
                 alt="Admin Profile"
                 className={styles.idPhoto}
                 onError={(e) => {
-                  e.target.src = "/images/temporary profile.jpg";
+                  e.currentTarget.src = "/images/temporary profile.jpg";
                 }}
               />
             </div>
@@ -526,26 +387,13 @@ const handleLogout = async (e) => {
 
           <div className={styles.activityBody}>
             <div className={styles.activityItem}>
-              <span>Last Login</span>
-              <strong
-                className={
-                  adminActivity.last_login === "Not recorded yet"
-                    ? styles.noLogin
-                    : styles.loginDate
-                }
-              >
-                {formatActivityDate(adminActivity.last_login)}
-              </strong>
-            </div>
-
-            <div className={styles.activityItem}>
               <span>Modules Created</span>
               <strong>{adminActivity.modules_created}</strong>
             </div>
 
             <div className={styles.activityList}>
               <div className={styles.activityListHeader}>
-                <h3>Recent Admin Actions</h3>
+                <h3>Login History</h3>
 
                 <div className={styles.customSort}>
                   <button
@@ -553,33 +401,33 @@ const handleLogout = async (e) => {
                     className={styles.customSortBtn}
                     onClick={(e) => {
                       e.stopPropagation();
-                      setActivitySortOpen((prev) => !prev);
+                      setLoginSortOpen((prev) => !prev);
                     }}
                   >
                     <i className="bx bx-sort-alt-2"></i>
-                    <span>Sort by</span>
+                    <span>{loginSort === "recent" ? "Recent" : "Oldest"}</span>
                     <i className="bx bx-chevron-down"></i>
                   </button>
 
-                  {activitySortOpen && (
+                  {loginSortOpen && (
                     <div className={styles.customSortMenu}>
                       <button
                         type="button"
                         onClick={() => {
-                          setActivitySort("recent");
-                          setActivityPage(1);
-                          setActivitySortOpen(false);
+                          setLoginSort("recent");
+                          setLoginPage(1);
+                          setLoginSortOpen(false);
                         }}
                       >
-                        Recently Added
+                        Recent
                       </button>
 
                       <button
                         type="button"
                         onClick={() => {
-                          setActivitySort("oldest");
-                          setActivityPage(1);
-                          setActivitySortOpen(false);
+                          setLoginSort("oldest");
+                          setLoginPage(1);
+                          setLoginSortOpen(false);
                         }}
                       >
                         Oldest
@@ -589,9 +437,109 @@ const handleLogout = async (e) => {
                 </div>
               </div>
 
-              {paginatedActions.length > 0 ? (
-                paginatedActions.map((action, index) => (
-                  <div key={index} className={styles.activityAction}>
+              <div className={styles.loginTable}>
+                <div className={styles.loginTableHeader}>
+                  <span>#</span>
+                  <span>Date</span>
+                  <span>Time</span>
+                </div>
+
+                {paginatedLoginHistory.length > 0 ? (
+                  paginatedLoginHistory.map((login, index) => {
+                    const rawDate = getRawDate(login);
+                    const phDate = splitPhDate(rawDate);
+                    const count = (loginPage - 1) * rowsPerPage + index + 1;
+
+                    return (
+                      <div className={styles.loginTableRow} key={`${rawDate}-${index}`}>
+                        <span>{count}</span>
+                        <span>{phDate.date}</span>
+                        <span>{phDate.time}</span>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className={styles.noActivity}>No login history yet.</div>
+                )}
+              </div>
+
+              {totalLoginPages > 1 && (
+                <div className={styles.activityPagination}>
+                  <button
+                    type="button"
+                    disabled={loginPage === 1}
+                    onClick={() => setLoginPage((prev) => prev - 1)}
+                  >
+                    Prev
+                  </button>
+
+                  <span>
+                    Page {loginPage} of {totalLoginPages}
+                  </span>
+
+                  <button
+                    type="button"
+                    disabled={loginPage === totalLoginPages}
+                    onClick={() => setLoginPage((prev) => prev + 1)}
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className={styles.activityList}>
+              <div className={styles.activityListHeader}>
+                <h3>Recent Activity</h3>
+
+                <div className={styles.customSort}>
+                  <button
+                    type="button"
+                    className={styles.customSortBtn}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActionSortOpen((prev) => !prev);
+                    }}
+                  >
+                    <i className="bx bx-sort-alt-2"></i>
+                    <span>{actionSort === "recent" ? "Recent" : "Oldest"}</span>
+                    <i className="bx bx-chevron-down"></i>
+                  </button>
+
+                  {actionSortOpen && (
+                    <div className={styles.customSortMenu}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActionSort("recent");
+                          setActionPage(1);
+                          setActionSortOpen(false);
+                        }}
+                      >
+                        Recent
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActionSort("oldest");
+                          setActionPage(1);
+                          setActionSortOpen(false);
+                        }}
+                      >
+                        Oldest
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {paginatedRecentActions.length > 0 ? (
+                paginatedRecentActions.map((action, index) => (
+                  <div
+                    key={`${action.text}-${action.date}-${index}`}
+                    className={styles.activityAction}
+                  >
                     <p>{action.text}</p>
                     <small>{formatActivityDate(action.date)}</small>
                   </div>
@@ -600,24 +548,24 @@ const handleLogout = async (e) => {
                 <p className={styles.noActivity}>No recent admin actions yet.</p>
               )}
 
-              {totalActivityPages > 1 && (
+              {totalActionPages > 1 && (
                 <div className={styles.activityPagination}>
                   <button
                     type="button"
-                    disabled={activityPage === 1}
-                    onClick={() => setActivityPage((prev) => prev - 1)}
+                    disabled={actionPage === 1}
+                    onClick={() => setActionPage((prev) => prev - 1)}
                   >
                     Prev
                   </button>
 
                   <span>
-                    Page {activityPage} of {totalActivityPages}
+                    Page {actionPage} of {totalActionPages}
                   </span>
 
                   <button
                     type="button"
-                    disabled={activityPage === totalActivityPages}
-                    onClick={() => setActivityPage((prev) => prev + 1)}
+                    disabled={actionPage === totalActionPages}
+                    onClick={() => setActionPage((prev) => prev + 1)}
                   >
                     Next
                   </button>

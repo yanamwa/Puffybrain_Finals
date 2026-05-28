@@ -1278,3 +1278,349 @@
   background: #ececec;
   margin: 18px 0 0;
 }
+
+.gridContainer {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  grid-template-rows: 65px 1fr;
+  grid-template-areas:
+    "sidebar header"
+    "sidebar main";
+  min-height: 100vh;
+  background: #f8f8fb;
+}
+
+.collapsedGrid {
+  grid-template-columns: 60px 1fr;
+}
+
+.main {
+  grid-area: main;
+  padding: 34px;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding: 20px 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gridContainer {
+    grid-template-columns: 52px 1fr;
+  }
+
+  .collapsedGrid {
+    grid-template-columns: 52px 1fr;
+  }
+
+  .main {
+    padding: 16px 10px;
+  }
+}
+
+/* =========================
+   RESPONSIVE FIX
+========================= */
+
+.gridContainer,
+.collapsedGrid {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+.main {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.formCard,
+.settingsCard,
+.profileCard {
+  width: 100%;
+  max-width: 950px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  .gridContainer {
+    grid-template-columns: 60px 1fr;
+  }
+
+  .sidebar {
+    width: 60px;
+  }
+
+  .sidebar .menuLabel,
+  .sidebar .menuText,
+  .sidebar .logoExpanded {
+    display: none;
+  }
+
+  .sidebar .logoCollapsed {
+    display: block;
+  }
+
+  .headerContainer {
+    padding: 0 16px;
+    gap: 12px;
+  }
+
+  .searchBar {
+    width: 100%;
+    max-width: 380px;
+    margin: 0;
+  }
+
+  .adminHeaderName {
+    display: none;
+  }
+
+  .main {
+    padding: 26px 18px;
+  }
+
+  .popupInfoGrid,
+  .profileInfoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .profileFieldWide {
+    grid-column: auto;
+  }
+
+  .profileCard {
+    padding-left: 0;
+  }
+
+  .profileCardInner {
+    padding: 24px;
+  }
+
+  .idPhotoBox {
+    position: static;
+    margin: 0 auto 18px;
+  }
+}
+
+@media (max-width: 768px) {
+  .gridContainer,
+  .collapsedGrid {
+    grid-template-columns: 52px 1fr;
+    grid-template-rows: 58px 1fr;
+  }
+
+  .sidebar {
+    width: 52px;
+  }
+
+  .headerContainer {
+    height: 58px;
+    padding: 0 10px;
+  }
+
+  .searchBar {
+    height: 30px;
+    max-width: none;
+    padding: 0 10px;
+  }
+
+  .searchBar input {
+    font-size: 13px;
+  }
+
+  .headerRight {
+    gap: 6px;
+  }
+
+  .adminHeaderProfile {
+    padding-left: 6px;
+  }
+
+  .adminHeaderImg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .notificationBtn {
+    width: 34px;
+    height: 34px;
+  }
+
+  .notificationBtn i {
+    font-size: 21px;
+  }
+
+  .notificationDropdown {
+    position: fixed;
+    top: 64px;
+    right: 10px;
+    width: calc(100vw - 72px);
+    max-width: 320px;
+  }
+
+  .main {
+    padding: 18px 12px;
+  }
+
+  .pageHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .pageHeader h1,
+  .pageTitle {
+    font-size: 28px;
+  }
+
+  .formCard,
+  .settingsCard {
+    padding: 20px 16px;
+    border-radius: 18px;
+  }
+
+  .settingsHeading {
+    padding: 0;
+    font-size: 25px;
+  }
+
+  .profileTitle {
+    font-size: 34px;
+  }
+
+  .profileCardInner {
+    padding: 20px 14px;
+  }
+
+  .profileField {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .profileLabel,
+  .profileValue {
+    font-size: 17px;
+  }
+
+  .signatureText {
+    font-size: 28px;
+  }
+
+  .profileButtonWrap {
+    grid-column: auto;
+    justify-content: center;
+    margin-top: 10px;
+  }
+
+  .optionsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .popupActions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .popupCancelBtn,
+  .popupSaveBtn {
+    width: 100%;
+  }
+
+  .activityBody {
+    padding: 18px 14px;
+  }
+
+  .activityItem,
+  .activityListHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .main {
+    padding: 14px 8px;
+  }
+
+  .searchBar {
+    gap: 6px;
+  }
+
+  .searchBar svg {
+    min-width: 15px;
+  }
+
+  .adminHeaderProfile {
+    display: none;
+  }
+
+  .notificationDropdown {
+    right: 8px;
+    width: calc(100vw - 68px);
+  }
+
+  .profileTitle {
+    font-size: 30px;
+  }
+
+  .idPhotoBox {
+    width: 145px;
+    height: 170px;
+  }
+
+  .idPhotoFrame {
+    width: 105px;
+    height: 95px;
+  }
+
+  .settingsCard,
+  .formCard,
+  .profileCardInner {
+    border-radius: 16px;
+  }
+}
+
+.loginTable {
+  width: 100%;
+  border: 1px solid #ead4fb;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.loginTableHeader,
+.loginTableRow {
+  display: grid;
+  grid-template-columns: 70px 1fr 1fr;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 12px;
+}
+
+.loginTableHeader {
+  background: #e7c9ff;
+  font-weight: 700;
+  color: #111;
+}
+
+.loginTableRow {
+  border-top: 1px solid #eeeeee;
+  color: #333;
+}
+
+@media (max-width: 520px) {
+  .loginTableHeader,
+  .loginTableRow {
+    grid-template-columns: 45px 1fr;
+  }
+
+  .loginTableHeader span:nth-child(3),
+  .loginTableRow span:nth-child(3) {
+    grid-column: 2;
+  }
+}

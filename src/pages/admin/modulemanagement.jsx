@@ -1,21 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import {
-  LayoutDashboard,
-  Users,
-  Layers,
-  LibraryBig,
-  Gamepad2,
-  LogOut,
-  Search,
-  User,
-  Settings,
-  Database,
-} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { API_BASE } from "../../config.js";
 import "boxicons/css/boxicons.min.css";
 import styles from "./modulemanage.module.css";
+import AHeader from "../../components/AHeader";
+import ASidebar from "../../components/ASidebar";
 
 function formatToday() {
   const d = new Date();
@@ -39,12 +29,13 @@ function parseDeckCards(raw) {
         .map((x, i) => ({
           id: i + 1,
           question: String(x.question ?? x.q ?? "").trim(),
-          answer: String(x.correct_answer ?? x.correctAnswer ?? x.answer ?? x.a ?? "").trim(),
+          answer: String(
+            x.correct_answer ?? x.correctAnswer ?? x.answer ?? x.a ?? ""
+          ).trim(),
         }))
         .filter((c) => c.question || c.answer);
     }
   } catch {}
-  
 
   const blocks = text
     .split(/\n\s*\n+/g)
@@ -104,42 +95,56 @@ export default function ModuleManagement() {
 
   const fetchedOnce = useRef(false);
 
-  const menuItems = [
-    { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
-    { label: "User Management", path: "/admin/users", icon: <Users size={20} /> },
-    { label: "Module Management", path: "/admin/modules", icon: <Layers size={20} /> },
-    { label: "Decks Management", path: "/admin/decks", icon: <LibraryBig size={20} /> },
-    { label: "Modes Management", path: "/admin/modes", icon: <Gamepad2 size={20} /> },
-    { label: "Notification Management", path: "/admin/notifications", icon: <i className="bx bx-bell"></i> },
-    { label: "Backup & Restore", path: "/admin/backup-restore", icon: <Database size={20} /> },
-  ];
+  const [admin, setAdmin] = useState({
+    id: "",
+    username: "Admin",
+    full_name: "",
+    email: "",
+    role: "",
+    profile_image: "/images/temporary profile.jpg",
+  });
 
-const [admin, setAdmin] = useState({
-  id: "",
-  username: "Admin",
-  full_name: "",
-  email: "",
-  role: "",
-  profile_image: "/images/temporary profile.jpg",
-});
+  const adminImage =
+    admin.profile_image && !admin.profile_image.includes("temporary profile.jpg")
+      ? admin.profile_image.startsWith("http")
+        ? admin.profile_image
+        : `${API_BASE}/${admin.profile_image.replace(/^\/+/, "")}`
+      : "/images/temporary profile.jpg";
 
-const adminImage =
-  admin.profile_image &&
-  !admin.profile_image.includes("temporary profile.jpg")
-    ? admin.profile_image.startsWith("http")
-      ? admin.profile_image
-      : `${API_BASE}/${admin.profile_image.replace(/^\/+/, "")}`
-    : "/images/temporary profile.jpg";
+  const fetchAdmin = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/getAdminProfile.php`, {
+        method: "GET",
+        credentials: "include",
+      });
 
+      const data = await res.json();
+
+      if (!data.success) {
+        console.error(data.message || "Admin not found");
+        return;
+      }
+
+      setAdmin({
+        id: data.admin?.id || data.admin?.AdminID || "",
+        username: data.admin?.username || data.admin?.Username || "Admin",
+        full_name: data.admin?.full_name || data.admin?.FullName || "",
+        email: data.admin?.email || data.admin?.Email || "",
+        role: data.admin?.role || data.admin?.Role || "Administrator",
+        profile_image:
+          data.admin?.profile_image || "/images/temporary profile.jpg",
+      });
+    } catch (err) {
+      console.error("Fetch admin error:", err);
+    }
+  };
 
   const fetchBellNotifications = async () => {
     try {
-      const admin = JSON.parse(localStorage.getItem("admin") || "{}");
-
-      const res = await fetch(
-        `${API_BASE}/getAdminNotifications.php?admin_id=${admin.id}`,
-        { credentials: "include" }
-      );
+      const res = await fetch(`${API_BASE}/getAdminNotifications.php`, {
+        method: "GET",
+        credentials: "include",
+      });
 
       const data = await res.json();
 
@@ -154,46 +159,8 @@ const adminImage =
     }
   };
 
-  const fetchAdmin = async () => {
-  try {
-    const res = await fetch(
-      `${API_BASE}/getAdminProfile.php`,
-      {
-        credentials: "include",
-      }
-    );
-
-    const data = await res.json();
-
-    if (!data.success) {
-      console.error(data.message || "Admin not found");
-      return;
-    }
-
-    setAdmin({
-      username: data.admin?.username || "Admin",
-      full_name: data.admin?.full_name || "",
-      email: data.admin?.email || "",
-      role: data.admin?.role || "Administrator",
-      profile_image:
-        data.admin?.profile_image || "/images/temporary profile.jpg",
-    });
-  } catch (err) {
-    console.error("Fetch admin error:", err);
-  }
-};
-
-
   const handleMarkAllAsRead = async (e) => {
     e.stopPropagation();
-
-    const admin = JSON.parse(localStorage.getItem("admin") || "{}");
-    const adminId = admin.id;
-
-    if (!adminId) {
-      Swal.fire("Error", "No admin ID found. Please log in again.", "error");
-      return;
-    }
 
     try {
       const res = await fetch(`${API_BASE}/markAdminNotificationsRead.php`, {
@@ -202,7 +169,6 @@ const adminImage =
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ admin_id: adminId }),
       });
 
       const data = await res.json();
@@ -219,38 +185,39 @@ const adminImage =
     }
   };
 
-const handleLogout = async (e) => {
-  e.preventDefault();
+  const handleLogout = async (e) => {
+    e.preventDefault();
 
-  const result = await Swal.fire({
-    title: "Logout?",
-    text: "Are you sure you want to logout?",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Yes",
-    cancelButtonText: "Cancel",
-    confirmButtonColor: "#7b5cff",
-  });
-
-  if (!result.isConfirmed) return;
-
-  try {
-    await fetch(`${API_BASE}/adminLogout.php`, {
-      method: "POST",
-      credentials: "include",
+    const result = await Swal.fire({
+      title: "Logout?",
+      text: "Are you sure you want to logout?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#7b5cff",
     });
-  } catch (err) {
-    console.error("Logout API error:", err);
-  }
 
-  localStorage.removeItem("admin");
-  localStorage.removeItem("admin_id");
-  localStorage.removeItem("admin_username");
-  localStorage.removeItem("admin_email");
-  sessionStorage.clear();
+    if (!result.isConfirmed) return;
 
-  navigate("/pb-admin-access", { replace: true });
-};
+    try {
+      await fetch(`${API_BASE}/adminLogout.php`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout API error:", err);
+    }
+
+    localStorage.removeItem("admin");
+    localStorage.removeItem("admin_id");
+    localStorage.removeItem("admin_username");
+    localStorage.removeItem("admin_email");
+    sessionStorage.clear();
+
+    navigate("/pb-admin-access", { replace: true });
+  };
+
   const openTextView = (title, content) => {
     setTextViewTitle(title);
     setTextViewContent(content || "—");
@@ -279,7 +246,17 @@ const handleLogout = async (e) => {
           data.modules.map((m) => ({
             id: m.id,
             title: m.title,
-            date: m.created_at ?? formatToday(),
+              date: m.created_at
+                ? new Date(m.created_at).toLocaleString("en-PH", {
+                    timeZone: "Asia/Manila",
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                  })
+                : formatToday(),
             status: String(m.status || "").toLowerCase(),
             module_description: m.description ?? "",
             subject: m.subject ?? "",
@@ -367,12 +344,13 @@ const handleLogout = async (e) => {
     if (fetchedOnce.current) return;
 
     fetchedOnce.current = true;
+
     fetchAdmin();
     fetchModules();
     fetchBellNotifications();
 
     const handler = (e) => {
-      const insideDropdown = e.target.closest(`.${styles.notificationWrapper}`);
+      const insideDropdown = e.target.closest('[class*="notificationWrapper"]');
 
       if (!insideDropdown) {
         setNotificationOpen(false);
@@ -419,12 +397,6 @@ const handleLogout = async (e) => {
     [selectedModule]
   );
 
-  const unreadNotifications = bellNotifications.filter(
-    (notif) => notif.status === "unread"
-  );
-
-  const notificationCount = unreadNotifications.length;
-
   const openView = (mod) => {
     setSelectedId(mod.id);
     setViewOpen(true);
@@ -444,195 +416,27 @@ const handleLogout = async (e) => {
   };
 
   return (
-    <div className={styles.layout}>
-      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
-        <div className={styles.sidebarTop}>
-          <div
-            className={styles.sidebarToggle}
-            onClick={() => setIsCollapsed(!isCollapsed)}
-          >
-            <i className="bx bx-sidebar"></i>
-          </div>
+    <div
+className={`${styles.layout} ${
+  isCollapsed ? styles.collapsedGrid : ""
+}`}
+    >
+      <ASidebar
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+        handleLogout={handleLogout}
+      />
 
-          <div className={styles.logo}>
-            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
-
-            <img
-              className={styles.logoCollapsed}
-              src="/images/logo_solo.png"
-              alt="Logo"
-            />
-          </div>
-
-          <div className={styles.divider}></div>
-
-          <p className={styles.menuLabel}>Menu</p>
-
-          <nav className={styles.menu}>
-            {menuItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  `${styles.menuItem} ${isActive ? styles.active : ""}`
-                }
-              >
-                <span className={styles.menuIcon}>{item.icon}</span>
-                <span className={styles.menuText}>{item.label}</span>
-              </NavLink>
-            ))}
-          </nav>
-
-          <div className={styles.divider}></div>
-
-          <p className={styles.menuLabel}>Others</p>
-
-          <nav className={styles.menu}>
-            <NavLink
-              to="/admin/profile"
-              className={({ isActive }) =>
-                `${styles.menuItem} ${isActive ? styles.active : ""}`
-              }
-            >
-              <span className={styles.menuIcon}>
-                <User size={20} />
-              </span>
-              <span className={styles.menuText}>Profile</span>
-            </NavLink>
-
-            <NavLink
-              to="/admin/settings"
-              className={({ isActive }) =>
-                `${styles.menuItem} ${isActive ? styles.active : ""}`
-              }
-            >
-              <span className={styles.menuIcon}>
-                <Settings size={20} />
-              </span>
-              <span className={styles.menuText}>Settings</span>
-            </NavLink>
-          </nav>
-        </div>
-
-        <div className={styles.sidebarBottom}>
-          <div className={styles.divider}></div>
-
-       <button type="button" onClick={handleLogout} className={styles.menuItem}>
-  <span className={styles.menuIcon}>
-    <LogOut size={20} />
-  </span>
-  <span className={styles.menuText}>Logout</span>
-</button>
-        </div>
-      </aside>
-
-      <header className={styles.headerContainer}>
-        <div className={styles.searchBar}>
-          <Search size={19} />
-
-          <input
-            type="text"
-            placeholder="Search modules..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-       
-  <div className={styles.headerRight}>
-    
-    {/* Notification */}
-    <div className={styles.notificationWrapper}>
-      <button
-        type="button"
-        className={styles.notificationBtn}
-        onClick={(e) => {
-          e.stopPropagation();
-          setNotificationOpen((prev) => !prev);
-        }}
-      >
-        <i className="bx bx-bell"></i>
-
-        {notificationCount > 0 && (
-          <span className={styles.notificationBadge}>
-            {notificationCount}
-          </span>
-        )}
-      </button>
-
-      <div
-        className={`${styles.notificationDropdown} ${
-          notificationOpen ? styles.show : ""
-        }`}
-      >
-        <div className={styles.notificationHeader}>
-          <h4>Notifications</h4>
-
-          {notificationCount > 0 && (
-            <button
-              type="button"
-              className={styles.markReadBtn}
-              onClick={handleMarkAllAsRead}
-            >
-              Mark all as read
-            </button>
-          )}
-        </div>
-
-        {bellNotifications.length > 0 ? (
-          bellNotifications.slice(0, 5).map((item) => (
-            <div
-              key={item.notification_id || item.id}
-              className={styles.notificationItem}
-            >
-              <div className={styles.notificationTop}>
-                <h5>{item.title || "No title"}</h5>
-                <span className={styles.notificationRole}>
-                  {item.recipient_type || "all"}
-                </span>
-              </div>
-
-              <p className={styles.notificationMessage}>
-                {item.message || "No message"}
-              </p>
-
-              <p className={styles.notificationCreator}>
-                Posted by {item.created_by || "Admin"}
-              </p>
-
-              <small className={styles.notificationDate}>
-                {item.created_at
-                  ? new Date(item.created_at).toLocaleString()
-                  : "No date"}
-              </small>
-            </div>
-          ))
-        ) : (
-          <div className={styles.emptyNotification}>
-            <p>You don’t have any new notifications</p>
-          </div>
-        )}
-      </div>
-    </div>
-
-    {/* Admin Profile */}
-<div className={styles.adminHeaderProfile}>
-  <img
-    src={adminImage}
-    alt="Admin"
-    className={styles.adminHeaderImg}
-    onError={(e) => {
-      e.currentTarget.src = "/images/temporary profile.jpg";
-    }}
-  />
-
-  <span className={styles.adminHeaderName}>
-    {admin.username || "Admin"}
-  </span>
-</div>
-  </div>
-</header>
-
-
+      <AHeader
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        notificationOpen={notificationOpen}
+        setNotificationOpen={setNotificationOpen}
+        bellNotifications={bellNotifications}
+        handleMarkAllAsRead={handleMarkAllAsRead}
+        admin={admin}
+        adminImage={adminImage}
+      />
 
       <main className={styles.main}>
         <div className={styles.pageTop}>
@@ -799,7 +603,11 @@ const handleLogout = async (e) => {
                 Edit
               </button>
 
-              <button type="button" className={styles.mmClose} onClick={closeView}>
+              <button
+                type="button"
+                className={styles.mmClose}
+                onClick={closeView}
+              >
                 ✕
               </button>
             </div>
@@ -883,7 +691,9 @@ const handleLogout = async (e) => {
                     <div className={styles.mmValue}>
                       {(() => {
                         try {
-                          const parsed = JSON.parse(selectedModule.lessonContent);
+                          const parsed = JSON.parse(
+                            selectedModule.lessonContent
+                          );
 
                           if (Array.isArray(parsed)) {
                             return getPreviewText(
@@ -921,11 +731,18 @@ const handleLogout = async (e) => {
 
       {textViewOpen && (
         <div className={styles.popupOverlay} onClick={closeTextView}>
-          <div className={styles.textViewModal} onClick={(e) => e.stopPropagation()}>
+          <div
+            className={styles.textViewModal}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className={styles.popupHeader}>
               <h2 className={styles.popupTitle}>{textViewTitle}</h2>
 
-              <button type="button" className={styles.popupClose} onClick={closeTextView}>
+              <button
+                type="button"
+                className={styles.popupClose}
+                onClick={closeTextView}
+              >
                 ✕
               </button>
             </div>
@@ -937,18 +754,26 @@ const handleLogout = async (e) => {
 
       {deleteOpen && deleteTarget && (
         <div className={styles.popupOverlay} onClick={closeDelete}>
-          <div className={styles.popupDeleteModal} onClick={(e) => e.stopPropagation()}>
+          <div
+            className={styles.popupDeleteModal}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className={styles.popupHeader}>
               <h2 className={styles.popupTitle}>Delete Module</h2>
 
-              <button type="button" className={styles.popupClose} onClick={closeDelete}>
+              <button
+                type="button"
+                className={styles.popupClose}
+                onClick={closeDelete}
+              >
                 ✕
               </button>
             </div>
 
             <div className={styles.popupBody}>
               <p className={styles.popupDeleteText}>
-                Are you sure you want to delete <strong>{deleteTarget.title}</strong>?
+                Are you sure you want to delete{" "}
+                <strong>{deleteTarget.title}</strong>?
               </p>
 
               <div className={styles.warningBox}>

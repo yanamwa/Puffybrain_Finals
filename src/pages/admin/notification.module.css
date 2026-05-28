@@ -1,17 +1,29 @@
+:root {
+  --primary: #ebd3fa;
+  --secondary: #e3aadd;
+  --fourth: #a993d8;
+  --text: #2f2f2f;
+}
+
+/* ===== LAYOUT ===== */
+
 .gridContainer {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 220px minmax(0, 1fr);
   grid-template-rows: 65px 1fr;
   grid-template-areas:
     "sidebar header"
     "sidebar main";
+  width: 100%;
+  max-width: 100vw;
   min-height: 100vh;
+  overflow-x: hidden;
   background: #ffffff;
   font-family: "Jersey 15", sans-serif;
 }
 
-.gridContainer:has(.sidebar.collapsed) {
-  grid-template-columns: 60px 1fr;
+.collapsedGrid {
+  grid-template-columns: 60px minmax(0, 1fr);
 }
 
 /* ===== HEADER ===== */
@@ -30,10 +42,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-}
+  gap: 18px;
 
-/* ===== SEARCH BAR ===== */
+  min-width: 0;
+  box-sizing: border-box;
+}
 
 .searchBar {
   display: flex;
@@ -41,6 +54,7 @@
   gap: 10px;
 
   width: 500px;
+  max-width: 100%;
   height: 38px;
 
   padding: 0 16px;
@@ -51,6 +65,8 @@
   background: white;
 
   margin: 0 auto;
+
+  box-sizing: border-box;
 }
 
 .searchBar input {
@@ -59,11 +75,41 @@
   background: transparent;
 
   flex: 1;
+  min-width: 0;
 
   font-size: 16px;
   font-family: inherit;
 
   color: #333;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-shrink: 0;
+}
+
+.adminHeaderProfile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 16px;
+  border-left: 1px solid #e7dff7;
+}
+
+.adminHeaderImg {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0px 3px 0px #aaa7a7;
+}
+
+.adminHeaderName {
+  font-size: 22px;
+  color: #333;
+  white-space: nowrap;
 }
 
 /* ===== SIDEBAR ===== */
@@ -214,6 +260,8 @@
   grid-area: main;
   padding: 36px 42px 28px;
   background: #ffffff;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 /* ===== PAGE HEADER ===== */
@@ -227,7 +275,6 @@
 .pageHeader h1 {
   margin: 0;
   font-size: 34px;
-  color: var(--font-color);
 }
 
 .pageHeader p {
@@ -246,15 +293,17 @@
 
 /* ===== CARDS ===== */
 
-.formCard {
+.formCard,
+.listCard {
   background: #ffffff;
   border-radius: 18px;
-  padding: 0;
   overflow: hidden;
   box-shadow: 0 10px 28px rgba(82, 45, 140, 0.1);
+  min-width: 0;
 }
 
-.formCard::before {
+.formCard::before,
+.listCard::before {
   content: "";
   display: block;
   width: 100%;
@@ -266,10 +315,6 @@
   padding: 24px 28px 28px;
 }
 
-.formContent {
-  padding: 24px 0 28px;
-}
-
 .formHeader {
   display: flex;
   align-items: center;
@@ -278,19 +323,12 @@
   border-bottom: 1px solid #d9d9d9;
 }
 
-.formGroup {
-  margin-left: 28px;
-  margin-right: 28px;
-}
-
-.formHeader h2 {
+.formHeader h2,
+.listTop h2 {
   margin: 0;
   font-size: 28px;
-  margin-left: 30px;
-  color: var(--font-color);
+  color: #111;
 }
-
-/* ===== FORM ===== */
 
 .formGroup {
   display: flex;
@@ -300,13 +338,13 @@
 
 .formGroup label {
   margin-bottom: 8px;
-  color: var(--font-color);
   font-size: 17px;
 }
 
 .formGroup input,
 .formGroup textarea,
-.formGroup select {
+.formGroup select,
+.listTop input {
   width: 100%;
   box-sizing: border-box;
   border: 2px solid #decfff;
@@ -327,35 +365,50 @@
 .formGroup input:focus,
 .formGroup textarea:focus,
 .formGroup select:focus {
-  border-color: var(--font-color);
+  border-color: #8d5cff;
   box-shadow: 0 0 0 4px rgba(141, 92, 255, 0.13);
 }
 
-/* ===== POST BUTTON ===== */
+/* ===== BUTTONS ===== */
+
+.postBtn,
+.deleteBtn,
+.markReadBtn {
+  cursor: pointer;
+  font-family: inherit;
+}
 
 .postBtn {
-  width: calc(100% - 56px);
-
-  margin-left: 28px;
-  margin-right: 28px;
-  margin-top: 8px;
-
+  width: 100%;
   border: none;
   border-radius: 16px;
   padding: 14px;
-
   color: white;
   font-size: 18px;
-  font-family: inherit;
-  cursor: pointer;
-
   background: #8966c2;
   border: 1px solid #593e85;
   box-shadow: 0 4px rgb(107, 85, 143);
 }
 
-.postBtn:hover {
+.postBtn:hover,
+.markReadBtn:hover {
   background: #593e85;
+}
+
+.deleteBtn {
+  margin-top: 14px;
+  border: none;
+  border-radius: 13px;
+  padding: 10px 14px;
+  background: #ce3838;
+  border: 1px solid #962626;
+  box-shadow: 0 4px rgb(85, 9, 9);
+  color: white;
+  font-size: 16px;
+}
+
+.deleteBtn:hover {
+  background: #aa2222;
 }
 
 /* ===== LIST ===== */
@@ -365,42 +418,39 @@
   justify-content: space-between;
   align-items: center;
   gap: 14px;
-  margin-bottom: 18px;
+  padding: 24px 28px 18px;
+  border-bottom: 1px solid #d9d9d9;
 }
 
 .listTop input {
   width: 280px;
-  border: 2px solid #decfff;
-  border-radius: 14px;
-  padding: 12px 14px;
-  background: #ffffff;
-  outline: none;
-  font-family: inherit;
-  font-size: 16px;
 }
 
 .notificationsList {
+  padding: 22px 34px 0;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 16px;
 }
 
 /* ===== NOTIFICATION CARD ===== */
 
 .notificationCard {
-  border: 1px solid #eee6ff;
-  background: #faf7ff;
-  border-radius: 18px;
-  padding: 18px;
+  background: #f1f1f1;
+  border-radius: 16px;
+  padding: 20px;
 }
 
-.notificationCardTop {
+.notificationCardTop,
+.notificationTop {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
 }
 
-.notificationCardTop h3 {
+.notificationCardTop h3,
+.notificationTop h5 {
   margin: 0;
   color: #4b2aad;
 }
@@ -412,11 +462,12 @@
   color: white;
   padding: 5px 12px;
   border-radius: 999px;
-  font-size: 13px;
+  font-size: 12px;
   text-transform: capitalize;
 }
 
 .notificationMessage {
+  margin: 8px 0;
   color: #666;
   line-height: 1.5;
 }
@@ -426,43 +477,17 @@
   font-size: 13px;
 }
 
-/* ===== DELETE BUTTON ===== */
-
-.deleteBtn {
-  margin-top: 14px;
-  border: none;
-  border-radius: 13px;
-  padding: 10px 14px;
-  cursor: pointer;
-  font-family: inherit;
-
-  background: #ce3838;
-  border: 1px solid #962626;
-  box-shadow: 0 4px rgb(85, 9, 9);
-
-  color: white;
-  font-size: 16px;
+.notificationCreator {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #7b61c9;
 }
 
-.deleteBtn:hover {
-  background: #aa2222;
-}
-
-/* ===== NO NOTIFICATIONS ===== */
-
-.noNotifications {
-  padding: 50px;
-  text-align: center;
-  background: #faf7ff;
-  border-radius: 18px;
-  color: #777;
-}
-
-/* ===== HEADER NOTIFICATION ===== */
+/* ===== NOTIFICATION DROPDOWN ===== */
 
 .notificationWrapper {
   position: relative;
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -478,7 +503,6 @@
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: 0.2s ease;
 }
 
 .notificationBtn:hover {
@@ -506,8 +530,6 @@
   place-items: center;
 }
 
-/* ===== DROPDOWN ===== */
-
 .notificationDropdown {
   position: absolute;
   top: 52px;
@@ -528,8 +550,6 @@
   display: block;
 }
 
-/* ===== DROPDOWN HEADER ===== */
-
 .notificationHeader {
   display: flex;
   justify-content: space-between;
@@ -537,15 +557,13 @@
   gap: 10px;
   padding-bottom: 12px;
   border-bottom: 1px solid #eee6ff;
+  margin-bottom: 12px;
 }
 
 .notificationHeader h4 {
   margin: 0;
   font-size: 18px;
-  color: var(--font-color);
 }
-
-/* ===== MARK READ ===== */
 
 .markReadBtn {
   background: #8966c2;
@@ -554,18 +572,11 @@
   color: white;
   border-radius: 999px;
   padding: 6px 10px;
-  font-family: inherit;
   font-size: 13px;
-  cursor: pointer;
 }
 
-.markReadBtn:hover {
-  background: #593e85;
-}
-
-/* ===== EMPTY ===== */
-
-.emptyNotification {
+.emptyNotification,
+.noNotifications {
   min-height: 160px;
   display: flex;
   align-items: center;
@@ -576,147 +587,7 @@
   padding: 20px;
 }
 
-.notificationCreator {
-  margin-top: 8px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #7b61c9;
-}
-
-/* ===== POSTED NOTIFICATIONS CARD ===== */
-
-.listCard {
-  background: #ffffff;
-  border-radius: 18px;
-  padding: 0 0 22px;
-  overflow: hidden;
-  box-shadow: 0 10px 28px rgba(82, 45, 140, 0.1);
-}
-
-.listCard::before {
-  content: "";
-  display: block;
-  width: 100%;
-  height: 48px;
-  background: #c6a4e8;
-}
-
-.listTop {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  padding: 24px 28px 18px;
-
-  border-bottom: 1px solid #d9d9d9;
-}
-
-.listTop h2 {
-  margin: 0;
-  font-size: 28px;
-  color: #111;
-}
-
-/* ===== CUSTOM SORT ===== */
-
-.customSort {
-  position: relative;
-}
-
-.customSortBtn {
-  height: 34px;
-  min-width: 118px;
-
-  border: 1.5px solid #777;
-  border-radius: 999px;
-  background: #f7f7f7;
-
-  padding: 0 12px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  color: #222;
-
-  cursor: pointer;
-}
-
-.customSortBtn i {
-  font-size: 14px;
-}
-
-.customSortMenu {
-  position: absolute;
-  top: 42px;
-  right: 0;
-
-  width: 155px;
-
-  background: white;
-  border: 1px solid #d8d8d8;
-  border-radius: 14px;
-
-  padding: 6px;
-
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
-
-  z-index: 100;
-}
-
-.customSortMenu button {
-  width: 100%;
-
-  border: none;
-  background: transparent;
-
-  border-radius: 10px;
-
-  padding: 10px 12px;
-
-  text-align: left;
-
-  font-family: inherit;
-  font-size: 13px;
-  color: #222;
-
-  cursor: pointer;
-}
-
-.customSortMenu button:hover {
-  background: #f2ebff;
-}
-
-
-.listTop input {
-  width: 280px;
-  border: 2px solid #decfff;
-  border-radius: 14px;
-  padding: 12px 14px;
-  background: #ffffff;
-  outline: none;
-  font-family: inherit;
-  font-size: 16px;
-}
-
-.notificationsList {
-  padding: 22px 34px 0;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.notificationCard {
-  border: none;
-  background: #f1f1f1;
-  border-radius: 16px;
-  padding: 20px;
-  min-height: 130px;
-}
+/* ===== PAGINATION ===== */
 
 .paginationWrapper {
   margin-top: 18px;
@@ -736,7 +607,6 @@
   font-family: inherit;
   font-size: 15px;
   cursor: pointer;
-  box-shadow: none;
 }
 
 .paginationWrapper button:disabled {
@@ -744,35 +614,83 @@
   cursor: not-allowed;
 }
 
-.paginationWrapper span {
-  font-size: 14px;
-  font-weight: 700;
-  color: #222;
-}
-
 /* ===== RESPONSIVE ===== */
 
-@media (max-width: 1100px) {
+@media (max-width: 1024px) {
+  .gridContainer {
+    grid-template-columns: 60px minmax(0, 1fr);
+  }
+
+  .sidebar {
+    width: 60px;
+  }
+
+  .sidebar .menuLabel,
+  .sidebar .menuText,
+  .sidebar .logoExpanded {
+    display: none;
+  }
+
+  .sidebar .logoCollapsed {
+    display: block;
+    width: 55px;
+    height: 55px;
+  }
+
   .notificationGrid {
     grid-template-columns: 1fr;
   }
 
+  .headerContainer {
+    padding: 0 16px;
+  }
+
   .searchBar {
     width: 100%;
-    max-width: 400px;
+    max-width: 360px;
+  }
+
+  .adminHeaderName {
+    display: none;
+  }
+
+  .main {
+    padding: 28px 18px;
   }
 }
 
 @media (max-width: 768px) {
+  .gridContainer {
+    grid-template-columns: 60px minmax(0, 1fr);
+    grid-template-areas:
+      "sidebar header"
+      "sidebar main";
+  }
+
+  .sidebar {
+    width: 60px;
+  }
+
   .main {
-    padding: 20px;
+    padding: 20px 12px;
+  }
+
+  .headerContainer {
+    padding: 0 10px;
+    gap: 10px;
   }
 
   .searchBar {
-    max-width: 260px;
+    max-width: none;
+    height: 34px;
+  }
+
+  .adminHeaderProfile {
+    display: none;
   }
 
   .notificationDropdown {
+    right: 0;
     width: 300px;
   }
 
@@ -784,244 +702,104 @@
   .listTop input {
     width: 100%;
   }
+
+  .notificationCardTop,
+  .notificationTop {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
-.headerRight {
-  display: flex;
-  align-items: center;
+@media (max-width: 480px) {
+  .gridContainer {
+    grid-template-columns: 52px minmax(0, 1fr);
+  }
+
+  .sidebar {
+    width: 52px;
+  }
+
+  .main {
+    padding: 14px 8px;
+  }
+
+  .pageHeader {
+    padding: 18px 14px;
+  }
+
+  .pageHeader h1 {
+    font-size: 26px;
+  }
+
+  .searchBar input {
+    font-size: 14px;
+  }
+
+  .notificationDropdown {
+    width: 270px;
+  }
+
+  .notificationsList {
+    padding: 18px 14px 0;
+  }
+
+  .notificationCard {
+    padding: 16px;
+  }
 }
 
-.notificationWrapper {
+.customSort {
   position: relative;
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-.notificationBtn {
-  position: relative;
-  width: 42px;
-  height: 42px;
-  border: none;
-  background: transparent;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.notificationBtn:hover {
-  background: #f5efff;
-}
-
-.notificationBtn i {
-  font-size: 25px;
-  color: #555;
-}
-
-.notificationBadge {
-  position: absolute;
-  top: 3px;
-  right: 3px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: 999px;
-  background: #e74c3c;
-  color: white;
-  font-size: 11px;
-  font-weight: 700;
-  display: grid;
-  place-items: center;
-}
-
-.notificationDropdown {
-  position: absolute;
-  top: 52px;
-  right: 0;
-  width: 340px;
-  max-height: 430px;
-  overflow-y: auto;
+.customSortBtn {
+  height: 40px;
+  border: 2px solid #c6a4e8;
   background: #ffffff;
-  border: 1px solid #eee6ff;
-  border-radius: 22px;
-  padding: 16px;
-  box-shadow: 0 16px 40px rgba(82, 45, 140, 0.18);
-  z-index: 99999;
-  display: none;
-}
-
-.notificationDropdown.show {
-  display: block;
-}
-
-.notificationHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #eee6ff;
-  margin-bottom: 12px;
-}
-
-.notificationHeader h4 {
-  margin: 0;
-  font-size: 18px;
-  color: #111;
-}
-
-.markReadBtn {
-  background: #8966c2;
-  border: 1px solid #593e85;
-  box-shadow: 0 3px #6b558f;
-  color: white;
   border-radius: 999px;
-  padding: 6px 10px;
-  font-family: inherit;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.markReadBtn:hover {
-  background: #593e85;
-}
-
-.notificationItem {
-  padding: 14px;
-  border-radius: 16px;
-  background: #f8f4ff;
-  margin-bottom: 12px;
-}
-
-.notificationTop {
+  padding: 0 14px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 10px;
-}
-
-.notificationTop h5 {
-  margin: 0;
+  gap: 8px;
+  font-family: inherit;
   font-size: 16px;
   color: #4b2aad;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #c6a4e8;
 }
 
-.notificationRole {
-  background: #777;
-  border: 1px solid #444;
-  box-shadow: 0 2px 0 #444;
-  color: white;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  text-transform: capitalize;
+.customSortBtn:hover {
+  background: #f6efff;
 }
 
-.notificationMessage {
-  margin: 8px 0;
-  color: #666;
-  line-height: 1.4;
+.customSortMenu {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  width: 170px;
+  background: #ffffff;
+  border: 2px solid #decfff;
+  border-radius: 16px;
+  box-shadow: 0 12px 28px rgba(82, 45, 140, 0.18);
+  padding: 8px;
+  z-index: 9999;
+}
+
+.customSortMenu button {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 10px 12px;
+  border-radius: 12px;
+  text-align: left;
+  font-family: inherit;
   font-size: 15px;
-}
-
-.notificationCreator {
-  margin: 0 0 4px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #7b61c9;
-}
-
-.notificationDate {
-  color: #999;
-  font-size: 12px;
-}
-
-.emptyNotification {
-  min-height: 160px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  color: #777;
-  font-size: 15px;
-  padding: 20px;
-}
-
-
-.swalPopup {
-  border-radius: 24px !important;
-  padding: 28px 24px !important;
-}
-
-.swalImage {
-  width: 190px !important;
-  height: 190px !important;
-  object-fit: contain !important;
-  margin: 0 auto 12px auto !important;
-}
-
-.swalActions {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  gap: 18px !important;
-  margin-top: 22px !important;
-}
-
-.confirmBtnSwal {
-  min-width: 135px !important;
-  height: 52px !important;
-  background: #d9a9e9 !important;
-  color: black !important;
-  border: 1px solid #744185 !important;
-  box-shadow: 0 4px 0 #80588d !important;
-  border-radius: 16px !important;
-  font-family: "Jersey 15", sans-serif !important;
-  font-size: 18px !important;
-  padding: 10px 24px !important;
-}
-
-.cancelBtnSwal {
-  min-width: 125px !important;
-  height: 52px !important;
-  background: white !important;
-  color: black !important;
-  border: 1px solid #797c7e !important;
-  box-shadow: 0 4px 0 #757575 !important;
-  border-radius: 16px !important;
-  font-family: "Jersey 15", sans-serif !important;
-  font-size: 18px !important;
-  padding: 10px 24px !important;
-}
-
-.headerRight {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-
-.adminHeaderProfile {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-left: 16px;
-  border-left: 1px solid #e7dff7;
-}
-
-.adminHeaderImg {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  object-fit: cover;
-  box-shadow: 0px 3px 0px #aaa7a7;
-}
-
-.adminHeaderName {
-  font-family: "Jersey 15", sans-serif;
-  font-size: 22px;
   color: #333;
-  white-space: nowrap;
+  cursor: pointer;
+}
+
+.customSortMenu button:hover {
+  background: #f3e8ff;
+  color: #4b2aad;
 }

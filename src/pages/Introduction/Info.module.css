@@ -1,4 +1,3 @@
-/* Page wrapper (replaces body) */
 .wrapper {
   margin: 0;
   min-height: 100vh;
@@ -6,39 +5,44 @@
   align-items: center;
   justify-content: center;
   font-family: "Jersey 15", sans-serif;
-  background: linear-gradient(180deg, #D39FF7 0%, #AEB6FF 100%);
-
-     transform: scale(1.2);    
-    transform-origin: center;
+  background: linear-gradient(180deg, #d39ff7 0%, #aeb6ff 100%);
+  padding: 40px 20px;
+  box-sizing: border-box;
 }
 
-/* Notebook container */
 .notebook {
-  width: 650px;
+  width: min(650px, 100%);
   background: #e7d4fb;
   border-radius: 25px;
   padding-top: 60px;
   padding-bottom: 40px;
   position: relative;
   box-shadow: 8px 8px 0 #cbd0f9;
+  box-sizing: border-box;
 }
 
-/* Tabs */
 .tabs {
   position: absolute;
-  top: 15px;
+  top: 18px;
   left: 40px;
   display: flex;
   gap: 20px;
+  overflow: visible;
 }
 
 .tab {
   background: #d1b7f8;
-  padding: 10px 30px;
-  border-radius: 20px 20px 0 0;
+  padding: 8px 28px;
+  min-width: 120px;
+  height: 38px;
+  border-radius: 18px 18px 0 0;
   font-size: 14px;
   color: white;
   font-family: "Jersey 15", sans-serif;
+  border: none;
+  white-space: nowrap;
+  box-sizing: border-box;
+  text-align: center;
 }
 
 .active {
@@ -48,10 +52,10 @@
     #e4e4e4 31px
   );
   color: black;
-  transform: translateY(-8px);
+  transform: translateY(-6px);
+  border-bottom: 2px solid #e4e4e4;
 }
 
-/* Bookmark */
 .bookmark {
   position: absolute;
   right: 40px;
@@ -63,7 +67,6 @@
   clip-path: polygon(0 0, 100% 0, 100% 65%, 50% 100%, 0 65%);
 }
 
-/* Page */
 .page {
   background: repeating-linear-gradient(
     white,
@@ -72,9 +75,10 @@
   );
   width: 85%;
   margin: auto;
-  padding: 40px 0;
+  padding: 40px 24px;
   border-radius: 25px;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .page h1 {
@@ -83,9 +87,9 @@
   font-weight: normal;
 }
 
-/* Inputs */
-.textInput {
-  width: 300px;
+.textInput,
+.schoolSelect {
+  width: min(300px, 100%);
   padding: 14px 18px;
   border: none;
   border-radius: 30px;
@@ -93,30 +97,20 @@
   box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.15);
   margin-bottom: 25px;
   outline: none;
+  box-sizing: border-box;
 }
 
-/* School select */
 .schoolSelect {
-  width: 300px;
-  padding: 14px 18px;
-  border: none;
-  border-radius: 30px;
-  background: #fadeebcc;
-  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.15);
-  margin-bottom: 25px;
-  outline: none;
   font-family: "Jersey 15", sans-serif;
   font-size: 16px;
   appearance: none;
   cursor: pointer;
-
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='black'%3E%3Cpath d='M7 10L2 4h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 18px center;
   background-size: 12px;
 }
 
-/* Submit button */
 .submitBtn {
   background-color: #b996e1;
   padding: 12px;
@@ -127,16 +121,121 @@
   cursor: pointer;
   transition: 0.2s;
   box-shadow: 5px 5px 0 #cbd0f9;
-  width: 400px;
+  width: min(400px, 100%);
   color: black;
-
   font-family: "Jersey 15", sans-serif;
   font-weight: normal;
-
   border: none;
 }
 
 .submitBtn:hover {
   transform: scale(1.07);
   background-color: #a478d8;
+}
+
+/* tablet */
+@media (max-width: 768px) {
+  .wrapper {
+    padding: 30px 16px;
+    align-items: flex-start;
+  }
+
+  .notebook {
+    margin-top: 30px;
+    border-radius: 22px;
+    padding-top: 70px;
+    padding-bottom: 32px;
+    box-shadow: 7px 7px 0 #cbd0f9;
+  }
+
+  .tabs {
+    top: 18px;
+    left: 24px;
+    right: 70px;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .tab {
+    min-width: 105px;
+    height: 36px;
+    padding: 8px 18px;
+    font-size: 13px;
+    flex: 0 0 auto;
+  }
+
+  .bookmark {
+    right: 28px;
+    width: 26px;
+    height: 76px;
+  }
+
+  .page {
+    width: 88%;
+    padding: 34px 22px;
+  }
+
+  .page h1 {
+    font-size: 23px;
+  }
+}
+
+/* phone */
+@media (max-width: 480px) {
+  .wrapper {
+    padding: 20px 12px;
+  }
+
+  .notebook {
+    margin-top: 20px;
+    border-radius: 18px;
+    padding-top: 78px;
+    padding-bottom: 24px;
+    box-shadow: 5px 5px 0 #cbd0f9;
+  }
+
+  .tabs {
+    top: 16px;
+    left: 16px;
+    right: 54px;
+    gap: 8px;
+  }
+
+  .tab {
+    min-width: 92px;
+    height: 34px;
+    padding: 7px 12px;
+    font-size: 12px;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .active {
+    transform: translateY(-5px);
+  }
+
+  .bookmark {
+    right: 18px;
+    width: 22px;
+    height: 68px;
+  }
+
+  .page {
+    width: 90%;
+    padding: 30px 18px;
+    border-radius: 18px;
+  }
+
+  .page h1 {
+    font-size: 20px;
+    margin-bottom: 22px;
+  }
+
+  .schoolSelect {
+    font-size: 15px;
+  }
+
+  .submitBtn {
+    font-size: 17px;
+  }
 }

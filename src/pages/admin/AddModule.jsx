@@ -17,6 +17,9 @@ import styles from "./Addmodule.module.css";
 import "boxicons/css/boxicons.min.css";
 import { API_BASE } from "../../config.js";
 
+import AdminSidebar from "../../components/ASidebar";
+import AdminHeader from "../../components/AHeader";
+
 function serializeQuizItems(items) {
   return JSON.stringify(
     items.map((item) => ({
@@ -823,186 +826,24 @@ export default function AddModule() {
   const removeNewQuizItem = (index) => {
     setNewQuizItems((prev) => prev.filter((_, i) => i !== index));
   };
+return (
+  <div className={styles.gridContainer}>
+    <AdminSidebar
+      isCollapsed={isCollapsed}
+      setIsCollapsed={setIsCollapsed}
+    />
 
-  return (
-    <div className={styles.gridContainer}>
-      <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
-        <div className={styles.sidebarTop}>
-          <div
-            className={styles.sidebarToggle}
-            onClick={() => setIsCollapsed(!isCollapsed)}
-          >
-            <i className="bx bx-sidebar"></i>
-          </div>
-
-          <div className={styles.logo}>
-            <img className={styles.logoExpanded} src="/images/logo1.png" alt="Logo" />
-            <img className={styles.logoCollapsed} src="/images/logo_solo.png" alt="Logo" />
-          </div>
-
-          <div className={styles.divider}></div>
-
-          <p className={styles.menuLabel}>Menu</p>
-
-          <nav className={styles.menu}>
-            {menuItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  `${styles.menuItem} ${isActive ? styles.active : ""}`
-                }
-              >
-                <span className={styles.menuIcon}>{item.icon}</span>
-                <span className={styles.menuText}>{item.label}</span>
-              </NavLink>
-            ))}
-          </nav>
-
-          <div className={styles.divider}></div>
-
-          <p className={styles.menuLabel}>Others</p>
-
-          <nav className={styles.menu}>
-            <NavLink
-              to="/admin/profile"
-              className={({ isActive }) =>
-                `${styles.menuItem} ${isActive ? styles.active : ""}`
-              }
-            >
-              <span className={styles.menuIcon}>
-                <User size={20} />
-              </span>
-              <span className={styles.menuText}>Profile</span>
-            </NavLink>
-
-            <NavLink
-              to="/admin/settings"
-              className={({ isActive }) =>
-                `${styles.menuItem} ${isActive ? styles.active : ""}`
-              }
-            >
-              <span className={styles.menuIcon}>
-                <Settings size={20} />
-              </span>
-              <span className={styles.menuText}>Settings</span>
-            </NavLink>
-          </nav>
-        </div>
-
-        <div className={styles.sidebarBottom}>
-          <div className={styles.divider}></div>
-
-          <NavLink to="/admin/login" onClick={handleLogout} className={styles.menuItem}>
-            <span className={styles.menuIcon}>
-              <LogOut size={20} />
-            </span>
-            <span className={styles.menuText}>Logout</span>
-          </NavLink>
-        </div>
-      </aside>
-
-      <header className={styles.headerContainer}>
-        <div className={styles.searchBar}>
-          <Search size={19} />
-
-          <input
-            type="text"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-
-        <div className={styles.headerRight}>
-          <div className={styles.notificationWrapper}>
-            <button
-              type="button"
-              className={styles.notificationBtn}
-              onClick={(e) => {
-                e.stopPropagation();
-                setNotificationOpen((prev) => !prev);
-              }}
-            >
-              <i className="bx bx-bell"></i>
-
-              {notificationCount > 0 && (
-                <span className={styles.notificationBadge}>
-                  {notificationCount}
-                </span>
-              )}
-            </button>
-
-            <div
-              className={`${styles.notificationDropdown} ${
-                notificationOpen ? styles.show : ""
-              }`}
-            >
-              <div className={styles.notificationHeader}>
-                <h4>Notifications</h4>
-
-                {notificationCount > 0 && (
-                  <button
-                    type="button"
-                    className={styles.markReadBtn}
-                    onClick={handleMarkAllAsRead}
-                  >
-                    Mark all as read
-                  </button>
-                )}
-              </div>
-
-              {bellNotifications.length > 0 ? (
-                bellNotifications.slice(0, 5).map((item) => (
-                  <div
-                    key={item.notification_id || item.id}
-                    className={styles.notificationItem}
-                  >
-                    <div className={styles.notificationTop}>
-                      <h5>{item.title || "No title"}</h5>
-                      <span className={styles.notificationRole}>
-                        {item.recipient_type || "all"}
-                      </span>
-                    </div>
-
-                    <p className={styles.notificationMessage}>
-                      {item.message || "No message"}
-                    </p>
-
-                    <p className={styles.notificationCreator}>
-                      Posted by {item.created_by || "Admin"}
-                    </p>
-
-                    <small className={styles.notificationDate}>
-                      {item.created_at
-                        ? new Date(item.created_at).toLocaleString()
-                        : "No date"}
-                    </small>
-                  </div>
-                ))
-              ) : (
-                <div className={styles.emptyNotification}>
-                  <p>You don’t have any new notifications</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className={styles.adminHeaderProfile}>
-            <img
-              src={admin.profile_image || "/images/temporary profile.jpg"}
-              alt="Admin"
-              className={styles.adminHeaderImg}
-            />
-
-            <span className={styles.adminHeaderName}>
-              {admin.username || "Admin"}
-            </span>
-          </div>
-        </div>
-      </header>
-
-      <main className={styles.main}>
+    <AdminHeader
+      admin={admin}
+      searchQuery={searchQuery}
+      setSearchQuery={setSearchQuery}
+      notificationOpen={notificationOpen}
+      setNotificationOpen={setNotificationOpen}
+      bellNotifications={bellNotifications}
+      notificationCount={notificationCount}
+      handleMarkAllAsRead={handleMarkAllAsRead}
+    />
+     <main className={styles.main}>
         <div className={styles.pageHeader}>
           <h1>Add Module</h1>
         </div>
