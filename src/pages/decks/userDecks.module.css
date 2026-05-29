@@ -3016,3 +3016,57 @@ color:#ff4d4f;
     width: 100% !important;
   }
 }
+
+/* Deck detail header actions */
+.deckTitleRow {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  width: 100% !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  margin-top: 12px !important;
+}
+
+.deckTitleText {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  overflow-wrap: anywhere !important;
+}
+
+.deckActionBtns {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  margin-left: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  flex-wrap: nowrap !important;
+}
+
+.ownerDeckActions {
+  align-self: flex-start !important;
+  flex-direction: row !important;
+  align-items: flex-end !important;
+}
+
+@media (max-width: 600px) {
+  .deckTitleRow {
+    flex-direction: row !important;
+    align-items: flex-start !important;
+  }
+
+  .deckActionBtns {
+    width: auto !important;
+    margin-left: 0 !important;
+    justify-content: flex-end !important;
+  }
+
+  .ownerDeckActions {
+    flex-direction: row !important;
+    align-items: flex-end !important;
+  }
+}

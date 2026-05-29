@@ -3,12 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { API_BASE } from "../../config.js";
 import { updateDeckCardMemorized } from "../../utils/cardMemorization.js";
 import styles from "./multiplechoice.module.css";
-
-const multipleFrames = [
-  "/images/multiple1.png",
-  "/images/multiple2.png",
-  "/images/multiple3.png",
-];
+import LoadingState from "../../components/LoadingState.jsx";
 
 export default function Quiz() {
   const navigate = useNavigate();
@@ -20,7 +15,6 @@ export default function Quiz() {
   const [title, setTitle] = useState("Multiple Choice");
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [frameIndex, setFrameIndex] = useState(0);
 
   const [current, setCurrent] = useState(0);
   const [score, setScore] = useState(0);
@@ -201,24 +195,6 @@ export default function Quiz() {
 
     window.speechSynthesis.speak(utterance);
   };
-
-  useEffect(() => {
-    if (!loading) return;
-
-    const animationSequence = [0, 1, 2, 0, 1, 2, 0, 1, 2];
-    let currentFrame = 0;
-
-    const interval = setInterval(() => {
-      setFrameIndex(animationSequence[currentFrame]);
-      currentFrame++;
-
-      if (currentFrame >= animationSequence.length) {
-        currentFrame = 0;
-      }
-    }, 220);
-
-    return () => clearInterval(interval);
-  }, [loading]);
 
   useEffect(() => {
     const loadQuiz = async () => {
@@ -500,21 +476,7 @@ export default function Quiz() {
   }
 
   if (loading) {
-    return (
-      <div className={styles.introScreen}>
-        <img
-          src={multipleFrames[frameIndex]}
-          alt="Generating Quiz"
-          className={styles.multipleIntroImage}
-        />
-
-        <h1 className={styles.generatingTitle}>Generating Quiz...</h1>
-
-        <p className={styles.generatingText}>
-          Preparing your questions and answers
-        </p>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   if (questions.length === 0) {

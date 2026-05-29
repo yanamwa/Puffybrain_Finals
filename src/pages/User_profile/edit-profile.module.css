@@ -291,8 +291,6 @@
   min-height: 100vh;
 }
 
-/* HEADER SAME AS MYCOURSE */
-
 .headerContainer {
   grid-area: header;
   display: flex;
@@ -427,7 +425,7 @@
 
 .show {
   display: block;
-}/* ===== NOTIFICATION ===== */
+}
 
 .notificationWrapper {
   position: relative;
@@ -529,8 +527,6 @@
   background: #decfff;
 }
 
-/* ===== EMPTY STATE ===== */
-
 .emptyNotification {
   min-height: 180px;
   padding: 22px 15px;
@@ -556,8 +552,6 @@
   font-size: 17px;
   line-height: 1.4;
 }
-
-/* ===== NOTIFICATION ITEMS ===== */
 
 .notificationItem {
   padding: 14px 4px;
@@ -613,7 +607,6 @@
   font-size: 16px;
 }
 
-/* PAGE CONTENT */
 
 .main {
   grid-area: main;
@@ -804,7 +797,6 @@
   max-width: 220px;
 }
 
-/* SETTINGS */
 
 .settingsContent {
   display: flex;
@@ -946,7 +938,6 @@
   font-style: normal;
 }
 
-/* MODAL */
 
 .modalOverlay {
   position: fixed;
@@ -1144,7 +1135,6 @@
   transition: 0.15s ease;
 }
 
-/* ===== PURPLE BUTTON ===== */
 
 .saveChangesBtn,
 .changePasswordBtn,
@@ -1171,8 +1161,6 @@
   box-shadow: 0 1px 0 #80588d;
 }
 
-/* ===== CANCEL / GRAY BUTTON ===== */
-
 .cancelBtn,
 .resendBtn {
   background: #d9d9d9;
@@ -1192,8 +1180,6 @@
   box-shadow: 0 1px 0 #8e8e8e;
 }
 
-/* ===== DELETE BUTTON ===== */
-
 .deleteAccountBtn {
   background: #d95c5c;
   border: 1px solid #8a2f2f;
@@ -1209,7 +1195,6 @@
   transform: translateY(3px);
   box-shadow: 0 1px 0 #6f2525;
 }
-/*change pass checklist*/
 
 .passwordBox {
   margin-top: 12px;
@@ -1229,7 +1214,6 @@
   margin: 4px 0;
 }
 
-/* colors */
 .valid {
   color: #2e7d32;
 }
@@ -1246,7 +1230,7 @@
     width: 490px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.04);
 }
-/* strength label */
+
 .validationMessage {
   margin-top: 5px;
   font-size: 13px;
@@ -1311,8 +1295,6 @@
 .backToList:hover {
   color: #000;
 }
-
-/*otp*/
 .otpWrapper {
   display: flex;
   justify-content: center;
@@ -1347,7 +1329,7 @@
 .otpTimer {
   font-size: 14px;
   color: #777;
-  font-family: "Poppins", sans-serif;
+  font-family: "Jersey 15", sans-serif;
 }
 
 .resendBtn {
@@ -1407,7 +1389,6 @@
   color: #555;
   font-family: "Jersey 15", sans-serif;
 }
-/* RESPONSIVE */
 
 @media (max-width: 1100px) {
   .searchBar {
@@ -1585,7 +1566,6 @@
   }
 }
 
-/* ===== BIGGER JERSEY 15 TEXT ===== */
 
 .profilePage,
 .profileOuter,
@@ -1679,10 +1659,6 @@
   cursor: not-allowed;
   transform: none;
 }
-
-
-/* ===== PROFILE MOBILE RESPONSIVE FIX ===== */
-/* Keep this at the VERY BOTTOM so it overrides older rules. */
 
 @media (max-width: 900px) {
   .sidebar {

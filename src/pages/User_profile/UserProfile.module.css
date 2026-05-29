@@ -1,10 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Qwitcher+Grypen:wght@700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Qwitcher+Grypen:wght@400;700&display=swap");
 
 .signatureText {
   font-size: 50px;
   color: var(--font-color);
   line-height: 1;
-  font-family: 'Qwitcher Grypen', cursive;
+  font-family: "Qwitcher Grypen", cursive !important;
   font-weight: 700;
 }
 
@@ -215,8 +215,6 @@
   color: #333;
 }
 
-/* MAIN LAYOUT */
-
 .mainArea {
   display: flex;
   flex-direction: column;
@@ -238,8 +236,6 @@
     "main";
   min-height: 100vh;
 }
-
-/* HEADER */
 
 .headerContainer {
   grid-area: header;
@@ -377,8 +373,6 @@
   display: block;
 }
 
-/* ===== SEARCH BAR ===== */
-
 .searchBar {
   flex: 1;
   min-width: 0;
@@ -437,8 +431,6 @@
 .searchBtn:hover {
   background: #f2ecff;
 }
-
-/* ===== NOTIFICATION ===== */
 
 .notificationWrapper {
   position: relative;
@@ -540,8 +532,6 @@
   background: #decfff;
 }
 
-/* ===== EMPTY STATE ===== */
-
 .emptyNotification {
   min-height: 180px;
   padding: 22px 15px;
@@ -567,8 +557,6 @@
   font-size: 17px;
   line-height: 1.4;
 }
-
-/* ===== NOTIFICATION ITEMS ===== */
 
 .notificationItem {
   padding: 14px 4px;
@@ -624,16 +612,12 @@
   font-size: 16px;
 }
 
-/* MAIN CONTENT */
-
 .main {
   grid-area: main;
   padding: 32px 34px 50px;
   background: rgb(243, 243, 243);
   overflow: auto;
 }
-
-/* PROFILE CARD */
 
 .profileCard {
   position: relative;
@@ -667,7 +651,7 @@
   font-weight: 400;
   line-height: 1;
   color: #111;
-  font-family: 'Qwitcher Grypen', cursive;
+  font-family: "Qwitcher Grypen", cursive !important;
 }
 
 .shareBtn {
@@ -799,8 +783,6 @@
   transform: translateY(-1px);
   background-color: #c8a8e9;
 }
-
-/* DECK SECTION */
 
 .decksSection {
   width: 1500px;
@@ -949,7 +931,6 @@
   color: #2f2f2f;
 }
 
-/* RESPONSIVE */
 
 @media (max-width: 1400px) {
   .decksGrid {
@@ -1326,7 +1307,6 @@
 :global(.Toastify__toast-icon) {
   width: 28px !important;
 }
-/* ===== USER PROFILE RESPONSIVE ===== */
 
 .main {
   padding: 90px 56px 70px;
@@ -1364,7 +1344,6 @@
   }
 }
 
-/* phone/tablet stack */
 @media (max-width: 768px) {
   .mainArea {
     margin-left: 60px;
@@ -1449,8 +1428,6 @@
     min-height: 120px;
   }
 }
-
-/* FINAL RESPONSIVE OVERRIDE */
 
 .main {
   padding: 90px 32px 70px;
@@ -1594,8 +1571,6 @@
   }
 }
 
-/* ===== DECK CARD FINAL STYLE ===== */
-
 .deckTabsSection {
   width: 100%;
   max-width: 900px;
@@ -1713,13 +1688,6 @@
   }
 }
 
-
-/* =========================================================
-   FINAL FIX: Profile page responsive + deck rows
-   Paste-safe override. Keep this at the VERY BOTTOM.
-   ========================================================= */
-
-/* Keep page aligned beside the sidebar */
 .mainArea {
   margin-left: 220px;
   width: calc(100% - 220px);
@@ -1730,13 +1698,11 @@
   width: calc(100% - 60px);
 }
 
-/* Less giant air around the profile card */
 .main {
   padding: 28px clamp(14px, 3vw, 42px) 48px !important;
   min-height: calc(100vh - 70px);
 }
 
-/* Profile card should look like one clean ID card */
 .profileCard {
   width: 100%;
   max-width: 920px;
@@ -1776,7 +1742,6 @@
   justify-content: flex-end;
 }
 
-/* Deck section: remove skinny tower look */
 .deckTabsSection {
   width: 100%;
   max-width: 920px;
@@ -1799,7 +1764,6 @@
   white-space: nowrap;
 }
 
-/* Decks should stay in rows, not one vertical noodle */
 .decksGrid {
   display: grid !important;
   grid-template-columns: repeat(auto-fill, minmax(190px, 210px)) !important;
@@ -1841,7 +1805,6 @@
   font-size: 12px !important;
 }
 
-/* Tablet layout: keep cards in row */
 @media (max-width: 900px) {
   .sidebar {
     width: 60px !important;
@@ -1956,7 +1919,6 @@
   }
 }
 
-/* Small phone: only phone becomes one column */
 @media (max-width: 520px) {
   .sidebar {
     width: 56px !important;
@@ -2032,7 +1994,6 @@
   }
 }
 
-/* Profile deck card data should come from JSX, not a hard-coded CSS label. */
 .deckText::after {
   content: none !important;
 }

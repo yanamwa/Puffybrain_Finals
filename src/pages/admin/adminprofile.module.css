@@ -15,8 +15,6 @@
   grid-template-columns: 60px 1fr;
 }
 
-
-/* HEADER */
 .headerContainer {
   grid-area: header;
   position: sticky;
@@ -101,7 +99,6 @@
   white-space: nowrap;
 }
 
-/* SIDEBAR */
 .sidebar {
   grid-area: sidebar;
   width: 220px;
@@ -290,7 +287,6 @@
   display: block;
 }
 
-/* MAIN */
 .main {
   grid-area: main;
   padding: 36px 42px 40px;
@@ -311,7 +307,6 @@
   color: #050505;
 }
 
-/* FORM */
 .formCard {
   background: #ffffff;
   border-radius: 18px;
@@ -576,7 +571,7 @@
   font-weight: 400;
   line-height: 1;
   color: #111;
-  font-family: "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive;
+  font-family: "Jersey 15", sans-serif;
 }
 
 .profileDivider {
@@ -672,7 +667,7 @@
   font-size: 36px;
   color: #111;
   line-height: 1;
-  font-family: "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive;
+  font-family: "Jersey 15", sans-serif;
 }
 .profileButtonWrap {
   display: flex;
@@ -738,8 +733,6 @@
   }
 }
 
-
-/* HEADER */
 .headerContainer {
   grid-area: header;
   position: sticky;
@@ -774,8 +767,6 @@
   background: #ffffff;
 }
 
-
-/* RESPONSIVE */
 @media (max-width: 900px) {
   .layout {
     grid-template-columns: 60px 1fr;
@@ -1319,11 +1310,6 @@
     padding: 16px 10px;
   }
 }
-
-/* =========================
-   RESPONSIVE FIX
-========================= */
-
 .gridContainer,
 .collapsedGrid {
   width: 100%;

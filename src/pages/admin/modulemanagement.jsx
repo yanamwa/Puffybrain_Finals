@@ -6,6 +6,7 @@ import "boxicons/css/boxicons.min.css";
 import styles from "./modulemanage.module.css";
 import AHeader from "../../components/AHeader";
 import ASidebar from "../../components/ASidebar";
+import LoadingState from "../../components/LoadingState.jsx";
 
 function formatToday() {
   const d = new Date();
@@ -71,30 +72,22 @@ function parseDeckCards(raw) {
 export default function ModuleManagement() {
   const navigate = useNavigate();
   const API_URL = `${API_BASE}/adminLearningModule.php`;
-
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [bellNotifications, setBellNotifications] = useState([]);
-
   const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [searchQuery, setSearchQuery] = useState("");
   const [rowsToShow, setRowsToShow] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-
   const [viewOpen, setViewOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
-
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
-
   const [textViewOpen, setTextViewOpen] = useState(false);
   const [textViewTitle, setTextViewTitle] = useState("");
   const [textViewContent, setTextViewContent] = useState("");
-
   const fetchedOnce = useRef(false);
-
   const [admin, setAdmin] = useState({
     id: "",
     username: "Admin",
@@ -466,7 +459,7 @@ className={`${styles.layout} ${
               {loading ? (
                 <tr>
                   <td colSpan={5} style={{ textAlign: "center" }}>
-                    Loading modules...
+                    <LoadingState fullPage={false} />
                   </td>
                 </tr>
               ) : shownModules.length === 0 ? (

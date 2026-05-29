@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { API_BASE } from "../config.js";
 import ModeCard from "./ModeCard";
 import styles from "./QuizModesModal.module.css";
+import LoadingState from "./LoadingState.jsx";
 
 export default function QuizModesModal({
   source,
@@ -53,14 +54,6 @@ export default function QuizModesModal({
 
   const calculateTimedQuizSeconds = () => {
     const questionCount = getQuestionCount();
-
-    /*
-      You can change this later if you have difficulty from DB.
-      Example:
-      easy = 60 sec per question
-      medium = 90 sec per question
-      hard = 120 sec per question
-    */
     const difficulty = "medium";
 
     const secondsPerQuestion =
@@ -123,7 +116,7 @@ export default function QuizModesModal({
         <div className={styles.cardsScroll}>
           <div className={styles.modeOptions}>
             {loading ? (
-              <p>Loading quiz modes...</p>
+              <LoadingState fullPage={false} />
             ) : modes.length === 0 ? (
               <p>No quiz modes available.</p>
             ) : (

@@ -8,6 +8,7 @@ import { API_BASE } from "../../config.js";
 import styles from "./userDecks.module.css";
 import UserHeader from "../../components/UserHeader";
 import UserSidebar from "../../components/UserSidebar";
+import LoadingState from "../../components/LoadingState.jsx";
 
 
 export default function UserDecks() {
@@ -1479,7 +1480,22 @@ return (
                     <div className={styles.deckTitleRow}>
                       <h3 className={styles.deckTitleText}>{deck.title}</h3>
 
-                      <div className={styles.deckActionBtns}>
+                      <div
+                        className={`${styles.deckActionBtns} ${
+                          isOwner ? styles.ownerDeckActions : ""
+                        }`}
+                      >
+                        {isOwner && (
+                          <button
+                            type="button"
+                            onClick={handleEditDeck}
+                            className={styles.deckEditBtn}
+                          >
+                            <i className="bx bx-edit"></i>
+                            Edit
+                          </button>
+                        )}
+
                         <button
                           type="button"
                           onClick={handleShare}
@@ -1502,17 +1518,6 @@ return (
                                   fontSize: "24px",
                                 }}
                               ></i>
-                            </button>
-                          )}
-
-                          {isOwner && (
-                            <button
-                              type="button"
-                              onClick={handleEditDeck}
-                              className={styles.deckEditBtn}
-                            >
-                              <i className="bx bx-edit"></i>
-                              Edit
                             </button>
                           )}
                       </div>
@@ -1587,8 +1592,10 @@ return (
                       </div>
                     )}
                   </>
+                ) : deckError ? (
+                 <p>{deckError}</p>
                 ) : (
-                 <p>{deckError || "Loading deck..."}</p>
+                 <LoadingState fullPage={false} />
                 )}
               </div>
             </section>

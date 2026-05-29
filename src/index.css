@@ -23,7 +23,11 @@ html, body {
 
 }
 
-/* Center SweetAlert content globally */
+body,
+body :where(:not(i):not(svg):not(path):not([class^="fa"]):not([class*=" fa-"]):not([class^="bx"]):not([class*=" bx-"])) {
+    font-family: "Jersey 15", sans-serif !important;
+}
+
 .swal2-popup,
 .swal2-popup .swal2-title,
 .swal2-popup .swal2-html-container,

@@ -3,12 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { API_BASE } from "../../config.js";
 import { updateDeckCardMemorized } from "../../utils/cardMemorization.js";
 import styles from "./timedinquiz.module.css";
-
-const timedFrames = [
-  "/images/timed1.png",
-  "/images/timed2.png",
-  "/images/timed3.png",
-];
+import LoadingState from "../../components/LoadingState.jsx";
 
 function normalizeLessonData(data) {
   return data?.lesson || data?.data || data || {};
@@ -32,7 +27,6 @@ export default function TimedQuiz() {
   const isDeckMode = Boolean(deckId);
 
   const [loading, setLoading] = useState(true);
-  const [frameIndex, setFrameIndex] = useState(0);
   const [title, setTitle] = useState("Timed Quiz");
   const [questions, setQuestions] = useState([]);
 
@@ -174,24 +168,6 @@ export default function TimedQuiz() {
       };
     }
   }
-
-  useEffect(() => {
-    if (!loading) return;
-
-    const animationSequence = [0, 1, 2, 0, 1, 2, 0, 1, 2];
-    let currentFrame = 0;
-
-    const interval = setInterval(() => {
-      setFrameIndex(animationSequence[currentFrame]);
-      currentFrame++;
-
-      if (currentFrame >= animationSequence.length) {
-        currentFrame = 0;
-      }
-    }, 220);
-
-    return () => clearInterval(interval);
-  }, [loading]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -513,15 +489,7 @@ export default function TimedQuiz() {
   }
 
   if (loading) {
-    return (
-      <div className={styles.introScreen}>
-        <img
-          src={timedFrames[frameIndex]}
-          alt="Loading timed quiz"
-          className={styles.timedLoadingImage}
-        />
-      </div>
-    );
+    return <LoadingState />;
   }
 
   if (questions.length === 0) {

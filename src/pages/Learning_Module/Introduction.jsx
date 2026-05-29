@@ -2,6 +2,7 @@ import styles from "./lesson.module.css";
 import { Link, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { API_BASE } from "../../config.js";
+import LoadingState from "../../components/LoadingState.jsx";
 
 function Introduction() {
   const { lessonId } = useParams();
@@ -27,7 +28,7 @@ useEffect(() => {
 }, [lessonId]);
 
   if (!lesson) {
-    return <div>Loading lesson...</div>;
+    return <LoadingState />;
   }
 
   return (

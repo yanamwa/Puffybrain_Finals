@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { API_BASE } from "../../config.js";
 import styles from "./realFlashcards.module.css";
+import LoadingState from "../../components/LoadingState.jsx";
 
 export default function Flashcards() {
   const navigate = useNavigate();
@@ -291,7 +292,7 @@ export default function Flashcards() {
   };
 
   if (loading) {
-    return <div className={styles.container}>Loading flashcards...</div>;
+    return <LoadingState />;
   }
 
   if (flashcards.length === 0) {

@@ -7,27 +7,23 @@ import { API_BASE } from "../../config.js";
 
 import AHeader from "../../components/AHeader";
 import ASidebar from "../../components/ASidebar";
+import LoadingState from "../../components/LoadingState.jsx";
 
 export default function DeckManagement() {
   const navigate = useNavigate();
-
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [bellNotifications, setBellNotifications] = useState([]);
-
   const [selectedDeck, setSelectedDeck] = useState(null);
   const [selectedDeckCards, setSelectedDeckCards] = useState([]);
   const [cardsLoading, setCardsLoading] = useState(false);
-
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsToShow, setRowsToShow] = useState(10);
-
   const [decks, setDecks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const [admin, setAdmin] = useState({
     id: "",
     username: "Admin",
@@ -36,7 +32,6 @@ export default function DeckManagement() {
     role: "",
     profile_image: "/images/temporary profile.jpg",
   });
-
   const adminImage =
     admin.profile_image &&
     !admin.profile_image.includes("temporary profile.jpg")
@@ -440,7 +435,7 @@ export default function DeckManagement() {
           <div className={styles.tableContent}>
             {loading && (
               <div className={styles.message}>
-                Loading decks...
+                <LoadingState fullPage={false} />
               </div>
             )}
 
@@ -693,7 +688,7 @@ export default function DeckManagement() {
                 <h3>Cards Made</h3>
 
                 {cardsLoading ? (
-                  <p>Loading cards...</p>
+                  <LoadingState fullPage={false} />
                 ) : selectedDeckCards.length ===
                   0 ? (
                   <p>

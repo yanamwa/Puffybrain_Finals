@@ -6,29 +6,25 @@ import Swal from "sweetalert2";
 import { API_BASE } from "../../config.js";
 import AHeader from "../../components/AHeader";
 import ASidebar from "../../components/ASidebar";
+import LoadingState from "../../components/LoadingState.jsx";
 
 export default function UserManagement() {
   const navigate = useNavigate();
   const fetchedOnce = useRef(false);
-
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedUserDecks, setSelectedUserDecks] = useState([]);
   const [selectedUserCourses, setSelectedUserCourses] = useState([]);
   const [userDetailsLoading, setUserDetailsLoading] = useState(false);
-
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsToShow, setRowsToShow] = useState(10);
-
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [bellNotifications, setBellNotifications] = useState([]);
-
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const [admin, setAdmin] = useState({
     id: "",
     username: "Admin",
@@ -394,7 +390,11 @@ export default function UserManagement() {
           </div>
 
           <div className={styles.tableContent}>
-            {loading && <div className={styles.message}>Loading users...</div>}
+            {loading && (
+              <div className={styles.message}>
+                <LoadingState fullPage={false} />
+              </div>
+            )}
 
             {!loading && error && (
               <div className={styles.errorMessage}>{error}</div>
@@ -570,7 +570,7 @@ export default function UserManagement() {
                 <h3>Decks Made</h3>
 
                 {userDetailsLoading ? (
-                  <p>Loading decks...</p>
+                  <LoadingState fullPage={false} />
                 ) : selectedUserDecks.length === 0 ? (
                   <p>No decks made by this user.</p>
                 ) : (
@@ -592,7 +592,7 @@ export default function UserManagement() {
                 <h3>Courses Added</h3>
 
                 {userDetailsLoading ? (
-                  <p>Loading courses...</p>
+                  <LoadingState fullPage={false} />
                 ) : selectedUserCourses.length === 0 ? (
                   <p>No courses added by this user.</p>
                 ) : (

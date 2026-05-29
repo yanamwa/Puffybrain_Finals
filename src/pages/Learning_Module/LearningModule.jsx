@@ -10,6 +10,7 @@ import { API_BASE } from "../../config.js";
 import QuizModesModal from "../../components/QuizModesModal";
 import UserHeader from "../../components/UserHeader";
 import UserSidebar from "../../components/UserSidebar";
+import LoadingState from "../../components/LoadingState.jsx";
 
 function LearningModule() {
   const navigate = useNavigate();
@@ -563,21 +564,7 @@ function LearningModule() {
   }, [filteredQuizzes, correctQuestions]);
 
 if (loading) {
-  return (
-    <div className={styles.loadingPage}>
-      <div className={styles.loadingCard}>
-        <img
-          src="/images/Loading.png"
-          alt="Loading"
-          className={styles.loadingImage}
-        />
-
-        <p className={styles.loadingText}>
-          Loading decks<span></span>
-        </p>
-      </div>
-    </div>
-  );
+  return <LoadingState />;
 }
   if (!lesson) {
     return <div style={{ padding: "40px" }}>Lesson not found.</div>;

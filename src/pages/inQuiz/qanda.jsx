@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { API_BASE } from "../../config.js";
 import { updateDeckCardMemorized } from "../../utils/cardMemorization.js";
 import styles from "./qanda.module.css";
+import LoadingState from "../../components/LoadingState.jsx";
 
 export default function QandA() {
   const navigate = useNavigate();
@@ -361,7 +362,7 @@ const isCloseEnough = (userAnswer, correctAnswer) => {
     }
   }
 
-  if (loading) return <div className={styles.wrapper}>Loading Q&A...</div>;
+  if (loading) return <LoadingState />;
 
 if (questions.length === 0) {
   return (

@@ -396,7 +396,7 @@
 .otpTimer {
     font-size: 14px;
     color: #777;
-    font-family: "Poppins", sans-serif;
+    font-family: "Jersey 15", sans-serif;
 }
 
 .resendBtn {
@@ -454,7 +454,7 @@
     margin-top: 14px;
     margin-bottom: 22px;
     color: #555;
-    font-family: "Poppins", sans-serif;
+    font-family: "Jersey 15", sans-serif;
 }
 
 .forgotText {
@@ -576,19 +576,15 @@
   gap: 6px;
   transition: all 0.2s ease;
 }
-
-/* invalid rule */
 .invalid {
   color: #a0a4b8;
 }
 
-/* valid rule */
 .valid {
   color: #22c55e;
   font-weight: 500;
 }
 
-/* optional: smooth check animation */
 .valid::before {
   content: "✓";
   color: #22c55e;
@@ -600,7 +596,6 @@
   color: #d1d5db;
 }
 
-/* ===== PHONE FIX: LOGIN + SIGNUP ===== */
 @media (max-width: 600px) {
   html,
   body {
@@ -739,7 +734,6 @@
   align-items: stretch;
 }
 
-/* ===== PHONE FIX: CAN'T SIGN IN ===== */
 @media (max-width: 600px) {
   .cantOptions {
     flex-direction: column;

@@ -4,7 +4,6 @@
   background: #f5f5f5;
 }
 
-/* ===== MAIN LAYOUT ===== */
 
 .mainArea {
   flex: 1;
@@ -25,57 +24,57 @@
   width: 100%;
   max-width: 1000px;
   margin: 0 auto;
-  padding: 78px 34px 36px;
+  padding: 78px clamp(18px, 3vw, 34px) 36px;
   box-sizing: border-box;
 }
-
-/* ===== WELCOME CARD ===== */
 
 .centerBox {
   width: 100%;
   max-width: 930px;
-  height: 128px;
+  min-height: 128px;
   margin: 18px auto 0;
-  padding: 24px 55px;
+  padding: 24px clamp(150px, 29%, 330px) 24px clamp(30px, 6vw, 55px);
   background: #ffffff;
   border-radius: 14px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
   position: relative;
   box-sizing: border-box;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .centerBox h1 {
   margin: 0;
-  font-size: 34px;
+  font-size: clamp(30px, 3vw, 38px);
   font-weight: normal;
   color: #333;
-  max-width: 62%;
+  max-width: 100%;
   position: relative;
   z-index: 2;
+  line-height: 1.05;
 }
 
 .centerBox p {
   margin: 7px 0 0;
-  font-size: 17px;
+  font-size: clamp(16px, 1.7vw, 19px);
   color: #333;
-  max-width: 62%;
+  max-width: 100%;
   position: relative;
   z-index: 2;
 }
 
 .sideImage {
   position: absolute;
-  right: 45px;
-  top: -34px;
-  height: 190px;
-  width: auto;
+  right: clamp(28px, 7vw, 86px);
+  top: 50%;
+  width: clamp(135px, 20vw, 205px);
+  height: clamp(135px, 20vw, 205px);
+  transform: translateY(-48%);
   object-fit: contain;
+  object-position: center;
   z-index: 1;
   pointer-events: none;
 }
 
-/* ===== WHITE SECTIONS ===== */
 
 .progress,
 .deckProgress {
@@ -97,7 +96,6 @@
   margin: 0;
 }
 
-/* ===== SECTION HEADER ===== */
 
 .sectionHeader {
   display: flex;
@@ -140,8 +138,6 @@
 .btnShow:hover {
   transform: translateY(-2px);
 }
-
-/* ===== CARDS ===== */
 
 .decksArea,
 .myDecksArea {
@@ -284,7 +280,6 @@
   text-overflow: ellipsis;
 }
 
-/* ===== CARD MENU ===== */
 
 .cardMenu {
   position: absolute;
@@ -347,8 +342,6 @@
   color: #777;
 }
 
-/* ===== COURSE PROGRESS ===== */
-
 .courseProgressWrap {
   display: flex;
   align-items: center;
@@ -388,7 +381,6 @@
   font-weight: 500;
 }
 
-/* ===== RIGHT SIDEBAR ===== */
 
 .rightSidebar {
   position: fixed;
@@ -490,8 +482,6 @@
   color: #ed0000;
   transform: translateY(-1px);
 }
-
-/* ===== ADD DECK POPUP ===== */
 
 .popupOverlay {
   position: fixed;
@@ -653,8 +643,6 @@
   transform: translateY(-2px);
 }
 
-/* ===== SWEETALERT GENERAL ===== */
-
 :global(.swal2-container) {
   z-index: 99999;
 }
@@ -733,8 +721,6 @@
 .logoutSwalCancel:hover {
   transform: translateY(-2px);
 }
-
-/* ===== EDIT DECK MODAL ===== */
 
 :global(.swal2-popup).editDeckPopup {
   width: 600px !important;
@@ -931,7 +917,6 @@
   transform: translateY(-2px);
 }
 
-/* ===== RESPONSIVE ===== */
 
 @media (max-width: 1199px) {
   .rightSidebar {
@@ -969,9 +954,9 @@
   }
 
   .sideImage {
-    right: 25px;
-    top: -35px;
-    height: 210px;
+    right: clamp(18px, 5vw, 42px);
+    width: clamp(135px, 24vw, 180px);
+    height: clamp(135px, 24vw, 180px);
   }
 
   .myDecksGrid {
@@ -993,25 +978,26 @@
   }
 
   .centerBox {
-    min-height: 145px;
-    height: auto;
-    padding: 22px 16px;
+    min-height: 138px;
+    padding: 22px min(34vw, 150px) 22px 16px;
     margin-top: 14px;
     overflow: hidden;
   }
 
   .centerBox h1 {
-    font-size: 28px;
-    max-width: 100%;
+    font-size: clamp(24px, 6vw, 28px);
   }
 
   .centerBox p {
     font-size: 16px;
-    max-width: 100%;
   }
 
   .sideImage {
-    display: none;
+    display: block;
+    right: -8px;
+    width: clamp(118px, 34vw, 145px);
+    height: clamp(118px, 34vw, 145px);
+    opacity: 0.95;
   }
 
   .progress,

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
 import Swal from "sweetalert2";
 import { API_BASE } from "../../config.js";
+import LoadingState from "../../components/LoadingState.jsx";
 
 function Lesson() {
   const { lessonId } = useParams();
@@ -350,7 +351,7 @@ function Lesson() {
   };
 
   if (!lesson) {
-    return <div>Loading lesson...</div>;
+    return <LoadingState />;
   }
 
   const hasOptions =

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { API_BASE } from "../../config.js";
 import { updateDeckCardMemorized } from "../../utils/cardMemorization.js";
 import styles from "./matching.module.css";
+import LoadingState from "../../components/LoadingState.jsx";
 
 export default function MatchingType() {
   const navigate = useNavigate();
@@ -286,7 +287,7 @@ export default function MatchingType() {
   };
 
   if (!lesson) {
-    return <div className={styles.wrapper}>Loading matching quiz...</div>;
+    return <LoadingState />;
   }
 
 if (matchingPairs.length === 0) {

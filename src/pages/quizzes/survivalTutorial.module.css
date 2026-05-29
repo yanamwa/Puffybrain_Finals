@@ -1,21 +1,20 @@
 .wrapper {
   background-image: url("/images/background_notebook.png");
   background-position: center;
-  background-size: cover;   /* important */
+  background-size: cover;  
   background-repeat: no-repeat;
   min-height: 100vh;
   width: 100%;
-  font-family: 'Lato', sans-serif;
+  font-family: "Jersey 15", sans-serif;
 
   display: flex;
   flex-direction: column;
   align-items: center;
   padding-top: 15px;
   padding-bottom: 40px;
-    height: 100vh; /* force full viewport height */
-  box-sizing: border-box; /* include padding inside height */
-  overflow: hidden; /* optional: prevents scrollbars if content overflows */
-}
+    height: 100vh; 
+  box-sizing: border-box; 
+  overflow: hidden; 
 
 /* HEADER */
 
@@ -24,7 +23,7 @@
     margin: 20px auto ;
     background: white;
     border-radius: 40px;
-    padding: 60px 30px 30px; /* less top padding */
+    padding: 60px 30px 30px; 
     text-align: center;
     box-shadow: 0 8px 15px rgba(0,0,0,0.12);
     position: relative;
