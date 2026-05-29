@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { API_BASE } from "../../config.js";
+import { updateDeckCardMemorized } from "../../utils/cardMemorization.js";
 import styles from "./qanda.module.css";
 
 export default function QandA() {
@@ -141,6 +142,7 @@ export default function QandA() {
     if (isDeckMode) {
       return shuffleArray(
         deckCards.map((card) => ({
+          cardId: card.cardId || card.card_id || card.id || null,
           q: cleanQuestionText(card.question || "No question available."),
           correctAnswer: cleanAnswerText(card.answer || ""),
           explanation: card.answer || "",
@@ -290,6 +292,7 @@ const isCloseEnough = (userAnswer, correctAnswer) => {
     setNotifOpen(true);
 
     const newResult = {
+      cardId: questions[current].cardId || null,
       question: questions[current].q,
       userAnswer: inputValue,
       correctAnswer: questions[current].correctAnswer,
@@ -303,6 +306,16 @@ const isCloseEnough = (userAnswer, correctAnswer) => {
     setUserResults(updatedResults);
     setScore(updatedScore);
     setStatus(isCorrect ? styles.correct : styles.wrong);
+
+    await updateDeckCardMemorized(
+      isDeckMode,
+      questions[current].cardId,
+      isCorrect,
+      {
+        question: questions[current].q,
+        answer: questions[current].correctAnswer,
+      }
+    );
 
     setTimeout(() => {
       setNotifOpen(false);
@@ -320,18 +333,24 @@ const isCloseEnough = (userAnswer, correctAnswer) => {
 
     await saveQuizAttempt(updatedScore);
 
-    localStorage.setItem(
-      "lessonQuizResults",
-      JSON.stringify({
-        source: isDeckMode ? "deck" : "lesson",
-        quizMode: "qna",
-        deckId: deckId ? Number(deckId) : null,
-        lessonId: lessonId ? Number(lessonId) : null,
-        score: updatedScore,
-        total: questions.length,
-        answers: updatedResults,
-      })
-    );
+    const resultPayload = {
+      source: isDeckMode ? "deck" : "lesson",
+      quizMode: "qna",
+      deckId: deckId ? Number(deckId) : null,
+      lessonId: lessonId ? Number(lessonId) : null,
+      score: updatedScore,
+      total: questions.length,
+      answers: updatedResults,
+    };
+
+    localStorage.setItem("lessonQuizResults", JSON.stringify(resultPayload));
+
+    if (isDeckMode) {
+      localStorage.setItem(
+        `deckQuizResults_${deckId}`,
+        JSON.stringify(resultPayload)
+      );
+    }
 
     navigate(isDeckMode ? `/review/deck/${deckId}` : `/review/${lessonId}`);
   }

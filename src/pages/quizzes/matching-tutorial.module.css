@@ -8,10 +8,6 @@
   --dark-border: #a06bcf;
 }
 
-/* =========================
-   PAPER BACKGROUND
-========================= */
-
 .paperBackground{
   width:100%;
   min-height:100vh;
@@ -37,10 +33,6 @@
   width:100%;
 }
 
-/* =========================
-   QUIZ BOX
-========================= */
-
 .quizAppContainer{
   width:70%;
 
@@ -61,7 +53,6 @@
   overflow:hidden;
 }
 
-/* HEADER */
 
 .quizHeader{
   width:100%;
@@ -90,9 +81,6 @@
   color:#222;
 }
 
-/* =========================
-   START BUTTON
-========================= */
 .startButton {
   margin-top: 20px;
   width: 60%;
@@ -147,10 +135,6 @@
   box-shadow: 0 1px rgb(162, 140, 197);
 }
 
-/* =========================
-   SLIDESHOW
-========================= */
-
 .slideshowBox{
   width:70%;
 
@@ -166,10 +150,6 @@
 
   box-shadow:0 8px 20px rgba(0,0,0,0.15);
 }
-
-/* =========================
-   MATCHING LAYOUT
-========================= */
 
 .quizContent{
   display:flex;
@@ -187,10 +167,6 @@
 
   gap:18px;
 }
-
-/* =========================
-   CARDS
-========================= */
 
 .card{
   background:#ffffff;
@@ -226,10 +202,6 @@
 .card:hover{
   transform:translateY(-2px);
 }
-
-/* =========================
-   STATES
-========================= */
 
 .selected{
   background:#caa8ff;
@@ -291,10 +263,6 @@
   background:#b66eff;
 }
 
-/* =========================
-   SLIDES
-========================= */
-
 .slide{
   display:none;
 }
@@ -303,9 +271,6 @@
   display:block;
 }
 
-/* =========================
-   MOBILE
-========================= */
 
 @media (max-width:768px){
 
@@ -389,5 +354,152 @@
   100% {
     width: 1400px;
     height: 1400px;
+  }
+}
+/* Tablet */
+@media (max-width: 1024px) {
+  .quizAppContainer,
+  .slideshowBox {
+    width: 90%;
+  }
+
+  .quizHeader h1 {
+    font-size: 36px;
+  }
+
+  .card {
+    font-size: 17px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .paperBackground {
+    padding: 15px;
+  }
+
+  .quizAppContainer {
+    width: 100%;
+    margin-top: 20px;
+    padding: 100px 15px 25px;
+    border-radius: 25px;
+  }
+
+  .slideshowBox {
+    width: 100%;
+    padding: 20px 15px;
+    border-radius: 25px;
+  }
+
+  .quizHeader {
+    height: 70px;
+    border-top-left-radius: 25px;
+    border-top-right-radius: 25px;
+  }
+
+  .quizHeader h1 {
+    font-size: 28px;
+    text-align: center;
+    padding: 0 10px;
+  }
+
+.quizContent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+  .leftColumn,
+  .rightColumn {
+    width: 100%;
+  }
+
+  .card {
+    width: 100%;
+    min-height: 60px;
+    padding: 14px;
+    font-size: 16px;
+    word-break: break-word;
+  }
+
+  .startButton,
+  .startBtn {
+    width: 100%;
+    font-size: 18px;
+    padding: 12px;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+  }
+
+  .matchIntroImage {
+    width: 240px;
+  }
+}
+
+@media (max-width: 480px) {
+  .quizAppContainer {
+    padding: 85px 12px 20px;
+  }
+
+  .quizHeader {
+    height: 60px;
+  }
+
+  .quizHeader h1 {
+    font-size: 22px;
+  }
+
+  .card {
+    font-size: 14px;
+    min-height: 55px;
+    padding: 12px;
+  }
+
+  .startButton,
+  .startBtn {
+    font-size: 16px;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .matchIntroImage {
+    width: 180px;
+  }
+}
+
+@media (max-width: 768px) {
+  .quizContent {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .leftColumn,
+  .rightColumn {
+    width: 100%;
+    gap: 12px;
+  }
+
+  .card {
+    min-height: 60px;
+    padding: 10px;
+    font-size: 12px;
+    border-radius: 14px;
+    word-break: break-word;
+  }
+}
+
+@media (max-width: 390px) {
+  .quizContent {
+    gap: 8px;
+  }
+
+  .card {
+    font-size: 11px;
+    padding: 8px;
   }
 }

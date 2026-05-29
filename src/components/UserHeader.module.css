@@ -7,7 +7,7 @@
   padding: 0 28px;
   background: #f5f5f5;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  z-index: 900;
+  z-index: 5000;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -463,9 +463,44 @@
 }
 
 :global(.homepage) .header {
-  z-index: 800 !important;
+  z-index: 5000 !important;
 }
 
+:global(.homepage) .profileLink,
+:global(.homepage) .dropdown {
+  display: none !important;
+}
+
+:global(.homepage) .profileWrapper {
+  margin-left: 12px !important;
+}
+
+:global(.homepage) .notificationWrapper {
+  margin-right: 0 !important;
+}
+
+@media (max-width: 1199px) {
+  :global(.homepage) .profileWrapper {
+    margin-left: auto !important;
+    gap: 6px !important;
+  }
+
+  :global(.homepage) .profileLink,
+  :global(.homepage) .dropdown,
+  :global(.homepage) .dropdownBtn,
+  :global(.homepage) .dpContainer,
+  :global(.homepage) .profilePic {
+    display: flex !important;
+  }
+
+  :global(.homepage) .userInfo {
+    display: none !important;
+  }
+
+  :global(.homepage) .notificationDropdown {
+    right: 10px !important;
+  }
+}
 
 .searchBar {
   flex: 1 !important;
@@ -594,7 +629,7 @@
   padding: 0 28px;
   background: #f5f5f5;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  z-index: 900;
+  z-index: 5000;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -1007,4 +1042,79 @@
 
 :global(.homepage) .header {
   z-index: 800 !important;
+}
+
+/* Final homepage overrides: hide profile only while the right sidebar exists. */
+:global(.homepage) .header {
+  z-index: 5000 !important;
+}
+
+:global(.homepage) .profileLink,
+:global(.homepage) .dropdown {
+  display: none !important;
+}
+
+:global(.homepage) .notificationWrapper {
+  margin-right: 0 !important;
+}
+
+@media (max-width: 1199px) {
+  :global(.homepage) .profileWrapper {
+    margin-left: auto !important;
+    gap: 6px !important;
+  }
+
+  :global(.homepage) .profileLink,
+  :global(.homepage) .dropdown,
+  :global(.homepage) .dropdownBtn,
+  :global(.homepage) .dpContainer,
+  :global(.homepage) .profilePic {
+    display: flex !important;
+  }
+
+  :global(.homepage) .userInfo {
+    display: none !important;
+  }
+
+  :global(.homepage) .notificationDropdown {
+    right: 10px !important;
+  }
+}
+
+/* Keep header popovers above page-level scroll containers and stacking contexts. */
+.header,
+.profileWrapper,
+.notificationWrapper,
+.dropdown {
+  overflow: visible !important;
+}
+
+.notificationDropdown,
+.dropdownContent {
+  position: fixed !important;
+  z-index: 1000000 !important;
+}
+
+.notificationDropdown {
+  top: 78px !important;
+  right: 86px !important;
+}
+
+.dropdownContent {
+  top: 78px !important;
+  right: 28px !important;
+}
+
+.notificationDropdown.show,
+.dropdownContent.show,
+.show {
+  display: block !important;
+}
+
+@media (max-width: 768px) {
+  .notificationDropdown,
+  .dropdownContent {
+    top: 65px !important;
+    right: 10px !important;
+  }
 }

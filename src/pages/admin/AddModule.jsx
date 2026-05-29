@@ -1,17 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import {
-  LayoutDashboard,
-  Users,
-  Layers,
-  LibraryBig,
-  Gamepad2,
-  LogOut,
-  Search,
-  User,
-  Settings,
-  Database,
-} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import styles from "./Addmodule.module.css";
 import "boxicons/css/boxicons.min.css";
@@ -19,6 +7,143 @@ import { API_BASE } from "../../config.js";
 
 import AdminSidebar from "../../components/ASidebar";
 import AdminHeader from "../../components/AHeader";
+
+const TITLE_CHAR_LIMIT = 100;
+const LONG_TEXT_CHAR_LIMIT = 750;
+const QUIZ_CHAR_LIMIT = 100;
+const EXPLANATION_CHAR_LIMIT = 750;
+
+function getCharCount(value) {
+  return String(value || "").length;
+}
+
+function limitChars(value, limit) {
+  return String(value || "").slice(0, limit);
+}
+
+function hasTooMuchRepeatedPattern(value) {
+  const text = String(value || "")
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .trim();
+
+  if (text.length < 12) return false;
+
+  if (/(.)\1{5,}/.test(text)) return true;
+
+  const commonSpamPatterns = [
+    "dadada",
+    "awawaw",
+    "asdfasdf",
+    "qwertyqwerty",
+    "hahaha",
+    "hehehe",
+  ];
+
+  if (commonSpamPatterns.some((pattern) => text.includes(pattern))) {
+    return true;
+  }
+
+  for (let size = 2; size <= 10; size++) {
+    for (let start = 0; start <= text.length - size * 4; start++) {
+      const pattern = text.slice(start, start + size);
+      const repeated = pattern.repeat(4);
+
+      if (text.includes(repeated)) return true;
+    }
+  }
+
+  const chunks = text.match(/.{1,4}/g) || [];
+  const uniqueChunks = new Set(chunks);
+
+  return chunks.length >= 8 && uniqueChunks.size <= 3;
+}
+
+function isLikelyGibberish(value) {
+  const raw = String(value || "").toLowerCase().trim();
+  const cleaned = raw.replace(/[^a-z\s]/g, "").trim();
+
+  if (cleaned.length < 12) return false;
+
+  const words = cleaned.split(/\s+/).filter(Boolean);
+  const joined = cleaned.replace(/\s+/g, "");
+
+  if (!words.length || joined.length < 12) return false;
+
+  const knownTechnicalTerms = new Set([
+    "html",
+    "css",
+    "php",
+    "mysql",
+    "react",
+    "vite",
+    "xampp",
+    "api",
+    "json",
+    "sql",
+    "ipv4",
+    "cidr",
+    "dhcp",
+    "dns",
+    "tcp",
+    "udp",
+    "http",
+    "https",
+    "ssh",
+    "vlan",
+    "nat",
+    "cpu",
+    "ram",
+    "ssd",
+    "gpu",
+  ]);
+
+  const meaningfulWords = words.filter((word) => {
+    if (knownTechnicalTerms.has(word)) return true;
+    if (/\d/.test(word)) return true;
+    return word.length <= 7;
+  });
+
+  const longWords = words.filter((word) => word.length >= 8);
+
+  if (longWords.length === 0) return false;
+
+  let suspicious = 0;
+
+  for (const word of longWords) {
+    if (knownTechnicalTerms.has(word) || /\d/.test(word)) continue;
+
+    const vowels = (word.match(/[aeiou]/g) || []).length;
+    const vowelRatio = vowels / word.length;
+    const consonantRuns = word.match(/[bcdfghjklmnpqrstvwxyz]{5,}/g) || [];
+
+    if (vowelRatio < 0.18 || consonantRuns.length > 0) {
+      suspicious++;
+    }
+  }
+
+  const suspiciousRatio = suspicious / longWords.length;
+
+  if (words.length === 1 && joined.length >= 16 && suspiciousRatio >= 0.5) {
+    return true;
+  }
+
+  if (meaningfulWords.length >= Math.ceil(words.length * 0.6)) {
+    return false;
+  }
+
+  return suspicious >= 2 && suspiciousRatio >= 0.5;
+}
+
+function isInvalidText(value) {
+  return hasTooMuchRepeatedPattern(value) || isLikelyGibberish(value);
+}
+
+function counterClass(current, limit) {
+  return current >= limit
+    ? `${styles.wordCounter} ${styles.wordCounterFull}`
+    : styles.wordCounter;
+}
 
 function serializeQuizItems(items) {
   return JSON.stringify(
@@ -42,8 +167,14 @@ function parseLessonPages(raw) {
     if (Array.isArray(parsed)) {
       return parsed.map((page, index) => ({
         id: index + 1,
-        title: String(page.title || `Lesson Page ${index + 1}`).trim(),
-        content: String(page.content || "").trim(),
+        title: limitChars(
+          String(page.title || `Lesson Page ${index + 1}`).trim(),
+          TITLE_CHAR_LIMIT
+        ),
+        content: limitChars(
+          String(page.content || "").trim(),
+          LONG_TEXT_CHAR_LIMIT
+        ),
       }));
     }
   } catch {
@@ -51,7 +182,7 @@ function parseLessonPages(raw) {
       {
         id: 1,
         title: "Lesson Content",
-        content: String(raw || "").trim(),
+        content: limitChars(String(raw || "").trim(), LONG_TEXT_CHAR_LIMIT),
       },
     ];
   }
@@ -104,15 +235,13 @@ export default function AddModule() {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [extractingFile, setExtractingFile] = useState(false);
 
-  const menuItems = [
-    { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
-    { label: "User Management", path: "/admin/users", icon: <Users size={20} /> },
-    { label: "Module Management", path: "/admin/modules", icon: <Layers size={20} /> },
-    { label: "Decks Management", path: "/admin/decks", icon: <LibraryBig size={20} /> },
-    { label: "Modes Management", path: "/admin/modes", icon: <Gamepad2 size={20} /> },
-    { label: "Notification Management", path: "/admin/notifications", icon: <i className="bx bx-bell"></i> },
-    { label: "Backup & Restore", path: "/admin/backup-restore", icon: <Database size={20} /> },
-  ];
+  const handleLimitedChange = (setter, limit) => (e) => {
+    setter(limitChars(e.target.value, limit));
+  };
+
+  const handleLimitedLessonChange = (index, field, limit) => (e) => {
+    updateLessonPage(index, field, limitChars(e.target.value, limit));
+  };
 
   const handleLogout = (e) => {
     e.preventDefault();
@@ -313,17 +442,25 @@ export default function AddModule() {
         throw new Error(data.message || "Could not extract module content.");
       }
 
-      setNewTitle(data.module_title || "");
-      setNewSubject(data.subject || "");
-      setNewDesc(data.description || "");
-      setNewLearningObjectives(data.learning_objectives || "");
+      setNewTitle(limitChars(data.module_title || "", TITLE_CHAR_LIMIT));
+      setNewSubject(limitChars(data.subject || "", TITLE_CHAR_LIMIT));
+      setNewDesc(limitChars(data.description || "", LONG_TEXT_CHAR_LIMIT));
+      setNewLearningObjectives(
+        limitChars(data.learning_objectives || "", LONG_TEXT_CHAR_LIMIT)
+      );
 
       const pages =
         Array.isArray(data.lesson_pages) && data.lesson_pages.length > 0
           ? data.lesson_pages.map((page, index) => ({
               id: index + 1,
-              title: String(page.title || `Lesson Page ${index + 1}`).trim(),
-              content: String(page.content || "").trim(),
+              title: limitChars(
+                String(page.title || `Lesson Page ${index + 1}`).trim(),
+                TITLE_CHAR_LIMIT
+              ),
+              content: limitChars(
+                String(page.content || "").trim(),
+                LONG_TEXT_CHAR_LIMIT
+              ),
             }))
           : parseLessonPages(data.lesson_content || "");
 
@@ -409,14 +546,20 @@ export default function AddModule() {
 
     return questions.slice(0, 10).map((item, index) => ({
       id: index + 1,
-      question: String(item.question || "").trim(),
+      question: limitChars(String(item.question || "").trim(), QUIZ_CHAR_LIMIT),
       options: Array.isArray(item.options)
-        ? [...item.options, "", "", "", ""].slice(0, 4)
+        ? [...item.options, "", "", ""].slice(0, 4).map((option) =>
+            limitChars(String(option || "").trim(), QUIZ_CHAR_LIMIT)
+          )
         : ["", "", "", ""],
-      correct_answer: String(
-        item.correct_answer || item.correctAnswer || ""
-      ).trim(),
-      explanation: String(item.explanation || "").trim(),
+      correct_answer: limitChars(
+        String(item.correct_answer || item.correctAnswer || "").trim(),
+        QUIZ_CHAR_LIMIT
+      ),
+      explanation: limitChars(
+        String(item.explanation || "").trim(),
+        EXPLANATION_CHAR_LIMIT
+      ),
     }));
   };
 
@@ -578,10 +721,12 @@ export default function AddModule() {
 
     return {
       ...item,
-      options: [...data.wrong_options].slice(0, 4),
+      options: [...data.wrong_options].slice(0, 4).map((option) =>
+        limitChars(String(option || "").trim(), QUIZ_CHAR_LIMIT)
+      ),
       explanation: item.explanation?.trim()
-        ? item.explanation
-        : data.explanation || "",
+        ? limitChars(item.explanation, EXPLANATION_CHAR_LIMIT)
+        : limitChars(data.explanation || "", EXPLANATION_CHAR_LIMIT),
     };
   };
 
@@ -604,6 +749,32 @@ export default function AddModule() {
         icon: "warning",
         title: "Missing Title",
         text: "Module title is required.",
+        buttonsStyling: false,
+      });
+      return;
+    }
+
+    const hasInvalidText =
+      isInvalidText(newTitle) ||
+      isInvalidText(newDesc) ||
+      isInvalidText(newSubject) ||
+      isInvalidText(newLearningObjectives) ||
+      newLessonPages.some(
+        (page) => isInvalidText(page.title) || isInvalidText(page.content)
+      ) ||
+      newQuizItems.some(
+        (item) =>
+          isInvalidText(item.question) ||
+          isInvalidText(item.correct_answer) ||
+          isInvalidText(item.explanation) ||
+          item.options.some((option) => isInvalidText(option))
+      );
+
+    if (hasInvalidText) {
+      await Swal.fire({
+        icon: "warning",
+        title: "Invalid Content",
+        text: "Repeated random characters or keyboard-smash text is not allowed.",
         buttonsStyling: false,
       });
       return;
@@ -706,8 +877,9 @@ export default function AddModule() {
 
           if (!newDesc.trim()) missingFields.push("• Module Description");
           if (!newSubject.trim()) missingFields.push("• Subject");
-          if (!newLearningObjectives.trim())
+          if (!newLearningObjectives.trim()) {
             missingFields.push("• Learning Objectives");
+          }
           if (!hasLessons) missingFields.push("• Lesson Pages");
           if (!hasQuiz) missingFields.push("• Quiz Module");
 
@@ -755,13 +927,97 @@ export default function AddModule() {
     }
   };
 
-  const addLessonPage = () => {
+  const addLessonPage = async () => {
+    const { value } = await Swal.fire({
+      html: `
+        <div class="${styles.quizGenerateModal}">
+          <div class="${styles.quizGenerateHeader}">
+            <span>Add Lesson Page</span>
+          </div>
+
+          <div class="${styles.quizGenerateBody}">
+            <div class="${styles.quizGenerateGroup}">
+              <label>Page Title</label>
+              <input
+                id="lesson-title"
+                type="text"
+                placeholder="Enter page title"
+              />
+              <small id="lesson-title-counter">0/${TITLE_CHAR_LIMIT} characters</small>
+            </div>
+
+            <div class="${styles.quizGenerateGroup}">
+              <label>Page Content</label>
+              <textarea
+                id="lesson-content"
+                class="${styles.popupLongTextarea}"
+                placeholder="Enter page content"
+              ></textarea>
+              <small id="lesson-content-counter">0/${LONG_TEXT_CHAR_LIMIT} characters</small>
+            </div>
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      buttonsStyling: false,
+      confirmButtonText: "Add Page",
+      cancelButtonText: "Cancel",
+      customClass: {
+        popup: styles.quizGeneratePopup,
+        htmlContainer: styles.quizGenerateHtml,
+        actions: styles.quizGenerateActions,
+        confirmButton: styles.quizGenerateConfirm,
+        cancelButton: styles.quizGenerateCancel,
+      },
+      didOpen: () => {
+        const titleInput = document.getElementById("lesson-title");
+        const contentInput = document.getElementById("lesson-content");
+        const titleCounter = document.getElementById("lesson-title-counter");
+        const contentCounter = document.getElementById("lesson-content-counter");
+
+        const syncCounter = (input, counter, limit) => {
+          input.value = limitChars(input.value, limit);
+          const count = getCharCount(input.value);
+          counter.textContent = `${count}/${limit} characters`;
+          counter.style.color = count >= limit ? "#b0478f" : "#666";
+        };
+
+        titleInput.addEventListener("input", () =>
+          syncCounter(titleInput, titleCounter, TITLE_CHAR_LIMIT)
+        );
+
+        contentInput.addEventListener("input", () =>
+          syncCounter(contentInput, contentCounter, LONG_TEXT_CHAR_LIMIT)
+        );
+      },
+      preConfirm: () => {
+        const title = limitChars(
+          document.getElementById("lesson-title")?.value || "",
+          TITLE_CHAR_LIMIT
+        ).trim();
+
+        const content = limitChars(
+          document.getElementById("lesson-content")?.value || "",
+          LONG_TEXT_CHAR_LIMIT
+        ).trim();
+
+        if (!title || !content) {
+          Swal.showValidationMessage("Please enter both page title and content.");
+          return false;
+        }
+
+        return { title, content };
+      },
+    });
+
+    if (!value) return;
+
     setNewLessonPages((prev) => [
       ...prev,
       {
         id: prev.length + 1,
-        title: `Lesson Page ${prev.length + 1}`,
-        content: "",
+        title: value.title,
+        content: value.content,
       },
     ]);
   };
@@ -776,21 +1032,176 @@ export default function AddModule() {
     setNewLessonPages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const addNewQuizItem = () => {
+  const addNewQuizItem = async () => {
+    const { value } = await Swal.fire({
+      html: `
+        <div class="${styles.quizGenerateModal}">
+          <div class="${styles.quizGenerateHeader}">
+            <span>Add Quiz Item</span>
+          </div>
+
+          <div class="${styles.quizGenerateBody}">
+            <div class="${styles.quizGenerateGroup}">
+              <label>Question</label>
+              <input
+                id="quiz-question"
+                type="text"
+                placeholder="Enter question"
+              />
+              <small id="question-counter">0/${QUIZ_CHAR_LIMIT} characters</small>
+            </div>
+
+            <div class="${styles.quizGenerateGroup}">
+              <label>Wrong Options</label>
+              <input id="quiz-option-1" type="text" maxlength="100" placeholder="Option 1" />
+              <small id="option-1-counter">0/${QUIZ_CHAR_LIMIT} characters</small>
+              <input id="quiz-option-2" type="text" maxlength="100" placeholder="Option 2" />
+              <small id="option-2-counter">0/${QUIZ_CHAR_LIMIT} characters</small>
+              <input id="quiz-option-3" type="text" maxlength="100" placeholder="Option 3" />
+              <small id="option-3-counter">0/${QUIZ_CHAR_LIMIT} characters</small>
+            </div>
+
+            <div class="${styles.quizGenerateGroup}">
+              <label>Correct Answer / Option 4</label>
+              <input
+                id="quiz-answer"
+                type="text"
+                placeholder="Enter correct answer"
+              />
+              <small id="answer-counter">0/${QUIZ_CHAR_LIMIT} characters</small>
+            </div>
+
+            <div class="${styles.quizGenerateGroup}">
+              <label>Explanation</label>
+              <textarea
+                id="quiz-explanation"
+                class="${styles.popupShortTextarea}"
+                placeholder="Enter explanation"
+              ></textarea>
+              <small id="explanation-counter">0/${EXPLANATION_CHAR_LIMIT} characters</small>
+            </div>
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      buttonsStyling: false,
+      confirmButtonText: "Add Quiz",
+      cancelButtonText: "Cancel",
+      customClass: {
+        popup: styles.quizGeneratePopup,
+        htmlContainer: styles.quizGenerateHtml,
+        actions: styles.quizGenerateActions,
+        confirmButton: styles.quizGenerateConfirm,
+        cancelButton: styles.quizGenerateCancel,
+      },
+      didOpen: () => {
+        const questionInput = document.getElementById("quiz-question");
+        const answerInput = document.getElementById("quiz-answer");
+        const explanationInput = document.getElementById("quiz-explanation");
+
+        const questionCounter = document.getElementById("question-counter");
+        const answerCounter = document.getElementById("answer-counter");
+        const explanationCounter = document.getElementById("explanation-counter");
+
+        const optionInputs = [1, 2, 3].map((num) =>
+          document.getElementById(`quiz-option-${num}`)
+        );
+
+        const optionCounters = [1, 2, 3].map((num) =>
+          document.getElementById(`option-${num}-counter`)
+        );
+
+        const syncCounter = (input, counter, limit) => {
+          input.value = limitChars(input.value, limit);
+          const count = getCharCount(input.value);
+          counter.textContent = `${count}/${limit} characters`;
+          counter.style.color = count >= limit ? "#b0478f" : "#666";
+        };
+
+        questionInput.addEventListener("input", () =>
+          syncCounter(questionInput, questionCounter, QUIZ_CHAR_LIMIT)
+        );
+
+        answerInput.addEventListener("input", () =>
+          syncCounter(answerInput, answerCounter, QUIZ_CHAR_LIMIT)
+        );
+
+        optionInputs.forEach((input, index) => {
+          input.addEventListener("input", () =>
+            syncCounter(input, optionCounters[index], QUIZ_CHAR_LIMIT)
+          );
+        });
+
+        explanationInput.addEventListener("input", () =>
+          syncCounter(explanationInput, explanationCounter, EXPLANATION_CHAR_LIMIT)
+        );
+      },
+      preConfirm: () => {
+        const question = limitChars(
+          document.getElementById("quiz-question")?.value || "",
+          QUIZ_CHAR_LIMIT
+        ).trim();
+
+        const option1 = limitChars(
+          document.getElementById("quiz-option-1")?.value || "",
+          QUIZ_CHAR_LIMIT
+        ).trim();
+
+        const option2 = limitChars(
+          document.getElementById("quiz-option-2")?.value || "",
+          QUIZ_CHAR_LIMIT
+        ).trim();
+
+        const option3 = limitChars(
+          document.getElementById("quiz-option-3")?.value || "",
+          QUIZ_CHAR_LIMIT
+        ).trim();
+
+        const correct_answer = limitChars(
+          document.getElementById("quiz-answer")?.value || "",
+          QUIZ_CHAR_LIMIT
+        ).trim();
+
+        const explanation = limitChars(
+          document.getElementById("quiz-explanation")?.value || "",
+          EXPLANATION_CHAR_LIMIT
+        ).trim();
+
+        if (!question || !option1 || !option2 || !option3 || !correct_answer) {
+          Swal.showValidationMessage(
+            "Please fill in the question, 3 options, and correct answer."
+          );
+          return false;
+        }
+
+        return {
+          question,
+          options: [option1, option2, option3, correct_answer],
+          correct_answer,
+          explanation,
+        };
+      },
+    });
+
+    if (!value) return;
+
     setNewQuizItems((prev) => [
       ...prev,
       {
-        question: "",
-        options: ["", "", "", ""],
-        correct_answer: "",
-        explanation: "",
+        id: prev.length + 1,
+        question: value.question,
+        options: value.options,
+        correct_answer: value.correct_answer,
+        explanation: value.explanation,
       },
     ]);
   };
 
   const updateNewQuizQuestion = (index, value) => {
     setNewQuizItems((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, question: value } : item))
+      prev.map((item, i) =>
+        i === index ? { ...item, question: limitChars(value, QUIZ_CHAR_LIMIT) } : item
+      )
     );
   };
 
@@ -800,7 +1211,7 @@ export default function AddModule() {
         if (i !== itemIndex) return item;
 
         const updatedOptions = [...item.options];
-        updatedOptions[optionIndex] = value;
+        updatedOptions[optionIndex] = limitChars(value, QUIZ_CHAR_LIMIT);
 
         return { ...item, options: updatedOptions };
       })
@@ -810,7 +1221,9 @@ export default function AddModule() {
   const updateNewCorrectAnswer = (index, value) => {
     setNewQuizItems((prev) =>
       prev.map((item, i) =>
-        i === index ? { ...item, correct_answer: value } : item
+        i === index
+          ? { ...item, correct_answer: limitChars(value, QUIZ_CHAR_LIMIT) }
+          : item
       )
     );
   };
@@ -818,7 +1231,12 @@ export default function AddModule() {
   const updateNewExplanation = (index, value) => {
     setNewQuizItems((prev) =>
       prev.map((item, i) =>
-        i === index ? { ...item, explanation: value } : item
+        i === index
+          ? {
+              ...item,
+              explanation: limitChars(value, EXPLANATION_CHAR_LIMIT),
+            }
+          : item
       )
     );
   };
@@ -826,24 +1244,26 @@ export default function AddModule() {
   const removeNewQuizItem = (index) => {
     setNewQuizItems((prev) => prev.filter((_, i) => i !== index));
   };
-return (
-  <div className={styles.gridContainer}>
-    <AdminSidebar
-      isCollapsed={isCollapsed}
-      setIsCollapsed={setIsCollapsed}
-    />
 
-    <AdminHeader
-      admin={admin}
-      searchQuery={searchQuery}
-      setSearchQuery={setSearchQuery}
-      notificationOpen={notificationOpen}
-      setNotificationOpen={setNotificationOpen}
-      bellNotifications={bellNotifications}
-      notificationCount={notificationCount}
-      handleMarkAllAsRead={handleMarkAllAsRead}
-    />
-     <main className={styles.main}>
+  return (
+    <div className={styles.gridContainer}>
+      <AdminSidebar
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+      />
+
+      <AdminHeader
+        admin={admin}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        notificationOpen={notificationOpen}
+        setNotificationOpen={setNotificationOpen}
+        bellNotifications={bellNotifications}
+        notificationCount={notificationCount}
+        handleMarkAllAsRead={handleMarkAllAsRead}
+      />
+
+      <main className={styles.main}>
         <div className={styles.pageHeader}>
           <h1>Add Module</h1>
         </div>
@@ -858,9 +1278,13 @@ return (
               <input
                 className={styles.popupInput}
                 value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
+                onChange={handleLimitedChange(setNewTitle, TITLE_CHAR_LIMIT)}
                 placeholder="Enter module title"
               />
+
+              <div className={counterClass(getCharCount(newTitle), TITLE_CHAR_LIMIT)}>
+                {getCharCount(newTitle)}/{TITLE_CHAR_LIMIT} characters
+              </div>
             </div>
 
             <div className={styles.popupField}>
@@ -885,9 +1309,13 @@ return (
             <textarea
               className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
               value={newDesc}
-              onChange={(e) => setNewDesc(e.target.value)}
+              onChange={handleLimitedChange(setNewDesc, LONG_TEXT_CHAR_LIMIT)}
               placeholder="Enter module description"
             />
+
+            <div className={counterClass(getCharCount(newDesc), LONG_TEXT_CHAR_LIMIT)}>
+              {getCharCount(newDesc)}/{LONG_TEXT_CHAR_LIMIT} characters
+            </div>
           </div>
 
           <div className={styles.popupSection}>
@@ -898,9 +1326,13 @@ return (
             <input
               className={styles.popupInput}
               value={newSubject}
-              onChange={(e) => setNewSubject(e.target.value)}
+              onChange={handleLimitedChange(setNewSubject, TITLE_CHAR_LIMIT)}
               placeholder="Enter subject"
             />
+
+            <div className={counterClass(getCharCount(newSubject), TITLE_CHAR_LIMIT)}>
+              {getCharCount(newSubject)}/{TITLE_CHAR_LIMIT} characters
+            </div>
           </div>
 
           <div className={styles.popupSection}>
@@ -939,9 +1371,21 @@ return (
             <textarea
               className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
               value={newLearningObjectives}
-              onChange={(e) => setNewLearningObjectives(e.target.value)}
+              onChange={handleLimitedChange(
+                setNewLearningObjectives,
+                LONG_TEXT_CHAR_LIMIT
+              )}
               placeholder="Enter learning objectives"
             />
+
+            <div
+              className={counterClass(
+                getCharCount(newLearningObjectives),
+                LONG_TEXT_CHAR_LIMIT
+              )}
+            >
+              {getCharCount(newLearningObjectives)}/{LONG_TEXT_CHAR_LIMIT} characters
+            </div>
           </div>
 
           <div className={styles.popupSection}>
@@ -981,16 +1425,37 @@ return (
                   <input
                     className={styles.popupInput}
                     value={page.title}
-                    onChange={(e) => updateLessonPage(index, "title", e.target.value)}
+                    onChange={handleLimitedLessonChange(
+                      index,
+                      "title",
+                      TITLE_CHAR_LIMIT
+                    )}
                     placeholder="Page title"
                   />
+
+                  <div className={counterClass(getCharCount(page.title), TITLE_CHAR_LIMIT)}>
+                    {getCharCount(page.title)}/{TITLE_CHAR_LIMIT} characters
+                  </div>
 
                   <textarea
                     className={`${styles.popupTextarea} ${styles.popupLargeBox}`}
                     value={page.content}
-                    onChange={(e) => updateLessonPage(index, "content", e.target.value)}
+                    onChange={handleLimitedLessonChange(
+                      index,
+                      "content",
+                      LONG_TEXT_CHAR_LIMIT
+                    )}
                     placeholder="Page content"
                   />
+
+                  <div
+                    className={counterClass(
+                      getCharCount(page.content),
+                      LONG_TEXT_CHAR_LIMIT
+                    )}
+                  >
+                    {getCharCount(page.content)}/{LONG_TEXT_CHAR_LIMIT} characters
+                  </div>
                 </div>
               ))
             )}
@@ -1048,8 +1513,12 @@ return (
                     placeholder="Question"
                   />
 
+                  <div className={counterClass(getCharCount(item.question), QUIZ_CHAR_LIMIT)}>
+                    {getCharCount(item.question)}/{QUIZ_CHAR_LIMIT} characters
+                  </div>
+
                   <div className={styles.optionsGrid}>
-                    {item.options.map((option, optionIndex) => (
+                    {item.options.slice(0, 4).map((option, optionIndex) => (
                       <input
                         key={optionIndex}
                         className={styles.popupInput}
@@ -1069,12 +1538,30 @@ return (
                     placeholder="Correct Answer"
                   />
 
+                  <div
+                    className={counterClass(
+                      getCharCount(item.correct_answer),
+                      QUIZ_CHAR_LIMIT
+                    )}
+                  >
+                    {getCharCount(item.correct_answer)}/{QUIZ_CHAR_LIMIT} characters
+                  </div>
+
                   <textarea
                     className={`${styles.popupTextarea} ${styles.popupAnswerBox}`}
                     value={item.explanation}
                     onChange={(e) => updateNewExplanation(index, e.target.value)}
                     placeholder="Explanation"
                   />
+
+                  <div
+                    className={counterClass(
+                      getCharCount(item.explanation),
+                      EXPLANATION_CHAR_LIMIT
+                    )}
+                  >
+                    {getCharCount(item.explanation)}/{EXPLANATION_CHAR_LIMIT} characters
+                  </div>
                 </div>
               ))
             )}

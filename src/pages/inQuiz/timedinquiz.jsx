@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { API_BASE } from "../../config.js";
+import { updateDeckCardMemorized } from "../../utils/cardMemorization.js";
 import styles from "./timedinquiz.module.css";
 
 const timedFrames = [
@@ -337,6 +338,7 @@ export default function TimedQuiz() {
               if (!isTrueFalse && options.length < 4) return null;
 
               return {
+                cardId,
                 question: questionText,
                 options: options.filter(Boolean).map(String),
                 answer: String(correctAnswer),
@@ -405,7 +407,7 @@ export default function TimedQuiz() {
     window.speechSynthesis.speak(utterance);
   };
 
-  function handleAnswer(selectedAnswerValue) {
+  async function handleAnswer(selectedAnswerValue) {
     const currentQuestion = questions[questionIndex];
 
     if (!currentQuestion || selectedAnswer !== null) return;
@@ -418,6 +420,7 @@ export default function TimedQuiz() {
       cleanAnswer(selectedAnswerValue) === cleanAnswer(currentQuestion.answer);
 
     const newResult = {
+      cardId: currentQuestion.cardId || null,
       question: currentQuestion.question,
       userAnswer: selectedAnswerValue,
       correctAnswer: currentQuestion.answer,
@@ -430,6 +433,16 @@ export default function TimedQuiz() {
 
     setUserResults(updatedResults);
     setScore(updatedScore);
+
+    await updateDeckCardMemorized(
+      isDeckMode,
+      currentQuestion.cardId,
+      isCorrect,
+      {
+        question: currentQuestion.question,
+        answer: currentQuestion.answer,
+      }
+    );
 
     setTimeout(() => {
       setSelectedAnswer(null);
@@ -473,20 +486,26 @@ export default function TimedQuiz() {
 
     await saveQuizAttempt(finalScore, finishReason);
 
-    localStorage.setItem(
-      "lessonQuizResults",
-      JSON.stringify({
-        source: isDeckMode ? "deck" : "lesson",
-        quizMode: "timed",
-        finishReason,
-        isTimedOut: finishReason === "timeout",
-        deckId: deckId ? Number(deckId) : null,
-        lessonId: lessonId ? Number(lessonId) : null,
-        score: finalScore,
-        total: questions.length,
-        answers: finalResults,
-      })
-    );
+    const resultPayload = {
+      source: isDeckMode ? "deck" : "lesson",
+      quizMode: "timed",
+      finishReason,
+      isTimedOut: finishReason === "timeout",
+      deckId: deckId ? Number(deckId) : null,
+      lessonId: lessonId ? Number(lessonId) : null,
+      score: finalScore,
+      total: questions.length,
+      answers: finalResults,
+    };
+
+    localStorage.setItem("lessonQuizResults", JSON.stringify(resultPayload));
+
+    if (isDeckMode) {
+      localStorage.setItem(
+        `deckQuizResults_${deckId}`,
+        JSON.stringify(resultPayload)
+      );
+    }
 
     localStorage.removeItem("timedQuizSeconds");
 

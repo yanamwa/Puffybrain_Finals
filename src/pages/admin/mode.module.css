@@ -6,8 +6,6 @@
   --shadow: 0 14px 35px rgba(20, 20, 40, 0.08);
 }
 
-/* ===== LAYOUT ===== */
-
 .gridContainer {
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr);
@@ -323,7 +321,7 @@
   background: #ffffff;
   border-radius: 18px;
   box-shadow: var(--shadow);
-  overflow-x: auto;
+  overflow-x: hidden;
   overflow-y: hidden;
   box-sizing: border-box;
 }
@@ -829,20 +827,22 @@
   color: #333;
 }
 
-/* ===== RESPONSIVE ===== */
+
+/* ===== RESPONSIVE FIX ===== */
 
 @media (max-width: 1200px) {
   .main {
     padding: 40px 35px;
   }
 
-  .tableHeader,
-  .row {
-    grid-template-columns: 90px 150px 1fr 150px 210px;
-  }
-
   .searchBar {
     width: 380px;
+  }
+
+  .tableHeader,
+  .row {
+    grid-template-columns: 70px 140px minmax(160px, 1fr) 130px 180px;
+    min-width: 0;
   }
 }
 
@@ -877,7 +877,7 @@
 
   .pageTop {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 18px;
     margin-bottom: 28px;
   }
@@ -885,40 +885,48 @@
   .searchBar {
     width: 100%;
     max-width: 360px;
-    margin: 0 auto;
-  }
-
-  .tableHeader,
-  .row {
-    grid-template-columns: 70px 140px 220px 140px 190px;
-    min-width: 760px;
+    margin: 0;
   }
 
   .adminHeaderName {
     display: none;
   }
+
+  .tableCard {
+    overflow-x: hidden;
+  }
+
+  .tableHeader,
+  .row {
+    grid-template-columns: 60px 120px minmax(140px, 1fr) 110px 160px;
+    min-width: 0;
+  }
+
+  .actionButtons {
+    flex-wrap: wrap;
+    gap: 7px;
+  }
 }
 
 @media (max-width: 768px) {
   .gridContainer {
-    grid-template-columns: 60px minmax(0, 1fr);
-    grid-template-rows: 65px 1fr;
-    grid-template-areas:
-      "sidebar header"
-      "sidebar main";
+    grid-template-columns: 52px minmax(0, 1fr);
+    grid-template-rows: 58px 1fr;
   }
 
-  .sidebar {
-    width: 60px;
-    transform: none;
+  .sidebar,
+  .sidebar.collapsed {
+    width: 52px;
   }
 
   .headerContainer {
-    padding: 0 12px;
+    height: 58px;
+    padding: 0 8px;
+    gap: 8px;
   }
 
   .main {
-    padding: 28px 14px;
+    padding: 20px 10px;
   }
 
   .pageTop {
@@ -927,7 +935,7 @@
   }
 
   .pageTitle {
-    font-size: 28px;
+    font-size: 26px;
   }
 
   .pageTop p {
@@ -937,14 +945,12 @@
   .searchBar {
     width: 100%;
     max-width: none;
-    height: 34px;
+    height: 32px;
+    padding: 0 10px;
   }
 
-  .tableHeader,
-  .row {
-    grid-template-columns: 65px 130px 210px 130px 180px;
-    min-width: 715px;
-    padding: 14px 16px;
+  .adminHeaderProfile {
+    display: none;
   }
 
   .addBtn {
@@ -952,8 +958,48 @@
     text-align: center;
   }
 
-  .adminHeaderProfile {
+  .tableHeader {
     display: none;
+  }
+
+  .tableCard {
+    overflow-x: hidden;
+    box-shadow: none;
+    background: transparent;
+  }
+
+  .row {
+    display: block;
+    min-width: 0;
+    padding: 14px;
+    margin-bottom: 14px;
+    border: 1px solid #eeeeee;
+    border-radius: 16px;
+    background: #ffffff;
+    text-align: left;
+  }
+
+  .row > * {
+    display: block;
+    width: 100%;
+    margin-bottom: 8px;
+    text-align: left;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .actionButtons {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .viewBtn,
+  .editBtn,
+  .deleteBtn {
+    width: 100%;
   }
 
   .paginationWrapper {
@@ -964,68 +1010,29 @@
 
   .rowsControl {
     position: static;
+    justify-content: center;
   }
 
   .notificationDropdown {
-    right: 0;
-    width: 300px;
+    position: fixed;
+    top: 64px;
+    right: 10px;
+    width: calc(100vw - 72px);
+    max-width: 300px;
   }
 }
 
 @media (max-width: 480px) {
-  .gridContainer {
-    grid-template-columns: 52px minmax(0, 1fr);
-  }
-
-  .sidebar {
-    width: 52px;
-  }
-
-  .sidebar.collapsed {
-    width: 52px;
-  }
-
-  .headerContainer {
-    padding: 0 10px;
-  }
-
   .main {
-    padding: 22px 10px;
+    padding: 18px 8px;
   }
 
   .pageTitle {
-    font-size: 25px;
-  }
-
-  .searchBar {
-    height: 34px;
-    padding: 0 12px;
+    font-size: 24px;
   }
 
   .searchBar input {
-    font-size: 14px;
-  }
-
-  .tableHeader,
-  .row {
-    grid-template-columns: 60px 120px 200px 120px 170px;
-    min-width: 670px;
-    padding: 14px 18px;
-  }
-
-  .actionButtons {
-    gap: 7px;
-  }
-
-  .viewBtn,
-  .editBtn,
-  .deleteBtn {
-    padding: 6px 10px;
     font-size: 13px;
-  }
-
-  .notificationDropdown {
-    width: 270px;
   }
 
   .swalPopup {

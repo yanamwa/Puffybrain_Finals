@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { API_BASE } from "../../config.js";
+import { syncDeckCardMemorizationFromAnswers } from "../../utils/cardMemorization.js";
 import styles from "./lessonresult.module.css";
 import QuizModesModal from "../../components/QuizModesModal";
 
@@ -77,6 +78,10 @@ export default function LessonResult() {
       setIsTimedOut(Boolean(savedResults.isTimedOut || savedResults.timedOut));
 
       fetchAttempts(savedResults);
+      syncDeckCardMemorizationFromAnswers(
+        detectedSource === "deck",
+        savedResults.answers || []
+      );
     }
   }, [lessonId, deckId]);
 

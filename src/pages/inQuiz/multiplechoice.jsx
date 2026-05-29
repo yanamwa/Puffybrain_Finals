@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { API_BASE } from "../../config.js";
+import { updateDeckCardMemorized } from "../../utils/cardMemorization.js";
 import styles from "./multiplechoice.module.css";
 
 const multipleFrames = [
@@ -369,6 +370,7 @@ export default function Quiz() {
               if (options.length < 4) return null;
 
               return {
+                cardId,
                 q: questionOnly,
                 options,
                 correctAnswer,
@@ -430,7 +432,7 @@ export default function Quiz() {
     }
   }
 
-  function handleAnswer(index) {
+  async function handleAnswer(index) {
     if (locked || !question) return;
 
     setSelected(index);
@@ -441,6 +443,7 @@ export default function Quiz() {
     const newScore = score + (isCorrect ? 1 : 0);
 
     const newAnswer = {
+      cardId: question.cardId || null,
       question: question.q,
       userAnswer: chosenAnswer,
       correctAnswer: question.correctAnswer,
@@ -456,6 +459,11 @@ export default function Quiz() {
       setScore(newScore);
     }
 
+    await updateDeckCardMemorized(isDeckMode, question.cardId, isCorrect, {
+      question: question.q,
+      answer: question.correctAnswer,
+    });
+
     setTimeout(async () => {
       if (current + 1 < questions.length) {
         setCurrent((prev) => prev + 1);
@@ -467,18 +475,24 @@ export default function Quiz() {
 
       await saveQuizAttempt(newScore);
 
-      localStorage.setItem(
-        "lessonQuizResults",
-        JSON.stringify({
-          source: isDeckMode ? "deck" : "lesson",
-          quizMode: "multiple",
-          deckId: deckId ? Number(deckId) : null,
-          lessonId: lessonId ? Number(lessonId) : null,
-          score: newScore,
-          total: questions.length,
-          answers: updatedAnswers,
-        })
-      );
+      const resultPayload = {
+        source: isDeckMode ? "deck" : "lesson",
+        quizMode: "multiple",
+        deckId: deckId ? Number(deckId) : null,
+        lessonId: lessonId ? Number(lessonId) : null,
+        score: newScore,
+        total: questions.length,
+        answers: updatedAnswers,
+      };
+
+      localStorage.setItem("lessonQuizResults", JSON.stringify(resultPayload));
+
+      if (isDeckMode) {
+        localStorage.setItem(
+          `deckQuizResults_${deckId}`,
+          JSON.stringify(resultPayload)
+        );
+      }
 
       window.speechSynthesis?.cancel();
       navigate(isDeckMode ? `/review/deck/${deckId}` : `/review/${lessonId}`);

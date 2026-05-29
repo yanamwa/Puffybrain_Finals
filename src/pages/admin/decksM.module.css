@@ -507,30 +507,38 @@
 
 .modal {
   background: #ffffff;
-  border-radius: 16px;
-  width: 460px;
+  border-radius: 22px;
+  width: min(540px, 92vw);
+  max-height: 88vh;
   overflow: hidden;
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 18px 55px rgba(64, 37, 92, 0.24);
 }
 
 .modalHeader {
-  background: var(--secondary);
-  padding: 18px 22px;
-  font-size: 24px;
+  background: linear-gradient(135deg, #e7a9df, #d9b6ff);
+  padding: 20px 24px;
+  font-size: 25px;
+  color: #111111;
   position: relative;
+  letter-spacing: 0.3px;
 }
 
 .modalBody {
-  padding: 22px;
-  font-size: 17px;
+  padding: 24px;
+  font-size: 16px;
+  color: #2f2f2f;
+  max-height: calc(88vh - 68px);
+  overflow-y: auto;
 }
 
 .close {
   position: absolute;
   right: 22px;
-  top: 12px;
+  top: 16px;
   cursor: pointer;
-  font-size: 28px;
+  font-size: 30px;
+  color: #111111;
+  line-height: 1;
 }
 
 /* RESPONSIVE */
@@ -603,23 +611,73 @@
   color: #166534;
 }
 
+.deckProfileGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 26px;
+  background: #fff9ff;
+  border: 2px solid #f0d9ff;
+  border-radius: 18px;
+  padding: 18px 20px;
+  margin-bottom: 18px;
+}
+
+.deckProfileRow {
+  display: grid;
+  grid-template-columns: 108px 1fr;
+  gap: 12px;
+  align-items: start;
+  min-width: 0;
+}
+
+.deckDescriptionRow {
+  grid-column: 1 / -1;
+}
+
+.deckProfileLabel {
+  color: #777777;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.deckProfileValue {
+  color: #222222;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.detailBadge {
+  width: fit-content;
+  min-width: 0;
+  min-height: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .cardsSection {
   margin-top: 18px;
-  padding-top: 14px;
-  border-top: 1px solid #eeeeee;
+  padding-top: 18px;
+  border-top: 2px dashed #ead4fb;
 }
 
 .cardsSection h3 {
   margin: 0 0 12px;
   font-size: 22px;
+  color: #7b4ea0;
 }
 
 .cardsList {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-height: 230px;
+  max-height: 250px;
   overflow-y: auto;
+  padding-right: 6px;
 }
 
 .cardItem {
@@ -627,10 +685,17 @@
   border: 1px solid #ead4fb;
   border-radius: 12px;
   padding: 12px;
+  box-shadow: 0 6px 14px rgba(111, 72, 145, 0.08);
 }
 
 .cardItem p {
-  margin: 4px 0;
+  margin: 5px 0;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.cardItem strong {
+  color: #2f2f2f;
 }
 
 .paginationWrapper {
@@ -849,10 +914,6 @@
   display: block;
 }
 
-
-
-/* FINAL SIDEBAR + HEADER RESPONSIVE FIX */
-
 .gridContainer {
   display: grid !important;
   grid-template-columns: 220px minmax(0, 1fr) !important;
@@ -870,40 +931,37 @@
   grid-template-columns: 60px minmax(0, 1fr) !important;
 }
 
-.headerContainer {
-  grid-area: header;
-  width: 100%;
+.headerContainer,
+.main {
   min-width: 0;
+  width: 100%;
   box-sizing: border-box;
-}
-
-.sidebar {
-  grid-area: sidebar;
-  width: 220px;
-}
-
-.collapsedGrid .sidebar {
-  width: 60px;
 }
 
 .main {
-  grid-area: main;
-  min-width: 0;
-  width: 100%;
-  box-sizing: border-box;
   overflow-x: hidden;
 }
 
 .tableCard {
   width: 100%;
   max-width: 100%;
-  overflow-x: auto;
+  overflow-x: hidden;
   box-sizing: border-box;
 }
 
 .tableHeader,
 .row {
-  min-width: 1020px;
+  display: grid;
+  grid-template-columns: 100px 120px minmax(160px, 1.2fr) 120px 110px 110px 90px;
+  min-width: 0;
+  gap: 8px;
+}
+
+.tableHeader > *,
+.row > * {
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 @media (max-width: 1100px) {
@@ -968,7 +1026,6 @@
 
   .searchBar {
     width: 100%;
-    max-width: none;
     height: 32px;
     padding: 0 10px;
   }
@@ -991,9 +1048,36 @@
 
   .sortBox {
     width: 100%;
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .sortBox select {
+    width: 100%;
+  }
+
+  .tableHeader {
+    display: none;
+  }
+
+  .row {
+    display: block;
+    min-width: 0;
+    padding: 14px;
+    margin-bottom: 14px;
+    border: 1px solid #eeeeee;
+    border-radius: 16px;
+    background: #ffffff;
+  }
+
+  .row > * {
+    display: block;
+    width: 100%;
+    text-align: left;
+    margin-bottom: 8px;
+  }
+
+  .viewBtn {
     width: 100%;
   }
 

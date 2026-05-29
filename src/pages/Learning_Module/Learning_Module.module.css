@@ -1308,101 +1308,343 @@
 }
 
 @media (max-width: 480px) {
-  .headerContainer {
-    left: 0;
-    height: 70px;
+  /* ===== SIDEBAR ===== */
+  .sidebar {
+    width: 56px !important;
+    overflow-x: hidden;
   }
 
-  .mainArea {
+  .sidebar.collapsed {
+    width: 56px !important;
+  }
+
+  .container.sidebarCollapsed .sidebar {
+    width: 56px !important;
+  }
+
+  .logoExpanded,
+  .sidebar .menuText,
+  .sidebar .sectionTitle,
+  .sidebar .myDecksTitle,
+  .sidebar .sidebarEmptyText,
+  .sidebar .sidebarList span,
+  .sidebar .sectionList span {
+    display: none !important;
+  }
+
+  .logoCollapsed {
+    display: block !important;
+    width: 52px;
+    height: 52px;
+    object-fit: contain;
+  }
+
+  .sidebarToggle {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .sidebarListItem {
+    padding: 0;
+  }
+
+  .menuItem {
+    justify-content: center;
+    padding: 10px 0;
+    margin: 4px 0;
+    border-radius: 0;
+    transform: none !important;
+  }
+
+  .menuItem:hover,
+  .menuItem.active,
+  .active {
+    transform: none !important;
+  }
+
+  .sidebarList i,
+  .sectionList i,
+  .sidebar.collapsed i {
+    width: 100%;
+    min-width: 100%;
     margin-left: 0;
+    margin-right: 0;
+    display: flex;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  /* ===== MAIN AREA ===== */
+  .mainArea {
+    margin-left: 56px !important;
+    width: calc(100% - 56px);
+    min-width: 0;
+  }
+
+  .sidebarCollapsed .mainArea {
+    margin-left: 56px !important;
+  }
+
+  .gridContainer {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .headerContainer {
+    left: 56px !important;
+    right: 0;
+    width: calc(100% - 56px);
+    height: 64px;
+    padding: 0 8px;
+    justify-content: flex-start;
+    gap: 6px;
+    overflow: visible;
+  }
+
+  .sidebarCollapsed .headerContainer {
+    left: 56px !important;
   }
 
   .mainContent {
-    padding: 100px 10px 35px;
+    padding: 88px 8px 30px;
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
   }
 
+  /* ===== HEADER ITEMS ===== */
+  .searchBar {
+    width: min(100%, 145px);
+    max-width: 145px;
+    height: 32px;
+    flex-shrink: 1;
+  }
+
+  .searchBar input {
+    font-size: 11px;
+    padding: 0 8px;
+    min-width: 0;
+  }
+
+  .searchBar i {
+    width: 32px;
+    font-size: 13px;
+  }
+
+  .profileWrapper {
+    right: 6px;
+    top: 11px;
+    gap: 4px;
+  }
+
+  .notificationBtn {
+    width: 34px;
+    height: 34px;
+  }
+
+  .notificationBtn i {
+    font-size: 20px;
+  }
+
+  .notificationBadge {
+    top: 0;
+    right: 0;
+    min-width: 15px;
+    height: 15px;
+    font-size: 10px;
+  }
+
+  .dpContainer,
+  .profilePic {
+    width: 32px;
+    height: 32px;
+  }
+
+  .userInfo {
+    display: none;
+  }
+
+  .dropdownBtn {
+    padding: 2px;
+    font-size: 14px;
+  }
+
+  .dropdownContent {
+    right: 0;
+    width: 165px;
+  }
+
+  .notificationDropdown {
+    right: -44px;
+    width: calc(100vw - 76px);
+    max-width: 300px;
+    min-height: 220px;
+  }
+
+  /* ===== CONTENT ===== */
   .cardsContainer {
+    grid-template-columns: 1fr;
     gap: 16px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .leftcont,
+  .rightcol {
+    width: 100%;
+    min-width: 0;
   }
 
   .courses,
   .studyProgress,
   .cards {
-    border-radius: 20px;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 18px;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .courseHead,
+  .ProgressHead,
+  .cardHead {
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
   }
 
   .innercourse {
-    padding: 18px 14px;
+    padding: 16px 12px;
   }
 
   .innerhead {
     padding-top: 34px;
+    padding-bottom: 8px;
+    gap: 5px;
   }
 
   .titleRow {
-    gap: 10px;
+    gap: 8px;
+    align-items: flex-start;
   }
 
   .lessonTitle {
-    font-size: 21px;
+    font-size: 18px;
+    line-height: 1.25;
     word-break: break-word;
   }
 
   .shareBtn i {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .cardCount {
-    font-size: 13px;
+    font-size: 12px;
+    margin-left: 0;
+  }
+
+  .description {
+    margin-left: 0;
+    margin-right: 0;
   }
 
   .description h3,
   .innerfoot h3 {
-    font-size: 16px;
+    font-size: 15px;
+    margin-left: 0;
   }
 
   .description p {
-    font-size: 14px;
+    min-height: auto;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .innerProgress {
+    margin: 42px 12px 18px;
   }
 
   .innerProgress h1 {
-    font-size: 19px;
+    font-size: 18px;
+  }
+
+  .progressBarContainer {
+    height: 11px;
   }
 
   .progressPercent {
-    font-size: 16px;
+    font-size: 14px;
+    margin-left: 0;
+  }
+
+  .progressDetails {
+    font-size: 12px;
+  }
+
+  .cards {
+    min-height: 420px;
+    max-height: none;
+  }
+
+  .cardHead {
+    min-height: 54px;
+    height: auto;
+    justify-content: center;
+    padding: 8px 0;
   }
 
   .cardButtons {
     width: 100%;
-    padding: 0 12px;
+    margin-right: 0;
+    gap: 10px;
+    padding: 0 10px;
+    justify-content: center;
   }
 
   .btn {
     flex: 1;
     min-width: 0;
-    padding: 6px 12px;
+    height: 30px;
+    padding: 6px 10px;
+    font-size: 12px;
   }
 
   .innercardHead {
-    gap: 18px;
-    padding: 0 14px;
+    margin-top: 64px;
+    gap: 14px;
+    padding: 0 12px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .tabBtn {
+    font-size: 12px;
+    flex: 0 0 auto;
   }
 
   .cardContent {
-    padding: 14px;
+    max-height: none;
+    padding: 12px;
   }
 
   .box {
     border-radius: 10px;
+    padding: 12px;
+    min-height: auto;
   }
 
   .question {
-    font-size: 14px;
+    font-size: 13px;
+  }
+
+  .emptyState {
+    height: auto;
+    min-height: 180px;
+    margin-top: 20px;
+    font-size: 15px;
   }
 
   .emptyImage {
-    width: 130px;
+    width: 120px;
   }
 }
 

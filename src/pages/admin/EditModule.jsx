@@ -97,6 +97,97 @@ function serializeLessonPages(pages) {
   );
 }
 
+const TITLE_CHAR_LIMIT = 100;
+const LONG_TEXT_CHAR_LIMIT = 750;
+const QUIZ_CHAR_LIMIT = 100;
+const EXPLANATION_CHAR_LIMIT = 750;
+
+function getCharCount(value) {
+  return String(value || "").length;
+}
+
+function limitChars(value, limit) {
+  return String(value || "").slice(0, limit);
+}
+
+function hasTooMuchRepeatedPattern(value) {
+  const text = String(value || "")
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .trim();
+
+  if (text.length < 12) return false;
+
+  if (/(.)\1{5,}/.test(text)) return true;
+
+  const commonSpamPatterns = [
+    "dadada",
+    "awawaw",
+    "asdfasdf",
+    "qwertyqwerty",
+    "hahaha",
+    "hehehe",
+  ];
+
+  if (commonSpamPatterns.some((pattern) => text.includes(pattern))) return true;
+
+  for (let size = 2; size <= 10; size++) {
+    for (let start = 0; start <= text.length - size * 4; start++) {
+      const pattern = text.slice(start, start + size);
+      const repeated = pattern.repeat(4);
+
+      if (text.includes(repeated)) return true;
+    }
+  }
+
+  const chunks = text.match(/.{1,4}/g) || [];
+  const uniqueChunks = new Set(chunks);
+
+  return chunks.length >= 8 && uniqueChunks.size <= 3;
+}
+
+
+function isLikelyGibberish(value) {
+  const text = String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z\s]/g, "")
+    .trim();
+
+  if (!text) return false;
+
+  const words = text.split(/\s+/).filter(Boolean);
+  if (words.length === 0) return false;
+
+  const suspiciousWords = words.filter((word) => {
+    if (word.length < 8) return false;
+
+    const vowels = (word.match(/[aeiou]/g) || []).length;
+    const vowelRatio = vowels / word.length;
+
+    const consonantRuns = word.match(/[bcdfghjklmnpqrstvwxyz]{5,}/g) || [];
+    const hasLongConsonantRun = consonantRuns.length > 0;
+
+    return vowelRatio < 0.18 || hasLongConsonantRun;
+  });
+
+  const noSpaceText = text.replace(/\s+/g, "");
+  const vowels = (noSpaceText.match(/[aeiou]/g) || []).length;
+  const vowelRatio = noSpaceText.length ? vowels / noSpaceText.length : 0;
+  const hasVeryLongNoSpaceText = words.length === 1 && noSpaceText.length >= 18;
+
+  if (hasVeryLongNoSpaceText && vowelRatio < 0.22) return true;
+
+  return suspiciousWords.length >= Math.ceil(words.length * 0.6);
+}
+
+function isInvalidText(value) {
+  return hasTooMuchRepeatedPattern(value) || isLikelyGibberish(value);
+}
+
+function counterClass(current, limit) {
+  return current >= limit ? `${styles.wordCounter} ${styles.wordCounterFull}` : styles.wordCounter;
+}
+
 export default function EditModule() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -135,6 +226,14 @@ export default function EditModule() {
 
   const [uploadedFile, setUploadedFile] = useState(null);
   const [extractingFile, setExtractingFile] = useState(false);
+
+  const handleLimitedChange = (setter, limit) => (e) => {
+    setter(limitChars(e.target.value, limit));
+  };
+
+  const handleLimitedLessonChange = (index, field, limit) => (e) => {
+    updateLessonPage(index, field, limitChars(e.target.value, limit));
+  };
 
   const menuItems = [
     { label: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
@@ -673,6 +772,33 @@ export default function EditModule() {
       return;
     }
 
+    const hasInvalidRepeatedText =
+      isInvalidText(editTitle) ||
+      isInvalidText(editDesc) ||
+      isInvalidText(editSubject) ||
+      isInvalidText(editLearningObjectives) ||
+      editLessonPages.some(
+        (page) =>
+          isInvalidText(page.title) ||
+          isInvalidText(page.content)
+      ) ||
+      editQuizItems.some(
+        (item) =>
+          isInvalidText(item.question) ||
+          isInvalidText(item.correct_answer) ||
+          isInvalidText(item.explanation) ||
+          item.options.some((option) => isInvalidText(option))
+      );
+
+    if (hasInvalidRepeatedText) {
+      await Swal.fire({
+        icon: "warning",
+        title: "Invalid Content",
+        text: "Repeated random characters, repeated text patterns, or keyboard-smash text are not allowed.",
+      });
+      return;
+    }
+
     const completedQuizItems = [];
 
     for (const item of editQuizItems) {
@@ -792,13 +918,96 @@ export default function EditModule() {
     }
   };
 
-  const addLessonPage = () => {
+  const addLessonPage = async () => {
+    const { value } = await Swal.fire({
+      html: `
+        <div class="${styles.quizGenerateModal}">
+          <div class="${styles.quizGenerateHeader}">
+            <span>Add Lesson Page</span>
+          </div>
+
+          <div class="${styles.quizGenerateBody}">
+            <div class="${styles.quizGenerateGroup}">
+              <label>Page Title</label>
+              <input
+                id="lesson-title"
+                type="text"
+                placeholder="Enter page title"
+              />
+              <small id="lesson-title-counter">0/${TITLE_CHAR_LIMIT} characters</small>
+            </div>
+
+            <div class="${styles.quizGenerateGroup}">
+              <label>Page Content</label>
+              <textarea
+                id="lesson-content"
+                class="${styles.popupLongTextarea}"
+                placeholder="Enter page content"
+              ></textarea>
+              <small id="lesson-content-counter">0/${LONG_TEXT_CHAR_LIMIT} characters</small>
+            </div>
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      buttonsStyling: false,
+      confirmButtonText: "Add Page",
+      cancelButtonText: "Cancel",
+      customClass: {
+        popup: styles.quizGeneratePopup,
+        htmlContainer: styles.quizGenerateHtml,
+        actions: styles.quizGenerateActions,
+        confirmButton: styles.quizGenerateConfirm,
+        cancelButton: styles.quizGenerateCancel,
+      },
+      didOpen: () => {
+        const titleInput = document.getElementById("lesson-title");
+        const contentInput = document.getElementById("lesson-content");
+        const titleCounter = document.getElementById("lesson-title-counter");
+        const contentCounter = document.getElementById("lesson-content-counter");
+
+        const syncCounter = (input, counter, limit) => {
+          input.value = limitChars(input.value, limit);
+          const count = getCharCount(input.value);
+          counter.textContent = `${count}/${limit} characters`;
+          counter.style.color = count >= limit ? "#b0478f" : "#666";
+        };
+
+        titleInput.addEventListener("input", () =>
+          syncCounter(titleInput, titleCounter, TITLE_CHAR_LIMIT)
+        );
+
+        contentInput.addEventListener("input", () =>
+          syncCounter(contentInput, contentCounter, LONG_TEXT_CHAR_LIMIT)
+        );
+      },
+      preConfirm: () => {
+        const title = limitChars(
+          document.getElementById("lesson-title")?.value.trim(),
+          TITLE_CHAR_LIMIT
+        );
+        const content = limitChars(
+          document.getElementById("lesson-content")?.value.trim(),
+          LONG_TEXT_CHAR_LIMIT
+        );
+
+        if (!title || !content) {
+          Swal.showValidationMessage("Please fill in the page title and content.");
+          return false;
+        }
+
+        return { title, content };
+      },
+    });
+
+    if (!value) return;
+
     setEditLessonPages((prev) => [
       ...prev,
       {
         id: prev.length + 1,
-        title: `Lesson Page ${prev.length + 1}`,
-        content: "",
+        title: value.title,
+        content: value.content,
       },
     ]);
   };
@@ -813,21 +1022,172 @@ export default function EditModule() {
     setEditLessonPages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const addEditQuizItem = () => {
-    setEditQuizItems((prev) => [
-      ...prev,
-      {
-        question: "",
-        options: ["", "", "", ""],
-        correct_answer: "",
-        explanation: "",
-      },
-    ]);
-  };
+const addEditQuizItem = async () => {
+  const { value } = await Swal.fire({
+    html: `
+      <div class="${styles.quizGenerateModal}">
+        <div class="${styles.quizGenerateHeader}">
+          <span>Add Quiz Item</span>
+        </div>
+
+        <div class="${styles.quizGenerateBody}">
+          <div class="${styles.quizGenerateGroup}">
+            <label>Question</label>
+            <input
+              id="quiz-question"
+              type="text"
+              placeholder="Enter question"
+            />
+            <small id="question-counter">0/${QUIZ_CHAR_LIMIT} characters</small>
+          </div>
+
+          <div class="${styles.quizGenerateGroup}">
+            <label>Wrong Options</label>
+              <input id="quiz-option-1" type="text" maxlength="100" placeholder="Option 1" />
+            <small>0/100 characters</small>
+
+            <input id="quiz-option-2" type="text" maxlength="100" placeholder="Option 2" />
+            <small>0/100 characters</small>
+
+            <input id="quiz-option-3" type="text" maxlength="100" placeholder="Option 3" />
+            <small>0/100 characters</small>
+          </div>
+
+          <div class="${styles.quizGenerateGroup}">
+            <label>Correct Answer / Option 4</label>
+            <input
+              id="quiz-answer"
+              type="text"
+              placeholder="Enter correct answer"
+            />
+            <small id="answer-counter">0/${QUIZ_CHAR_LIMIT} characters</small>
+          </div>
+
+          <div class="${styles.quizGenerateGroup}">
+            <label>Explanation</label>
+            <textarea
+              id="quiz-explanation"
+              class="${styles.popupShortTextarea}"
+              placeholder="Enter explanation"
+            ></textarea>
+            <small id="explanation-counter">0/${EXPLANATION_CHAR_LIMIT} characters</small>
+          </div>
+        </div>
+      </div>
+    `,
+    showCancelButton: true,
+    buttonsStyling: false,
+    confirmButtonText: "Add Quiz",
+    cancelButtonText: "Cancel",
+    customClass: {
+      popup: styles.quizGeneratePopup,
+      htmlContainer: styles.quizGenerateHtml,
+      actions: styles.quizGenerateActions,
+      confirmButton: styles.quizGenerateConfirm,
+      cancelButton: styles.quizGenerateCancel,
+    },
+    didOpen: () => {
+      const questionInput = document.getElementById("quiz-question");
+      const answerInput = document.getElementById("quiz-answer");
+      const questionCounter = document.getElementById("question-counter");
+      const answerCounter = document.getElementById("answer-counter");
+      const explanationInput = document.getElementById("quiz-explanation");
+      const explanationCounter = document.getElementById("explanation-counter");
+
+      const updateQuizCounter = (input, counter) => {
+        input.value = limitChars(input.value, QUIZ_CHAR_LIMIT);
+
+        const count = getCharCount(input.value);
+        counter.textContent = `${count}/${QUIZ_CHAR_LIMIT} characters`;
+        counter.style.color = count >= QUIZ_CHAR_LIMIT ? "#b0478f" : "#666";
+      };
+
+      questionInput.addEventListener("input", () =>
+        updateQuizCounter(questionInput, questionCounter)
+      );
+
+      answerInput.addEventListener("input", () =>
+        updateQuizCounter(answerInput, answerCounter)
+      );
+
+      explanationInput.addEventListener("input", () => {
+        explanationInput.value = limitChars(
+          explanationInput.value,
+          EXPLANATION_CHAR_LIMIT
+        );
+
+        const count = getCharCount(explanationInput.value);
+        explanationCounter.textContent = `${count}/${EXPLANATION_CHAR_LIMIT} characters`;
+        explanationCounter.style.color =
+          count >= EXPLANATION_CHAR_LIMIT ? "#b0478f" : "#666";
+      });
+    },
+    preConfirm: () => {
+      const question = limitChars(
+        document.getElementById("quiz-question")?.value || "",
+        QUIZ_CHAR_LIMIT
+      ).trim();
+
+      const option1 = limitChars(
+        document.getElementById("quiz-option-1")?.value || "",
+        100
+      ).trim();
+
+      const option2 = limitChars(
+        document.getElementById("quiz-option-2")?.value || "",
+        100
+      ).trim();
+
+      const option3 = limitChars(
+        document.getElementById("quiz-option-3")?.value || "",
+        100
+      ).trim();
+
+      const correct_answer = limitChars(
+        document.getElementById("quiz-answer")?.value || "",
+        QUIZ_CHAR_LIMIT
+      ).trim();
+
+  const explanation = limitChars(
+        document.getElementById("quiz-explanation")?.value || "",
+        EXPLANATION_CHAR_LIMIT
+      ).trim();
+
+      if (!question || !option1 || !option2 || !option3 || !correct_answer) {
+        Swal.showValidationMessage(
+          "Please fill in the question, 3 options, and correct answer."
+        );
+        return false;
+      }
+
+      return {
+        question,
+        options: [option1, option2, option3, correct_answer],
+        correct_answer,
+        explanation,
+      };
+    },
+  });
+
+  if (!value) return;
+
+  setEditQuizItems((prev) => [
+    ...prev,
+    {
+      id: prev.length + 1,
+      question: value.question,
+      options: value.options,
+      correct_answer: value.correct_answer,
+      explanation: value.explanation,
+    },
+  ]);
+};
 
   const updateEditQuizQuestion = (index, value) => {
     setEditQuizItems((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, question: value } : item))
+      prev.map((item, i) =>
+        i === index ? { ...item, question: limitChars(value, QUIZ_CHAR_LIMIT) } : item
+      )
     );
   };
 
@@ -837,7 +1197,7 @@ export default function EditModule() {
         if (i !== itemIndex) return item;
 
         const updatedOptions = [...item.options];
-        updatedOptions[optionIndex] = value;
+        updatedOptions[optionIndex] = limitChars(value, 100);
 
         return {
           ...item,
@@ -850,19 +1210,22 @@ export default function EditModule() {
   const updateEditCorrectAnswer = (index, value) => {
     setEditQuizItems((prev) =>
       prev.map((item, i) =>
-        i === index ? { ...item, correct_answer: value } : item
+        i === index
+          ? { ...item, correct_answer: limitChars(value, QUIZ_CHAR_LIMIT) }
+          : item
       )
     );
   };
 
-  const updateEditExplanation = (index, value) => {
-    setEditQuizItems((prev) =>
-      prev.map((item, i) =>
-        i === index ? { ...item, explanation: value } : item
-      )
-    );
-  };
-
+const updateEditExplanation = (index, value) => {
+  setEditQuizItems((prev) =>
+    prev.map((item, i) =>
+      i === index
+        ? { ...item, explanation: limitChars(value, EXPLANATION_CHAR_LIMIT) }
+        : item
+    )
+  );
+};
   const removeEditQuizItem = (index) => {
     setEditQuizItems((prev) => prev.filter((_, i) => i !== index));
   };
@@ -904,12 +1267,15 @@ export default function EditModule() {
                 Module Title <span className={styles.required}>*Required</span>
               </label>
 
-              <input
-                className={styles.popupInput}
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-                placeholder="Enter module title"
-              />
+             <input
+              className={styles.popupInput}
+              value={editTitle}
+              onChange={handleLimitedChange(setEditTitle, TITLE_CHAR_LIMIT)}
+              placeholder="Enter module title"
+            />
+            <div className={counterClass(getCharCount(editTitle), TITLE_CHAR_LIMIT)}>
+              {getCharCount(editTitle)}/{TITLE_CHAR_LIMIT} characters
+            </div>
             </div>
 
             <div className={styles.popupField}>
@@ -931,12 +1297,15 @@ export default function EditModule() {
               Module Description <span className={styles.required}>*Required</span>
             </label>
 
-            <textarea
-              className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
-              value={editDesc}
-              onChange={(e) => setEditDesc(e.target.value)}
-              placeholder="Enter module description"
-            />
+       <textarea
+  className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
+  value={editDesc}
+  onChange={handleLimitedChange(setEditDesc, LONG_TEXT_CHAR_LIMIT)}
+  placeholder="Enter module description"
+/>
+<div className={counterClass(getCharCount(editDesc), LONG_TEXT_CHAR_LIMIT)}>
+  {getCharCount(editDesc)}/{LONG_TEXT_CHAR_LIMIT} characters
+</div>
           </div>
 
           <div className={styles.popupSection}>
@@ -944,12 +1313,15 @@ export default function EditModule() {
               Subject <span className={styles.required}>*Required</span>
             </label>
 
-            <input
-              className={styles.popupInput}
-              value={editSubject}
-              onChange={(e) => setEditSubject(e.target.value)}
-              placeholder="Enter subject"
-            />
+      <input
+      className={styles.popupInput}
+    value={editSubject}
+    onChange={handleLimitedChange(setEditSubject, TITLE_CHAR_LIMIT)}
+    placeholder="Enter subject"
+  />
+  <div className={counterClass(getCharCount(editSubject), TITLE_CHAR_LIMIT)}>
+    {getCharCount(editSubject)}/{TITLE_CHAR_LIMIT} characters
+  </div>
           </div>
 
           <div className={styles.popupSection}>
@@ -985,12 +1357,15 @@ export default function EditModule() {
               Learning Objectives <span className={styles.required}>*Required</span>
             </label>
 
-            <textarea
-              className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
-              value={editLearningObjectives}
-              onChange={(e) => setEditLearningObjectives(e.target.value)}
-              placeholder="Enter learning objectives"
-            />
+ <textarea
+  className={`${styles.popupTextarea} ${styles.popupSmallBox}`}
+  value={editLearningObjectives}
+  onChange={handleLimitedChange(setEditLearningObjectives, LONG_TEXT_CHAR_LIMIT)}
+  placeholder="Enter learning objectives"
+/>
+<div className={counterClass(getCharCount(editLearningObjectives), LONG_TEXT_CHAR_LIMIT)}>
+  {getCharCount(editLearningObjectives)}/{LONG_TEXT_CHAR_LIMIT} characters
+</div>
           </div>
 
           <div className={styles.popupSection}>
@@ -1030,16 +1405,22 @@ export default function EditModule() {
                   <input
                     className={styles.popupInput}
                     value={page.title}
-                    onChange={(e) => updateLessonPage(index, "title", e.target.value)}
+                    onChange={handleLimitedLessonChange(index, "title", TITLE_CHAR_LIMIT)}
                     placeholder="Page title"
                   />
+                  <div className={counterClass(getCharCount(page.title), TITLE_CHAR_LIMIT)}>
+                    {getCharCount(page.title)}/{TITLE_CHAR_LIMIT} characters
+                  </div>
 
                   <textarea
                     className={`${styles.popupTextarea} ${styles.popupLargeBox}`}
                     value={page.content}
-                    onChange={(e) => updateLessonPage(index, "content", e.target.value)}
+                   onChange={handleLimitedLessonChange(index, "content", LONG_TEXT_CHAR_LIMIT)}
                     placeholder="Page content"
                   />
+                  <div className={counterClass(getCharCount(page.content), LONG_TEXT_CHAR_LIMIT)}>
+                    {getCharCount(page.content)}/{LONG_TEXT_CHAR_LIMIT} characters
+                  </div>
                 </div>
               ))
             )}
@@ -1096,6 +1477,9 @@ export default function EditModule() {
                     onChange={(e) => updateEditQuizQuestion(index, e.target.value)}
                     placeholder="Question"
                   />
+                  <div className={counterClass(getCharCount(item.question), QUIZ_CHAR_LIMIT)}>
+                    {getCharCount(item.question)}/{QUIZ_CHAR_LIMIT} characters
+                  </div>
 
                   <div className={styles.optionsGrid}>
                     {item.options.slice(0, 4).map((option, optionIndex) => (
@@ -1117,13 +1501,20 @@ export default function EditModule() {
                     onChange={(e) => updateEditCorrectAnswer(index, e.target.value)}
                     placeholder="Correct Answer"
                   />
+                  <div className={counterClass(getCharCount(item.correct_answer), QUIZ_CHAR_LIMIT)}>
+                    {getCharCount(item.correct_answer)}/{QUIZ_CHAR_LIMIT} characters
+                  </div>
 
-                  <textarea
-                    className={`${styles.popupTextarea} ${styles.popupAnswerBox}`}
-                    value={item.explanation}
-                    onChange={(e) => updateEditExplanation(index, e.target.value)}
-                    placeholder="Explanation"
-                  />
+             <textarea
+  className={`${styles.popupTextarea} ${styles.popupAnswerBox}`}
+  value={item.explanation}
+  onChange={(e) => updateEditExplanation(index, e.target.value)}
+  placeholder="Explanation"
+/>
+
+<div className={counterClass(getCharCount(item.explanation), EXPLANATION_CHAR_LIMIT)}>
+  {getCharCount(item.explanation)}/{EXPLANATION_CHAR_LIMIT} characters
+</div>
                 </div>
               ))
             )}

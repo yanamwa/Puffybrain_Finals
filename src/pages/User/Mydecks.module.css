@@ -1,4 +1,3 @@
-/* ===== MY DECKS CLEANED CSS ===== */
 
 .container {
   display: flex;
@@ -13,256 +12,6 @@
 .swal2-container {
   z-index: 99999 !important;
 }
-
-/* ===== SIDEBAR ===== */
-.sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 220px;
-  height: 100vh;
-  padding-top: 10px;
-  background-color: var(--color-primary);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  overflow-x: hidden;
-  overflow-y: auto;
-  z-index: 1000;
-  transition: width 0.3s ease;
-}
-
-.container.sidebarCollapsed .sidebar,
-.sidebar.collapsed {
-  width: 60px;
-}
-
-.logo {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  margin-bottom: 0;
-}
-
-.logoExpanded {
-  display: block;
-  width: 150px;
-  height: auto;
-  object-fit: contain;
-  transition: all 0.3s ease;
-}
-
-.logoCollapsed {
-  display: none;
-  width: 48px;
-  height: 48px;
-  object-fit: contain;
-  margin: 0 auto;
-  transition: all 0.3s ease;
-}
-
-.sidebar.collapsed .logoExpanded,
-.container.sidebarCollapsed .logoExpanded {
-  display: none;
-}
-
-.sidebar.collapsed .logoCollapsed,
-.container.sidebarCollapsed .logoCollapsed {
-  display: block;
-}
-
-.sidebarToggle {
-  display: flex;
-  justify-content: flex-end;
-  padding: 0 10px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.sidebar.collapsed .sidebarToggle,
-.container.sidebarCollapsed .sidebarToggle {
-  justify-content: center;
-  padding: 0;
-}
-
-.sidebarToggle i {
-  font-size: 24px;
-  color: #959494;
-}
-
-.menu,
-.myDecksNav,
-.logout {
-  display: flex;
-  flex-direction: column;
-}
-
-.sidebarList,
-.sectionList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.sidebarListItem {
-  margin: 0;
-  padding: 0 8px 0 10px;
-}
-
-.menuItem,
-.logoutLink {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  box-sizing: border-box;
-  text-decoration: none;
-  color: #000;
-  background: transparent;
-  border: none;
-  padding: 10px 14px;
-  margin: 4px 0;
-  border-radius: 999px 0 0 999px;
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.25s ease, transform 0.25s ease;
-  font-family: inherit;
-  font-size: inherit;
-}
-
-.logoutLink {
-  width: calc(100% - 18px);
-  margin: 4px 8px 0 10px;
-}
-
-.menuItem:hover,
-.logoutLink:hover {
-  background: #ffffff;
-  transform: translateX(6px);
-}
-
-.menuItem.active,
-.active {
-  background: rgb(243, 243, 243);
-  transform: translateX(6px);
-  margin-left: 20px;
-}
-
-.sidebarList i,
-.sectionList i,
-.logoutLink i {
-  width: 22px;
-  min-width: 22px;
-  font-size: 20px;
-  margin-left: 14px;
-  margin-right: 10px;
-  opacity: 0.3;
-  color: black;
-  transition: all 0.3s ease;
-}
-
-.menuItem:hover i,
-.menuItem.active i,
-.active i,
-.logoutLink:hover i {
-  opacity: 1;
-}
-
-.menuText {
-  display: inline-block;
-  line-height: 1.2;
-  white-space: normal;
-  word-break: break-word;
-}
-
-.myDecksTitle,
-.sectionTitle {
-  font-size: 17px;
-  margin: 10px 0 5px 15px;
-  font-weight: 500;
-}
-
-.divider,
-.sectionDivider {
-  height: 1px;
-  background-color: white;
-  margin: 8px 10px;
-}
-
-.sectionBlock {
-  margin-top: 10px;
-}
-
-.sidebarEmptyText {
-  opacity: 0.6;
-  padding-left: 20px;
-  font-size: 14px;
-  color: #333;
-}
-
-.logout {
-  margin-bottom: 20px;
-}
-
-.sidebar.collapsed .myDecksTitle,
-.sidebar.collapsed .sectionTitle,
-.sidebar.collapsed .sidebarEmptyText,
-.sidebar.collapsed .sidebarList span,
-.sidebar.collapsed .sectionList span,
-.sidebar.collapsed .menuText,
-.container.sidebarCollapsed .myDecksTitle,
-.container.sidebarCollapsed .sectionTitle,
-.container.sidebarCollapsed .sidebarEmptyText,
-.container.sidebarCollapsed .sidebarList span,
-.container.sidebarCollapsed .sectionList span,
-.container.sidebarCollapsed .menuText {
-  display: none;
-}
-
-.sidebar.collapsed .sidebarListItem,
-.container.sidebarCollapsed .sidebarListItem {
-  padding: 0;
-}
-
-.sidebar.collapsed .menuItem,
-.sidebar.collapsed .logoutLink,
-.container.sidebarCollapsed .menuItem,
-.container.sidebarCollapsed .logoutLink {
-  justify-content: center;
-  width: 100%;
-  margin: 4px 0;
-  padding: 10px 0;
-  border-radius: 0;
-  transform: none;
-}
-
-.sidebar.collapsed .menuItem.active,
-.sidebar.collapsed .active,
-.sidebar.collapsed .menuItem:hover,
-.sidebar.collapsed .logoutLink:hover,
-.container.sidebarCollapsed .menuItem.active,
-.container.sidebarCollapsed .active,
-.container.sidebarCollapsed .menuItem:hover,
-.container.sidebarCollapsed .logoutLink:hover {
-  margin-left: 0;
-  transform: none;
-}
-
-.sidebar.collapsed .sidebarList i,
-.sidebar.collapsed .sectionList i,
-.sidebar.collapsed .logoutLink i,
-.container.sidebarCollapsed .sidebarList i,
-.container.sidebarCollapsed .sectionList i,
-.container.sidebarCollapsed .logoutLink i {
-  margin: 0;
-  width: 100%;
-  min-width: 100%;
-  display: flex;
-  justify-content: center;
-  font-size: 1.5rem;
-}
-
-/* ===== MAIN LAYOUT ===== */
 .mainArea {
   display: flex;
   flex-direction: column;
@@ -287,342 +36,6 @@
   width: 100%;
 }
 
-/* ===== HEADER ===== */
-.headerContainer {
-  grid-area: header;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  height: 70px;
-  padding: 0 30px;
-  box-sizing: border-box;
-  border: 2px solid #e6e6e6;
-  background: rgb(243, 243, 243);
-  position: sticky;
-  top: 0;
-  z-index: 500;
-}
-
-.searchBar {
-  flex: 1;
-  min-width: 0;
-  max-width: 850px;
-  height: 35px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  background: #ffffff;
-  border: 1px solid var(--color-third);
-  border-radius: 50px;
-  padding: 0 8px 0 18px;
-  box-sizing: border-box;
-}
-
-.searchBar input {
-  flex: 1;
-  min-width: 0;
-  height: 100%;
-  border: none;
-  outline: none;
-  background: transparent;
-  padding: 0 12px 0 0;
-  font-size: 15px;
-  color: var(--font-color);
-  font-family: inherit;
-}
-
-.searchBtn {
-  width: 38px;
-  height: 28px;
-  border: none;
-  outline: none;
-  background: transparent;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  margin: 0;
-  appearance: none;
-  -webkit-appearance: none;
-}
-
-.searchBtn i {
-  font-size: 22px;
-  color: #111;
-  line-height: 1;
-}
-
-.searchBtn:hover {
-  background: #f2ecff;
-}
-
-.profileWrapper {
-  position: static;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-  z-index: 10;
-}
-
-.profileLink {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  text-decoration: none;
-  color: inherit;
-}
-
-.dpContainer,
-.profilePic {
-  width: 40px;
-  height: 40px;
-}
-
-.profilePic {
-  border-radius: 50%;
-  object-fit: cover;
-  display: block;
-}
-
-.userInfo p {
-  margin: 0;
-  font-size: 20px;
-  color: #000;
-  white-space: nowrap;
-}
-
-.dropdown {
-  position: relative;
-}
-
-.dropdownBtn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 18px;
-  padding: 6px;
-}
-
-.dropdownContent {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  display: none;
-  width: 190px;
-  max-width: calc(100vw - 20px);
-  padding: 8px;
-  background: #fff;
-  border: 1px solid #e5e5e5;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-  border-radius: 12px;
-  z-index: 9999;
-}
-
-.dropdownContent a,
-.dropdownContent button {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 10px 12px;
-  border-radius: 10px;
-  text-decoration: none;
-  color: #000;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 15px;
-  text-align: left;
-}
-
-.dropdownContent a:hover,
-.dropdownContent button:hover {
-  background: #f3f3f3;
-}
-
-.show {
-  display: block;
-}
-
-/* ===== NOTIFICATION ===== */
-.notificationWrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.notificationBtn {
-  position: relative;
-  width: 42px;
-  height: 42px;
-  margin: 0;
-  border: none;
-  background: transparent;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-}
-
-.notificationBtn i {
-  font-size: 24px;
-  color: #555;
-}
-
-.notificationBadge {
-  position: absolute;
-  top: 3px;
-  right: 3px;
-  min-width: 17px;
-  height: 17px;
-  padding: 0 4px;
-  border-radius: 999px;
-  background: #e74c3c;
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  display: grid;
-  place-items: center;
-}
-
-.notificationDropdown {
-  position: absolute;
-  top: 52px;
-  right: 0;
-  width: 330px;
-  min-height: 240px;
-  max-height: 430px;
-  overflow-y: auto;
-  background: #ffffff;
-  border: 1px solid #eeeeee;
-  border-radius: 20px;
-  padding: 14px;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.14);
-  z-index: 99999;
-  display: none;
-}
-
-.notificationDropdown.show {
-  display: block;
-}
-
-.notificationHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  padding-bottom: 12px;
-}
-
-.notificationHeader h4 {
-  margin: 0;
-  font-size: 20px;
-  color: var(--font-color);
-}
-
-.markReadBtn {
-  background: #907ead;
-  border: 1px solid #6f5796;
-  box-shadow: 0 4px rgb(126, 107, 158);
-  color: #ffffff;
-  border-radius: 999px;
-  padding: 6px 10px;
-  font-family: inherit;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.markReadBtn:hover {
-  background: #decfff;
-}
-
-.emptyNotification {
-  min-height: 180px;
-  padding: 22px 15px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 14px;
-  text-align: center;
-}
-
-.emptyNotificationImg {
-  width: 165px;
-  height: auto;
-  object-fit: contain;
-}
-
-.emptyNotification p {
-  margin: 0;
-  color: #777;
-  font-size: 17px;
-  line-height: 1.4;
-}
-
-.notificationItem {
-  padding: 14px 4px;
-  border-bottom: 1px solid #eeeeee;
-  background: transparent;
-}
-
-.notificationItem:last-child {
-  border-bottom: none;
-}
-
-.notificationItem:hover {
-  background: #faf7ff;
-  border-radius: 12px;
-  padding-left: 10px;
-  padding-right: 10px;
-}
-
-.notificationTop {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.notificationTop h5 {
-  margin: 0;
-  font-size: 16px;
-  color: #5a0776;
-}
-
-.notificationRole {
-  background: #1515158b;
-  border: 1px solid #3d3d3d;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.563);
-  color: #ffffff;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 14px;
-  text-transform: capitalize;
-}
-
-.notificationItem p {
-  margin: 9px 0 6px;
-  color: var(--font-color);
-  font-size: 16px;
-  line-height: 1.4;
-}
-
-.notificationDate,
-.notificationItem small {
-  color: #5454546d;
-  font-size: 16px;
-}
-
-/* ===== PAGE CONTENT ===== */
 .main {
   grid-area: main;
   padding: 95px 34px 28px;
@@ -933,8 +346,19 @@
   color: #333;
   font-weight: 600;
   line-height: 1.15;
-}
 
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  word-break: break-word;
+  overflow-wrap: break-word;
+
+  min-height: 36px;
+}
 .deckCategoryText {
   display: inline-flex;
   align-items: center;
@@ -1344,7 +768,6 @@
   overflow: visible !important;
 }
 
-/* ===== SWAL CONFIRMATIONS ===== */
 .swalPopup {
   border-radius: 26px !important;
   padding: 28px 24px 24px !important;
@@ -1408,7 +831,6 @@
   color: #777 !important;
 }
 
-/* ===== ANIMATION ===== */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -1420,24 +842,7 @@
   }
 }
 
-/* ===== TABLET ===== */
 @media (max-width: 900px) {
-  .userInfo {
-    display: none;
-  }
-
-  .deckArea {
-    padding: 20px 24px 38px;
-  }
-}
-
-/* ===== PHONE / TABLET SHELL ===== */
-@media (max-width: 768px) {
-  html,
-  body {
-    width: 100%;
-    overflow-x: hidden;
-  }
 
   .sidebar,
   .sidebar.collapsed,
@@ -1498,240 +903,483 @@
   .mainArea,
   .sidebarCollapsed .mainArea {
     margin-left: 60px !important;
-    width: calc(100vw - 60px) !important;
-    max-width: calc(100vw - 60px) !important;
-    overflow-x: hidden !important;
+    width: calc(100% - 60px) !important;
   }
 
   .gridContainer {
-    width: 100% !important;
-    min-width: 0 !important;
-    grid-template-rows: 60px 1fr !important;
+    grid-template-rows: 86px 1fr !important;
   }
 
   .headerContainer {
-    width: 100% !important;
-    height: 60px !important;
-    padding: 0 8px !important;
+    height: 86px !important;
+    align-items: flex-end !important;
     justify-content: flex-start !important;
-    overflow: hidden !important;
+    padding: 0 12px 14px !important;
   }
 
   .searchBar {
-    width: calc(100% - 104px) !important;
+    width: calc(100% - 120px) !important;
     max-width: none !important;
-    min-width: 0 !important;
-    height: 34px !important;
     margin: 0 !important;
-    padding: 0 8px 0 12px !important;
-    flex: 0 1 auto !important;
+  }
+
+  .profileWrapper {
+    gap: 6px !important;
+  }
+
+  .userInfo {
+    display: none !important;
+  }
+
+  .main {
+    padding: 18px 14px 30px !important;
+  }
+
+  .panel {
+    border-radius: 18px !important;
+  }
+
+  .purpleStrip {
+    height: 14px !important;
+  }
+
+  .panelHeader {
+    padding: 18px 16px !important;
+  }
+
+  .panelHeader h1 {
+    font-size: 26px !important;
+  }
+
+  .filterRow {
+    padding: 10px 14px 14px !important;
+    justify-content: flex-start !important;
+  }
+
+  .filterGroup {
+    gap: 8px !important;
+  }
+
+  .customDropdownBtn {
+    min-width: 120px !important;
+    font-size: 14px !important;
+  }
+
+
+  .deckArea {
+    display: grid !important;
+
+    grid-template-columns:
+      repeat(2, minmax(180px, 230px)) !important;
+
+    justify-content: start !important;
+    align-items: start !important;
+
+    gap: 18px !important;
+
+    padding: 18px 16px 30px !important;
+  }
+
+  .deckCard,
+  .deckCardInner {
+    width: 100% !important;
+    max-width: 230px !important;
+    height: 190px !important;
+  }
+}
+
+@media (max-width: 520px) {
+
+  .sidebar,
+  .sidebar.collapsed {
+    width: 56px !important;
+    min-width: 56px !important;
+  }
+
+  .mainArea,
+  .sidebarCollapsed .mainArea {
+    margin-left: 56px !important;
+    width: calc(100% - 56px) !important;
+  }
+
+  .gridContainer {
+    grid-template-rows: 78px 1fr !important;
+  }
+
+  .headerContainer {
+    height: 78px !important;
+    padding: 0 8px 10px !important;
+    align-items: flex-end !important;
+  }
+
+  .searchBar {
+    width: calc(100% - 100px) !important;
+    height: 32px !important;
   }
 
   .searchBar input {
     font-size: 11px !important;
   }
 
-  .searchBtn {
-    width: 28px !important;
-    flex-shrink: 0 !important;
-  }
-
   .searchBtn i {
-    font-size: 19px !important;
+    font-size: 16px !important;
   }
 
-  .profileWrapper {
-    gap: 4px !important;
-  }
-
-  .userInfo,
-  .dropdownBtn {
-    display: none !important;
-  }
-
-  .notificationBtn {
+  .notificationBtn,
+  .dpContainer,
+  .profilePic {
     width: 32px !important;
     height: 32px !important;
   }
 
-  .notificationBtn i {
-    font-size: 21px !important;
-  }
-
-  .dpContainer,
-  .profilePic {
-    width: 34px !important;
-    height: 34px !important;
-  }
-
   .main {
-    width: 100% !important;
-    padding: 76px 10px 30px !important;
-    box-sizing: border-box !important;
-    overflow-x: hidden !important;
-  }
-
-  .panel {
-    width: 100% !important;
-    border-radius: 18px !important;
-  }
-
-  .purpleStrip {
-    height: 14px !important;
-    border-radius: 18px 18px 0 0 !important;
+    padding: 14px 8px 24px !important;
   }
 
   .panelHeader {
-    padding: 18px 16px !important;
-    gap: 12px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
   }
 
   .panelHeader h1 {
-    font-size: 25px !important;
-    line-height: 1.1 !important;
+    font-size: 22px !important;
   }
 
   .addBtn {
-    font-size: 13px !important;
-    padding: 8px 14px !important;
-    min-width: 115px !important;
+    align-self: flex-end !important;
+    font-size: 12px !important;
+    padding: 8px 12px !important;
   }
 
   .filterRow {
-    padding: 10px 10px 12px !important;
-    justify-content: flex-start !important;
-    overflow-x: auto !important;
+    padding: 10px !important;
   }
 
   .filterGroup {
-    width: max-content !important;
-    gap: 8px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
   }
 
+  .customDropdown,
   .customDropdownBtn {
-    min-width: 120px !important;
-    height: 31px !important;
-    font-size: 14px !important;
-    padding: 0 10px !important;
+    width: 100% !important;
   }
 
   .deckArea {
-    grid-template-columns: 230px !important;
-    justify-content: center !important;
-    padding: 18px 10px 35px !important;
-    gap: 20px !important;
+    grid-template-columns:
+      minmax(180px, 220px) !important;
+
+    justify-content: start !important;
+
+    gap: 14px !important;
+
+    padding: 14px 10px 24px !important;
+  }
+
+  .deckCard,
+  .deckCardInner {
+    max-width: 220px !important;
+    height: 180px !important;
   }
 
   .notificationDropdown {
     position: fixed !important;
-    top: 65px !important;
+    top: 72px !important;
     right: 8px !important;
     width: calc(100vw - 80px) !important;
     max-width: 280px !important;
   }
 }
+@media (max-width: 900px) {
+  .gridContainer {
+    grid-template-rows: 96px 1fr !important;
+  }
 
-/* ===== SMALL PHONE ===== */
-@media (max-width: 430px) {
+  .headerContainer {
+    height: 96px !important;
+    min-height: 96px !important;
+    align-items: flex-end !important;
+    justify-content: flex-start !important;
+    padding: 0 12px 18px !important;
+    box-sizing: border-box !important;
+  }
+
   .main {
-    padding: 72px 8px 24px !important;
+    padding: 34px 14px 30px !important;
   }
 
-  .searchBar {
-    width: calc(100% - 94px) !important;
-  }
-
-  .panelHeader {
-    align-items: flex-start !important;
-    flex-direction: column !important;
-  }
-
-  .addBtn {
-    align-self: flex-end !important;
+  .panel:first-child {
+    margin-top: 0 !important;
   }
 
   .deckArea {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(180px, 230px)) !important;
+    justify-content: start !important;
+    align-items: start !important;
+    gap: 18px !important;
+    padding: 20px 16px 34px !important;
   }
 
-  .editDeckPopup {
-    width: calc(100vw - 24px) !important;
-    border-radius: 28px !important;
-  }
-
-  .editDeckHeader {
-    height: 82px !important;
-    border-top-left-radius: 28px;
-    border-top-right-radius: 28px;
-  }
-
-  .editDeckHeader span {
-    font-size: 28px !important;
-  }
-
-  .editDeckBody {
-    padding: 24px 24px 0;
-  }
-
-  .editDeckActions {
-    margin: 16px 24px 24px !important;
-    flex-direction: column-reverse;
-    align-items: stretch;
-  }
-
-  .editDeckSaveBtn,
-  .editDeckCancelBtn {
-    width: 100%;
+  .deckCard,
+  .deckCardInner {
+    width: 100% !important;
+    max-width: 230px !important;
+    height: 190px !important;
   }
 }
 
-/* ===== FIX COLLAPSED SIDEBAR CUT-OFF TEXT ===== */
-.container.sidebarCollapsed .sidebar {
-  width: 60px !important;
-  min-width: 60px !important;
-  overflow: hidden !important;
+@media (max-width: 520px) {
+  .gridContainer {
+    grid-template-rows: 90px 1fr !important;
+  }
+
+  .headerContainer {
+    height: 90px !important;
+    min-height: 90px !important;
+    align-items: flex-end !important;
+    padding: 0 8px 12px !important;
+  }
+
+  .main {
+    padding: 28px 8px 24px !important;
+  }
+
+  .panelHeader {
+    flex-direction: row !important;
+    align-items: center !important;
+  }
+
+  .addBtn {
+    align-self: auto !important;
+  }
+
+  .deckArea {
+    grid-template-columns: minmax(180px, 220px) !important;
+    justify-content: start !important;
+    padding: 16px 10px 28px !important;
+  }
 }
 
-.container.sidebarCollapsed .mainArea {
-  margin-left: 60px !important;
-  width: calc(100vw - 60px) !important;
+@media (max-width: 900px) {
+  .gridContainer {
+    grid-template-rows: 96px 1fr !important;
+  }
+
+  .headerContainer {
+    height: 96px !important;
+    min-height: 96px !important;
+    align-items: flex-end !important;
+    padding: 0 14px 18px !important;
+  }
+
+  .main {
+    padding: 58px 14px 30px !important;
+  }
+
+  .panel {
+    margin-top: 0 !important;
+    overflow: visible !important;
+  }
+
+  .purpleStrip {
+    display: block !important;
+    height: 16px !important;
+    min-height: 16px !important;
+    background: #d3b7f3 !important;
+    border-radius: 18px 18px 0 0 !important;
+  }
+
+  .panelHeader {
+    padding: 18px 18px 14px !important;
+  }
+
+  .deckArea {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(180px, 230px)) !important;
+    justify-content: start !important;
+    gap: 18px !important;
+    padding: 18px 16px 32px !important;
+  }
 }
 
-.container.sidebarCollapsed .logoExpanded,
-.container.sidebarCollapsed .menuText,
-.container.sidebarCollapsed .myDecksTitle,
-.container.sidebarCollapsed .sectionTitle,
-.container.sidebarCollapsed .sidebarEmptyText,
-.container.sidebarCollapsed .sidebar span,
-.container.sidebarCollapsed .sidebar p {
-  display: none !important;
+@media (max-width: 520px) {
+  .gridContainer {
+    grid-template-rows: 90px 1fr !important;
+  }
+
+  .headerContainer {
+    height: 90px !important;
+    min-height: 90px !important;
+    align-items: flex-end !important;
+    padding: 0 8px 12px !important;
+  }
+
+  .main {
+    padding: 64px 8px 24px !important;
+  }
+
+  .panel {
+    border-radius: 18px !important;
+  }
+
+  .purpleStrip {
+    display: block !important;
+    height: 14px !important;
+    min-height: 14px !important;
+    background: #d3b7f3 !important;
+    border-radius: 18px 18px 0 0 !important;
+  }
+
+  .panelHeader {
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 16px 12px 12px !important;
+    gap: 8px !important;
+  }
+
+  .panelHeader h1 {
+    font-size: 22px !important;
+  }
+
+  .addBtn {
+    align-self: auto !important;
+    font-size: 12px !important;
+    padding: 7px 10px !important;
+  }
+
+  .deckArea {
+    grid-template-columns: minmax(180px, 220px) !important;
+    justify-content: start !important;
+    padding: 16px 10px 28px !important;
+  }
 }
 
-.container.sidebarCollapsed .menuItem,
-.container.sidebarCollapsed .logoutLink {
-  width: 60px !important;
-  padding: 12px 0 !important;
-  margin: 4px 0 !important;
-  justify-content: center !important;
-  border-radius: 0 !important;
-  transform: none !important;
+@media (min-width: 521px) and (max-width: 900px) {
+  .main {
+    padding-top: 82px !important;
+  }
+
+  .panel:first-child {
+    margin-top: 18px !important;
+  }
+
+  .filterRow {
+    position: relative !important;
+    z-index: 9999 !important;
+    overflow: visible !important;
+  }
+
+  .panel,
+  .deckArea {
+    overflow: visible !important;
+  }
+
+  .customDropdown {
+    position: relative !important;
+    z-index: 99999 !important;
+  }
+
+  .customDropdownMenu {
+    z-index: 999999 !important;
+    top: 34px !important;
+  }
 }
 
-.container.sidebarCollapsed .menuItem.active,
-.container.sidebarCollapsed .active {
-  margin-left: 0 !important;
-  transform: none !important;
+@media (max-width: 520px) {
+  .filterRow {
+    z-index: 9999 !important;
+    overflow: visible !important;
+  }
+
+  .panel,
+  .deckArea {
+    overflow: visible !important;
+  }
+
+  .customDropdown {
+    z-index: 99999 !important;
+  }
+
+  .customDropdownMenu {
+    z-index: 999999 !important;
+  }
 }
 
-.container.sidebarCollapsed .sidebarListItem {
-  padding: 0 !important;
+/* FIX: stop Sort/Category dropdown from covering deck cards */
+.filterRow {
+  position: relative !important;
+  z-index: 9999 !important;
+  overflow: visible !important;
 }
 
-.container.sidebarCollapsed .sidebar i {
-  margin: 0 !important;
-  width: 60px !important;
-  min-width: 60px !important;
-  display: flex !important;
-  justify-content: center !important;
+.panel {
+  overflow: visible !important;
+}
+
+.deckArea {
+  position: relative !important;
+  z-index: 1 !important;
+  overflow: visible !important;
+}
+
+.customDropdown {
+  position: relative !important;
+  z-index: 99999 !important;
+}
+
+.customDropdownMenu {
+  position: absolute !important;
+  top: 36px !important;
+  right: 0 !important;
+  z-index: 999999 !important;
+}
+
+/* NORMAL DROPDOWN FIX */
+.filterRow {
+  position: relative !important;
+  z-index: 99999 !important;
+  overflow: visible !important;
+  margin-bottom: 0 !important;
+}
+
+.filterGroup {
+  position: relative !important;
+  z-index: 99999 !important;
+}
+
+.customDropdown {
+  position: relative !important;
+  z-index: 999999 !important;
+}
+
+.customDropdownMenu {
+  position: absolute !important;
+  top: 34px !important;
+  right: 0 !important;
+  width: 130px !important;
+  z-index: 999999 !important;
+}
+
+.deckArea {
+  margin-top: 0 !important;
+  padding-top: 20px !important;
+}
+
+.filterRow,
+.filterGroup,
+.customDropdown,
+.customDropdownMenu {
+  z-index: 50 !important;
+}
+
+.overlay {
+  z-index: 999999 !important;
+}
+
+.modal {
+  z-index: 1000000 !important;
 }

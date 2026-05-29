@@ -532,3 +532,181 @@
   cursor: pointer;
   font-weight: 600;
 }
+
+/* TABLET */
+@media (max-width: 1024px) {
+  .header {
+    width: 90%;
+  }
+
+  .progressContainer {
+    width: 90%;
+  }
+
+  .questionTextBox {
+    width: 95%;
+  }
+
+  .option {
+    width: 80%;
+  }
+
+  .title {
+    font-size: 48px;
+  }
+
+  .subtitle {
+    font-size: 22px;
+  }
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .wrapper {
+    padding: 15px;
+  }
+
+  .header {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .title {
+    font-size: 34px;
+    margin-top: 60px;
+  }
+
+  .subtitle {
+    font-size: 18px;
+  }
+
+  .progressContainer {
+    width: 100%;
+  }
+
+  .questionBox {
+    width: 100%;
+    padding: 15px;
+  }
+
+  .questionTextBox {
+    width: 100%;
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .question {
+    font-size: 18px;
+  }
+
+  .option {
+    width: 100%;
+    font-size: 18px;
+    padding: 14px;
+    min-height: 55px;
+  }
+
+  .audioIconBtn {
+    width: 34px;
+    height: 34px;
+  }
+
+  .optionAudioIcon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .settingsBtn {
+    width: auto;
+    min-width: 130px;
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+
+  .settingsModal {
+    width: 95%;
+    max-width: 420px;
+  }
+
+  .settingsHeader h2 {
+    font-size: 22px;
+  }
+
+  .settingRow {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .switchBtn,
+  .switchOn {
+    width: 100%;
+  }
+
+  .generatingTitle {
+    font-size: 36px;
+  }
+
+  .generatingText {
+    font-size: 18px;
+  }
+
+  .multipleIntroImage {
+    width: 220px;
+  }
+
+  .emptyCard {
+    width: 100%;
+    padding: 25px;
+  }
+}
+
+/* SMALL PHONES */
+@media (max-width: 480px) {
+  .title {
+    font-size: 28px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+  }
+
+  .question {
+    font-size: 16px;
+  }
+
+  .option {
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  .settingsHeader {
+    padding: 16px;
+  }
+
+  .settingsBody {
+    padding: 16px;
+  }
+
+  .settingText strong {
+    font-size: 18px;
+  }
+
+  .settingText span {
+    font-size: 14px;
+  }
+
+  .speedHeader label,
+  .speedValue,
+  .speedBox {
+    font-size: 16px;
+  }
+
+  .emptyTitle {
+    font-size: 22px;
+  }
+
+  .emptyText {
+    font-size: 14px;
+  }
+}

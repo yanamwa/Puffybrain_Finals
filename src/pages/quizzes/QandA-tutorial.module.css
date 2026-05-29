@@ -586,3 +586,206 @@
     height: 1400px;
   }
 }
+
+/* =========================
+   TABLET
+========================= */
+
+@media (max-width: 768px) {
+
+  .headerBox,
+  .slideshowBox,
+  .flashcard {
+    width: 94% !important;
+    border-radius: 28px !important;
+  }
+
+  .headerBox {
+    margin-top: 40px !important;
+    padding: 95px 20px 30px !important;
+  }
+
+  .headerTop {
+    height: 78px !important;
+    border-radius: 28px 28px 0 0 !important;
+  }
+
+  .title {
+    font-size: 34px !important;
+  }
+
+  .subtitle {
+    font-size: 16px !important;
+  }
+
+  .inputPreview {
+    width: 100% !important;
+    font-size: 16px !important;
+  }
+
+  .startBtn {
+    width: 100% !important;
+    font-size: 22px !important;
+  }
+
+  .slideshowBox {
+    padding: 26px 18px !important;
+  }
+
+  .question {
+    font-size: 18px !important;
+    padding: 14px !important;
+  }
+
+  .options button {
+    width: 100% !important;
+    font-size: 16px !important;
+    padding: 12px 14px !important;
+  }
+
+  .answerBox,
+  .placeholder {
+    width: 100% !important;
+    font-size: 16px !important;
+  }
+
+  .flashcard {
+    min-height: 360px !important;
+    padding: 24px 16px !important;
+  }
+
+  .flashcardQuestion {
+    font-size: 22px !important;
+    min-height: 150px !important;
+  }
+
+  .flashButtons {
+    gap: 12px !important;
+    flex-wrap: wrap !important;
+    padding: 14px !important;
+  }
+}
+
+/* =========================
+   PHONE
+========================= */
+
+@media (max-width: 480px) {
+
+  .container {
+    padding: 14px 10px !important;
+  }
+
+  .headerBox,
+  .slideshowBox,
+  .flashcard {
+    width: 100% !important;
+    border-radius: 22px !important;
+  }
+
+  .headerBox {
+    margin-top: 26px !important;
+    padding: 78px 14px 24px !important;
+  }
+
+  .headerTop {
+    height: 66px !important;
+    border-radius: 22px 22px 0 0 !important;
+  }
+
+  .title {
+    font-size: 28px !important;
+  }
+
+  .subtitle {
+    font-size: 13px !important;
+    line-height: 1.3 !important;
+  }
+
+  .inputPreview {
+    width: 100% !important;
+    padding: 12px !important;
+    font-size: 14px !important;
+    border-radius: 14px !important;
+  }
+
+  .startBtn {
+    width: 100% !important;
+    font-size: 18px !important;
+    padding: 10px 16px !important;
+    border-radius: 16px !important;
+  }
+
+  .slideshowBox {
+    margin: 22px auto !important;
+    padding: 18px 12px !important;
+    border-radius: 22px !important;
+  }
+
+  .question {
+    font-size: 14px !important;
+    line-height: 1.35 !important;
+    padding: 12px !important;
+    border-radius: 12px !important;
+  }
+
+  .options button {
+    width: 100% !important;
+    font-size: 14px !important;
+    padding: 10px 12px !important;
+    border-radius: 14px !important;
+  }
+
+  .placeholder,
+  .answerBox {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 44px !important;
+    font-size: 14px !important;
+    border-radius: 12px !important;
+  }
+
+  .flashcard {
+    min-height: 250px !important;
+    padding: 16px 10px !important;
+    border-radius: 22px !important;
+  }
+
+  .flashcardHeader {
+    margin-bottom: 24px !important;
+  }
+
+  .flashLabel {
+    font-size: 14px !important;
+  }
+
+  .flashcardQuestion {
+    min-height: 90px !important;
+    font-size: 15px !important;
+    line-height: 1.4 !important;
+    padding: 0 6px !important;
+  }
+
+  .flashButtons {
+    padding: 10px !important;
+    gap: 8px !important;
+    border-radius: 0 0 18px 18px !important;
+  }
+
+  .flashButtons button {
+    flex: 1 !important;
+    min-width: 65px !important;
+    font-size: 11px !important;
+    padding: 7px 0 !important;
+    border-radius: 12px !important;
+  }
+
+  .dot {
+    width: 8px !important;
+    height: 8px !important;
+  }
+
+  .qnaIntroImage {
+    width: 220px !important;
+  }
+}

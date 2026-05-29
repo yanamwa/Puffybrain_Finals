@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import { ToastContainer, toast } from "react-toastify";
@@ -53,6 +53,33 @@ function UserProfile() {
     return deck?.deck_id || deck?.id || deck?.DeckID || "";
   };
 
+  const getDeckCategory = (deck) => {
+    return (
+      deck?.category ||
+      deck?.deck_category ||
+      deck?.subject ||
+      deck?.deckCategory ||
+      "Reviewer"
+    );
+  };
+
+  const getDeckColor = (deck) => {
+    const rawColor =
+      deck?.deck_color ||
+      deck?.deckColor ||
+      deck?.color ||
+      deck?.deck_colour ||
+      "";
+
+    const color = String(rawColor).trim();
+
+    return color && color.toLowerCase() !== "#ffffff" ? color : "#D7C9F7";
+  };
+
+  const getDeckCardCount = (deck) => {
+    return Number(deck?.card_count ?? deck?.cards ?? deck?.cardCount ?? 0);
+  };
+
   const filterDecks = (decks) => {
     const q = search.trim().toLowerCase();
     if (!q) return decks;
@@ -61,9 +88,9 @@ function UserProfile() {
       const searchableText = [
         deck.title,
         deck.description,
+        getDeckCategory(deck),
         deck.visibility,
-        deck.card_count,
-        deck.cards,
+        getDeckCardCount(deck),
       ]
         .join(" ")
         .toLowerCase();
@@ -72,15 +99,8 @@ function UserProfile() {
     });
   };
 
-  const filteredDecks = useMemo(
-    () => filterDecks(profileDecks),
-    [profileDecks, search]
-  );
-
-  const filteredArchivedDecks = useMemo(
-    () => filterDecks(archivedDecks),
-    [archivedDecks, search]
-  );
+  const filteredDecks = filterDecks(profileDecks);
+  const filteredArchivedDecks = filterDecks(archivedDecks);
 
   const fetchSidebarDecks = async () => {
     try {
@@ -398,7 +418,7 @@ function UserProfile() {
   useEffect(() => {
     const handler = (e) => {
       const insideDropdown = e.target.closest(
-        `.${styles.deckMenuWrapper}, .${styles.searchBar}`
+        `[data-user-header], [data-user-header-menu], [data-user-header-toggle], .${styles.deckMenuWrapper}, .${styles.searchBar}`
       );
 
       if (!insideDropdown) {
@@ -570,8 +590,11 @@ function UserProfile() {
                       No decks found for “{search}”.
                     </p>
                   ) : (
-                    filteredDecks.map((deck, index) => {
+                    filteredDecks.map((deck) => {
                       const deckId = getDeckId(deck);
+                      const deckColorValue = getDeckColor(deck);
+                      const deckCategory = getDeckCategory(deck);
+                      const deckCardCount = getDeckCardCount(deck);
 
                       return (
                         <Link
@@ -580,20 +603,19 @@ function UserProfile() {
                           className={styles.deckBox}
                         >
                           <div
-                            className={`${styles.deckPreview} ${
-                              index % 4 === 0
-                                ? styles.previewBlue
-                                : index % 4 === 1
-                                ? styles.previewPink
-                                : index % 4 === 2
-                                ? styles.previewViolet
-                                : styles.previewRed
-                            }`}
+                            className={styles.deckPreview}
+                            style={{ backgroundColor: deckColorValue }}
                           ></div>
 
                           <div className={styles.deckText}>
                             <strong>{deck.title}</strong>
-                            <p>{deck.card_count ?? 0} cards</p>
+                            <p className={styles.deckCategoryText}>
+                              <i className="bx bxs-book"></i>
+                              <span>{deckCategory}</span>
+                            </p>
+                            <span className={styles.deckCardCount}>
+                              {deckCardCount} cards
+                            </span>
                           </div>
                         </Link>
                       );
@@ -611,8 +633,11 @@ function UserProfile() {
                       No archived decks found for “{search}”.
                     </p>
                   ) : (
-                    filteredArchivedDecks.map((deck, index) => {
+                    filteredArchivedDecks.map((deck) => {
                       const deckId = getDeckId(deck);
+                      const deckColorValue = getDeckColor(deck);
+                      const deckCategory = getDeckCategory(deck);
+                      const deckCardCount = getDeckCardCount(deck);
 
                       return (
                         <div key={deckId} className={styles.deckBox}>
@@ -646,20 +671,19 @@ function UserProfile() {
                           </div>
 
                           <div
-                            className={`${styles.deckPreview} ${
-                              index % 4 === 0
-                                ? styles.previewBlue
-                                : index % 4 === 1
-                                ? styles.previewPink
-                                : index % 4 === 2
-                                ? styles.previewViolet
-                                : styles.previewRed
-                            }`}
+                            className={styles.deckPreview}
+                            style={{ backgroundColor: deckColorValue }}
                           ></div>
 
                           <div className={styles.deckText}>
                             <strong>{deck.title}</strong>
-                            <p>{deck.card_count ?? 0} cards</p>
+                            <p className={styles.deckCategoryText}>
+                              <i className="bx bxs-book"></i>
+                              <span>{deckCategory}</span>
+                            </p>
+                            <span className={styles.deckCardCount}>
+                              {deckCardCount} cards
+                            </span>
                           </div>
                         </div>
                       );

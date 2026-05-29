@@ -410,3 +410,126 @@
     height: 1400px;
   }
 }
+
+.page {
+  padding: 20px;
+}
+
+.headerBox,
+.slideshowBox {
+  max-width: 950px;
+}
+
+.question,
+.options button {
+  max-width: 100%;
+  word-wrap: break-word;
+}
+
+@media (max-width: 1024px) {
+  .headerBox,
+  .slideshowBox {
+    width: 85%;
+  }
+
+  .title {
+    font-size: 42px;
+  }
+
+  .options button {
+    width: 70%;
+  }
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding: 15px;
+  }
+
+  .headerBox,
+  .slideshowBox {
+    width: 100%;
+    border-radius: 28px;
+  }
+
+  .headerBox {
+    margin: 25px auto 20px;
+    padding: 90px 18px 28px;
+  }
+
+  .headerTop {
+    height: 75px;
+    border-top-left-radius: 28px;
+    border-top-right-radius: 28px;
+  }
+
+  .title {
+    font-size: 34px;
+    line-height: 1;
+  }
+
+  .subtitle {
+    font-size: 15px;
+  }
+
+  .slideshowBox {
+    padding: 25px 16px;
+  }
+
+  .question {
+    width: 100%;
+    font-size: 16px;
+    padding: 14px;
+  }
+
+  .options button {
+    width: 100%;
+    font-size: 15px;
+    padding: 13px;
+  }
+
+  .startBtn {
+    width: 90%;
+    font-size: 20px;
+  }
+
+  .multipleIntroImage {
+    width: 75%;
+    max-width: 320px;
+  }
+}
+
+@media (max-width: 480px) {
+  .headerBox {
+    padding-top: 80px;
+  }
+
+  .headerTop {
+    height: 65px;
+  }
+
+  .title {
+    font-size: 28px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+
+  .question {
+    font-size: 15px;
+  }
+
+  .options {
+    gap: 12px;
+  }
+
+  .options button {
+    font-size: 14px;
+  }
+
+  .startBtn {
+    font-size: 18px;
+    padding: 10px 20px;
+  }
+}

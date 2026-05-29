@@ -655,3 +655,356 @@
   cursor: pointer;
   font-weight: 600;
 }
+
+
+/* =========================================
+   RESPONSIVE ACCESSIBILITY SETTINGS MODAL
+========================================= */
+
+.settingsOverlay {
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.settingsModal {
+  width: min(430px, 100%);
+  max-width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.settingsHeader {
+  padding: 18px 20px;
+}
+
+.settingsBody {
+  padding: 18px 20px 22px;
+}
+
+.settingRow {
+  gap: 14px;
+}
+
+.settingInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.settingText {
+  min-width: 0;
+}
+
+.settingText strong,
+.settingText span {
+  word-break: break-word;
+}
+
+.speedBox input {
+  width: 100%;
+}
+
+/* =========================
+   TABLET
+========================= */
+
+@media (max-width: 768px) {
+  .settingsModal {
+    width: 100%;
+    max-width: 420px;
+    border-radius: 22px;
+  }
+
+  .settingsHeader h2 {
+    font-size: 22px;
+  }
+
+  .settingText strong {
+    font-size: 18px;
+  }
+
+  .settingText span {
+    font-size: 14px;
+  }
+
+  .switchBtn {
+    width: 68px;
+    height: 32px;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .speedHeader label,
+  .speedValue {
+    font-size: 18px;
+  }
+}
+
+/* =========================
+   PHONE
+========================= */
+
+@media (max-width: 480px) {
+  .settingsOverlay {
+    padding: 12px;
+    align-items: center;
+  }
+
+  .settingsModal {
+    width: 100%;
+    border-radius: 20px;
+  }
+
+  .settingsHeader {
+    padding: 16px;
+  }
+
+  .settingsHeader h2 {
+    font-size: 20px;
+  }
+
+  .closeSettings {
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .settingsBody {
+    padding: 16px;
+  }
+
+  .settingRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 14px;
+  }
+
+  .settingInfo {
+    width: 100%;
+  }
+
+  .settingIcon {
+    width: 34px;
+    height: 34px;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .settingText strong {
+    font-size: 17px;
+    line-height: 1.2;
+  }
+
+  .settingText span {
+    font-size: 13px;
+    line-height: 1.3;
+  }
+
+  .switchBtn {
+    width: 100%;
+    height: 42px;
+    font-size: 18px;
+  }
+
+  .speedBox {
+    padding: 14px;
+  }
+
+  .speedHeader {
+    gap: 10px;
+  }
+
+  .speedHeader label,
+  .speedValue {
+    font-size: 16px;
+  }
+
+  .speedValue {
+    padding: 4px 10px;
+  }
+}
+
+/* =========================
+   EXTRA SMALL PHONES
+========================= */
+
+@media (max-width: 360px) {
+  .settingsHeader h2 {
+    font-size: 18px;
+  }
+
+  .settingText strong {
+    font-size: 15px;
+  }
+
+  .settingText span {
+    font-size: 12px;
+  }
+
+  .switchBtn {
+    font-size: 16px;
+  }
+} 
+
+/* =========================================
+   FIXED RESPONSIVE FLASHCARD - NOT TALL
+========================================= */
+
+.flashcardWrapper {
+  width: min(92%, 1180px) !important;
+  height: 420px !important;
+  padding: 38px 70px 35px !important;
+}
+
+.flashcard {
+  width: 100% !important;
+  max-width: 860px !important;
+  height: 238px !important;
+  min-height: 0 !important;
+}
+
+.flashcardFace {
+  padding: 45px 55px 72px !important;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 28px 14px !important;
+  }
+
+  .flashcardWrapper {
+    width: 94% !important;
+    height: 330px !important;
+    padding: 30px 20px 26px !important;
+    border-radius: 32px !important;
+  }
+
+  .flashcard {
+    height: 210px !important;
+  }
+
+  .flashcardFace {
+    padding: 32px 28px 70px !important;
+  }
+
+  .flashcardFace p,
+  .flashcardContent p,
+  .back p {
+    font-size: 20px !important;
+    line-height: 1.35 !important;
+    max-width: 100% !important;
+  }
+
+  .difficulty {
+    gap: 16px !important;
+    padding: 10px 14px !important;
+  }
+
+  .difficulty button {
+    width: 82px !important;
+    font-size: 14px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .flashcardWrapper {
+    width: 94% !important;
+    height: 250px !important;
+    padding: 22px 10px 18px !important;
+    border-radius: 26px !important;
+    margin-top: 18px !important;
+  }
+
+  .tab {
+    padding: 0 8px !important;
+    gap: 8px !important;
+  }
+
+  .tab span {
+    min-width: 72px !important;
+    font-size: 11px !important;
+    padding: 6px 8px !important;
+  }
+
+  .flashcard {
+    height: 150px !important;
+  }
+
+  .flashcardFace {
+    padding: 22px 14px 58px !important;
+    border-radius: 16px !important;
+  }
+
+  .flashcardFace p,
+  .flashcardContent p,
+  .back p {
+    font-size: 13px !important;
+    line-height: 1.35 !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+  }
+
+  .difficulty {
+    gap: 8px !important;
+    padding: 8px 10px !important;
+    border-radius: 0 0 16px 16px !important;
+  }
+
+  .difficulty button {
+    width: 58px !important;
+    padding: 5px 0 !important;
+    font-size: 10px !important;
+  }
+
+  .difficultyHint {
+    font-size: 11px !important;
+    margin-top: 8px !important;
+  }
+}
+
+/* =========================================
+   RESPONSIVE TTS / AUDIO BUTTON
+========================================= */
+
+@media (max-width: 768px) {
+  .audioIconBtn {
+    width: 34px !important;
+    height: 34px !important;
+    top: 12px !important;
+    left: 12px !important;
+    border-radius: 10px !important;
+  }
+
+  .audioIconBtn i {
+    font-size: 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .audioIconBtn {
+    width: 28px !important;
+    height: 28px !important;
+    top: 10px !important;
+    left: 10px !important;
+    border-radius: 8px !important;
+  }
+
+  .audioIconBtn i {
+    font-size: 13px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .audioIconBtn {
+    width: 24px !important;
+    height: 24px !important;
+    top: 8px !important;
+    left: 8px !important;
+  }
+
+  .audioIconBtn i {
+    font-size: 11px !important;
+  }
+}

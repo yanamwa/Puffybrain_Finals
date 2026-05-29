@@ -61,6 +61,60 @@ function Homepage() {
     "#EECB99",
   ];
 
+  const DECK_TITLE_LIMIT = 100;
+  const DECK_DESCRIPTION_LIMIT = 300;
+
+  const limitChars = (value, limit) => String(value || "").slice(0, limit);
+
+  const escapeHtml = (value = "") =>
+    String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
+  const hasRepeatedPattern = (value = "") => {
+    const text = String(value).trim().toLowerCase();
+    const compact = text.replace(/\s+/g, "");
+
+    if (!compact) return false;
+
+    if (/(.)\1{7,}/.test(compact)) return true;
+    if (/(.{2,8})\1{3,}/.test(compact)) return true;
+
+    const words = text.split(/\s+/).filter(Boolean);
+    const repeatedWords = words.some((word, index) => {
+      return (
+        word.length > 2 &&
+        words[index + 1] === word &&
+        words[index + 2] === word
+      );
+    });
+
+    if (repeatedWords) return true;
+
+    if (compact.length >= 45 && !text.includes(" ")) {
+      const vowels = (compact.match(/[aeiou]/g) || []).length;
+      const vowelRatio = vowels / compact.length;
+      const hasKeyboardRun =
+        /(qwerty|asdf|zxcv|dfgh|jkl|wq|qw|zx|xz)/i.test(compact);
+
+      if (vowelRatio < 0.22 || hasKeyboardRun) return true;
+    }
+
+    return false;
+  };
+
+  const showInvalidTextAlert = (fieldName) => {
+    Swal.fire({
+      icon: "warning",
+      title: "Invalid Text",
+      text: `${fieldName} contains repeated or random text. Please enter a clear ${fieldName.toLowerCase()}.`,
+      confirmButtonColor: "#7b5cff",
+    });
+  };
+
   const notificationCount = notifications.filter(
     (notif) => notif.status === "unread"
   ).length;
@@ -317,13 +371,49 @@ function Homepage() {
   }, []);
 
   const handleAddDeck = async () => {
-    if (!deckTitle.trim()) {
+    const cleanTitle = limitChars(deckTitle, DECK_TITLE_LIMIT).trim();
+    const cleanDescription = limitChars(
+      deckDescription,
+      DECK_DESCRIPTION_LIMIT
+    ).trim();
+
+    if (!cleanTitle) {
       Swal.fire({
         icon: "warning",
         title: "Missing title",
         text: "Please enter a deck title.",
         confirmButtonColor: "#7b5cff",
       });
+      return;
+    }
+
+    if (cleanTitle.length > DECK_TITLE_LIMIT) {
+      Swal.fire({
+        icon: "warning",
+        title: "Title Too Long",
+        text: `Deck title must not exceed ${DECK_TITLE_LIMIT} characters.`,
+        confirmButtonColor: "#7b5cff",
+      });
+      return;
+    }
+
+    if (cleanDescription.length > DECK_DESCRIPTION_LIMIT) {
+      Swal.fire({
+        icon: "warning",
+        title: "Description Too Long",
+        text: `Description must not exceed ${DECK_DESCRIPTION_LIMIT} characters.`,
+        confirmButtonColor: "#7b5cff",
+      });
+      return;
+    }
+
+    if (hasRepeatedPattern(cleanTitle)) {
+      showInvalidTextAlert("Deck Title");
+      return;
+    }
+
+    if (cleanDescription && hasRepeatedPattern(cleanDescription)) {
+      showInvalidTextAlert("Description");
       return;
     }
 
@@ -340,10 +430,15 @@ function Homepage() {
       return;
     }
 
+    if (hasRepeatedPattern(finalCategory)) {
+      showInvalidTextAlert("Category");
+      return;
+    }
+
     try {
       const formData = new FormData();
-      formData.append("title", deckTitle.trim());
-      formData.append("description", deckDescription.trim());
+      formData.append("title", cleanTitle);
+      formData.append("description", cleanDescription);
       formData.append("category", finalCategory);
       formData.append("visibility", deckVisibility);
       formData.append("deck_color", deckColor);
@@ -397,13 +492,19 @@ function Homepage() {
       return;
     }
 
+    const currentTitle = deck.title || "";
+    const currentDescription = deck.description || "";
+    const currentCategory = deck.category || "Reviewer";
+    const currentVisibility = deck.visibility || "private";
+    const currentColor = deck.deck_color || deck.deckColor || "#C3C7F3";
+
     const categoryOptions = categories
       .filter((cat) => cat !== "Others")
       .map(
         (cat) =>
-          `<option value="${cat}" ${
-            deck.category === cat ? "selected" : ""
-          }>${cat}</option>`
+          `<option value="${escapeHtml(cat)}" ${
+            currentCategory === cat ? "selected" : ""
+          }>${escapeHtml(cat)}</option>`
       )
       .join("");
 
@@ -424,10 +525,27 @@ function Homepage() {
 
           <div class="${styles.editDeckForm}">
             <label class="${styles.editDeckLabel}">Deck Title</label>
-            <input id="swal-title" class="${styles.editDeckInput}" placeholder="Enter your deck name" value="${deck.title || ""}" />
+            <input
+              id="swal-title"
+              class="${styles.editDeckInput}"
+              placeholder="Enter your deck name"
+              maxlength="${DECK_TITLE_LIMIT}"
+              value="${escapeHtml(currentTitle)}"
+            />
+            <small id="swal-title-count" class="${styles.charCounter}">
+              ${currentTitle.length}/${DECK_TITLE_LIMIT} characters
+            </small>
 
             <label class="${styles.editDeckLabel}">Description</label>
-            <textarea id="swal-desc" class="${styles.editDeckTextarea}" placeholder="Optional">${deck.description || ""}</textarea>
+            <textarea
+              id="swal-desc"
+              class="${styles.editDeckTextarea}"
+              placeholder="Optional"
+              maxlength="${DECK_DESCRIPTION_LIMIT}"
+            >${escapeHtml(currentDescription)}</textarea>
+            <small id="swal-desc-count" class="${styles.charCounter}">
+              ${currentDescription.length}/${DECK_DESCRIPTION_LIMIT} characters
+            </small>
 
             <label class="${styles.editDeckLabel}">Category</label>
             <select id="swal-category" class="${styles.editDeckSelect}">
@@ -437,12 +555,22 @@ function Homepage() {
             <label class="${styles.editDeckLabel}">Visibility</label>
             <div class="${styles.editDeckRadioRow}">
               <label>
-                <input type="radio" name="swal-visibility" value="public" ${deck.visibility === "public" ? "checked" : ""} />
+                <input
+                  type="radio"
+                  name="swal-visibility"
+                  value="public"
+                  ${currentVisibility === "public" ? "checked" : ""}
+                />
                 Public
               </label>
 
               <label>
-                <input type="radio" name="swal-visibility" value="private" ${deck.visibility !== "public" ? "checked" : ""} />
+                <input
+                  type="radio"
+                  name="swal-visibility"
+                  value="private"
+                  ${currentVisibility !== "public" ? "checked" : ""}
+                />
                 Private
               </label>
             </div>
@@ -457,21 +585,32 @@ function Homepage() {
                       class="${styles.editDeckColorDot}"
                       data-color="${color}"
                       style="background:${color}; ${
-                        (deck.deck_color || deck.deckColor) === color
-                          ? "outline: 3px solid #111;"
-                          : ""
-                      }"
+                    currentColor === color ? "outline: 3px solid #111;" : ""
+                  }"
                     ></button>
                   `
                 )
                 .join("")}
             </div>
 
-            <input id="swal-color" type="hidden" value="${deck.deck_color || deck.deckColor || "#c9cdfa"}" />
+            <input id="swal-color" type="hidden" value="${currentColor}" />
           </div>
         </div>
       `,
       didOpen: () => {
+        const titleInput = document.getElementById("swal-title");
+        const descInput = document.getElementById("swal-desc");
+        const titleCount = document.getElementById("swal-title-count");
+        const descCount = document.getElementById("swal-desc-count");
+
+        titleInput?.addEventListener("input", () => {
+          titleCount.textContent = `${titleInput.value.length}/${DECK_TITLE_LIMIT} characters`;
+        });
+
+        descInput?.addEventListener("input", () => {
+          descCount.textContent = `${descInput.value.length}/${DECK_DESCRIPTION_LIMIT} characters`;
+        });
+
         document
           .querySelectorAll(`.${styles.editDeckColorDot}`)
           .forEach((btn) => {
@@ -503,6 +642,34 @@ function Homepage() {
 
         if (!title) {
           Swal.showValidationMessage("Deck title is required.");
+          return false;
+        }
+
+        if (title.length > DECK_TITLE_LIMIT) {
+          Swal.showValidationMessage(
+            `Deck title must not exceed ${DECK_TITLE_LIMIT} characters.`
+          );
+          return false;
+        }
+
+        if (description.length > DECK_DESCRIPTION_LIMIT) {
+          Swal.showValidationMessage(
+            `Description must not exceed ${DECK_DESCRIPTION_LIMIT} characters.`
+          );
+          return false;
+        }
+
+        if (hasRepeatedPattern(title)) {
+          Swal.showValidationMessage(
+            "Deck title contains repeated or random text."
+          );
+          return false;
+        }
+
+        if (description && hasRepeatedPattern(description)) {
+          Swal.showValidationMessage(
+            "Description contains repeated or random text."
+          );
           return false;
         }
 
@@ -627,38 +794,39 @@ function Homepage() {
   };
 
   return (
-<div
-  className={`homepage ${styles.container} ${
-    isCollapsed ? styles.sidebarCollapsed : ""
-  }`}
->
-    <UserSidebar
-      isCollapsed={isCollapsed}
-      setIsCollapsed={setIsCollapsed}
-      myDecks={myDecks}
-      courses={courses}
-      openCourse={openCourse}
-      getDeckId={getDeckId}
-    />
+    <div
+      className={`homepage ${styles.container} ${
+        isCollapsed ? styles.sidebarCollapsed : ""
+      }`}
+    >
+      <UserSidebar
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+        myDecks={myDecks}
+        courses={courses}
+        openCourse={openCourse}
+        getDeckId={getDeckId}
+      />
 
-    <div className={styles.mainArea}>
-<UserHeader
-  isCollapsed={isCollapsed}
-  searchQuery={searchQuery}
-  setSearchQuery={setSearchQuery}
-  handleSearchSubmit={handleSearchSubmit}
-  notificationOpen={notificationOpen}
-  setNotificationOpen={setNotificationOpen}
-  setDropdownOpen={setDropdownOpen}
-  notificationCount={notificationCount}
-  notifications={notifications}
-  markNotificationsAsRead={markNotificationsAsRead}
-  user={user}
-  profileDropdownOpen={profileDropdownOpen}
-  setProfileDropdownOpen={setProfileDropdownOpen}
-  handleLogout={handleLogout}
-  hideProfile={false}
-/>
+      <div className={styles.mainArea}>
+        <UserHeader
+          isCollapsed={isCollapsed}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          handleSearchSubmit={handleSearchSubmit}
+          notificationOpen={notificationOpen}
+          setNotificationOpen={setNotificationOpen}
+          setDropdownOpen={setDropdownOpen}
+          notificationCount={notificationCount}
+          notifications={notifications}
+          markNotificationsAsRead={markNotificationsAsRead}
+          user={user}
+          profileDropdownOpen={profileDropdownOpen}
+          setProfileDropdownOpen={setProfileDropdownOpen}
+          handleLogout={handleLogout}
+          hideProfile={false}
+        />
+
         <main className={styles.mainContent}>
           <div className={styles.centerBox}>
             <h1>Hello, {user.username || "User"}!</h1>
@@ -673,7 +841,9 @@ function Homepage() {
               <div className={styles.decksGrid}>
                 {filteredCourses.length === 0 ? (
                   <p style={{ opacity: 0.6 }}>
-                    {searchQuery ? "No matching courses found" : "No courses yet"}
+                    {searchQuery
+                      ? "No matching courses found"
+                      : "No courses yet"}
                   </p>
                 ) : (
                   filteredCourses.slice(0, 3).map((course, index) => {
@@ -768,7 +938,9 @@ function Homepage() {
               <div className={styles.myDecksGrid}>
                 {filteredDecks.length === 0 ? (
                   <p style={{ opacity: 0.6 }}>
-                    {searchQuery ? "No matching decks found" : "Don’t have decks yet"}
+                    {searchQuery
+                      ? "No matching decks found"
+                      : "Don’t have decks yet"}
                   </p>
                 ) : (
                   filteredDecks.slice(0, 4).map((deck) => {
@@ -777,65 +949,100 @@ function Homepage() {
                     const canEdit = isDeckOwner(deck);
 
                     return (
-<Link
-  key={deckId}
-  to={`/deck/${deckId}`}
-  className={styles.deckLink}
->
-  <article className={styles.deckCard}>
-    <div
-      className={styles.cardTop}
-      style={{ backgroundColor: deckColorValue }}
-    >
-      <div
-        className={styles.cardOverlay}
-        style={{ backgroundColor: deckColorValue }}
-      />
-      <button
-        type="button"
-        className={styles.cardMenu}
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          setNotificationOpen(false);
-          setDropdownOpen((prev) => prev === deckId ? null : deckId);
-        }}
-      >
-        <i className="bx bx-dots-vertical-rounded"></i>
-      </button>
-    </div>
+                      <Link
+                        key={deckId}
+                        to={`/deck/${deckId}`}
+                        className={styles.deckLink}
+                      >
+                        <article className={styles.deckCard}>
+                          <div
+                            className={styles.cardTop}
+                            style={{ backgroundColor: deckColorValue }}
+                          >
+                            <div
+                              className={styles.cardOverlay}
+                              style={{ backgroundColor: deckColorValue }}
+                            />
 
-    <div className={styles.cardBody}>
-      <p className={styles.deckTitle}>{deck.title}</p>
-      <p className={styles.deckCategoryText}>
-        <i className="bx bxs-book"></i>
-        <span>{deck.category || "Reviewer"}</span>
-      </p>
-      <span className={styles.deckCount}>
-        {deck.card_count ?? 0} cards
-      </span>
-    </div>
-  </article>
-  {dropdownOpen === deckId && (
-    <div
-      className={styles.cardDropdown}
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      }}
-    >
-      {canEdit ? (
-        <>
-          <button type="button" onClick={() => { handleEditDeck(deck); setDropdownOpen(null); }}>Edit</button>
-          <button type="button" onClick={() => { console.log("Duplicate", deckId); setDropdownOpen(null); }}>Duplicate</button>
-          <button type="button" onClick={() => handleDeleteDeck(deckId)}>Archive</button>
-        </>
-      ) : (
-        <button type="button" disabled className={styles.notEditableBtn}>Not editable</button>
-      )}
-    </div>
-  )}
-</Link>
+                            <button
+                              type="button"
+                              className={styles.cardMenu}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setNotificationOpen(false);
+                                setDropdownOpen((prev) =>
+                                  prev === deckId ? null : deckId
+                                );
+                              }}
+                            >
+                              <i className="bx bx-dots-vertical-rounded"></i>
+                            </button>
+                          </div>
+
+                          <div className={styles.cardBody}>
+                            <p className={styles.deckTitle}>{deck.title}</p>
+
+                            <p className={styles.deckCategoryText}>
+                              <i className="bx bxs-book"></i>
+                              <span>{deck.category || "Reviewer"}</span>
+                            </p>
+
+                            <span className={styles.deckCount}>
+                              {deck.card_count ?? 0} cards
+                            </span>
+                          </div>
+                        </article>
+
+                        {dropdownOpen === deckId && (
+                          <div
+                            className={styles.cardDropdown}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                          >
+                            {canEdit ? (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    handleEditDeck(deck);
+                                    setDropdownOpen(null);
+                                  }}
+                                >
+                                  Edit
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    console.log("Duplicate", deckId);
+                                    setDropdownOpen(null);
+                                  }}
+                                >
+                                  Duplicate
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteDeck(deckId)}
+                                >
+                                  Archive
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled
+                                className={styles.notEditableBtn}
+                              >
+                                Not editable
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </Link>
                     );
                   })
                 )}
@@ -854,24 +1061,54 @@ function Homepage() {
               <div className={styles.subtitleForm}>
                 <div className={styles.formGroup}>
                   <label className={styles.deckinfo}>Deck Title</label>
+
                   <input
                     type="text"
                     placeholder="Enter your deck name"
                     value={deckTitle}
-                    onChange={(e) => setDeckTitle(e.target.value)}
+                    maxLength={DECK_TITLE_LIMIT}
+                    onChange={(e) =>
+                      setDeckTitle(limitChars(e.target.value, DECK_TITLE_LIMIT))
+                    }
                     className={styles.newdecktitle}
                   />
+
+                  <small
+                    style={{
+                      display: "block",
+                      marginTop: "4px",
+                      color: "#666",
+                    }}
+                  >
+                    {deckTitle.length}/{DECK_TITLE_LIMIT} characters
+                  </small>
                 </div>
 
                 <div className={styles.formGroup}>
                   <label className={styles.deckinfo}>Description</label>
+
                   <input
                     type="text"
                     placeholder="Optional description"
                     value={deckDescription}
-                    onChange={(e) => setDeckDescription(e.target.value)}
+                    maxLength={DECK_DESCRIPTION_LIMIT}
+                    onChange={(e) =>
+                      setDeckDescription(
+                        limitChars(e.target.value, DECK_DESCRIPTION_LIMIT)
+                      )
+                    }
                     className={styles.newdecktitle}
                   />
+
+                  <small
+                    style={{
+                      display: "block",
+                      marginTop: "4px",
+                      color: "#666",
+                    }}
+                  >
+                    {deckDescription.length}/{DECK_DESCRIPTION_LIMIT} characters
+                  </small>
                 </div>
 
                 <div className={styles.formGroup}>

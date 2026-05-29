@@ -623,48 +623,71 @@ export default function DeckManagement() {
             </div>
 
             <div className={styles.modalBody}>
-              <p>
-                <strong>Deck ID:</strong>{" "}
-                {formatDeckId(selectedDeck)}
-              </p>
+              <div className={styles.deckProfileGrid}>
+                <div className={styles.deckProfileRow}>
+                  <span className={styles.deckProfileLabel}>Deck ID</span>
+                  <span className={styles.deckProfileValue}>
+                    {formatDeckId(selectedDeck)}
+                  </span>
+                </div>
 
-              <p>
-                <strong>User Made:</strong> @
-                {selectedDeck.username ||
-                  "Unknown"}
-              </p>
+                <div className={styles.deckProfileRow}>
+                  <span className={styles.deckProfileLabel}>User Made</span>
+                  <span className={styles.deckProfileValue}>
+                    @{selectedDeck.username || "Unknown"}
+                  </span>
+                </div>
 
-              <p>
-                <strong>Title:</strong>{" "}
-                {selectedDeck.title ||
-                  "No title"}
-              </p>
+                <div className={styles.deckProfileRow}>
+                  <span className={styles.deckProfileLabel}>Title</span>
+                  <span className={styles.deckProfileValue}>
+                    {selectedDeck.title || "No title"}
+                  </span>
+                </div>
 
-              <p>
-                <strong>Description:</strong>{" "}
-                {selectedDeck.description ||
-                  "No description"}
-              </p>
+                <div className={styles.deckProfileRow}>
+                  <span className={styles.deckProfileLabel}>Date Created</span>
+                  <span className={styles.deckProfileValue}>
+                    {formatDate(selectedDeck.created_at)}
+                  </span>
+                </div>
 
-              <p>
-                <strong>Date Created:</strong>{" "}
-                {formatDate(
-                  selectedDeck.created_at
-                )}
-              </p>
+                <div className={styles.deckProfileRow}>
+                  <span className={styles.deckProfileLabel}>Visibility</span>
+                  <span
+                    className={`${styles.detailBadge} ${
+                      String(selectedDeck.visibility || "").toLowerCase() ===
+                      "private"
+                        ? styles.privateBadge
+                        : styles.publicBadge
+                    }`}
+                  >
+                    {selectedDeck.visibility || "Public"}
+                  </span>
+                </div>
 
-              <p>
-                <strong>Visibility:</strong>{" "}
-                {selectedDeck.visibility ||
-                  "Public"}
-              </p>
+                <div className={styles.deckProfileRow}>
+                  <span className={styles.deckProfileLabel}>Status</span>
+                  <span
+                    className={`${styles.detailBadge} ${
+                      isDeckArchived(selectedDeck)
+                        ? styles.archivedBadge
+                        : styles.activeBadge
+                    }`}
+                  >
+                    {isDeckArchived(selectedDeck) ? "Archived" : "Active"}
+                  </span>
+                </div>
 
-              <p>
-                <strong>Status:</strong>{" "}
-                {isDeckArchived(selectedDeck)
-                  ? "Archived"
-                  : "Active"}
-              </p>
+                <div
+                  className={`${styles.deckProfileRow} ${styles.deckDescriptionRow}`}
+                >
+                  <span className={styles.deckProfileLabel}>Description</span>
+                  <span className={styles.deckProfileValue}>
+                    {selectedDeck.description || "No description"}
+                  </span>
+                </div>
+              </div>
 
               <div className={styles.cardsSection}>
                 <h3>Cards Made</h3>

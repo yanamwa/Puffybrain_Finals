@@ -192,7 +192,7 @@ function EditProfile() {
   useEffect(() => {
     const handler = (e) => {
       const insideDropdown = e.target.closest(
-        `.${styles.deckMenu}, .${styles.deckMenuBtn}`
+        `[data-user-header], [data-user-header-menu], [data-user-header-toggle], .${styles.deckMenu}, .${styles.deckMenuBtn}`
       );
 
       if (!insideDropdown) {

@@ -267,18 +267,24 @@ export default function Flashcards() {
 
       await saveQuizAttempt(updatedScore);
 
-      localStorage.setItem(
-        "lessonQuizResults",
-        JSON.stringify({
-          source: isDeckMode ? "deck" : "lesson",
-          quizMode: "flashcard",
-          deckId: deckId ? Number(deckId) : null,
-          lessonId: lessonId ? Number(lessonId) : null,
-          score: updatedScore,
-          total: flashcards.length,
-          answers: updatedResults,
-        })
-      );
+      const resultPayload = {
+        source: isDeckMode ? "deck" : "lesson",
+        quizMode: "flashcard",
+        deckId: deckId ? Number(deckId) : null,
+        lessonId: lessonId ? Number(lessonId) : null,
+        score: updatedScore,
+        total: flashcards.length,
+        answers: updatedResults,
+      };
+
+      localStorage.setItem("lessonQuizResults", JSON.stringify(resultPayload));
+
+      if (isDeckMode) {
+        localStorage.setItem(
+          `deckQuizResults_${deckId}`,
+          JSON.stringify(resultPayload)
+        );
+      }
 
       navigate(isDeckMode ? `/review/deck/${deckId}` : `/review/${lessonId}`);
     }, 1100);

@@ -848,6 +848,7 @@
   height: 100px;
   position: relative;
   border-radius: 26px 26px 0 0;
+  background: #d7c9f7;
 }
 
 .deckPreview::before {
@@ -859,6 +860,8 @@
   height: 40px;
   border-radius: 0 0 16px 0;
   opacity: 0.9;
+  background: inherit;
+  filter: brightness(0.9);
 }
 
 .previewBlue {
@@ -906,6 +909,14 @@
   color: #333;
   margin: 0 0 6px;
   line-height: 1.25;
+  min-height: 45px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .deckText p {
@@ -1618,7 +1629,7 @@
   height: 100px;
   border-radius: 18px 18px 0 0;
   position: relative;
-  background: #f0a0c1;
+  background: #d7c9f7;
 }
 
 .deckPreview::before {
@@ -1629,7 +1640,9 @@
   width: 70px;
   height: 35px;
   border-radius: 0 0 18px 0;
-  background: rgba(196, 120, 160, 0.55);
+  background: inherit;
+  filter: brightness(0.9);
+  opacity: 0.9;
 }
 
 .previewBlue,
@@ -1650,13 +1663,23 @@
   background: #ffffff;
   padding: 10px 14px 8px;
   border-radius: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .deckText strong {
-  display: block;
+  display: -webkit-box;
   font-size: 16px;
   color: #111;
   margin-bottom: 6px;
+  min-height: 38px;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .deckText p {
@@ -1687,5 +1710,417 @@
   .decksGrid {
     grid-template-columns: 1fr;
     justify-items: center;
+  }
+}
+
+
+/* =========================================================
+   FINAL FIX: Profile page responsive + deck rows
+   Paste-safe override. Keep this at the VERY BOTTOM.
+   ========================================================= */
+
+/* Keep page aligned beside the sidebar */
+.mainArea {
+  margin-left: 220px;
+  width: calc(100% - 220px);
+}
+
+.sidebarCollapsed .mainArea {
+  margin-left: 60px;
+  width: calc(100% - 60px);
+}
+
+/* Less giant air around the profile card */
+.main {
+  padding: 28px clamp(14px, 3vw, 42px) 48px !important;
+  min-height: calc(100vh - 70px);
+}
+
+/* Profile card should look like one clean ID card */
+.profileCard {
+  width: 100%;
+  max-width: 920px;
+  margin: 18px auto 46px !important;
+  padding-left: 110px !important;
+  box-sizing: border-box;
+}
+
+.profileCardInner {
+  min-height: 260px;
+  padding: 18px 32px 22px 118px !important;
+  border-radius: 24px;
+}
+
+.idPhotoBox {
+  left: 18px !important;
+  top: 34px !important;
+  width: 165px !important;
+  height: 185px !important;
+}
+
+.profileTitle {
+  font-size: clamp(42px, 6vw, 68px) !important;
+}
+
+.profileInfoGrid {
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 34px;
+}
+
+.profileField {
+  flex-direction: row;
+  align-items: center;
+}
+
+.profileButtonWrap {
+  justify-content: flex-end;
+}
+
+/* Deck section: remove skinny tower look */
+.deckTabsSection {
+  width: 100%;
+  max-width: 920px;
+  margin: 54px auto 40px !important;
+  padding: 42px 24px 28px !important;
+  border-radius: 20px;
+  box-sizing: border-box;
+}
+
+.deckTabsHeader {
+  left: 18px;
+  right: auto;
+  overflow: visible;
+}
+
+.activeTab,
+.tabBtn {
+  font-size: 16px !important;
+  padding: 10px 26px !important;
+  white-space: nowrap;
+}
+
+/* Decks should stay in rows, not one vertical noodle */
+.decksGrid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 210px)) !important;
+  justify-content: start !important;
+  align-items: start !important;
+  gap: 22px !important;
+}
+
+.deckBox {
+  width: 100% !important;
+  max-width: 210px !important;
+  height: 178px !important;
+  border-radius: 18px !important;
+}
+
+.deckPreview {
+  height: 92px !important;
+  border-radius: 18px 18px 0 0 !important;
+}
+
+.deckText {
+  padding: 10px 12px !important;
+}
+
+.deckText strong {
+  font-size: 14px !important;
+  line-height: 1.2 !important;
+  min-height: 34px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+}
+
+.deckText p {
+  font-size: 12px !important;
+}
+
+/* Tablet layout: keep cards in row */
+@media (max-width: 900px) {
+  .sidebar {
+    width: 60px !important;
+  }
+
+  .sidebar .logoExpanded,
+  .sidebar .myDecksTitle,
+  .sidebar .sectionTitle,
+  .sidebar .sidebarEmptyText,
+  .sidebar .menuText {
+    display: none !important;
+  }
+
+  .sidebar .logoCollapsed {
+    display: block !important;
+    width: 58px !important;
+    height: 58px !important;
+  }
+
+  .mainArea,
+  .sidebarCollapsed .mainArea {
+    margin-left: 60px !important;
+    width: calc(100% - 60px) !important;
+  }
+
+  .headerContainer {
+    justify-content: flex-start !important;
+    padding: 8px 12px !important;
+    min-height: 64px;
+  }
+
+  .searchBar {
+    width: calc(100% - 116px) !important;
+    max-width: none !important;
+    margin: 0 !important;
+  }
+
+  .profileWrapper {
+    right: 8px !important;
+  }
+
+  .userInfo {
+    display: none !important;
+  }
+
+  .main {
+    padding: 22px 18px 42px !important;
+  }
+
+  .profileCard {
+    max-width: 660px !important;
+    padding-left: 0 !important;
+    margin-top: 8px !important;
+  }
+
+  .idPhotoBox {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    margin: 0 auto -42px !important;
+    width: 140px !important;
+    height: 156px !important;
+  }
+
+  .idPhotoFrame {
+    width: 106px !important;
+    height: 94px !important;
+  }
+
+  .profileCardInner {
+    padding: 58px 24px 24px !important;
+    min-height: auto !important;
+  }
+
+  .profileInfoGrid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 18px 24px !important;
+  }
+
+  .profileFieldWide {
+    grid-column: 1 / 3 !important;
+  }
+
+  .profileLabel,
+  .profileValue {
+    font-size: 16px !important;
+  }
+
+  .signatureText {
+    font-size: 38px !important;
+  }
+
+  .editBtn {
+    width: 100% !important;
+  }
+
+  .deckTabsSection {
+    max-width: 660px !important;
+    margin-top: 52px !important;
+    padding: 40px 18px 24px !important;
+  }
+
+  .decksGrid {
+    grid-template-columns: repeat(2, minmax(180px, 1fr)) !important;
+    justify-content: stretch !important;
+    gap: 18px !important;
+  }
+
+  .deckBox {
+    max-width: none !important;
+    height: 172px !important;
+  }
+}
+
+/* Small phone: only phone becomes one column */
+@media (max-width: 520px) {
+  .sidebar {
+    width: 56px !important;
+  }
+
+  .mainArea,
+  .sidebarCollapsed .mainArea {
+    margin-left: 56px !important;
+    width: calc(100% - 56px) !important;
+  }
+
+  .main {
+    padding: 16px 10px 34px !important;
+  }
+
+  .profileCard {
+    margin-bottom: 44px !important;
+  }
+
+  .profileCardInner {
+    padding: 54px 14px 20px !important;
+  }
+
+  .profileTitle {
+    font-size: 34px !important;
+  }
+
+  .profileInfoGrid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .profileFieldWide {
+    grid-column: auto !important;
+  }
+
+  .profileField {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 3px !important;
+  }
+
+  .profileLabel,
+  .profileValue {
+    font-size: 15px !important;
+  }
+
+  .deckTabsSection {
+    padding: 38px 12px 20px !important;
+  }
+
+  .deckTabsHeader {
+    left: 10px !important;
+    right: 10px !important;
+    overflow-x: auto !important;
+  }
+
+  .activeTab,
+  .tabBtn {
+    font-size: 14px !important;
+    padding: 9px 18px !important;
+  }
+
+  .decksGrid {
+    grid-template-columns: 1fr !important;
+    justify-items: center !important;
+    gap: 16px !important;
+  }
+
+  .deckBox {
+    width: 100% !important;
+    max-width: 230px !important;
+  }
+}
+
+/* Profile deck card data should come from JSX, not a hard-coded CSS label. */
+.deckText::after {
+  content: none !important;
+}
+
+.deckCategoryText {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  max-width: 150px;
+  margin: 2px 0 6px !important;
+  padding: 4px 9px;
+  border: 1px solid #cfcfcf;
+  border-radius: 999px;
+  background: #f5f5f5;
+  color: #8a8a8a;
+  font-size: 13px !important;
+  font-weight: 600;
+  line-height: 1.2;
+  min-height: 20px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.deckCategoryText i {
+  color: #6a6a6a;
+  flex-shrink: 0;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.deckCategoryText span {
+  color: #8a8a8a;
+  font-size: 13px;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deckCardCount {
+  margin-top: auto;
+  color: #8b8b8b;
+  font-size: 14px;
+}
+
+.decksGrid {
+  grid-template-columns: repeat(auto-fill, 230px) !important;
+  gap: 28px !important;
+}
+
+.deckBox {
+  width: 230px !important;
+  max-width: 230px !important;
+  height: 200px !important;
+}
+
+.deckPreview {
+  height: 100px !important;
+}
+
+.deckText {
+  min-height: 100px;
+  padding: 12px 14px !important;
+  box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+  .decksGrid {
+    grid-template-columns: repeat(2, minmax(180px, 230px)) !important;
+    gap: 18px !important;
+  }
+
+  .deckBox {
+    width: 100% !important;
+    max-width: 230px !important;
+    height: 190px !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .decksGrid {
+    grid-template-columns: minmax(180px, 220px) !important;
+  }
+
+  .deckBox {
+    max-width: 220px !important;
+    height: 180px !important;
   }
 }

@@ -40,6 +40,86 @@ function MyDecks() {
     });
   };
 
+  const DECK_TITLE_LIMIT = 100;
+  const DESCRIPTION_LIMIT = 300;
+  const CATEGORY_LIMIT = 30;
+
+  const getCharCount = (value) => String(value || "").length;
+  const limitChars = (value, limit) => String(value || "").slice(0, limit);
+
+  const hasTooMuchRepeatedPattern = (value) => {
+    const text = String(value || "")
+      .toLowerCase()
+      .replace(/\s+/g, "")
+      .trim();
+
+    if (text.length < 12) return false;
+
+    if (/(.)\1{5,}/.test(text)) return true;
+
+    const commonSpamPatterns = [
+      "dadada",
+      "awawaw",
+      "asdfasdf",
+      "qwertyqwerty",
+      "hahaha",
+      "hehehe",
+    ];
+
+    if (commonSpamPatterns.some((pattern) => text.includes(pattern))) {
+      return true;
+    }
+
+    for (let size = 2; size <= 10; size++) {
+      for (let start = 0; start <= text.length - size * 4; start++) {
+        const pattern = text.slice(start, start + size);
+        const repeated = pattern.repeat(4);
+
+        if (text.includes(repeated)) return true;
+      }
+    }
+
+    const chunks = text.match(/.{1,4}/g) || [];
+    const uniqueChunks = new Set(chunks);
+
+    return chunks.length >= 8 && uniqueChunks.size <= 3;
+  };
+
+  const isLikelyGibberish = (value) => {
+    const text = String(value || "")
+      .toLowerCase()
+      .replace(/[^a-z\s]/g, "")
+      .trim();
+
+    if (!text) return false;
+
+    const words = text.split(/\s+/).filter(Boolean);
+    if (words.length === 0) return false;
+
+    const suspiciousWords = words.filter((word) => {
+      if (word.length < 8) return false;
+
+      const vowels = (word.match(/[aeiou]/g) || []).length;
+      const vowelRatio = vowels / word.length;
+      const consonantRuns = word.match(/[bcdfghjklmnpqrstvwxyz]{5,}/g) || [];
+
+      return vowelRatio < 0.18 || consonantRuns.length > 0;
+    });
+
+    const noSpaceText = text.replace(/\s+/g, "");
+    const vowels = (noSpaceText.match(/[aeiou]/g) || []).length;
+    const vowelRatio = noSpaceText.length ? vowels / noSpaceText.length : 0;
+    const hasVeryLongNoSpaceText = words.length === 1 && noSpaceText.length >= 18;
+
+    if (hasVeryLongNoSpaceText && vowelRatio < 0.22) return true;
+
+    return suspiciousWords.length >= Math.ceil(words.length * 0.6);
+  };
+
+  const isInvalidText = (value) => {
+    return hasTooMuchRepeatedPattern(value) || isLikelyGibberish(value);
+  };
+
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [search, setSearch] = useState("");
     const [dropdownOpen, setDropdownOpen] = useState(null);
@@ -144,21 +224,36 @@ const normalizeDeck = (deck) => {
   const visibilityValue = deck.visibility || "private";
 
   const safeDeckColor =
-    typeof deck.deck_color === "string"
-      ? deck.deck_color.trim()
+    typeof (
+      deck.deck_color ||
+      deck.deckColor ||
+      deck.color ||
+      deck.deck_colour
+    ) === "string"
+      ? (
+          deck.deck_color ||
+          deck.deckColor ||
+          deck.color ||
+          deck.deck_colour
+        ).trim()
       : "";
 
   return {
     id: deck.deck_id || deck.id,
     title: deck.title || "",
     description: deck.description || "",
-    category: deck.category || "Reviewer",
+    category:
+      deck.category ||
+      deck.deck_category ||
+      deck.subject ||
+      deck.deckCategory ||
+      "Reviewer",
     cards: Number(deck.card_count || deck.cards || 0),
     type: visibilityValue === "public" ? "shared" : "private",
     visibility: visibilityValue,
     source: deck.deck_source || "created",
     deckColor:
-      safeDeckColor && safeDeckColor !== "#ffffff"
+      safeDeckColor && safeDeckColor.toLowerCase() !== "#ffffff"
         ? safeDeckColor
         : "#D7C9F7",
   };
@@ -279,7 +374,7 @@ const normalizeDeck = (deck) => {
     useEffect(() => {
       const handler = (e) => {
         const insideDropdown = e.target.closest(
-          `.${styles.deckMenu}, .${styles.deckMenuBtn}, .${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}, .${styles.customDropdown}, .${styles.searchBar}`
+          `[data-user-header], [data-user-header-menu], [data-user-header-toggle], .${styles.deckMenu}, .${styles.deckMenuBtn}, .${styles.dropdownBtn}, .${styles.dropdownContent}, .${styles.notificationWrapper}, .${styles.customDropdown}, .${styles.searchBar}`
         );
 
         if (!insideDropdown) {
@@ -327,11 +422,28 @@ const normalizeDeck = (deck) => {
                 : true;
 
         const matchesCategory =
-          !selectedCategory || deck.category === selectedCategory;
+          !selectedCategory ||
+          deck.category.toLowerCase() === selectedCategory.toLowerCase();
 
         return matchesSearch && matchesFilter && matchesCategory;
       });
     }, [decks, search, selectedFilter, selectedCategory]);
+
+    const categoryFilterOptions = (() => {
+      const seen = new Set();
+
+      return [...categories.filter((cat) => cat !== "Others"), ...decks.map((deck) => deck.category)]
+        .map((category) => String(category || "").trim())
+        .filter((category) => {
+          if (!category || category === "Others") return false;
+
+          const key = category.toLowerCase();
+          if (seen.has(key)) return false;
+
+          seen.add(key);
+          return true;
+        });
+    })();
 
     const openDeck = (deckId) => {
       navigate(`/deck/${deckId}`);
@@ -350,6 +462,33 @@ const normalizeDeck = (deck) => {
         });
         return;
       }
+      if (deckTitle.trim().length > DECK_TITLE_LIMIT) {
+        styledSwal({
+          icon: "warning",
+          title: "Title Too Long",
+          text: `Deck title must not exceed ${DECK_TITLE_LIMIT} characters.`,
+        });
+        return;
+      }
+
+      if (deckDesc.trim().length > DESCRIPTION_LIMIT) {
+        styledSwal({
+          icon: "warning",
+          title: "Description Too Long",
+          text: `Description must not exceed ${DESCRIPTION_LIMIT} characters.`,
+        });
+        return;
+      }
+
+      if (isInvalidText(deckTitle) || isInvalidText(deckDesc)) {
+        styledSwal({
+          icon: "warning",
+          title: "Invalid Content",
+          text: "Repeated random characters, repeated text patterns, or keyboard-smash text are not allowed.",
+        });
+        return;
+      }
+
 
       const finalCategory =
         deckCategory === "Others" ? customCategory.trim() : deckCategory;
@@ -393,8 +532,8 @@ const normalizeDeck = (deck) => {
       try {
         const formData = new FormData();
 
-        formData.append("title", deckTitle.trim());
-        formData.append("description", deckDesc.trim());
+        formData.append("title", limitChars(deckTitle, DECK_TITLE_LIMIT).trim());
+        formData.append("description", limitChars(deckDesc, DESCRIPTION_LIMIT).trim());
         formData.append("category", finalCategory);
         formData.append("visibility", visibility);
         formData.append("deck_color", deckColor);
@@ -482,15 +621,19 @@ const normalizeDeck = (deck) => {
               id="swal-title"
               class="${styles.editDeckInput}"
               placeholder="Enter your deck name"
-              value="${deck.title || ""}"
+              maxlength="${DECK_TITLE_LIMIT}"
+              value="${limitChars(deck.title || "", DECK_TITLE_LIMIT)}"
             />
+            <small id="swal-title-counter">0/${DECK_TITLE_LIMIT} characters</small>
 
             <label class="${styles.editDeckLabel}">Description</label>
             <textarea
               id="swal-desc"
               class="${styles.editDeckTextarea}"
               placeholder="Optional"
-            >${deck.description || ""}</textarea>
+              maxlength="${DESCRIPTION_LIMIT}"
+            >${limitChars(deck.description || "", DESCRIPTION_LIMIT)}</textarea>
+            <small id="swal-desc-counter">0/${DESCRIPTION_LIMIT} characters</small>
 
             <label class="${styles.editDeckLabel}">Category</label>
             <select id="swal-category" class="${styles.editDeckSelect}">
@@ -549,6 +692,31 @@ const normalizeDeck = (deck) => {
   </div>
         `,
         didOpen: () => {
+          const titleInput = document.getElementById("swal-title");
+          const descInput = document.getElementById("swal-desc");
+          const titleCounter = document.getElementById("swal-title-counter");
+          const descCounter = document.getElementById("swal-desc-counter");
+
+          const syncCounter = (input, counter, limit) => {
+            if (!input || !counter) return;
+
+            input.value = limitChars(input.value, limit);
+            const count = getCharCount(input.value);
+            counter.textContent = `${count}/${limit} characters`;
+            counter.style.color = count >= limit ? "#b0478f" : "#666";
+          };
+
+          syncCounter(titleInput, titleCounter, DECK_TITLE_LIMIT);
+          syncCounter(descInput, descCounter, DESCRIPTION_LIMIT);
+
+          titleInput?.addEventListener("input", () =>
+            syncCounter(titleInput, titleCounter, DECK_TITLE_LIMIT)
+          );
+
+          descInput?.addEventListener("input", () =>
+            syncCounter(descInput, descCounter, DESCRIPTION_LIMIT)
+          );
+
           document
             .querySelectorAll(`.${styles.editDeckColorDot}`)
             .forEach((btn) => {
@@ -570,8 +738,15 @@ const normalizeDeck = (deck) => {
         cancelButtonText: "Cancel",
         reverseButtons: true,
         preConfirm: () => {
-          const title = document.getElementById("swal-title").value.trim();
-          const description = document.getElementById("swal-desc").value.trim();
+          const title = limitChars(
+            document.getElementById("swal-title").value,
+            DECK_TITLE_LIMIT
+          ).trim();
+
+          const description = limitChars(
+            document.getElementById("swal-desc").value,
+            DESCRIPTION_LIMIT
+          ).trim();
           const category = document.getElementById("swal-category").value;
           const visibility = document.querySelector(
             'input[name="swal-visibility"]:checked'
@@ -580,6 +755,27 @@ const normalizeDeck = (deck) => {
 
           if (!title) {
             Swal.showValidationMessage("Deck title is required.");
+            return false;
+          }
+
+          if (title.length > DECK_TITLE_LIMIT) {
+            Swal.showValidationMessage(
+              `Deck title must not exceed ${DECK_TITLE_LIMIT} characters.`
+            );
+            return false;
+          }
+
+          if (description.length > DESCRIPTION_LIMIT) {
+            Swal.showValidationMessage(
+              `Description must not exceed ${DESCRIPTION_LIMIT} characters.`
+            );
+            return false;
+          }
+
+          if (isInvalidText(title) || isInvalidText(description)) {
+            Swal.showValidationMessage(
+              "Repeated random characters, repeated text patterns, or keyboard-smash text are not allowed."
+            );
             return false;
           }
 
@@ -931,8 +1127,7 @@ const normalizeDeck = (deck) => {
                       All Categories
                     </button>
 
-                    {categories
-                      .filter((cat) => cat !== "Others")
+                    {categoryFilterOptions
                       .map((cat) => (
                         <button
                           key={cat}
@@ -1079,17 +1274,25 @@ const normalizeDeck = (deck) => {
             <input
               className={styles.input}
               value={deckTitle}
-              onChange={(e) => setDeckTitle(e.target.value)}
+              maxLength={DECK_TITLE_LIMIT}
+              onChange={(e) => setDeckTitle(limitChars(e.target.value, DECK_TITLE_LIMIT))}
               placeholder="Enter your deck name"
             />
+            <small className={styles.charCounter}>
+              {getCharCount(deckTitle)}/{DECK_TITLE_LIMIT} characters
+            </small>
 
             <label className={styles.label}>Description</label>
             <input
               className={styles.input}
               value={deckDesc}
-              onChange={(e) => setDeckDesc(e.target.value)}
+              maxLength={DESCRIPTION_LIMIT}
+              onChange={(e) => setDeckDesc(limitChars(e.target.value, DESCRIPTION_LIMIT))}
               placeholder="Optional"
             />
+            <small className={styles.charCounter}>
+              {getCharCount(deckDesc)}/{DESCRIPTION_LIMIT} characters
+            </small>
 
             <label className={styles.label}>Category</label>
             <select
@@ -1115,13 +1318,13 @@ const normalizeDeck = (deck) => {
                 className={`${styles.input} ${styles.customCategoryInput}`}
                 placeholder="Type category"
                 value={customCategory}
-                maxLength={30}
+                maxLength={CATEGORY_LIMIT}
                 onChange={(e) => {
                   const cleanValue = e.target.value.replace(
                     /[^A-Za-z0-9 ]/g,
                     ""
                   );
-                  setCustomCategory(cleanValue);
+                  setCustomCategory(limitChars(cleanValue, CATEGORY_LIMIT));
                 }}
               />
             )}

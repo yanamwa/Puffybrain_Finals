@@ -71,17 +71,17 @@
 .matchingWrapper {
   display: flex;
   justify-content: center;
-  gap: 40px;
-  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 20px;
+  width: 100%;
 }
 
 table {
+  width: 50%;
+  max-width: none;
+  table-layout: fixed;
   border-collapse: collapse;
-  width: 420px;
-  max-width: 100%;
-  border-radius: 12px;
 }
-
 td {
   padding: 15px;
 }
@@ -380,4 +380,196 @@ td {
   color: white;
   cursor: pointer;
   font-weight: 600;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 900px) {
+  .matchingWrapper {
+    gap: 12px;
+  }
+
+  table {
+    width: 50%;
+  }
+
+  .card {
+    padding: 12px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .quizAppContainer {
+    width: 100%;
+  }
+
+  .matchingWrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+  }
+
+  table {
+    width: 100%;
+  }
+
+  td {
+    padding: 6px;
+  }
+
+  .card {
+    min-height: 70px;
+    font-size: 13px;
+    padding: 10px;
+    border-radius: 14px;
+  }
+
+  .cardAudioBtn {
+    width: 24px;
+    height: 24px;
+  }
+
+  .cardAudioBtn i {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .matchingWrapper {
+    gap: 6px;
+  }
+
+  .card {
+    font-size: 12px;
+    padding: 8px;
+    min-height: 60px;
+  }
+}
+
+/* =========================
+   ACCESSIBILITY MODAL RESPONSIVE
+========================= */
+
+/* iPad */
+@media (max-width: 1024px) {
+  .settingsModal {
+    width: 90%;
+    max-width: 550px;
+  }
+
+  .settingsHeader h2 {
+    font-size: 22px;
+  }
+
+  .settingText strong {
+    font-size: 18px;
+  }
+
+  .settingText span {
+    font-size: 15px;
+  }
+}
+
+/* Phone */
+@media (max-width: 768px) {
+  .settingsOverlay {
+    padding: 15px;
+  }
+
+  .settingsModal {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 20px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .settingsHeader {
+    padding: 16px;
+  }
+
+  .settingsHeader h2 {
+    font-size: 20px;
+  }
+
+  .settingsBody {
+    padding: 16px;
+  }
+
+  .settingRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .settingInfo {
+    width: 100%;
+  }
+
+  .switchBtn,
+  .switchOn {
+    width: 100%;
+    height: 42px;
+    font-size: 18px;
+  }
+
+  .speedHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .speedHeader label {
+    font-size: 18px;
+  }
+
+  .speedValue {
+    font-size: 16px;
+  }
+
+  .settingIcon {
+    width: 34px;
+    height: 34px;
+    font-size: 18px;
+  }
+}
+
+/* Small Phones */
+@media (max-width: 480px) {
+  .settingsModal {
+    border-radius: 16px;
+  }
+
+  .settingsHeader h2 {
+    font-size: 18px;
+  }
+
+  .settingText strong {
+    font-size: 16px;
+  }
+
+  .settingText span {
+    font-size: 13px;
+  }
+
+  .switchBtn,
+  .switchOn {
+    font-size: 16px;
+    height: 40px;
+  }
+
+  .speedHeader label,
+  .speedValue {
+    font-size: 14px;
+  }
+
+  .closeSettings {
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
+  }
 }

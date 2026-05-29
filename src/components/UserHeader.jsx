@@ -37,11 +37,12 @@ export default function UserHeader({
         </button>
       </form>
 
-      <div className={styles.profileWrapper}>
-        <div className={styles.notificationWrapper}>
+      <div className={styles.profileWrapper} data-user-header>
+        <div className={styles.notificationWrapper} data-user-header-notification>
           <button
             type="button"
             className={styles.notificationBtn}
+            data-user-header-toggle
             onClick={(e) => {
               e.stopPropagation();
               setNotificationOpen((prev) => !prev);
@@ -62,6 +63,7 @@ export default function UserHeader({
             className={`${styles.notificationDropdown} ${
               notificationOpen ? styles.show : ""
             }`}
+            data-user-header-menu
           >
             <div className={styles.notificationHeader}>
               <h4>Notifications</h4>
@@ -133,10 +135,11 @@ export default function UserHeader({
               </div>
             </Link>
 
-            <div className={styles.dropdown}>
+            <div className={styles.dropdown} data-user-header-dropdown>
               <button
                 type="button"
                 className={styles.dropdownBtn}
+                data-user-header-toggle
                 onClick={(e) => {
                 e.stopPropagation();
 
@@ -154,6 +157,7 @@ export default function UserHeader({
                 className={`${styles.dropdownContent} ${
                   profileDropdownOpen ? styles.show : ""
                 }`}
+                data-user-header-menu
               >
                 <NavLink to="/edit-profile">
                   <i className="bx bx-cog"></i>

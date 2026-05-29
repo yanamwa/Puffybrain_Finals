@@ -329,7 +329,7 @@
   padding: 26px 10px;
   border-radius: 20px;
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.06);
-  overflow-x: auto;
+  overflow-x: hidden;
 }
 
 .table {
@@ -339,7 +339,7 @@
 
 .table thead th {
   background: #ffffff;
-  padding: 20px 28px;
+  padding: 14px 10px;
   text-align: center;
   font-weight: 900;
   color: #000000;
@@ -352,7 +352,7 @@
 }
 
 .table tbody td {
-  padding: 28px 28px;
+  padding: 18px 10px;
   font-size: 16px;
   color: #000000;
   text-align: center;
@@ -399,9 +399,11 @@
 /* ACTIONS */
 .actions {
   display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 7px;
 }
 
 .actionEdit,
@@ -410,16 +412,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 90px;
+  width: 74px;
+  min-width: 74px;
   height: 34px;
-  padding: 0 16px;
+  padding: 0;
   border-radius: 10px;
   border: none;
   cursor: pointer;
   font-weight: normal;
   font-style: normal;
-  font-size: 16px;
+  font-size: 14px;
   font-family: inherit;
+  white-space: nowrap;
 }
 
 .actionEdit {
@@ -619,11 +623,10 @@
   border-radius: 14px;
   padding: 14px 16px;
   min-height: 95px;
-  max-height: 95px;
-  overflow: hidden;
+  max-height: none;
+  overflow: visible;
   line-height: 1.6;
-  display: flex;
-  align-items: flex-start;
+  display: block;
 }
 
 .mmCol {
@@ -1155,13 +1158,14 @@
 .tableCard {
   width: 100%;
   max-width: 100%;
-  overflow-x: auto;
+  overflow: hidden;
   box-sizing: border-box;
 }
 
 .table {
   width: 100%;
-  min-width: 760px;
+  min-width: 0;
+  table-layout: fixed;
 }
 
 /* TABLET */
@@ -1223,7 +1227,8 @@
     grid-template-rows: 58px 1fr;
   }
 
-  .sidebar {
+  .sidebar,
+  .sidebar.collapsed {
     width: 52px;
   }
 
@@ -1264,54 +1269,53 @@
     width: 100%;
   }
 
+  .tableCard {
+    overflow: hidden;
+    padding: 16px 8px;
+  }
+
   .table {
-    min-width: 0;
-  }
-
-  .table thead {
-    display: none;
-  }
-
-  .table,
-  .table tbody,
-  .table tr,
-  .table td {
-    display: block;
     width: 100%;
+    min-width: 0;
+    table-layout: fixed;
   }
 
-  .table tbody tr {
-    background: #fff;
-    border: 1px solid #eee;
-    border-radius: 16px;
-    margin-bottom: 14px;
-    padding: 12px;
-    box-sizing: border-box;
-  }
-
+  .table thead th,
   .table tbody td {
-    padding: 8px 4px;
-    text-align: left;
-    font-size: 14px;
-    word-break: break-word;
+    padding: 12px 6px;
+    font-size: 12px;
+  }
+
+  .statusActive,
+  .statusInactive {
+    min-width: 82px;
+    height: 28px;
+    padding: 0 8px;
+    font-size: 12px;
   }
 
   .actions {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
   }
 
   .actionEdit,
   .actionDelete,
   .actionView {
-    width: 100%;
+    width: 56px;
+    min-width: 56px;
+    height: 30px;
+    padding: 0;
+    font-size: 12px;
   }
 
   .paginationWrapper {
     flex-direction: column;
     gap: 12px;
-    align-items: stretch;
+    align-items: center;
   }
 
   .rowsControl {
@@ -1340,5 +1344,106 @@
   .mmHeaderEdit {
     margin-left: auto;
     margin-right: 38px;
+  }
+}
+
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .layout {
+    grid-template-columns: 52px minmax(0, 1fr);
+    grid-template-rows: 58px 1fr;
+  }
+
+  .sidebar,
+  .sidebar.collapsed {
+    width: 52px;
+  }
+
+  .headerContainer {
+    height: 58px;
+    padding: 0 8px;
+  }
+
+  .main {
+    padding: 16px 8px;
+  }
+
+  .searchBar {
+    max-width: 100%;
+    height: 32px;
+  }
+
+  .adminHeaderProfile {
+    display: none;
+  }
+
+  .pageTop,
+  .pageHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .addBtn {
+    width: 100%;
+  }
+
+  .tableCard {
+    padding: 14px;
+    overflow: hidden;
+  }
+
+  .table,
+  .table tbody,
+  .table tr,
+  .table td {
+    display: block;
+    width: 100%;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tbody tr {
+    border: 1px solid #eeeeee;
+    border-radius: 16px;
+    margin-bottom: 14px;
+    padding: 12px;
+  }
+
+  .table tbody td {
+    padding: 8px 0;
+    text-align: left;
+    font-size: 13px;
+  }
+
+  .actions {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 6px;
+    justify-content: center;
+  }
+
+  .actionEdit,
+  .actionDelete,
+  .actionView {
+    width: 62px;
+    min-width: 62px;
+    height: 30px;
+    font-size: 12px;
+    padding: 0;
+  }
+
+  .paginationWrapper {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .rowsControl {
+    position: static;
+    justify-content: center;
   }
 }

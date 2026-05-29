@@ -2,6 +2,8 @@ import styles from './login.module.css';
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { useNavigate, Link } from "react-router-dom";
+import LandingNavbar from "../../components/LandingNavbar";
+import LandingFooter from "../../components/LandingFooter";
 
 function ForgotPassword() {
   const navigate = useNavigate();
@@ -49,27 +51,7 @@ return (
     <div className={styles.wrapper}>
       <section className={styles.container}>
         <div className={styles.background}></div>
-
-    <div className={styles.navbar}>
-          <div className={styles.logo}>
-            <img src="/images/logo1.png" alt="Logo" />
-          </div>
-
-          <ul className={styles.navLinks}>
-            <li><Link to="/">Home</Link></li>
-            <li><Link to="/about">About</Link></li>
-            <li><Link to="/faq">FAQ</Link></li>
-            <li><Link to="/faq">Contact Us</Link></li>
-          </ul>
-
-          <div className={styles.navActions}>
-            <Link to="/login" className={styles.startBtn}>
-              Start Learning
-            </Link>
-          </div>
-        </div>
-
-
+   <LandingNavbar />
         <div className={styles.signupContainer}>
           <div className={styles.signupCard}>
             <h2>Forgot Username</h2>

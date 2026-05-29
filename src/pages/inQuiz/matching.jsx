@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { API_BASE } from "../../config.js";
+import { updateDeckCardMemorized } from "../../utils/cardMemorization.js";
 import styles from "./matching.module.css";
 
 export default function MatchingType() {
@@ -212,6 +213,7 @@ export default function MatchingType() {
 
   const saveMatchingResult = (finalScore) => {
     const answers = matchingPairs.map((item) => ({
+      cardId: item.id,
       question: item.question,
       userAnswer: item.answer,
       correctAnswer: item.answer,
@@ -219,21 +221,27 @@ export default function MatchingType() {
       isCorrect: true,
     }));
 
-    localStorage.setItem(
-      "lessonQuizResults",
-      JSON.stringify({
-        source: isDeckMode ? "deck" : "lesson",
-        quizMode: "matching",
-        lessonId: isLessonMode ? Number(lessonId) : null,
-        deckId: isDeckMode ? Number(deckId) : null,
-        score: finalScore,
-        total: matchingPairs.length,
-        answers,
-      })
-    );
+    const resultPayload = {
+      source: isDeckMode ? "deck" : "lesson",
+      quizMode: "matching",
+      lessonId: isLessonMode ? Number(lessonId) : null,
+      deckId: isDeckMode ? Number(deckId) : null,
+      score: finalScore,
+      total: matchingPairs.length,
+      answers,
+    };
+
+    localStorage.setItem("lessonQuizResults", JSON.stringify(resultPayload));
+
+    if (isDeckMode) {
+      localStorage.setItem(
+        `deckQuizResults_${deckId}`,
+        JSON.stringify(resultPayload)
+      );
+    }
   };
 
-  const handleCardClick = (card, side) => {
+  const handleCardClick = async (card, side) => {
     if (matchedIds.includes(card.id)) return;
 
     if (!firstCard) {
@@ -247,6 +255,11 @@ export default function MatchingType() {
     }
 
     if (firstCard.id === card.id) {
+      await updateDeckCardMemorized(isDeckMode, card.id, true, {
+        question: card.question,
+        answer: card.answer,
+      });
+
       setMatchedIds((prev) => {
         const updated = [...prev, card.id];
 

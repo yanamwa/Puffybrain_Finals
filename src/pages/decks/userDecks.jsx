@@ -13,29 +13,229 @@ import UserSidebar from "../../components/UserSidebar";
 export default function UserDecks() {
   const navigate = useNavigate();
   const { deckId } = useParams();
-
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showAddCard, setShowAddCard] = useState(false);
   const [showModes, setShowModes] = useState(false);
   const [activeTab, setActiveTab] = useState("All Cards");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [search, setSearch] = useState("");
-
   const [deck, setDeck] = useState(null);
   const [myDecks, setMyDecks] = useState([]);
   const [cards, setCards] = useState([]);
   const [courses, setCourses] = useState([]);
-
   const [showUploadLesson, setShowUploadLesson] = useState(false);
   const [lessonFile, setLessonFile] = useState(null);
   const [questionCount, setQuestionCount] = useState(1);
   const [trueFalseCount, setTrueFalseCount] = useState(0);
   const [difficulty, setDifficulty] = useState("easy");
-
 const [notificationOpen, setNotificationOpen] = useState(false);
 const [notifications, setNotifications] = useState([]);
-
 const [isDeckSaved, setIsDeckSaved] = useState(false);
+const DECK_TITLE_LIMIT = 100;
+const DESCRIPTION_LIMIT = 300;
+const QUESTION_LIMIT = 300;
+const ANSWER_LIMIT = 300;
+
+const getCharCount = (value) => String(value || "").length;
+const limitChars = (value, limit) => String(value || "").slice(0, limit);
+
+const normalizeText = (value) =>
+  String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const hasTooMuchRepeatedPattern = (value) => {
+  const text = String(value || "")
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .trim();
+
+  if (text.length < 12) return false;
+
+  if (/(.){5,}/.test(text)) return true;
+
+  const commonSpamPatterns = [
+    "dadada",
+    "awawaw",
+    "asdfasdf",
+    "qwertyqwerty",
+    "hahaha",
+    "hehehe",
+  ];
+
+  if (commonSpamPatterns.some((pattern) => text.includes(pattern))) return true;
+
+  for (let size = 2; size <= 10; size += 1) {
+    for (let start = 0; start <= text.length - size * 4; start += 1) {
+      const pattern = text.slice(start, start + size);
+      if (text.includes(pattern.repeat(4))) return true;
+    }
+  }
+
+  const chunks = text.match(/.{1,4}/g) || [];
+  const uniqueChunks = new Set(chunks);
+
+  return chunks.length >= 8 && uniqueChunks.size <= 3;
+};
+
+const hasTooManyRepeatedWords = (value) => {
+  const words = normalizeText(value).split(" ").filter(Boolean);
+  if (words.length < 6) return false;
+
+  const counts = words.reduce((acc, word) => {
+    acc[word] = (acc[word] || 0) + 1;
+    return acc;
+  }, {});
+
+  const mostRepeated = Math.max(...Object.values(counts));
+  if (mostRepeated >= 5) return true;
+
+  for (let i = 0; i <= words.length - 4; i += 1) {
+    if (
+      words[i] === words[i + 1] &&
+      words[i] === words[i + 2] &&
+      words[i] === words[i + 3]
+    ) {
+      return true;
+    }
+  }
+
+  for (let size = 2; size <= 4; size += 1) {
+    for (let start = 0; start <= words.length - size * 3; start += 1) {
+      const pattern = words.slice(start, start + size).join(" ");
+      const repeated = [
+        ...words.slice(start, start + size),
+        ...words.slice(start, start + size),
+        ...words.slice(start, start + size),
+      ].join(" ");
+
+      if (words.join(" ").includes(repeated) && pattern.length > 3) return true;
+    }
+  }
+
+  return false;
+};
+
+const isLikelyGibberish = (value) => {
+  const text = String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z\s]/g, "")
+    .trim();
+
+  if (!text) return false;
+
+  const words = text.split(/\s+/).filter(Boolean);
+  if (words.length === 0) return false;
+
+  const suspiciousWords = words.filter((word) => {
+    if (word.length < 8) return false;
+
+    const vowels = (word.match(/[aeiou]/g) || []).length;
+    const vowelRatio = vowels / word.length;
+    const hasLongConsonantRun = /[bcdfghjklmnpqrstvwxyz]{5,}/.test(word);
+
+    return vowelRatio < 0.18 || hasLongConsonantRun;
+  });
+
+  const noSpaceText = text.replace(/\s+/g, "");
+  const vowels = (noSpaceText.match(/[aeiou]/g) || []).length;
+  const vowelRatio = noSpaceText.length ? vowels / noSpaceText.length : 0;
+  const hasVeryLongNoSpaceText = words.length === 1 && noSpaceText.length >= 18;
+
+  if (hasVeryLongNoSpaceText && vowelRatio < 0.22) return true;
+
+  return suspiciousWords.length >= Math.ceil(words.length * 0.6);
+};
+
+const isInvalidText = (value) =>
+  hasTooMuchRepeatedPattern(value) ||
+  hasTooManyRepeatedWords(value) ||
+  isLikelyGibberish(value);
+
+const readJsonStorage = (key) => {
+  try {
+    return JSON.parse(localStorage.getItem(key));
+  } catch {
+    return null;
+  }
+};
+
+const getCardResultKey = (question, answer) => {
+  return `${normalizeText(question)}|||${normalizeText(answer)}`;
+};
+
+const emptyQuizMemorizedOverrides = () => ({
+  idOverrides: new Map(),
+  textOverrides: new Map(),
+});
+
+const getQuizMemorizedOverrides = (currentDeckId) => {
+  const savedResults =
+    readJsonStorage(`deckQuizResults_${currentDeckId}`) ||
+    readJsonStorage("lessonQuizResults") ||
+    readJsonStorage("quizResults");
+
+  const savedDeckId = savedResults?.deckId || savedResults?.deck_id;
+
+  if (
+    !savedResults ||
+    savedResults.source !== "deck" ||
+    Number(savedDeckId) !== Number(currentDeckId) ||
+    !Array.isArray(savedResults.answers)
+  ) {
+    return emptyQuizMemorizedOverrides();
+  }
+
+  const idOverrides = new Map();
+  const textOverrides = new Map();
+
+  savedResults.answers.forEach((answer) => {
+    const cardId = answer?.cardId || answer?.card_id || answer?.id;
+    const isMemorized = answer.isCorrect ? 1 : 0;
+
+    if (cardId) {
+      idOverrides.set(Number(cardId), isMemorized);
+    }
+
+    const question = answer?.question || "";
+    const correctAnswer = answer?.correctAnswer || answer?.answer || "";
+
+    if (question || correctAnswer) {
+      textOverrides.set(getCardResultKey(question, correctAnswer), isMemorized);
+    }
+  });
+
+  return { idOverrides, textOverrides };
+};
+
+const applyQuizMemorizedOverrides = (deckCards, currentDeckId) => {
+  const { idOverrides, textOverrides } = getQuizMemorizedOverrides(currentDeckId);
+
+  if (idOverrides.size === 0 && textOverrides.size === 0) return deckCards;
+
+  return deckCards.map((card) => {
+    const cardId = Number(card.cardId || card.card_id || card.id);
+    const textKey = getCardResultKey(card.question, card.answer);
+
+    if (idOverrides.has(cardId)) {
+      return {
+        ...card,
+        is_memorized: idOverrides.get(cardId),
+      };
+    }
+
+    if (textOverrides.has(textKey)) {
+      return {
+        ...card,
+        is_memorized: textOverrides.get(textKey),
+      };
+    }
+
+    return card;
+  });
+};
 
 const notificationCount = notifications.filter(
   (notif) => notif.status !== "read"
@@ -249,7 +449,7 @@ const fetchCards = async () => {
 
     if (data.success) {
       console.log("Fetched cards:", data.cards);
-      setCards(data.cards || []);
+      setCards(applyQuizMemorizedOverrides(data.cards || [], deckId));
     } else {
       console.error("Cards fetch failed:", data.message);
       setCards([]);
@@ -326,7 +526,7 @@ const fetchCards = async () => {
 useEffect(() => {
   const handler = (e) => {
     const insideHeaderDropdown = e.target.closest(
-      '[class*="dropdownBtn"], [class*="dropdownContent"], [class*="profileWrapper"], [class*="notificationWrapper"], [class*="searchBar"]'
+      '[data-user-header], [data-user-header-menu], [data-user-header-toggle], [class*="dropdownBtn"], [class*="dropdownContent"], [class*="profileWrapper"], [class*="notificationWrapper"], [class*="searchBar"]'
     );
 
     if (!insideHeaderDropdown) {
@@ -614,6 +814,24 @@ const handleAddCard = async () => {
     return;
   }
 
+  if (question.trim().length > QUESTION_LIMIT) {
+  Swal.fire({
+    title: "Question Too Long",
+    text: `Question must not exceed ${QUESTION_LIMIT} characters.`,
+    icon: "warning",
+  });
+  return;
+}
+
+if (answer.trim().length > ANSWER_LIMIT) {
+  Swal.fire({
+    title: "Answer Too Long",
+    text: `Answer must not exceed ${ANSWER_LIMIT} characters.`,
+    icon: "warning",
+  });
+  return;
+}
+
   if (!question.trim() || !answer.trim()) {
     Swal.fire({
       title: "Missing fields",
@@ -631,16 +849,38 @@ const handleAddCard = async () => {
         confirmButton: styles.uploadFailedBtn,
       },
 
+      
+
       buttonsStyling: false,
     });
 
     return;
   }
 
+  if (isInvalidText(question) || isInvalidText(answer)) {
+    Swal.fire({
+      title: "Invalid Content",
+      text: "Repeated words, repeated random characters, or keyboard-smash text are not allowed.",
+      imageUrl: "/images/error.png",
+      imageWidth: 160,
+      imageHeight: 160,
+      confirmButtonText: "OK",
+      customClass: {
+        popup: styles.uploadFailedPopup,
+        image: styles.uploadFailedImage,
+        title: styles.uploadFailedTitle,
+        htmlContainer: styles.uploadFailedText,
+        confirmButton: styles.uploadFailedBtn,
+      },
+      buttonsStyling: false,
+    });
+    return;
+  }
+
   const formData = new FormData();
   formData.append("deckId", deckId);
-  formData.append("question", question.trim());
-  formData.append("answer", answer.trim());
+  formData.append("question", limitChars(question, QUESTION_LIMIT).trim());
+  formData.append("answer", limitChars(answer, ANSWER_LIMIT).trim());
 
   if (image) formData.append("image", image);
   if (editingCardId) formData.append("cardId", editingCardId);
@@ -778,20 +1018,26 @@ const handleEditDeck = async () => {
         <div class="${styles.editDeckBody}">
           <div class="${styles.editDeckGroup}">
             <label>Deck Title</label>
-            <input 
-              id="swal-title" 
-              type="text" 
-              placeholder="Deck title" 
-              value="${deck.title || ""}"
-            />
+    <input
+  id="swal-title"
+  type="text"
+  maxlength="${DECK_TITLE_LIMIT}"
+  placeholder="Deck title"
+  value="${limitChars(deck.title || "", DECK_TITLE_LIMIT)}"
+/>
+
+<small id="swal-title-counter">0/${DECK_TITLE_LIMIT} characters</small>
           </div>
 
           <div class="${styles.editDeckGroup}">
             <label>Description</label>
-            <textarea 
-              id="swal-desc" 
-              placeholder="Optional"
-            >${deck.description || ""}</textarea>
+          <textarea
+  id="swal-desc"
+  maxlength="${DESCRIPTION_LIMIT}"
+  placeholder="Optional"
+>${limitChars(deck.description || "", DESCRIPTION_LIMIT)}</textarea>
+
+<small id="swal-desc-counter">0/${DESCRIPTION_LIMIT} characters</small>
           </div>
 
           <div class="${styles.editDeckGroup}">
@@ -888,9 +1134,31 @@ const handleEditDeck = async () => {
     `,
 
     didOpen: () => {
+      const titleInput = document.getElementById("swal-title");
+      const descInput = document.getElementById("swal-desc");
+      const titleCounter = document.getElementById("swal-title-counter");
+      const descCounter = document.getElementById("swal-desc-counter");
       const categorySelect = document.getElementById("swal-category");
       const customInput = document.getElementById("swal-custom-category");
       const colorButtons = document.querySelectorAll(".swal-color-btn");
+
+      const syncCounter = (input, counter, limit) => {
+        input.value = limitChars(input.value, limit);
+        const count = getCharCount(input.value);
+        counter.textContent = `${count}/${limit} characters`;
+        counter.style.color = count >= limit ? "#b0478f" : "#666";
+      };
+
+      titleInput.addEventListener("input", () =>
+        syncCounter(titleInput, titleCounter, DECK_TITLE_LIMIT)
+      );
+
+      descInput.addEventListener("input", () =>
+        syncCounter(descInput, descCounter, DESCRIPTION_LIMIT)
+      );
+
+      syncCounter(titleInput, titleCounter, DECK_TITLE_LIMIT);
+      syncCounter(descInput, descCounter, DESCRIPTION_LIMIT);
 
       window.selectedDeckColor = currentDeckColor;
 
@@ -925,19 +1193,40 @@ customClass: {
 },
     buttonsStyling: false,
 
-    preConfirm: () => {
-      const title = document.getElementById("swal-title").value.trim();
-      const description = document.getElementById("swal-desc").value.trim();
+ preConfirm: () => {
+  const title = limitChars(document.getElementById("swal-title").value, DECK_TITLE_LIMIT).trim();
+  const description = limitChars(document.getElementById("swal-desc").value, DESCRIPTION_LIMIT).trim();
 
-      const selectedCategory = document.getElementById("swal-category").value;
-      const customCategory = document
-        .getElementById("swal-custom-category")
-        .value.trim();
+  if (title.length > DECK_TITLE_LIMIT) {
+    Swal.showValidationMessage(
+      `Deck title must not exceed ${DECK_TITLE_LIMIT} characters`
+    );
+    return false;
+  }
 
-      const visibility = document.querySelector(
-        'input[name="swal-visibility"]:checked'
-      )?.value;
+  if (description.length > DESCRIPTION_LIMIT) {
+    Swal.showValidationMessage(
+      `Description must not exceed ${DESCRIPTION_LIMIT} characters`
+    );
+    return false;
+  }
 
+  if (isInvalidText(title) || isInvalidText(description)) {
+    Swal.showValidationMessage(
+      "Repeated words, repeated random characters, or keyboard-smash text are not allowed."
+    );
+    return false;
+  }
+
+const selectedCategory = document.getElementById("swal-category").value;
+
+const customCategory = document
+  .getElementById("swal-custom-category")
+  .value.trim();
+
+const visibility = document.querySelector(
+  'input[name="swal-visibility"]:checked'
+)?.value;
       const finalCategory =
         selectedCategory === "Others" ? customCategory : selectedCategory;
 
@@ -1020,8 +1309,8 @@ customClass: {
       return;
     }
 
-    setQuestion(card.question || "");
-    setAnswer(card.answer || "");
+    setQuestion(limitChars(card.question || "", QUESTION_LIMIT));
+    setAnswer(limitChars(card.answer || "", ANSWER_LIMIT));
     setEditingCardId(realCardId);
     setShowAddCard(true);
 
@@ -1046,9 +1335,41 @@ customClass: {
 
   const filteredCards = useMemo(() => {
     const q = search.trim().toLowerCase();
+    let correctQuestions = [];
+    let wrongQuestions = [];
+
+    try {
+      const savedQuizResults =
+        readJsonStorage(`deckQuizResults_${deckId}`) ||
+        readJsonStorage("lessonQuizResults") ||
+        null;
+
+      const quizAnswers =
+        savedQuizResults?.source === "deck" &&
+        Number(savedQuizResults?.deckId || savedQuizResults?.deck_id) ===
+          Number(deckId) &&
+        Array.isArray(savedQuizResults.answers)
+          ? savedQuizResults.answers
+          : [];
+
+      correctQuestions = quizAnswers
+        .filter((item) => item.isCorrect)
+        .map((item) => normalizeText(item.question));
+
+      wrongQuestions = quizAnswers
+        .filter((item) => !item.isCorrect)
+        .map((item) => normalizeText(item.question));
+    } catch (error) {
+      console.error("Quiz memorized filter error:", error);
+    }
 
     return cards.filter((card) => {
-      const isMemorized = Number(card.is_memorized) === 1;
+      const cardQuestion = normalizeText(card.question);
+      const answeredCorrectly = correctQuestions.includes(cardQuestion);
+      const answeredWrong = wrongQuestions.includes(cardQuestion);
+      const isMemorized =
+        answeredCorrectly ||
+        (!answeredWrong && Number(card.is_memorized) === 1);
 
       const matchesTab =
         activeTab === "All Cards" ||
@@ -1156,7 +1477,7 @@ return (
                 {deck ? (
                   <>
                     <div className={styles.deckTitleRow}>
-                      <h3>{deck.title}</h3>
+                      <h3 className={styles.deckTitleText}>{deck.title}</h3>
 
                       <div className={styles.deckActionBtns}>
                         <button
@@ -1208,7 +1529,7 @@ return (
 
                     <div className={styles.desc}>
                       <p>Description</p>
-                      <p>{deck.description || "No description"}</p>
+                      <p className={styles.deckDescriptionText}>{deck.description || "No description"}</p>
                       <hr />
                     </div>
 
@@ -1355,7 +1676,7 @@ return (
               </div>
 
               <div className={styles["cards-tabs"]}>
-                {["All Cards", "Memorized", "Not Memorized"].map((tab) => (
+                {["All Cards", "Not Memorized", "Memorized"].map((tab) => (
                   <span
                     key={tab}
                     className={activeTab === tab ? styles["active-tab"] : ""}
@@ -1369,14 +1690,18 @@ return (
               {filteredCards.length === 0 ? (
                 <div className={styles.emptyState}>
                   <img
-                    src="/images/cute1.png"
-                    className={styles["empty-img"]}
-                    alt="Empty"
+                    src="/images/celeb.png"
+                    alt="Celebration"
+                    className={styles.emptyImage}
                   />
 
                   <p className={styles["empty-msg"]}>
                     {search.trim()
-                      ? `No cards found for “${search}”.`
+                      ? `No cards found for "${search}".`
+                      : activeTab === "Not Memorized"
+                      ? "Congratulations! You memorized all cards 🎉"
+                      : activeTab === "Memorized"
+                      ? "There are no memorized cards"
                       : "There are no cards"}
                   </p>
                 </div>
@@ -1409,7 +1734,7 @@ return (
                           </div>
                         )}
 
-                       <p>
+                       <p className={styles.cardQuestionText}>
                           {String(card.question || "")
                             .replace(/\s*A\..*/is, "")
                             .trim()}
@@ -1417,7 +1742,7 @@ return (
 
                         <hr />
 
-                        <p>{getOnlyAnswer(card.answer)}</p>
+                        <p className={styles.cardAnswerText}>{getOnlyAnswer(card.answer)}</p>
 
                         {card.image && (
                           <img
@@ -1604,22 +1929,32 @@ return (
 
             <div className={styles["form-group"]}>
               <label>Question</label>
-              <input
-                type="text"
-                placeholder="Add a question"
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-              />
+          <input
+  type="text"
+  placeholder="Add a question"
+  maxLength={QUESTION_LIMIT}
+  value={question}
+  onChange={(e) => setQuestion(limitChars(e.target.value, QUESTION_LIMIT))}
+/>
+
+<small>
+  {getCharCount(question)}/{QUESTION_LIMIT} characters
+</small>
             </div>
 
             <div className={styles["form-group"]}>
               <label>Answer</label>
-              <input
-                type="text"
-                placeholder="Add an answer"
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-              />
+           <input
+  type="text"
+  placeholder="Add an answer"
+  maxLength={ANSWER_LIMIT}
+  value={answer}
+  onChange={(e) => setAnswer(limitChars(e.target.value, ANSWER_LIMIT))}
+/>
+
+<small>
+  {getCharCount(answer)}/{ANSWER_LIMIT} characters
+</small>
             </div>
 
             {preview && (

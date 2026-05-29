@@ -2,272 +2,32 @@
   display: flex;
   min-height: 100vh;
   background: #f5f5f5;
-  transition: all 0.3s ease;
+  padding-left: 220px;
+  box-sizing: border-box;
+  transition: padding-left 0.3s ease;
+}
+
+.container.sidebarCollapsed {
+  padding-left: 60px;
 }
 
 :global(.swal2-container) {
   z-index: 99999 !important;
 }
 
-.container.sidebarCollapsed .sidebar {
-  width: 60px;
-}
-
-/* SIDEBAR */
-
-.sidebar {
-  position: fixed;
-  width: 220px;
-  background-color: var(--color-primary);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100vh;
-  padding-top: 10px;
-  transition: width 0.3s ease;
-  z-index: 1000;
-}
-
-.sidebar.collapsed {
-  width: 60px;
-}
-
-.logo {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  margin-bottom: 0;
-}
-
-.logoExpanded {
-  display: block;
-  width: 150px;
-  height: auto;
-  object-fit: contain;
-  transition: all 0.3s ease;
-}
-
-.logoCollapsed {
-  display: none;
-  width: 90px;
-  height: 90px;
-  object-fit: contain;
-  transition: all 0.3s ease;
-  margin: 0;
-}
-
-.sidebar.collapsed .logoExpanded {
-  display: none;
-}
-
-.sidebar.collapsed .logoCollapsed {
-  display: block;
-}
-
-.sidebarToggle {
-  display: flex;
-  justify-content: flex-end;
-  padding: 0 10px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.sidebar.collapsed .sidebarToggle {
-  justify-content: center;
-  padding: 0;
-}
-
-.sidebarToggle i {
-  font-size: 24px;
-  color: #959494;
-}
-
-.myDecksTitle {
-  font-size: 17px;
-  margin: 0.3rem 0 0 15px;
-}
-
-.menu,
-.myDecksNav,
-.logout {
-  display: flex;
-  flex-direction: column;
-}
-
-.sidebarList,
-.sectionList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.sidebarListItem {
-  margin: 0;
-  padding: 0 8px 0 10px;
-}
-
-.sidebarList i,
-.sectionList i {
-  width: 22px;
-  min-width: 22px;
-  font-size: 20px;
-  margin-left: 14px;
-  margin-right: 10px;
-  opacity: 0.3;
-  color: black;
-  transition: all 0.3s ease;
-}
-
-.menuItem {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  box-sizing: border-box;
-  text-decoration: none;
-  color: #000;
-  background: transparent;
-  border: none;
-  padding: 10px 14px;
-  margin: 4px 0;
-  border-radius: 999px 0 0 999px;
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.25s ease, transform 0.25s ease;
-  font-family: inherit;
-  font-size: inherit;
-}
-
-.menuItem:hover {
-  background: #ffffff;
-  transform: translateX(6px);
-}
-
-.menuItem.active,
-.active {
-  background: rgb(243, 243, 243);
-  transform: translateX(6px);
-  margin-left: 30px;
-}
-
-.menuItem:hover i,
-.menuItem.active i,
-.active i {
-  opacity: 1;
-}
-
-.menuText {
-  display: inline-block;
-  line-height: 1.2;
-  white-space: normal;
-  word-break: break-word;
-}
-
-.logout {
-  margin-bottom: 20px;
-}
-
-.logoutLink {
-  display: flex;
-  align-items: center;
-  width: calc(100% - 18px);
-  box-sizing: border-box;
-  background: transparent;
-  border: none;
-  color: #000;
-  padding: 10px 14px;
-  margin: 4px 8px 0 10px;
-  border-radius: 999px 0 0 999px;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.25s ease, transform 0.25s ease;
-  font-family: inherit;
-  font-size: inherit;
-}
-
-.logoutLink:hover {
-  background: #ffffff;
-  transform: translateX(6px);
-}
-
-.logoutLink i {
-  width: 22px;
-  min-width: 22px;
-  font-size: 20px;
-  margin-left: 14px;
-  margin-right: 10px;
-  opacity: 0.3;
-  color: black;
-}
-
-.sidebar.collapsed i {
-  margin-left: 0;
-  justify-content: center;
-  width: 100%;
-  display: flex;
-  font-size: 1.5rem;
-}
-
-.sidebar.collapsed .logout .logoutLink {
-  justify-content: center;
-  padding: 10px 0;
-  margin-left: 0;
-}
-
-.sidebar.collapsed .sidebarList span,
-.sidebar.collapsed .sectionList span,
-.sidebar.collapsed .menuText {
-  display: none;
-}
-
-.sidebar.collapsed .myDecksTitle,
-.sidebar.collapsed .sectionTitle,
-.sidebar.collapsed .sidebarEmptyText {
-  display: none;
-}
-
-.divider {
-  height: 1px;
-  background-color: white;
-  margin: 0 10px;
-}
-
-.sectionBlock {
-  margin-top: 10px;
-}
-
-.sectionTitle {
-  font-size: 17px;
-  margin: 10px 0 5px 15px;
-  font-weight: 500;
-}
-
-.sectionDivider {
-  height: 1px;
-  background-color: white;
-  margin: 8px 10px;
-}
-
-.sidebarEmptyText {
-  opacity: 0.6;
-  padding-left: 20px;
-  font-size: 14px;
-  color: #333;
-}
-
-/* MAIN AREA */
-
+/* CONTENT */
 .mainArea {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  margin-left: 220px;
-  transition: margin-left 0.3s ease;
+  width: 100%;
+  min-width: 0;
   min-height: 100vh;
+  margin-left: 0 !important;
+  overflow-x: hidden;
 }
 
 .sidebarCollapsed .mainArea {
-  margin-left: 60px;
+  margin-left: 0 !important;
 }
 
 .gridContainer {
@@ -280,357 +40,13 @@
   min-height: 100vh;
 }
 
-.headerContainer {
-  grid-area: header;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #e6e6e6;
-  background: #f5f5f5;
-  position: sticky;
-  top: 0;
-  z-index: 500;
-}
-
-.searchBar {
-  flex: 1;
-  min-width: 0;
-  max-width: 850px;
-  height: 35px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  background: #ffffff;
-  border: 1px solid var(--color-third);
-  border-radius: 50px;
-  padding: 0 8px 0 18px;
-  box-sizing: border-box;
-}
-
-.searchBar input {
-  flex: 1;
-  min-width: 0;
-  height: 100%;
-  border: none;
-  outline: none;
-  background: transparent;
-  padding: 0 12px 0 0;
-  font-size: 15px;
-  color: var(--font-color);
-  font-family: inherit;
-}
-
-.searchBtn {
-  width: 38px;
-  height: 28px;
-  border: none;
-  outline: none;
-  background: transparent;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  margin: 0;
-  appearance: none;
-  -webkit-appearance: none;
-}
-
-.searchBtn i {
-  font-size: 22px;
-  color: #111;
-  line-height: 1;
-}
-
-.searchBtn:hover {
-  background: #f2ecff;
-}
-
-.searchBar i {
-  font-size: 16px;
-  color: #000;
-}
-
-.searchBar:focus-within {
-  box-shadow: 0 0 0 3px rgba(200, 168, 233, 0.18);
-}
-
-.profileWrapper {
-  position: absolute;
-  right: 30px;
-  top: 8px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  z-index: 10;
-}
-
-.dpContainer {
-  width: 40px;
-  height: 40px;
-}
-
-.profilePic {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  display: block;
-}
-
-.userInfo p {
-  margin: 0;
-  font-size: 20px;
-  color: #000;
-  white-space: nowrap;
-}
-
-.profileLink {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  text-decoration: none;
-  color: inherit;
-}
-
-.dropdown {
-  position: relative;
-}
-
-.dropdownBtn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 18px;
-  padding: 6px;
-}
-
-.dropdownContent {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  left: auto;
-  display: none;
-  background: #fff;
-  border: 1px solid #e5e5e5;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-  border-radius: 12px;
-  width: 190px;
-  max-width: calc(100vw - 20px);
-  padding: 8px;
-  z-index: 9999;
-}
-
-.dropdownContent a,
-.dropdownContent button {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 10px 12px;
-  border-radius: 10px;
-  text-decoration: none;
-  color: #000;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 15px;
-  text-align: left;
-}
-
-.dropdownContent a:hover,
-.dropdownContent button:hover {
-  background: #f3f3f3;
-}
-
-.show {
-  display: block;
-}
-
-/* NOTIFICATION */
-
-.notificationWrapper {
-  position: relative;
-  margin-left: auto;
-  margin-right: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.notificationBtn {
-  position: relative;
-  width: 42px;
-  height: 42px;
-  margin: 0;
-  border: none;
-  background: transparent;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-}
-
-.notificationBtn i {
-  font-size: 24px;
-  color: #555;
-}
-
-.notificationBadge {
-  position: absolute;
-  top: 3px;
-  right: 3px;
-  min-width: 17px;
-  height: 17px;
-  padding: 0 4px;
-  border-radius: 999px;
-  background: #e74c3c;
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  display: grid;
-  place-items: center;
-}
-
-.notificationDropdown {
-  position: absolute;
-  top: 52px;
-  right: 0;
-  width: 330px;
-  min-height: 240px;
-  max-height: 430px;
-  overflow-y: auto;
-  background: #ffffff;
-  border: 1px solid #eeeeee;
-  border-radius: 20px;
-  padding: 14px;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.14);
-  z-index: 99999;
-  display: none;
-}
-
-.notificationDropdown.show {
-  display: block;
-}
-
-.notificationHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  padding-bottom: 12px;
-}
-
-.notificationHeader h4 {
-  margin: 0;
-  font-size: 20px;
-  color: var(--font-color);
-}
-
-.markReadBtn {
-  background: #907ead;
-  border: 1px solid #6f5796;
-  box-shadow: 0 4px rgb(126, 107, 158);
-  color: white;
-  border-radius: 999px;
-  padding: 6px 10px;
-  font-family: inherit;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.markReadBtn:hover {
-  background: #decfff;
-}
-
-.emptyNotification {
-  min-height: 180px;
-  padding: 22px 15px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 14px;
-  text-align: center;
-}
-
-.emptyNotificationImg {
-  width: 165px;
-  height: auto;
-  object-fit: contain;
-}
-
-.emptyNotification p {
-  margin: 0;
-  color: #777;
-  font-size: 17px;
-  line-height: 1.4;
-}
-
-.notificationItem {
-  padding: 14px 4px;
-  border-bottom: 1px solid #eeeeee;
-  background: transparent;
-}
-
-.notificationItem:last-child {
-  border-bottom: none;
-}
-
-.notificationItem:hover {
-  background: #faf7ff;
-  border-radius: 12px;
-  padding-left: 10px;
-  padding-right: 10px;
-}
-
-.notificationTop {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.notificationTop h5 {
-  margin: 0;
-  font-size: 16px;
-  color: #5a0776;
-}
-
-.notificationRole {
-  background: #1515158b;
-  border: 1px solid #3d3d3d;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.563);
-  color: #ffffff;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 14px;
-  text-transform: capitalize;
-}
-
-.notificationItem p {
-  margin: 9px 0 6px;
-  color: var(--font-color);
-  font-size: 16px;
-  line-height: 1.4;
-}
-
-.notificationDate,
-.notificationItem small {
-  color: #5454546d;
-  font-size: 16px;
-}
-
-/* CONTENT */
-
 .mainContent {
   grid-area: main;
   padding: 28px 40px 40px;
   background: #f5f5f5;
   flex: 1;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .courses {
@@ -644,7 +60,6 @@
   overflow: visible;
   margin-bottom: 50px;
 }
-
 
 .courseHead {
   position: absolute;
@@ -660,6 +75,7 @@
 .innercourse {
   position: relative;
   z-index: 1;
+  overflow: visible;
 }
 
 .innerhead {
@@ -672,8 +88,8 @@
   border-bottom: 2px solid #ddd;
   box-sizing: border-box;
   flex-wrap: wrap;
+  overflow: visible;
 }
-
 
 .innerhead h1 {
   font-size: 40px;
@@ -681,17 +97,15 @@
   margin: 0;
 }
 
-/* LESSON CARDS */
-
 .lessons {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 300px));
   gap: 15px;
   margin-top: 10px;
   margin-bottom: 30px;
   padding: 20px 40px 30px;
+  justify-content: start;
 }
-
 
 .lessonBox {
   border-radius: 20px;
@@ -699,6 +113,7 @@
   position: relative;
   min-height: 230px;
   width: 100%;
+  max-width: 300px;
   box-sizing: border-box;
 }
 
@@ -814,7 +229,6 @@
 }
 
 /* PUBLIC DECKS */
-
 .deckGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(210px, 230px));
@@ -834,7 +248,6 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
-
 
 .deckCard:hover {
   transform: translateY(-6px);
@@ -909,7 +322,6 @@
 }
 
 /* FILTER */
-
 .filterGroup {
   display: flex;
   align-items: center;
@@ -917,11 +329,12 @@
   gap: 14px;
   margin-left: auto;
   flex-wrap: wrap;
+  overflow: visible;
 }
-
 
 .customDropdown {
   position: relative;
+  z-index: 50;
 }
 
 .customDropdownBtn {
@@ -952,13 +365,14 @@
 .customDropdownMenu {
   position: absolute;
   top: 34px;
-  left: 0;
+  right: 0;
+  left: auto;
   width: 130px;
   background: #eeeeee;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
-  z-index: 9999;
+  z-index: 99999;
   border: 1px solid #777;
 }
 
@@ -1013,9 +427,7 @@
   text-overflow: ellipsis;
 }
 
-
 /* SWEETALERT */
-
 .swalPopup {
   border-radius: 24px;
   padding: 28px;
@@ -1050,7 +462,6 @@
   font-size: 15px;
 }
 
-/* Purple confirm button */
 .swalConfirmBtn {
   background: #814baa;
   border: 1px solid #3d1958;
@@ -1061,7 +472,6 @@
   background: #642b92;
 }
 
-/* Grey cancel button */
 .swalCancelBtn {
   background: rgba(90, 90, 90, 0.72);
   border: 1px solid rgba(55, 55, 55, 0.85);
@@ -1078,206 +488,7 @@
   box-shadow: none;
 }
 
-/* RESPONSIVE */
-
-@media (max-width: 1100px) {
-  .lessons {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .deckGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 900px) {
-  .sidebar {
-    width: 60px;
-  }
-
-  .sidebar .logoExpanded,
-  .sidebar .myDecksTitle,
-  .sidebar .sectionTitle,
-  .sidebar .sidebarEmptyText,
-  .sidebar .menuText {
-    display: none;
-  }
-
-  .sidebar .logoCollapsed {
-    display: block;
-  }
-
-  .mainArea {
-    margin-left: 60px;
-  }
-
-  .searchBar {
-    width: 360px;
-  }
-
-  .profileWrapper {
-    right: 14px;
-  }
-
-  .userInfo {
-    display: none;
-  }
-
-  .mainContent {
-    padding: 28px 20px 30px;
-  }
-
-  .lessons,
-  .deckGrid {
-    padding: 25px;
-  }
-
-  .innerhead {
-    padding-left: 25px;
-  }
-
-  .innerhead h1 {
-    font-size: 32px;
-  }
-}
-
-@media (max-width: 1100px) {
-  .deckGrid {
-    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  }
-
-  .deckCard {
-    max-width: none;
-  }
-}
-
-@media (max-width: 900px) {
-  .sidebar {
-    width: 60px;
-  }
-
-  .sidebar .logoExpanded,
-  .sidebar .myDecksTitle,
-  .sidebar .sectionTitle,
-  .sidebar .sidebarEmptyText,
-  .sidebar .menuText {
-    display: none;
-  }
-
-  .sidebar .logoCollapsed {
-    display: block;
-  }
-
-  .mainArea {
-    margin-left: 60px;
-  }
-
-  .headerContainer {
-    justify-content: flex-start;
-    padding: 0 14px;
-  }
-
-  .searchBar {
-    max-width: none;
-    width: calc(100% - 130px);
-    margin: 0;
-  }
-
-  .profileWrapper {
-    right: 10px;
-  }
-
-  .userInfo {
-    display: none;
-  }
-
-  .mainContent {
-    padding: 24px 18px 30px;
-  }
-
-  .innerhead {
-    padding: 68px 24px 15px;
-  }
-
-  .innerhead h1 {
-    font-size: 32px;
-  }
-
-  .lessons,
-  .deckGrid {
-    padding: 22px 24px 30px;
-  }
-}
-
-@media (max-width: 768px) {
-  .gridContainer {
-    grid-template-rows: auto 1fr;
-  }
-
-  .headerContainer {
-    min-height: 70px;
-  }
-
-  .mainContent {
-    padding: 18px 12px 26px;
-  }
-
-  .courses {
-    border-radius: 14px;
-    margin-bottom: 28px;
-  }
-
-  .courseHead {
-    height: 42px;
-    border-top-left-radius: 14px;
-    border-top-right-radius: 14px;
-  }
-
-  .innerhead {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 58px 18px 14px;
-  }
-
-  .innerhead h1 {
-    font-size: 28px;
-  }
-
-  .filterGroup {
-    width: 100%;
-    justify-content: flex-start;
-    gap: 8px;
-  }
-
-  .customDropdown {
-    flex: 1 1 145px;
-  }
-
-  .customDropdownBtn {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .customDropdownMenu {
-    left: 0;
-    right: auto;
-    width: 100%;
-    min-width: 150px;
-    max-height: 230px;
-    overflow-y: auto;
-  }
-
-  .lessons {
-    grid-template-columns: 1fr;
-    padding: 18px;
-  }
-
-  .deckGrid {
-    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-    padding: 18px;
-  }
-}
-
+/* EMPTY STATE */
 .deckGrid:has(.emptyDeckState) {
   display: flex;
   justify-content: center;
@@ -1309,168 +520,174 @@
   font-weight: 600;
 }
 
-
-@media (max-width: 520px) {
-  .mainArea {
-    margin-left: 60px;
+/* TABLET */
+@media (max-width: 900px) {
+  .container,
+  .container.sidebarCollapsed {
+    padding-left: 60px;
   }
 
-  .headerContainer {
-    padding: 8px 10px;
-    align-items: center;
-  }
-
-  .searchBar {
-    width: calc(100% - 112px);
-    height: 34px;
-    padding-left: 12px;
-  }
-
-  .searchBar input {
-    font-size: 13px;
-  }
-
-  .profileWrapper {
-    right: 6px;
-    gap: 4px;
-  }
-
-  .notificationBtn,
-  .dpContainer,
-  .profilePic {
-    width: 34px;
-    height: 34px;
-  }
-
-  .dropdownBtn {
-    padding: 3px;
-  }
-
-  .notificationDropdown {
-    position: fixed;
-    top: 62px;
-    left: 10px;
-    right: 10px;
-    width: auto;
-    max-width: none;
-  }
-
-  .dropdownContent {
-    right: 0;
-    width: 170px;
-  }
-
-  .innerhead h1 {
-    font-size: 24px;
-  }
-
-  .filterGroup {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .customDropdown {
+  .mainArea,
+  .sidebarCollapsed .mainArea {
+    margin-left: 0 !important;
     width: 100%;
   }
 
-  .customDropdownBtn {
-    height: 34px;
-  }
-
-  .deckGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .deckCard {
-    max-width: 100%;
-  }
-
-  .lessonBox {
-    padding: 12px;
-    min-height: 230px;
-  }
-
-  .lessonContent {
-    left: 12px;
-    right: 12px;
-  }
-
-  .lessonPreview {
-    left: 24px;
-    right: 24px;
-  }
-}
-
-
-/* PUBLIC DECKS RESPONSIVE FIX */
-
-@media (max-width: 900px) {
-  .mainArea {
-    margin-left: 230px !important;
-  }
-
-  .sidebarCollapsed .mainArea {
-    margin-left: 70px !important;
-  }
-
   .mainContent {
-    padding: 24px 18px 30px !important;
+    padding: 16px 12px 28px;
   }
 
   .courses {
     width: 100%;
-    overflow: visible;
+    max-width: 100%;
   }
 
   .innerhead {
-    padding: 65px 22px 14px !important;
-    gap: 12px;
+    padding: 58px 16px 10px;
+    gap: 10px;
   }
 
   .innerhead h1 {
-    font-size: 28px !important;
+    font-size: 26px;
   }
 
   .filterGroup {
-    width: 100%;
-    justify-content: flex-start !important;
-    gap: 8px !important;
+    gap: 8px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
   }
 
-  .customDropdown {
-    flex: 1 1 140px;
+  .customDropdownMenu {
+    top: 32px;
+    right: 0;
+    left: auto;
   }
 
-  .customDropdownBtn {
-    width: 100% !important;
+  .lessons {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 280px));
+    justify-content: start;
+    padding: 18px 16px 26px;
   }
 
-  .lessons,
   .deckGrid {
-    grid-template-columns: 1fr !important;
-    padding: 18px !important;
-  }
-
-  .deckCard {
-    max-width: 100% !important;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 220px));
+    justify-content: start;
+    padding: 18px 16px 26px;
   }
 }
 
-@media (max-width: 600px) {
-  .mainArea {
-    margin-left: 70px !important;
+@media (max-width: 520px) {
+  .container,
+  .container.sidebarCollapsed {
+    padding-left: 64px;
   }
 
   .mainContent {
-    padding: 18px 10px 24px !important;
+    padding: 8px 6px 18px;
+  }
+
+  .courses {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .courseHead {
+    height: 40px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
   }
 
   .innerhead {
-    padding: 58px 14px 14px !important;
+    padding: 50px 10px 8px;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+
+  .innerhead h1 {
+    font-size: 15px;
+    white-space: nowrap;
   }
 
   .filterGroup {
-    flex-direction: column;
-    align-items: stretch;
+    gap: 4px;
+    flex-wrap: nowrap;
+  }
+
+  .customDropdownBtn {
+    width: 70px;
+    height: 23px;
+    font-size: 8px;
+    padding: 0 5px;
+    gap: 3px;
+  }
+
+  .customDropdownBtn i:first-child {
+    font-size: 10px;
+  }
+
+  .customDropdownMenu {
+    width: 110px;
+    top: 28px;
+    right: 0;
+    left: auto;
+  }
+
+  .customDropdownMenu button {
+    font-size: 12px;
+    padding: 7px 9px;
+  }
+
+  .lessons {
+    grid-template-columns: minmax(210px, 245px);
+    justify-content: center;
+    padding: 14px 6px 20px;
+    gap: 12px;
+  }
+
+  .lessonBox {
+    width: 100%;
+    max-width: 245px;
+    min-height: 210px;
+    padding: 16px;
+  }
+
+  .lessonTop {
+    height: 100px;
+    border-radius: 24px;
+  }
+
+  .lessonContent {
+    top: 72px;
+    left: 16px;
+    right: 16px;
+    min-height: 145px;
+    max-height: 145px;
+    border-radius: 24px;
+    padding: 12px 14px 16px;
+  }
+
+  .lessonTitle {
+    font-size: 12px;
+  }
+
+  .lessonDescription {
+    font-size: 10px;
+  }
+
+  .lessonBtn {
+    font-size: 10px;
+    padding: 5px 10px;
+  }
+
+  .deckGrid {
+    grid-template-columns: minmax(185px, 215px);
+    justify-content: center;
+    padding: 14px 6px 22px;
+    gap: 12px;
+  }
+
+  .deckCard {
+    max-width: 215px;
   }
 }
